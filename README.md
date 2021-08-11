@@ -75,12 +75,22 @@ near future in favour of a cron-job.
     Fetch initial data:
          
         /api/projects/ingest
-        Valid query params: project-type=['brug', 'kade']
+        Valid query (mandatory) parameter: project-type=['brug', 'kade']
         
         e.g: http://localhost:8000/api/projects/ingest?project-type=kade
 
     Get all projects:
      
         /api/projects
+        Valid query (optional) parameter: project-type=['brug', 'kade']
+
+        e.g: http://localhost:8000/api/projects/ingest?project-type=kade
+
+    Get project details:
+
+        /api/project/details
+        Valid query (mandatory) parameter: id=sting (md5 hash, identifier from /api/projects)
+
+        e.g. http://localhost:8000/api/project/details?id=846f78938721bd84db735dd413c63346
 
 (other APIs are pending...)

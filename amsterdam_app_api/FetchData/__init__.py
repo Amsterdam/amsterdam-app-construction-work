@@ -1,2 +1,2 @@
-from .ProjectenBruggen import FetchProjectAll
-from .ProjectenBruggen import FetchProjectDetails
+from .Projects import FetchProjectAll
+from .Projects import FetchProjectDetails

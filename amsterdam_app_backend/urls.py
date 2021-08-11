@@ -15,9 +15,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from amsterdam_app_api import views
 
 urlpatterns = [
-    path('', include('amsterdam_app_api.urls')),
+    path('api/', include('amsterdam_app_api.urls')),
     path('admin/', admin.site.urls),
 ]

@@ -1,41 +1,77 @@
 from django.shortcuts import render
-from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
-from amsterdam_app_api.models import ProjectenBruggen, ProjectenKademuren
-from amsterdam_app_api.serializers import ProjectenBruggenSerializer, ProjectenKademurenSerializer
-from amsterdam_app_api.FetchData.ProjectenBruggen import FetchProjectAll, FetchProjectDetails
+from django.http import JsonResponse
+from amsterdam_app_api.models import Projects, ProjectDetails
+from amsterdam_app_api.serializers import ProjectsSerializer, ProjectDetailsSerializer
+from amsterdam_app_api.FetchData.Projects import IngestProjects
 
 
-def all_projects(request):
+def projects(request):
     """
-    List all code snippets, or create a new snippet.
+    Get a list of all projects. Narrow down by query param: project-type
+
+    :param request: project-type=[<brug>, <kade>]
+    :return: JsonResponse
     """
-    project_types = ['brug', 'kade']
+    search_queries = ['brug', 'kade']
     if request.method == 'GET':
-        project_type = request.GET.get('project-type', '')
-        if project_type not in project_types:
-            return JsonResponse({'status': False,
-                                 'result': 'Invalid query parameter. Valid query params: project-type={params}'.format(params=project_types)})
+        project_type = request.GET.get('project-type', None)
+        if project_type not in search_queries and project_type is not None:
+            return JsonResponse(
+                {
+                    'status': False,
+                    'result': 'Invalid query parameter. param(s): project-type={params}'.format(params=search_queries)
+                },
+                status=422)
 
-        if project_type == 'brug':
-            projects = ProjectenBruggen.objects.all()
-            serializer = ProjectenBruggenSerializer(projects, many=True)
-            return JsonResponse(serializer.data, safe=False)
-        elif project_type == 'kade':
-            projects = ProjectenKademuren.objects.all()
-            serializer = ProjectenKademurenSerializer(projects, many=True)
-            return JsonResponse(serializer.data, safe=False)
+        # Get list of projects by type
+        if project_type is not None:
+            projects_object = Projects.objects.filter(project_type=project_type).all()
+
+        # Get all projects
         else:
-            JsonResponse({'status': False,
-                          'result': 'Invalid request'})
+            projects_object = Projects.objects.all()
+
+        serializer = ProjectsSerializer(projects_object, many=True)
+        return JsonResponse(serializer.data, safe=False, status=200)
+    else:
+        return JsonResponse({'status': False, 'result': 'Method not allowed'}, status=405)
 
 
-def ingest_all_projects(request):
+def project_details(request):
+    """
+    Get details for a project by identifier
+
+    :param request: id=<identifier>
+    :return: JsonResponse
+    """
+    if request.method == 'GET':
+        identifier = request.GET.get('id', None)
+        if identifier is None:
+            return JsonResponse(
+                {
+                    'status': False,
+                    'result': 'Invalid query parameter. param(s): id=<identifier>'
+                },
+                status=422
+            )
+        else:
+            project_object = ProjectDetails.objects.filter(pk=identifier).first()
+            if project_object is not None:
+                serializer = ProjectDetailsSerializer(project_object, many=False)
+                return JsonResponse(serializer.data, safe=False, status=200)
+            else:
+                return JsonResponse({'status': False, 'result': 'No record found'}, status=404)
+    else:
+        return JsonResponse({'status': False, 'result': 'Method not allowed'}, status=405)
+
+
+def ingest_projects(request):
     """
     Should move to cron job!!!!
     :param request:
-    :return:
+    :return: JsonResponse
     """
     paths = {
         'brug': '/projecten/bruggen/maatregelen-vernieuwen-bruggen/',
@@ -45,48 +81,12 @@ def ingest_all_projects(request):
     # Get project type from query string or return invalid
     project_type = request.GET.get('project-type', '')
     if paths.get(request.GET.get('project-type', '')) is None:
-        return JsonResponse({'status': False,
-                             'result': 'Invalid query parameter. Valid query params: project-type={params}'.format(params=[key for key in paths.keys()])})
+        result = 'Invalid query parameter. param(s): project-type={params}'.format(params=[key for key in paths.keys()])
+        return JsonResponse({'status': False, 'result': result}, status=422)
 
-    # Fetch projects and ingest data
-    fpa = FetchProjectAll(paths.get(request.GET.get('project-type')))
-    fpa.get_data()
-    fpa.parse_data()
+    ingest = IngestProjects()
+    result = ingest.get_set_projects(project_type)
 
-    updated = new = failed = 0
-    for item in fpa.parsed_data:
-        if project_type == 'kade':
-            try:
-                project, created = ProjectenKademuren.objects.update_or_create(identifier=item.get('identifier'))
-
-                if created:
-                    project = ProjectenKademuren(**item)
-                    project.save()
-                    new += 1
-                else:
-                    ProjectenKademuren.objects.filter(pk=item.get('identifier')).update(**item)
-                    updated += 1
-            except Exception as error:
-                print('failed ingesting data {project}: {error}'.format(project=item.get('title'), error=error))
-                failed += 1
-        elif project_type == 'brug':
-            try:
-                project, created = ProjectenBruggen.objects.update_or_create(identifier=item.get('identifier'))
-
-                if created:
-                    project = ProjectenBruggen(**item)
-                    project.save()
-                    new += 1
-                else:
-                    ProjectenBruggen.objects.filter(pk=item.get('identifier')).update(**item)
-                    updated += 1
-            except Exception as error:
-                print('failed ingesting data {project}: {error}'.format(project=item.get('title'), error=error))
-                failed += 1
-
-    return JsonResponse({'status': True,
-                         'result': 'Updated: {updated}, New: {new}, Failed: {failed}'.format(new=new,
-                                                                                             updated=updated,
-                                                                                             failed=failed)})
+    return JsonResponse({'status': True, 'result': result}, status=200)
 
 

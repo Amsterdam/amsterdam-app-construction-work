@@ -2,10 +2,11 @@ import requests
 import json
 from amsterdam_app_api.GenericFunctions.Hashing import Hashing
 from amsterdam_app_api.GenericFunctions.TextSanitizers import TextSanitizers
+from amsterdam_app_api.models import Projects, ProjectDetails
 
 
 class FetchProjectDetails:
-    def __init__(self, url):
+    def __init__(self, url, identifier):
         self.url = '{url}?AppIdt=app-pagetype&reload=true'.format(url=url)
         self.raw_data = dict()
         self.page = dict()
@@ -13,6 +14,7 @@ class FetchProjectDetails:
 
         # Data model
         self.details = {
+            'identifier': identifier,
             'body': {
                 'contact': [],  # [{'text': '', 'html': '', 'title': ''}, ...],
                 'what': [],  # [{'text': '', 'html': '', 'title': ''}, ...],
@@ -20,10 +22,10 @@ class FetchProjectDetails:
                 'where': [],  # [{'text': '', 'html': '', 'title': ''}, ...],
                 'work': [],  # [{'text': '', 'html': '', 'title': ''}, ...],
                 'more-info': [],  # [{'text': '', 'html': '', 'title': ''}, ...],
-                'coordinates': {'lon': None, 'lat': None}
+                'coordinates': {'lon': float(), 'lat': float()}
             },
-            'districts_id': -1,
-            'dictricts_name': '',
+            'district_id': -1,
+            'district_name': '',
             'images': [
                 # {
                 #     'type': '',
@@ -98,7 +100,7 @@ class FetchProjectDetails:
         self.details['rel_url'] = self.raw_data.get('item').get('relUrl', '/'.join(self.url.split('/')[3:-1]))
 
         # Set page identifier and title
-        self.details['page_id'] = self.page.get('PagIdt', -1)
+        self.details['page_id'] = int(self.page.get('PagIdt', -1))
         self.details['title'] = self.page.get('title', ''.join(self.details['rel_url'].split('/')[-1:]))
 
     def recursive_filter(self, data, result, veld=None):
@@ -156,9 +158,10 @@ class FetchProjectDetails:
             if filtered_dicts[i].get('Coordinaten', None) is not None:
                 self.set_geo_data(filtered_dicts[i]['Coordinaten']['Txt']['geo']['json'])
 
+            # Get district name and identifier
             if filtered_dicts[i].get('Kenmerken', None) is not None and filtered_dicts[i].get('Kenmerken').get('Src') == 'Stadsdeel':
-                self.details['districts_id'] = filtered_dicts[i].get('Kenmerken').get('SelItmIdt')
-                self.details['dictricts_name'] = filtered_dicts[i].get('Kenmerken').get('Wrd')
+                self.details['district_id'] = int(filtered_dicts[i].get('Kenmerken').get('SelItmIdt'))
+                self.details['district_name'] = filtered_dicts[i].get('Kenmerken').get('Wrd')
 
     def set_text_result(self, data, app_category):
         if data['html'] != '':
@@ -228,13 +231,14 @@ class FetchProjectDetails:
 
 
 class FetchProjectAll:
-    def __init__(self, path=None):
+    def __init__(self, path, project_type):
         """
         Class file to retrieve data from end-point and convert into a suitable format
         """
         self.protocol = 'https://'
         self.domain = 'www.amsterdam.nl'
         self.path = path
+        self.project_type = project_type
         self.query_params = '?new_json=true&pager_rows=1000'
         self.url = '{protocol}{domain}{path}{query_params}'.format(protocol=self.protocol,
                                                                    domain=self.domain,
@@ -259,15 +263,7 @@ class FetchProjectAll:
         """
         Convert data from end-point
 
-        districts_id = integer
-        title = string
-        content_html = string
-        content_text = string
-        images = list
-        identifier = string
-        publication_data = string
-        modification_data = string
-        source_url = string
+        see models.Projects() for field definitions
         :return: void
         """
 
@@ -275,11 +271,12 @@ class FetchProjectAll:
             try:
                 # Using md5 will yield the same result for a given string on repeated iterations, hence an identifier
                 identifier = Hashing.make_md5_hash(self.raw_data[i].get('feedid', None))
-                # identifier = hashlib.md5(self.raw_data[i].get('feedid', None).encode()).hexdigest()
                 self.parsed_data.append(
                     {
+                        'project_type': self.project_type,
                         'identifier': identifier,
-                        'districts_id': -1,  # this will be fetched on a successive call...
+                        'district_id': -1,  # this will be fetched on a successive call...
+                        'district_name': '',  # this will be fetched on a successive call...
                         'title': self.raw_data[i].get('title', ''),
                         'content_html': self.raw_data[i].get('content', ''),
                         'content_text': TextSanitizers.strip_html(self.raw_data[i].get('content', '')),
@@ -293,30 +290,77 @@ class FetchProjectAll:
                 print('failed parsing data from {url}: {error}'.format(url=self.url, error=error))
 
 
-if __name__ == '__main__':
-    import time
-    now = time.time()
-    paths = [
-        '/projecten/bruggen/maatregelen-vernieuwen-bruggen/',
-        '/projecten/kademuren/maatregelen-vernieuwing/'
-    ]
-    for path in paths:
-        fpa = FetchProjectAll(path=path)
+class IngestProjects:
+    def __init__(self):
+        self.paths = {
+            'brug': '/projecten/bruggen/maatregelen-vernieuwen-bruggen/',
+            'kade': '/projecten/kademuren/maatregelen-vernieuwing/'
+        }
+
+    @staticmethod
+    def get_set_project_details(item):
+        fpd = FetchProjectDetails(item['source_url'], item['identifier'])
+        fpd.get_data()
+
+        # Skip news items/articles etc...
+        if fpd.page_type == 'subhome':
+            fpd.parse_data()
+            project_details_object, created = ProjectDetails.objects.update_or_create(identifier=item.get('identifier'))
+
+            # New record
+            if created is True:
+                project_details_object = ProjectDetails(**fpd.details)
+                project_details_object.save()
+
+            # Update existing record
+            else:
+                ProjectDetails.objects.filter(pk=item.get('identifier')).update(**fpd.details)
+
+            return fpd.details
+        return None
+
+    def get_set_projects(self, project_type):
+        path = self.paths[project_type]
+        # Fetch projects and ingest data
+        fpa = FetchProjectAll(path, project_type)
         fpa.get_data()
         fpa.parse_data()
 
-        data = list()
-        # for i in [8]:
-        for i in range(0, len(fpa.parsed_data), 1):
-            fpd = FetchProjectDetails(fpa.parsed_data[i]['source_url'])
-            fpd.get_data()
-            if fpd.page_type == 'subhome':
-                fpd.parse_data()
-                fpa.parsed_data[i]['images'] = fpd.details['images']
-                data.append(fpd.details)
-            else:
-                print('{title} <-> {page_type}'.format(title=fpa.parsed_data[i]['title'], page_type=fpd.page_type))
+        updated = new = unmodified = failed = 0
+        for item in fpa.parsed_data:
+            try:
+                project_object, created = Projects.objects.update_or_create(identifier=item.get('identifier'))
 
-        print('Done fetching: {path}'.format(path=path))
+                # New record
+                if created is True:
+                    result = self.get_set_project_details(item)
+                    if result is not None:
+                        item['images'] = result['images']
+                        item['district_id'] = result['district_id']
+                        item['district_name'] = result['district_name']
+                        project_object = Projects(**item)
+                        project_object.save()
+                        new += 1
+                    else:
+                        Projects.objects.get(pk=item.get('identifier')).delete()
 
-    print(time.time() - now)
+                # Update existing record
+                else:
+                    if item.get('modification_date', None) == project_object.modification_date:
+                        result = self.get_set_project_details(item)
+                        if result is not None:
+                            item['images'] = result['images']
+                            item['district_id'] = result['district_id']
+                            item['district_name'] = result['district_name']
+                            Projects.objects.filter(pk=item.get('identifier')).update(**item)
+                            updated += 1
+                        else:
+                            Projects.objects.get(pk=item.get('identifier')).delete()
+                    else:
+                        unmodified += 1
+
+            except Exception as error:
+                print('failed ingesting data {project}: {error}'.format(project=item.get('title'), error=error))
+                failed += 1
+
+        return {'new': new, 'updated': updated, 'unmodified': unmodified, 'failed': failed}

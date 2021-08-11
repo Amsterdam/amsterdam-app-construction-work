@@ -1,14 +1,20 @@
 from rest_framework import serializers
-from amsterdam_app_api.models import ProjectenBruggen, ProjectenKademuren
+from amsterdam_app_api.models import Image, Projects, ProjectDetails
 
 
-class ProjectenBruggenSerializer(serializers.ModelSerializer):
+class ImageSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ProjectenBruggen
+        model = Image
         fields = '__all__'
 
 
-class ProjectenKademurenSerializer(serializers.ModelSerializer):
+class ProjectsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = ProjectenKademuren
+        model = Projects
+        fields = '__all__'
+
+
+class ProjectDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ProjectDetails
         fields = '__all__'
