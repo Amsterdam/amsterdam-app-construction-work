@@ -3,6 +3,7 @@ import json
 from amsterdam_app_api.GenericFunctions.Hashing import Hashing
 from amsterdam_app_api.GenericFunctions.TextSanitizers import TextSanitizers
 from amsterdam_app_api.models import Projects, ProjectDetails
+from amsterdam_app_api.FetchData.Image import ImageFetcher
 
 
 class FetchProjectDetails:
@@ -292,13 +293,17 @@ class FetchProjectAll:
 
 class IngestProjects:
     def __init__(self):
+        self.image_fetcher = ImageFetcher
         self.paths = {
             'brug': '/projecten/bruggen/maatregelen-vernieuwen-bruggen/',
             'kade': '/projecten/kademuren/maatregelen-vernieuwing/'
         }
 
-    @staticmethod
-    def get_set_project_details(item):
+    def get_images(self):
+        # Add image objects to the download queue
+        pass
+
+    def get_set_project_details(self, item):
         fpd = FetchProjectDetails(item['source_url'], item['identifier'])
         fpd.get_data()
 
@@ -316,6 +321,7 @@ class IngestProjects:
             else:
                 ProjectDetails.objects.filter(pk=item.get('identifier')).update(**fpd.details)
 
+            self.get_images()
             return fpd.details
         return None
 

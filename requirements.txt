@@ -1,5 +1,6 @@
 wheel
 django
+django_crontab
 djangorestframework
 requests
 bs4

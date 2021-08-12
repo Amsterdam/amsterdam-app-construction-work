@@ -25,12 +25,13 @@ SECRET_KEY = 'django-insecure-wwam^r!!oh^9kn963x1d*06xyp$9dq&o2damc6&prduwtvk*)&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
 
 INSTALLED_APPS = [
+    'django_crontab',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -71,6 +72,11 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'amsterdam_app_backend.wsgi.application'
 
+# CronJobs
+
+CRONJOBS = [
+    ('0 */4 * * *', 'amsterdam_app_backend.cron.run')
+]
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases

@@ -11,6 +11,15 @@ function make-migrations {
     printf "Done.\n"
 }
 
+function add_cronjons {
+    printf "\nRemoving old cronjobs ... "
+    cd /code && python manage.py crontab remove
+    printf "Done.\n"
+    printf "\nSetting new cronjobs ... "
+    cd /code && python manage.py crontab add
+    printf "Done.\n"
+}
+
 function start-backend {
     printf "\nStarting Django API server\n\n"
     cd /code && python manage.py runserver 0.0.0.0:8000
@@ -29,4 +38,5 @@ function infinity_loop {
 
 header
 make-migrations
+# add_cronjons
 infinity_loop

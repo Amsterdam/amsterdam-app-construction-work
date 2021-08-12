@@ -34,7 +34,7 @@ def projects(request):
             projects_object = Projects.objects.all()
 
         serializer = ProjectsSerializer(projects_object, many=True)
-        return JsonResponse(serializer.data, safe=False, status=200)
+        return JsonResponse({'status': True, 'result': serializer.data}, safe=False, status=200)
     else:
         return JsonResponse({'status': False, 'result': 'Method not allowed'}, status=405)
 
@@ -60,7 +60,7 @@ def project_details(request):
             project_object = ProjectDetails.objects.filter(pk=identifier).first()
             if project_object is not None:
                 serializer = ProjectDetailsSerializer(project_object, many=False)
-                return JsonResponse(serializer.data, safe=False, status=200)
+                return JsonResponse({'status': True, 'result': serializer.data}, safe=False, status=200)
             else:
                 return JsonResponse({'status': False, 'result': 'No record found'}, status=404)
     else:
