@@ -346,7 +346,7 @@ class IngestProjects:
 
                 # Update existing record
                 else:
-                    if item.get('modification_date', None) == project_object.modification_date:
+                    if item.get('modification_date', None) != project_object.modification_date:
                         result = self.get_set_project_details(item)
                         if result is not None:
                             item['images'] = result['images']
