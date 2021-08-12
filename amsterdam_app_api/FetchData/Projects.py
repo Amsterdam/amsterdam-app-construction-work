@@ -299,9 +299,10 @@ class IngestProjects:
             'kade': '/projecten/kademuren/maatregelen-vernieuwing/'
         }
 
-    def get_images(self):
+    def get_images(self, fpd_details):
         # Add image objects to the download queue
         pass
+        print('sdf')
 
     def get_set_project_details(self, item):
         fpd = FetchProjectDetails(item['source_url'], item['identifier'])
@@ -321,7 +322,7 @@ class IngestProjects:
             else:
                 ProjectDetails.objects.filter(pk=item.get('identifier')).update(**fpd.details)
 
-            self.get_images()
+            self.get_images(fpd.details)
             return fpd.details
         return None
 
