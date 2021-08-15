@@ -293,16 +293,22 @@ class FetchProjectAll:
 
 class IngestProjects:
     def __init__(self):
-        self.image_fetcher = ImageFetcher
+        self.image_fetcher = ImageFetcher()
         self.paths = {
             'brug': '/projecten/bruggen/maatregelen-vernieuwen-bruggen/',
             'kade': '/projecten/kademuren/maatregelen-vernieuwing/'
         }
 
+        self.temp = list()
+
     def get_images(self, fpd_details):
         # Add image objects to the download queue
-        pass
-        print('sdf')
+        for images in  fpd_details['images']:
+            for size in images['sources']:
+                image_object = images['sources'][size]
+                image_object['size'] = size
+                self.temp.append(image_object)
+                self.image_fetcher.queue.put(image_object)
 
     def get_set_project_details(self, item):
         fpd = FetchProjectDetails(item['source_url'], item['identifier'])
@@ -353,7 +359,7 @@ class IngestProjects:
 
                 # Update existing record
                 else:
-                    if item.get('modification_date', None) != project_object.modification_date:
+                    if item.get('modification_date', None) == project_object.modification_date:
                         result = self.get_set_project_details(item)
                         if result is not None:
                             item['images'] = result['images']

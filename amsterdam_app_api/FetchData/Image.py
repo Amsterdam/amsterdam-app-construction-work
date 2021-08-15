@@ -1,8 +1,7 @@
 import requests
 import threading
-import base64
 from queue import Queue
-# from amsterdam_app_api.models import Image
+from amsterdam_app_api.models import Image
 
 
 class ImageFetcher:
@@ -29,21 +28,30 @@ class ImageFetcher:
 
     @staticmethod
     def save_image_to_db(item):
-        path = ''.join(['/Users/robert/programming/Adam/Amsterdam-App-Backend/Images/',
-                        item['identifier'],
-                        item['extension']])
-        with open(path, 'wb') as f:
-            f.write(item['data'])
+        extension = item['filename'].split('.')[-1]
+        item['mime_type'] = 'image/{extension}'.format(extension=extension)
+        image = Image(**item)
+        image.save()
 
     def worker(self, worker_id):
+        count = 0
         while not self.queue.empty():
             item = self.queue.get()
-            image_data = self.fetch(item['url'])
-            if image_data is not None:
-                item['data'] = image_data
-                self.save_image_to_db(item)
+
+            # Images use identifier not image_id from other models
+            item['identifier'] = item.pop('image_id')
+
+            # Check if we already have this image in DB
+            project_object, created = Image.objects.update_or_create(identifier=item.get('identifier'))
+            if created is True:
+                image_data = self.fetch(item['url'])
+                if image_data is not None:
+                    item['data'] = image_data
+                    self.save_image_to_db(item)
+            count += 1
         else:
-            print('Worker {worker_id} out of jobs, terminating.'.format(worker_id=worker_id))
+            print('Worker {worker_id} out of jobs, processed {count} images. Terminating.'.format(worker_id=worker_id,
+                                                                                                  count=count))
 
     def run(self):
         threads = list()
@@ -57,14 +65,3 @@ class ImageFetcher:
         # Stop worker threads
         for i in range(0, len(threads), 1):
             threads[i].join()
-
-
-if __name__ == '__main__':
-    item = {
-        'identifier': 'test',
-        'extension': '.jpg',
-        'url': 'https://www.amsterdam.nl/publish/pages/946448/940x415_lijnbaansgracht_-_brug_110.jpg'
-    }
-    image_fetcher = ImageFetcher()
-    image_fetcher.queue.put(item)
-    image_fetcher.run()

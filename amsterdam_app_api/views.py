@@ -1,9 +1,9 @@
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
-from django.http import JsonResponse
-from amsterdam_app_api.models import Projects, ProjectDetails
-from amsterdam_app_api.serializers import ProjectsSerializer, ProjectDetailsSerializer
+from django.http import JsonResponse, HttpResponse
+from amsterdam_app_api.models import Projects, ProjectDetails, Image
+from amsterdam_app_api.serializers import ProjectsSerializer, ProjectDetailsSerializer, ImageSerializer
 from amsterdam_app_api.FetchData.Projects import IngestProjects
 
 
@@ -90,3 +90,25 @@ def ingest_projects(request):
     return JsonResponse({'status': True, 'result': result}, status=200)
 
 
+def image(request):
+    """
+    Endpoint for retrieving images from database
+
+    :param request:
+    :return: HttpResponse
+    """
+    if request.method == 'GET':
+        identifier = request.GET.get('id', None)
+        if identifier is None:
+            return JsonResponse(
+                {
+                    'status': False,
+                    'result': 'Invalid query parameter. param(s): identifier=<identifier>'
+                },
+                status=422)
+        else:
+            image_object = Image.objects.filter(pk=identifier).first()
+            if image_object is not None:
+                return HttpResponse(image_object.data, content_type=image_object.mime_type, status=200)
+            else:
+                return HttpResponse('No image found', status=404)

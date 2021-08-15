@@ -2,11 +2,15 @@ from django.urls import path
 from amsterdam_app_api import views
 
 
-""" Base path: /api
+""" Base path: /api/v1
 """
 
 urlpatterns = [
-    path('projects/', views.projects),
+    # Projects
+    path('projects', views.projects),
     path('projects/ingest', views.ingest_projects),
-    path('project/details', views.project_details)
+    path('project/details', views.project_details),
+
+    # Image
+    path('image', views.image)
 ]
