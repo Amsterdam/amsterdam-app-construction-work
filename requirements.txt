@@ -1,6 +1,7 @@
-wheel
+bs4
 django
 django_crontab
 djangorestframework
+psycopg2-binary>=2.8
 requests
-bs4
+wheel

@@ -18,3 +18,9 @@ venv
 kladblok.py
 **/kladblok.py
 
+# Environment files (e.g. DB passwords, sensitive data!!!)
+env
+
+# Persistent data directory for POSTGRES docker environment
+data
+data/db

@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -78,13 +78,22 @@ CRONJOBS = [
     ('0 */4 * * *', 'amsterdam_app_backend.cron.run')
 ]
 
-# Database
-# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
+# Database credentials from environment variables
+POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD', 'POSTGRES_PASSWORD')
+POSTGRES_USER = os.getenv('POSTGRES_USER', 'POSTGRES_USER')
+POSTGRES_DB = os.getenv('POSTGRES_DB', 'POSTGRES_DB')
+POSTGRES_HOST = os.getenv('POSTGRES_HOST', '0.0.0.0')
 
+# Setup database
+# https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': POSTGRES_DB,
+        'USER': POSTGRES_USER,
+        'PASSWORD': POSTGRES_PASSWORD,
+        'HOST': POSTGRES_HOST,
+        'PORT': 5432,
     }
 }
 

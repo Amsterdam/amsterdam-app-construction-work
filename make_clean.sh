@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-echo "Removing existing database"
-rm db.sqlite3
+echo "Removing existing database (requires sudo)"
+sudo rm -rf data
 
 echo "Removing existing migrations"
-rm -r amsterdam_app_api/migrations
+sudo rm -r amsterdam_app_api/migrations

@@ -303,7 +303,7 @@ class IngestProjects:
 
     def get_images(self, fpd_details):
         # Add image objects to the download queue
-        for images in  fpd_details['images']:
+        for images in fpd_details['images']:
             for size in images['sources']:
                 image_object = images['sources'][size]
                 image_object['size'] = size
@@ -328,6 +328,7 @@ class IngestProjects:
             else:
                 ProjectDetails.objects.filter(pk=item.get('identifier')).update(**fpd.details)
 
+            # Add images from this project to the download queue
             self.get_images(fpd.details)
             return fpd.details
         return None
@@ -359,7 +360,7 @@ class IngestProjects:
 
                 # Update existing record
                 else:
-                    if item.get('modification_date', None) == project_object.modification_date:
+                    if item.get('modification_date', None) != project_object.modification_date:
                         result = self.get_set_project_details(item)
                         if result is not None:
                             item['images'] = result['images']
@@ -376,4 +377,6 @@ class IngestProjects:
                 print('failed ingesting data {project}: {error}'.format(project=item.get('title'), error=error))
                 failed += 1
 
+        # Fetch images (queue is filled during project scraping)
+        self.image_fetcher.run()
         return {'new': new, 'updated': updated, 'unmodified': unmodified, 'failed': failed}

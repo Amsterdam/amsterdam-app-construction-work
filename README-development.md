@@ -14,4 +14,16 @@
     venv/bin/pip install --upgrade pip wheel setuptools
  
 ### Install the libraries needded for this project
-    venv/bin/pip install -r requirements.txt 
+    venv/bin/pip install -r requirements.txt
+
+### Create Database environment
+    chmod +x setenv.sh && ./setenv.sh
+
+### Start database in docker container
+    chmod +x start_db.sh && sudo start_db.sh
+
+### Clean your environment and start over
+    chmod +x make_clean.sh && sudo make_clean.sh
+
+### Remove your database credentials
+    rm env
