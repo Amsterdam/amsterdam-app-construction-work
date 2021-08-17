@@ -2,6 +2,7 @@ bs4
 django
 django_crontab
 djangorestframework
+drf-yasg
 psycopg2-binary>=2.8
 requests
 wheel

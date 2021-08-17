@@ -39,7 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'amsterdam_app_api.apps.AmsterdamAppApiConfig'
+    'amsterdam_app_api.apps.AmsterdamAppApiConfig',
+    'drf_yasg'
 ]
 
 MIDDLEWARE = [
@@ -69,6 +70,15 @@ TEMPLATES = [
         },
     },
 ]
+
+# REST_FRAMEWORK = {
+#    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'
+# }
+
+REST_FRAMEWORK = {
+    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'
+}
+
 
 WSGI_APPLICATION = 'amsterdam_app_backend.wsgi.application'
 
@@ -135,6 +145,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIR = [
+    "{base_dir}/static".format(base_dir=BASE_DIR)
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
