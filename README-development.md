@@ -17,7 +17,7 @@
     venv/bin/pip install -r requirements.txt
 
 ### Create Database environment
-    chmod +x setenv.sh && ./setenv.sh
+    chmod +x set_env.py && ./setenv.sh
 
 ### Start database in docker container
     chmod +x start_db.sh && sudo start_db.sh

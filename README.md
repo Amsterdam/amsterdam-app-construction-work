@@ -7,7 +7,7 @@ README-development.md
 
 ## Setup your database credentials
 
-    run: chmod +x setenv.py && ./setenv.py
+    run: chmod +x set_env.py && ./set_env.py
 
 Example output:
 
