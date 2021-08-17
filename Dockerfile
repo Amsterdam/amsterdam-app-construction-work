@@ -3,7 +3,7 @@ ENV PYTHONUNBUFFERED=1
 
 # Install CRON to the python container
 RUN apt-get update  \
- && apt-get -y install cron \
+ && apt-get -y install --no-install-recommends cron netcat \
  && rm -rf /var/lib/apt/lists/*
 
 # Set Workdir

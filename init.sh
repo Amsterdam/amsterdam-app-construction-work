@@ -1,5 +1,21 @@
 #!/bin/bash
 
+function db_alive_check {
+  state=0
+  printf "checking for database"
+  while ! nc -q 1 ${POSTGRES_HOST} 5432 </dev/null 1> /dev/null 2> /dev/null; do
+    case $state in
+      0) printf "\rchecking for database: -";;
+      1) printf "\rchecking for database: \\";;
+      2) printf "\rchecking for database: |";;
+      3) printf "\rchecking for database: /";;
+    esac
+    [ "${state}" = "3" ] && state=0 || state=$((state+1))
+    sleep 0.1
+  done
+  printf '\rchecking for database -> db alive\n'
+}
+
 function header {
     printf "\nInitializing Amsterdam-App-Backend\n"
 }
@@ -36,6 +52,7 @@ function infinity_loop {
   done
 }
 
+db_alive_check
 header
 make_migrations
 add_cron_jobs
