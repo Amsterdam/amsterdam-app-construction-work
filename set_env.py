@@ -13,9 +13,17 @@ def create_password():
 
 
 def questions():
-    # DATABASE NAME
-    while True:
-        try:
+    path = '{cwd}/env'.format(cwd=os.getcwd())
+    try:
+        if os.path.isfile(path):
+            satisfied = input('Database credential files already exist! Do you wish to override them? (Y/N/A(bort)): ') or 'n'
+            if satisfied.lower() == 'y':
+                pass
+            else:
+                raise(KeyboardInterrupt)
+
+        # DATABASE NAME
+        while True:
             random_password = create_password()
 
             postgres_database = input('Please enter your POSTGRES database (default: amsterdam_app_backend): ') or 'amsterdam_app_backend'
@@ -24,7 +32,6 @@ def questions():
             satisfied = input('Save values to environment? (Y/N/A(bort)): ') or 'n'
             if satisfied.lower() in ['y', 'a']:
                 if satisfied.lower() == 'y':
-                    path = '{cwd}/env'.format(cwd=os.getcwd())
                     with open(path, 'w') as f:
                         f.write('POSTGRES_PASSWORD={postgres_password}\n'.format(postgres_password=postgres_password))
                         f.write('POSTGRES_USER={postgres_user}\n'.format(postgres_user=postgres_user))
@@ -33,13 +40,11 @@ def questions():
                     return
                 else:
                     raise(KeyboardInterrupt)
-        except KeyboardInterrupt:
-            print('Aborted, nothing is saved.')
-            return
-        except Exception as error:
-            print('Caught error: {error}'.format(error=error))
-            print('Aborted, nothing is saved.')
-            return
+    except KeyboardInterrupt:
+        print('Aborted, nothing is saved.')
+    except Exception as error:
+        print('Caught error: {error}'.format(error=error))
+        print('Aborted, nothing is saved.')
 
 
 questions()
