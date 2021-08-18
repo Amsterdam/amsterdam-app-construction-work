@@ -2,25 +2,33 @@
 
 Make sure your docker environment is up and running and you have a recent version of docker-compose installed.
 
+### API documentation
+
+If the backend is running, you can visit the online api documentation
+
+    http://localhost:8000/api/v1/apidocs
+
+The definition for the api documentation are in the file 'views_swagger_auto_schema.py'
+
 ### Developer documentation:
 README-development.md
 
-## Setup your database credentials
+### Setup your database credentials
 
     run: chmod +x set_env.py && ./set_env.py
 
-Example output:
+**Example output:**
 
     Please enter your POSTGRES database (default: amsterdam_app_backend): 
     Please enter your POSTGRES username (default: backend): 
-    Please enter your POSTGRES password (use: 94ADsLnM): 
+    Please enter your POSTGRES password (or use: 94ADsLnM): 
     Save values to environment? (Y/N/A(bort)): N
     Please enter your POSTGRES database (default: amsterdam_app_backend): 
     Please enter your POSTGRES username (default: backend): 
-    Please enter your POSTGRES password (use: flr5fbjH): MyS3cr3t                
+    Please enter your POSTGRES password (or use: flr5fbjH): MyS3cr3t                
     Save values to environment? (Y/N/A(bort)): y
 
-Your environment will look like:
+**Your environment will look like:**
 
     POSTGRES_PASSWORD=MyS3cr3t
     POSTGRES_USER=backend
@@ -31,12 +39,12 @@ Your environment will look like:
 
     sudo docker-compose -f docker-compose.yml --env-file ./env up --build --remove-orphans
 
-Note:
+**Note**:
 
-The docker must run sudo because the database files are unreadable for normal users. This will prevent the build step
+The docker must run **sudo** because the database files are unreadable for normal users. This will prevent the build step
 from succeeding and hence the docker containers won't start.
 
-Example output:
+**Example output**:
 
     sudo docker-compose -f docker-compose.yml --env-file ./env up --build --remove-orphans
     Docker Compose is now in the Docker CLI, try `docker compose up`
@@ -183,12 +191,12 @@ Example output:
     api-server_1  | [17/Aug/2021 09:14:58] "GET /api/v1/projects HTTP/1.1" 200 116225
     api-server_1  | [17/Aug/2021 09:15:26] "GET /api/v1/image?id=472ead77645cf72865013a314cb96aa4 HTTP/1.1" 200 62186
 
-## Database 
+### Database 
 
 The Amsterdam-App-Backend will make use of the postgres database server. Use setenv.sh script for setting your 
 credentials. Database files will be stored in '/data/db' folder in your project root.
 
-## Get initial data
+### Get initial data
 
 Make sure your application is running on port 8000 on your localhost. Now open the url below in your
 browser of choice to fetch initial data or update existing data. This end-point will disappear in the
@@ -197,30 +205,30 @@ near future in favour of a cron-job.
     http://localhost:8000/api/v1/projects/ingest
     Valid (mandatory) query parameter: project-type=['brug', 'kade']
 
-## Current implemented APIs (v1)
+### Current implemented APIs (v1)
 
-    Fetch initial data:
+**Fetch initial data:**
          
         /api/projects/v1/ingest
         Valid (mandatory) query parameter: project-type=['brug', 'kade']
         
         e.g: http://localhost:8000/api/v1/projects/ingest?project-type=kade
 
-    Get all projects:
+**Get all projects:**
      
         /api/v1/projects
         Valid (optional) query parameter: project-type=['brug', 'kade']
 
         e.g: http://localhost:8000/api/v1/projects?project-type=kade
 
-    Get project details:
+**Get project details:**
 
         /api/v1/project/details
         Valid (mandatory) query parameter: id=sting (md5 hash, identifier from /api/projects)
 
         e.g. http://localhost:8000/api/v1/project/details?id=846f78938721bd84db735dd413c63346
 
-    Get image:
+**Get image:**
     
         /api/v1/image
         Valid (mandatory) query parameter: id=string (md5 hash, indentifier from /api/project/details image object)

@@ -1,24 +1,14 @@
-from django.shortcuts import render
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.parsers import JSONParser
-
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpResponse
+from amsterdam_app_api.views_swagger_auto_schema import as_projects, as_project_details, as_ingest_projects, as_image
 from amsterdam_app_api.models import Projects, ProjectDetails, Image
-from amsterdam_app_api.serializers import ProjectsSerializer, ProjectDetailsSerializer, ImageSerializer
+from amsterdam_app_api.serializers import ProjectsSerializer, ProjectDetailsSerializer
 from amsterdam_app_api.FetchData.Projects import IngestProjects
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 
 
-@swagger_auto_schema(methods=['get'], manual_parameters=[
-    openapi.Parameter('project-type', openapi.IN_QUERY, "options: [brug, kade]", type=openapi.TYPE_STRING)
-], responses={
-    200: openapi.Response('application/json'),
-    405: openapi.Response('Error: Method not allowed'),
-    422: openapi.Response('Error: Unprocessable Entity')
-}, tags=['Projects'])
+@swagger_auto_schema(**as_projects)
 @api_view(['GET'])
 def projects(request):
     """
@@ -50,14 +40,7 @@ def projects(request):
         return Response({'status': False, 'result': 'Method not allowed'}, status=405)
 
 
-@swagger_auto_schema(methods=['get'], manual_parameters=[
-    openapi.Parameter('id', openapi.IN_QUERY, "identifier", type=openapi.TYPE_STRING)
-], responses={
-    200: openapi.Response('application/json'),
-    404: openapi.Response('Error: No record found'),
-    405: openapi.Response('Error: Method not allowed'),
-    422: openapi.Response('Error: Unprocessable Entity'),
-}, tags=['Project details'])
+@swagger_auto_schema(**as_project_details)
 @api_view(['GET'])
 def project_details(request):
     """
@@ -84,12 +67,7 @@ def project_details(request):
         return Response({'status': False, 'result': 'Method not allowed'}, status=405)
 
 
-@swagger_auto_schema(methods=['get'], manual_parameters=[
-    openapi.Parameter('project-type', openapi.IN_QUERY, "options: [brug, kade]", type=openapi.TYPE_STRING)
-], responses={
-    200: openapi.Response('application/json'),
-    422: openapi.Response('Error: Unprocessable Entity')
-}, tags=['Ingestion'])
+@swagger_auto_schema(**as_ingest_projects)
 @api_view(['GET'])
 def ingest_projects(request):
     """
@@ -112,13 +90,7 @@ def ingest_projects(request):
     return Response({'status': True, 'result': result}, status=200)
 
 
-@swagger_auto_schema(methods=['get'], manual_parameters=[
-    openapi.Parameter('id', openapi.IN_QUERY, "identifier", type=openapi.TYPE_STRING)
-], responses={
-    200: openapi.Response('Binary data'),
-    404: openapi.Response('Error: file not found'),
-    422: openapi.Response('Error: Unprocessable Entity')
-}, tags=['Image'])
+@swagger_auto_schema(**as_image)
 @api_view(['GET'])
 def image(request):
     """

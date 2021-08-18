@@ -38,9 +38,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'drf_yasg',
     'rest_framework',
-    'amsterdam_app_api.apps.AmsterdamAppApiConfig',
-    'drf_yasg'
+    'amsterdam_app_api.apps.AmsterdamAppApiConfig'
 ]
 
 MIDDLEWARE = [
@@ -71,9 +71,6 @@ TEMPLATES = [
     },
 ]
 
-# REST_FRAMEWORK = {
-#    'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'
-# }
 
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'rest_framework.schemas.coreapi.AutoSchema'
@@ -81,6 +78,25 @@ REST_FRAMEWORK = {
 
 
 WSGI_APPLICATION = 'amsterdam_app_backend.wsgi.application'
+
+SWAGGER_SETTINGS = {
+    "SUPPORTED_SUBMIT_METHOD": ['get', 'post', 'put', 'delete', ],
+    'USE_SESSION_AUTH': False,
+    "LOGIN_URL": "/",
+    "LOGOUT_URL": "/",
+    'SECURITY_DEFINITIONS': {
+        'api_key': {
+            'type': 'apiKey',
+            'description': 'Personal API Key authorization',
+            'name': 'Authorization',
+            'in': 'header',
+        }
+    },
+    'APIS_SORTER': 'alpha',
+    "SHOW_REQUEST_HEADERS": True,
+    "VALIDATOR_URL": None,
+    'api_key': '',
+}
 
 # CronJobs
 
@@ -96,6 +112,7 @@ POSTGRES_HOST = os.getenv('POSTGRES_HOST', '0.0.0.0')
 
 # Setup database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
