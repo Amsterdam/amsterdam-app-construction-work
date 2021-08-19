@@ -23,7 +23,8 @@ class FetchProjectDetails:
                 'where': [],  # [{'text': '', 'html': '', 'title': ''}, ...],
                 'work': [],  # [{'text': '', 'html': '', 'title': ''}, ...],
                 'more-info': [],  # [{'text': '', 'html': '', 'title': ''}, ...],
-                'coordinates': {'lon': float(), 'lat': float()}
+                'coordinates': {'lon': float(), 'lat': float()},
+                'timeline': {}
             },
             'district_id': -1,
             'district_name': '',
@@ -46,7 +47,7 @@ class FetchProjectDetails:
         }
 
         # A list for matching interesting data in retrieved json
-        self.targets = [
+        self.page_targets = [
             'Afbeelding',
             'Afbeeldingen',
             'App categorie'
@@ -60,10 +61,20 @@ class FetchProjectDetails:
             'Inhoud',
             'Kenmerk',
             'Kenmerken',
+            'Koppeling',
             'Lijst',
             'Meta',
             'Omschrijving',
             'Samenvatting'
+        ]
+        self.timeline_targets = [
+            'Meta',
+            'Gegevens',
+            'Inhoud',
+            'Eigenschappen',
+            'Instellingen',
+            'Tijdlijn',
+            'Hoofditem'
         ]
 
     def get_data(self):
@@ -104,28 +115,28 @@ class FetchProjectDetails:
         self.details['page_id'] = int(self.page.get('PagIdt', -1))
         self.details['title'] = self.page.get('title', ''.join(self.details['rel_url'].split('/')[-1:]))
 
-    def recursive_filter(self, data, result, veld=None):
+    def recursive_filter(self, data, result, targets=None, veld=None):
         # Do we need to search deeper?
         if isinstance(data, dict):
-            if data.get('Nam') in self.targets:
+            if data.get('Nam') in targets:
                 if data.get('veld', None) is not None:
                     result.append({veld: data})  # It seems this code is never reached!
                 elif data.get('cluster', None) is not None:
-                    result = self.recursive_filter(data['cluster'], result, veld=data.get('Nam'))
+                    result = self.recursive_filter(data['cluster'], result, targets=targets, veld=data.get('Nam'))
 
         elif isinstance(data, list):
             for i in range(0, len(data), 1):
-                if data[i].get('Nam') in self.targets:
+                if data[i].get('Nam') in targets:
                     if data[i].get('veld', None) is not None:
                         result.append({data[i].get('Nam'): data[i].get('veld')})
                     elif data[i].get('cluster', None) is not None:
-                        result = self.recursive_filter(data[i], result, veld=data[i].get('Nam'))
+                        result = self.recursive_filter(data[i], result, targets=targets, veld=data[i].get('Nam'))
 
         # No! We can return the result
         return result
 
     def parse_page(self, dicts):
-        filtered_dicts = self.recursive_filter(dicts, [])
+        filtered_dicts = self.recursive_filter(dicts, [], targets=self.page_targets)
 
         # Walk through each item in filtered_dict for setting data in self.details
         for i in range(0, len(filtered_dicts), 1):
@@ -154,6 +165,19 @@ class FetchProjectDetails:
                 if app_category is not None:
                     self.set_text_result(result, app_category)
 
+            # Get timeline (if available)
+            if filtered_dicts[i].get('Koppeling', None) is not None:
+                set_timeline = False
+                url = ''
+                for j in range(0, len(filtered_dicts[i]['Koppeling']), 1):
+                    if filtered_dicts[i]['Koppeling'][j].get('Nam', '') == 'App categorie' and filtered_dicts[i]['Koppeling'][j].get('SelAka', '') == 'when-timeline':
+                        set_timeline = True
+                    if filtered_dicts[i]['Koppeling'][j].get('Nam', '') == 'Link':
+                        url = filtered_dicts[i]['Koppeling'][j].get('link', {}).get('Url', '')
+
+                if set_timeline is True:
+                    self.get_timeline(url)
+
             # Set Coordinates (if available).
             # Note: EPSG:4326 is an identifier of WGS84. WGS84 comprises a standard coordinate frame for the Earth
             if filtered_dicts[i].get('Coordinaten', None) is not None:
@@ -170,6 +194,67 @@ class FetchProjectDetails:
                 self.details['body'][app_category].append(data)
             else:
                 self.details['body'][app_category] = [data]
+
+    def filter_timeline(self, data):
+        filtered_results = self.recursive_filter(data, [], targets=self.timeline_targets)
+        timeline_items = list()
+        gegevens = dict()
+        inhoud = dict()
+
+        for i in range(0, len(filtered_results), 1):
+            if filtered_results[i].get('Gegevens', None) is not None:
+                gegevens = filtered_results[i].get('Gegevens', {})
+            if filtered_results[i].get('Inhoud', None) is not None:
+                inhoud = filtered_results[i].get('Inhoud', {})
+        for i in range(0, len(filtered_results), 1):
+            if filtered_results[i].get('Eigenschappen', None):
+                timeline_items.append({'Eigenschappen': filtered_results[i].get('Eigenschappen'),
+                                 'Instellingen': filtered_results[i + 1].get('Instellingen')})
+        self.set_timeline(gegevens, inhoud, timeline_items)
+
+    def set_timeline(self, gegevens, inhoud, timeline_items):
+        timeline = {
+            'title': {
+                'text': TextSanitizers.strip_html(gegevens.get('Txt')),
+                'html': gegevens.get('Txt')
+            },
+            'intro': {
+                'text': TextSanitizers.strip_html(inhoud.get('Txt')),
+                'html': inhoud.get('Txt')
+            },
+            'items': []
+        }
+        for timeline_item in timeline_items:
+            item = {}
+            for eigenschap in timeline_item.get('Eigenschappen', []):
+                if eigenschap.get('Nam', None) == 'Titel':
+                    item['title'] = {
+                        'text': TextSanitizers.strip_html(eigenschap.get('Wrd')),
+                        'html': eigenschap.get('Wrd')
+                    }
+                elif eigenschap.get('Nam', None) == 'Inleiding':
+                    item['content'] = {
+                        'text': TextSanitizers.strip_html(eigenschap.get('Txt')),
+                        'html': eigenschap.get('Txt')
+                    }
+
+            for instelling in timeline_item.get('Instellingen', []):
+                if instelling.get('Nam', None) == 'Status':
+                    item['progress'] = instelling.get('SelWrd', '')
+                if instelling.get('Nam', None) == 'Subitems initieel ingeklapt':
+                    item['collapsed'] = bool(int(instelling.get('Wrd')))
+            timeline['items'].append(item)
+        self.details['body']['timeline'] = timeline
+
+    def get_timeline(self, url):
+        try:
+            url = 'https://www.amsterdam.nl/projecten/kademuren/maatregelen-vernieuwing/herengracht-213-243/tijdlijn-herengracht-213-243/?AppIdt=app-pagetype&reload=true'
+            result = requests.get('{url}?AppIdt=app-pagetype&reload=true'.format(url=url))
+            raw_data = result.json()
+            clusters = raw_data.get('item', {}).get('page', {}).get('cluster', [])
+            self.filter_timeline(clusters)
+        except Exception as error:
+            print('failed fetching timeline from data: {error}'.format(url=self.url, error=error))
 
     def set_geo_data(self, json_data):
         try:
@@ -380,3 +465,8 @@ class IngestProjects:
         # Fetch images (queue is filled during project scraping)
         self.image_fetcher.run()
         return {'new': new, 'updated': updated, 'unmodified': unmodified, 'failed': failed}
+
+
+if __name__ == '__main__':
+    fpd = FetchProjectDetails('','')
+    fpd.get_timeline('')

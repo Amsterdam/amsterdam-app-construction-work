@@ -3,6 +3,7 @@ django
 django_crontab
 djangorestframework
 drf-yasg
+markdown
 psycopg2-binary>=2.8
 requests
 wheel

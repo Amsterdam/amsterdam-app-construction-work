@@ -6,7 +6,9 @@ Make sure your docker environment is up and running and you have a recent versio
 
 If the backend is running, you can visit the online api documentation
 
+```
     http://localhost:8000/api/v1/apidocs
+```
 
 The definition for the api documentation are in the file 'views_swagger_auto_schema.py'
 
@@ -14,11 +16,13 @@ The definition for the api documentation are in the file 'views_swagger_auto_sch
 README-development.md
 
 ### Setup your database credentials
-
+```
     run: chmod +x set_env.py && ./set_env.py
+```
 
 **Example output:**
 
+```
     Please enter your POSTGRES database (default: amsterdam_app_backend): 
     Please enter your POSTGRES username (default: backend): 
     Please enter your POSTGRES password (or use: 94ADsLnM): 
@@ -27,17 +31,21 @@ README-development.md
     Please enter your POSTGRES username (default: backend): 
     Please enter your POSTGRES password (or use: flr5fbjH): MyS3cr3t                
     Save values to environment? (Y/N/A(bort)): y
+```
 
 **Your environment will look like:**
 
+```
     POSTGRES_PASSWORD=MyS3cr3t
     POSTGRES_USER=backend
     POSTGRES_DB=amsterdam_app_backend
-
+```
 
 ## Build and start the Amsterdam-App-Backend
 
+```
     sudo docker-compose -f docker-compose.yml --env-file ./env up --build --remove-orphans
+```
 
 **Note**:
 
@@ -46,6 +54,7 @@ from succeeding and hence the docker containers won't start.
 
 **Example output**:
 
+```
     sudo docker-compose -f docker-compose.yml --env-file ./env up --build --remove-orphans
     Docker Compose is now in the Docker CLI, try `docker compose up`
     
@@ -190,6 +199,7 @@ from succeeding and hence the docker containers won't start.
     api-server_1  | [17/Aug/2021 09:14:54] "GET /api/v1/projects/ingest?project-type=brug HTTP/1.1" 200 83
     api-server_1  | [17/Aug/2021 09:14:58] "GET /api/v1/projects HTTP/1.1" 200 116225
     api-server_1  | [17/Aug/2021 09:15:26] "GET /api/v1/image?id=472ead77645cf72865013a314cb96aa4 HTTP/1.1" 200 62186
+```
 
 ### Database 
 
@@ -202,38 +212,46 @@ Make sure your application is running on port 8000 on your localhost. Now open t
 browser of choice to fetch initial data or update existing data. This end-point will disappear in the
 near future in favour of a cron-job. 
 
+```
     http://localhost:8000/api/v1/projects/ingest
     Valid (mandatory) query parameter: project-type=['brug', 'kade']
+```
 
 ### Current implemented APIs (v1)
 
+There's online API documentation available at:
+```
+    http://localhost:8000/api/v1/apidocs
+```
+
 **Fetch initial data:**
-         
-        /api/projects/v1/ingest
-        Valid (mandatory) query parameter: project-type=['brug', 'kade']
-        
-        e.g: http://localhost:8000/api/v1/projects/ingest?project-type=kade
+```         
+    /api/projects/v1/ingest
+    Valid (mandatory) query parameter: project-type=['brug', 'kade']
+    
+    e.g: http://localhost:8000/api/v1/projects/ingest?project-type=kade
+```
 
 **Get all projects:**
-     
-        /api/v1/projects
-        Valid (optional) query parameter: project-type=['brug', 'kade']
+```     
+    /api/v1/projects
+    Valid (optional) query parameter: project-type=['brug', 'kade']
 
-        e.g: http://localhost:8000/api/v1/projects?project-type=kade
+    e.g: http://localhost:8000/api/v1/projects?project-type=kade
+```
 
 **Get project details:**
+```
+    /api/v1/project/details
+    Valid (mandatory) query parameter: id=sting (md5 hash, identifier from /api/projects)
 
-        /api/v1/project/details
-        Valid (mandatory) query parameter: id=sting (md5 hash, identifier from /api/projects)
-
-        e.g. http://localhost:8000/api/v1/project/details?id=846f78938721bd84db735dd413c63346
+    e.g. http://localhost:8000/api/v1/project/details?id=846f78938721bd84db735dd413c63346
+```
 
 **Get image:**
+```    
+    /api/v1/image
+    Valid (mandatory) query parameter: id=string (md5 hash, indentifier from /api/project/details image object)
     
-        /api/v1/image
-        Valid (mandatory) query parameter: id=string (md5 hash, indentifier from /api/project/details image object)
-        
-        e.g. http://localhost:8000/api/v1/image?id=0accad7dd900a72a7b2e3f16d6b50ad1
-
-### Newer documentation?
-During development of this project, this README.md file will be updated. Please return to this file if you pull new sources.
+    e.g. http://localhost:8000/api/v1/image?id=0accad7dd900a72a7b2e3f16d6b50ad1
+```
