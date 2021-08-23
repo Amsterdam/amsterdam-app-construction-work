@@ -13,7 +13,7 @@ If the backend is running, you can visit the online api documentation
 The definition for the api documentation are in the file 'views_swagger_auto_schema.py'
 
 ### Developer documentation:
-README-development.md
+README-development.md Here you can find among other settings e.g. how to enable debug mode.
 
 ### Setup your database credentials
 ```

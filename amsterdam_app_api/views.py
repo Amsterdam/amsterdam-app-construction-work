@@ -3,6 +3,7 @@ from amsterdam_app_api.views_swagger_auto_schema import as_projects, as_project_
 from amsterdam_app_api.models import Projects, ProjectDetails, Image
 from amsterdam_app_api.serializers import ProjectsSerializer, ProjectDetailsSerializer
 from amsterdam_app_api.FetchData.Projects import IngestProjects
+from amsterdam_app_api.GenericFunctions.SetFilter import SetFilter
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
@@ -25,10 +26,18 @@ def projects(request):
                 },
                 status=422)
 
-        # Get list of projects by type
-        if project_type is not None:
-            projects_object = Projects.objects.filter(project_type=project_type).all()
+        # Get list of projects by district
+        try:
+            district_id = int(request.GET.get('district_id', None))
+        except Exception as error:
+            district_id = None
 
+        # Set filter
+        query_filter = SetFilter(district_id=district_id, project_type=project_type).get()
+
+        # Return filtered result or all projects
+        if filter != {}:
+            projects_object = Projects.objects.filter(**query_filter).all()
         # Get all projects
         else:
             projects_object = Projects.objects.all()

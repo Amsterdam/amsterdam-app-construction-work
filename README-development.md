@@ -20,10 +20,33 @@
     chmod +x set_env.py && ./setenv.sh
 
 ### Start database in docker container
-    chmod +x start_db.sh && sudo start_db.sh
+    chmod +x start_db.sh && sudo ./start_db.sh
 
 ### Clean your environment and start over
-    chmod +x make_clean.sh && sudo make_clean.sh
+    chmod +x make_clean.sh && sudo ./make_clean.sh
 
 ### Remove your database credentials
     rm env
+
+### Enable/Disable DEBUG mode
+
+By setting the environment parameter to true, it will set the following settings:
+
+    CSRF_COOKIE_SECURE = False
+    SESSION_COOKIE_SECURE = False
+    SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+    DEBUG = True
+
+By setting the environment parameter to true, it will set the following settings:
+
+    CSRF_COOKIE_SECURE = True
+    SESSION_COOKIE_SECURE = True
+    SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+    DEBUG = False
+
+**Do not set DEBUG=true in production!**
+
+You can export the environment parameter like this:
+
+    export DEBUG=true
+
