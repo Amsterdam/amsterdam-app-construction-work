@@ -12,7 +12,11 @@ as_projects = {
     'manual_parameters': [openapi.Parameter('project-type', 
                                             openapi.IN_QUERY, 
                                             'options: [brug, kade]', 
-                                            type=openapi.TYPE_STRING)],
+                                            type=openapi.TYPE_STRING),
+                          openapi.Parameter('district_id',
+                                            openapi.IN_QUERY,
+                                            '<integer>',
+                                            type=openapi.TYPE_INTEGER)],
     'responses': {
         200: openapi.Response('application/json',
                               ProjectsSerializer,
