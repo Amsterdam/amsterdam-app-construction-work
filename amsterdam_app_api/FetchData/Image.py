@@ -1,33 +1,47 @@
 import time
-import logging
 import requests
 import threading
 from queue import Queue
 from amsterdam_app_api.models import Image
+from amsterdam_app_api.GenericFunctions.Logger import Logger
 
 
 class ImageFetcher:
+    """ This class is a multi-threaded image fetcher. I has a queue from which workers (threads) fetch a job.
+
+        A job looks like:
+        {
+            'url': 'https://.../some-image.jpg',
+            'image_id': '1ffff06a468ae9a566ca11951faa1ce3',
+            'filename': 'some-image.jpg',
+            'description': '',
+            'size': 'orig'
+        }
+
+        Once the worker has the image retrieved from the url, it will set the mime-type, change image_id to identifier
+        and save the result to the database.
+    """
+
     def __init__(self):
-        self.logger = logging.getLogger(__name__)
-        self.num_workers = 5
+        self.logger = Logger()
+        self.num_workers = 10
         self.queue = Queue()
         self.threads = dict()
 
-    @staticmethod
-    def fetch(url):
+    def fetch(self, url):
         try:
             # Request image as a stream
             result = requests.get(url, stream=True)
             if result.status_code != 200:
                 raise Exception('Failed downloading image: {url}'.format(url=url))
 
-            # start reading from the stream in chunks of 1024 bytes and append to self.data
+            # start reading from the stream in chunks of 1024 bytes and append to data
             data = b''
             for chunk in result.iter_content(1024):
                 data += chunk
             return data
         except Exception as error:
-            print('failed fetching image data for {url}: {error}'.format(url=url, error=error))
+            self.logger.error('failed fetching image data for {url}: {error}'.format(url=url, error=error))
             return None
 
     @staticmethod

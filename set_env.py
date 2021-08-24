@@ -5,6 +5,8 @@ import os
 
 
 class SetEnv:
+    """ Simple script to create a Docker environment file for setting the DB credentials
+    """
     @staticmethod
     def weak(password):
         if len(password) > 7 and any(x.islower() for x in password) and any(x.isupper() for x in password) and any(x.isnumeric() for x in password):
@@ -61,5 +63,6 @@ class SetEnv:
             print('Aborted, nothing is saved.')
 
 
-setenv = SetEnv()
-setenv.questions()
+if __name__ == '__main__':
+    setenv = SetEnv()
+    setenv.questions()

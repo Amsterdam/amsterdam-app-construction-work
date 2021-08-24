@@ -1,13 +1,19 @@
 import requests
 import json
+
 from amsterdam_app_api.GenericFunctions.Hashing import Hashing
 from amsterdam_app_api.GenericFunctions.TextSanitizers import TextSanitizers
 from amsterdam_app_api.models import Projects, ProjectDetails
 from amsterdam_app_api.FetchData.Image import ImageFetcher
+from amsterdam_app_api.GenericFunctions.Logger import Logger
 
 
 class FetchProjectDetails:
+    """ Fetch all project details from IPROX-endpoind and convert the data into a suitable format. The format is
+        described in: amsterdam_app_api.models.Projects
+    """
     def __init__(self, url, identifier):
+        self.logger = Logger()
         self.url = '{url}?AppIdt=app-pagetype&reload=true'.format(url=url)
         self.raw_data = dict()
         self.page = dict()
@@ -29,7 +35,7 @@ class FetchProjectDetails:
             'district_id': -1,
             'district_name': '',
             'images': [
-                # {
+                # { EXAMPLE:
                 #     'type': '',
                 #     'sources': {
                 #         'orig': {'url': '', 'image_id': '', 'filename': '', 'description': ''},
@@ -46,7 +52,7 @@ class FetchProjectDetails:
             'url': ''
         }
 
-        # A list for matching interesting data in retrieved json
+        # A list for matching interesting data in retrieved json (used in the recursive_filter)
         self.page_targets = [
             'Afbeelding',
             'Afbeeldingen',
@@ -67,6 +73,8 @@ class FetchProjectDetails:
             'Omschrijving',
             'Samenvatting'
         ]
+
+        # A list for matching interesting data in retrieved json (used in the recursive_filter)
         self.timeline_targets = [
             'Meta',
             'Gegevens',
@@ -79,7 +87,7 @@ class FetchProjectDetails:
 
     def get_data(self):
         """
-        request data from data-end point
+        request data from IPROX-end-point
 
         :return: void
         """
@@ -88,22 +96,23 @@ class FetchProjectDetails:
             self.raw_data = result.json()
             item = self.raw_data.get('item', None)
             if item is None:
-                # Should not happen!
+                # Should not happen! It means an erroneous feed from IPROX
                 return
 
-            # Get blok element (part of json with content/images/etc...)
+            # Get 'blok' element (part of json with content/images/etc...)
             self.page = item.get('page', {})
 
             # Set page type (used to answer the question: Do we need to parse this page?)
             self.page_type = self.page.get('pagetype', '')
         except Exception as error:
-            print('failed fetching data from {url}: {error}'.format(url=self.url, error=error))
+            self.logger.error('failed fetching data from {url}: {error}'.format(url=self.url, error=error))
 
     def parse_data(self):
-        # Based on pagetype the data is parsed differently (e.g. news, normal page, ...)
+        # Based on page-type the data is parsed differently (e.g. news, normal page, ...)
         if self.page.get('pagetype', '') == 'subhome':
             self.parse_page(self.page.get('cluster', []))
 
+        # Not implemented yet.
         elif self.page.get('pagetype', '') == 'nieuwsartikel':
             return
 
@@ -120,7 +129,7 @@ class FetchProjectDetails:
         if isinstance(data, dict):
             if data.get('Nam') in targets:
                 if data.get('veld', None) is not None:
-                    result.append({veld: data})  # It seems this code is never reached!
+                    result.append({veld: data})  # It seems this code is never reached, but it's here for completeness
                 elif data.get('cluster', None) is not None:
                     result = self.recursive_filter(data['cluster'], result, targets=targets, veld=data.get('Nam'))
 
@@ -162,6 +171,7 @@ class FetchProjectDetails:
                         result['html'] = filtered_dicts[i]['Omschrijving'][j].get('Txt', '')
                         result['text'] = TextSanitizers.strip_html(filtered_dicts[i]['Omschrijving'][j].get('Txt', ''))
 
+                # Only set text items is there is an app_category (eg. omit bogus items!)
                 if app_category is not None:
                     self.set_text_result(result, app_category)
 
@@ -175,7 +185,7 @@ class FetchProjectDetails:
                     if filtered_dicts[i]['Koppeling'][j].get('Nam', '') == 'Link':
                         url = filtered_dicts[i]['Koppeling'][j].get('link', {}).get('Url', '')
 
-                if set_timeline is True:
+                if set_timeline is True and url != '':
                     self.get_timeline(url)
 
             # Set Coordinates (if available).
@@ -206,6 +216,7 @@ class FetchProjectDetails:
                 gegevens = filtered_results[i].get('Gegevens', {})
             if filtered_results[i].get('Inhoud', None) is not None:
                 inhoud = filtered_results[i].get('Inhoud', {})
+
         for i in range(0, len(filtered_results), 1):
             if filtered_results[i].get('Eigenschappen', None):
                 timeline_items.append({'Eigenschappen': filtered_results[i].get('Eigenschappen'),
@@ -248,13 +259,12 @@ class FetchProjectDetails:
 
     def get_timeline(self, url):
         try:
-            url = 'https://www.amsterdam.nl/projecten/kademuren/maatregelen-vernieuwing/herengracht-213-243/tijdlijn-herengracht-213-243/?AppIdt=app-pagetype&reload=true'
             result = requests.get('{url}?AppIdt=app-pagetype&reload=true'.format(url=url))
             raw_data = result.json()
             clusters = raw_data.get('item', {}).get('page', {}).get('cluster', [])
             self.filter_timeline(clusters)
         except Exception as error:
-            print('failed fetching timeline from data: {error}'.format(url=self.url, error=error))
+            self.logger.error('failed fetching timeline from data: {error}'.format(url=self.url, error=error))
 
     def set_geo_data(self, json_data):
         try:
@@ -263,7 +273,7 @@ class FetchProjectDetails:
             coordinates = data['features'][0]['geometry']['coordinates']
             self.details['body']['coordinates'] = {'lon': float(coordinates[0]), 'lat': float(coordinates[1])}
         except Exception as error:
-            print('failed fetching coordinates from data: {error}'.format(url=self.url, error=error))
+            self.logger.error('failed fetching coordinates from data: {error}'.format(url=self.url, error=error))
 
     @staticmethod
     def set_images(dicts):
@@ -317,10 +327,11 @@ class FetchProjectDetails:
 
 
 class FetchProjectAll:
+    """ Fetch all projects from IPROX-endpoind and convert the data into a suitable format. The format is described in:
+        amsterdam_app_api.models.Projects
+    """
     def __init__(self, path, project_type):
-        """
-        Class file to retrieve data from end-point and convert into a suitable format
-        """
+        self.logger = Logger()
         self.protocol = 'https://'
         self.domain = 'www.amsterdam.nl'
         self.path = path
@@ -343,16 +354,14 @@ class FetchProjectAll:
             result = requests.get(self.url)
             self.raw_data = result.json()
         except Exception as error:
-            print('failed fetching data from {url}: {error}'.format(url=self.url, error=error))
+            self.logger.error('failed fetching data from {url}: {error}'.format(url=self.url, error=error))
 
     def parse_data(self):
         """
-        Convert data from end-point
+        Convert data from end-point based on the amsterdam_app_api.models.Projects model
 
-        see models.Projects() for field definitions
         :return: void
         """
-
         for i in range(0, len(self.raw_data), 1):
             try:
                 # Using md5 will yield the same result for a given string on repeated iterations, hence an identifier
@@ -373,11 +382,21 @@ class FetchProjectAll:
                     }
                 )
             except Exception as error:
-                print('failed parsing data from {url}: {error}'.format(url=self.url, error=error))
+                self.logger.error('failed parsing data from {url}: {error}'.format(url=self.url, error=error))
 
 
 class IngestProjects:
+    """ Ingest projects will call the IPROX-endpoint based on path (url). It will fetch the data in three stages:
+
+        stage 1: Fetch all projects based on path
+        stage 2: Fetch all project details based on result from stage 1
+        stage 3: Fetch all images based on result from stage 2
+
+        Ingest Projects will skip fetching records based on modification time. (eg. only fetch new records)
+    """
+
     def __init__(self):
+        self.logger = Logger()
         self.image_fetcher = ImageFetcher()
         self.paths = {
             'brug': '/projecten/bruggen/maatregelen-vernieuwen-bruggen/',
@@ -419,7 +438,9 @@ class IngestProjects:
         return None
 
     def get_set_projects(self, project_type):
+        # Set the url path from where to fetch the projects
         path = self.paths[project_type]
+
         # Fetch projects and ingest data
         fpa = FetchProjectAll(path, project_type)
         fpa.get_data()
@@ -459,14 +480,9 @@ class IngestProjects:
                         unmodified += 1
 
             except Exception as error:
-                print('failed ingesting data {project}: {error}'.format(project=item.get('title'), error=error))
+                self.logger.error('failed ingesting data {project}: {error}'.format(project=item.get('title'), error=error))
                 failed += 1
 
         # Fetch images (queue is filled during project scraping)
         self.image_fetcher.run()
         return {'new': new, 'updated': updated, 'unmodified': unmodified, 'failed': failed}
-
-
-if __name__ == '__main__':
-    fpd = FetchProjectDetails('','')
-    fpd.get_timeline('')

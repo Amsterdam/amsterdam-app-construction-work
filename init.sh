@@ -1,5 +1,14 @@
 #!/bin/bash
 
+###
+#
+# DOCKER ENTRY SCRIPT FOR STARTING UP THE AMSTERDAM BACKEND
+#
+# Touch /code/DEBUG, kill python process and run python manage.py [...] manually for debugging inside the docker
+# container
+#
+###
+
 function db_alive_check {
   state=0
   printf "checking for database"

@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 
 
 class TextSanitizers:
+    """ Reformat text. Eg. IPROX-end-point data in HTML to plain text for APP usage
+    """
     @staticmethod
     def strip_html(html):
         """
