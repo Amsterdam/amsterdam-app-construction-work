@@ -4,9 +4,14 @@ from amsterdam_app_api.models import Projects, ProjectDetails, Image
 from amsterdam_app_api.serializers import ProjectsSerializer, ProjectDetailsSerializer
 from amsterdam_app_api.FetchData.Projects import IngestProjects
 from amsterdam_app_api.GenericFunctions.SetFilter import SetFilter
+from amsterdam_app_api.GenericFunctions.Sort import Sort
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
+
+
+# Generic error message pointing to a single documentation point
+invalid_query_message = 'Invalid query parameter(s). See /api/v1/apidocs for more information'
 
 
 @swagger_auto_schema(**as_projects)
@@ -15,16 +20,14 @@ def projects(request):
     """
     Get a list of all projects. Narrow down by query param: project-type
     """
-    search_queries = ['brug', 'kade']
     if request.method == 'GET':
         project_type = request.GET.get('project-type', None)
-        if project_type not in search_queries and project_type is not None:
-            return Response(
-                {
-                    'status': False,
-                    'result': 'Invalid query parameter. param(s): project-type={params}'.format(params=search_queries)
-                },
-                status=422)
+        sort_by = request.GET.get('sort-by', None)
+        sort_order = request.GET.get('sort-order', None)
+
+        # Check query parameters
+        if project_type is not None and project_type not in ['brug', 'kade']:
+            return Response({'status': False, 'result': invalid_query_message}, status=422)
 
         # Get list of projects by district
         try:
@@ -43,8 +46,8 @@ def projects(request):
             projects_object = Projects.objects.all()
 
         serializer = ProjectsSerializer(projects_object, many=True)
-        # return JsonResponse({'status': True, 'result': serializer.data}, safe=False, status=200)
-        return Response({'status': True, 'result': serializer.data}, status=200)
+        result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
+        return Response({'status': True, 'result': result}, status=200)
     else:
         return Response({'status': False, 'result': 'Method not allowed'}, status=405)
 
@@ -58,15 +61,10 @@ def project_details(request):
     if request.method == 'GET':
         identifier = request.GET.get('id', None)
         if identifier is None:
-            return Response(
-                {
-                    'status': False,
-                    'result': 'Invalid query parameter. param(s): id=<identifier>'
-                },
-                status=422
-            )
+            return Response({'status': False, 'result': invalid_query_message}, status=422)
         else:
-            project_object = ProjectDetails.objects.filter(pk=identifier).first()
+            query_filter = SetFilter(pk=identifier).get()
+            project_object = ProjectDetails.objects.filter(query_filter).first()
             if project_object is not None:
                 serializer = ProjectDetailsSerializer(project_object, many=False)
                 return Response({'status': True, 'result': serializer.data}, status=200)
@@ -90,8 +88,7 @@ def ingest_projects(request):
     # Get project type from query string or return invalid
     project_type = request.GET.get('project-type', '')
     if paths.get(request.GET.get('project-type', '')) is None:
-        result = 'Invalid query parameter. param(s): project-type={params}'.format(params=[key for key in paths.keys()])
-        return Response({'status': False, 'result': result}, status=422)
+        return Response({'status': False, 'result': invalid_query_message}, status=422)
 
     ingest = IngestProjects()
     result = ingest.get_set_projects(project_type)
@@ -108,12 +105,7 @@ def image(request):
     if request.method == 'GET':
         identifier = request.GET.get('id', None)
         if identifier is None:
-            return Response(
-                {
-                    'status': False,
-                    'result': 'Invalid query parameter. param(s): identifier=<identifier>'
-                },
-                status=422)
+            return Response({'status': False, 'result': invalid_query_message}, status=422)
         else:
             image_object = Image.objects.filter(pk=identifier).first()
             if image_object is not None:
