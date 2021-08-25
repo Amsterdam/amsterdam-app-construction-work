@@ -29,9 +29,9 @@ as_projects = {
                                             required=False),
                           openapi.Parameter('sort-order',
                                             openapi.IN_QUERY,
-                                            'Sorting order',
+                                            'Sorting order (default: asc',
                                             type=openapi.TYPE_STRING,
-                                            format='<acs, desc>',
+                                            format='<asc, desc>',
                                             required=False)],
     'responses': {
         200: openapi.Response('application/json',

@@ -6,18 +6,22 @@ RUN apt-get update  \
  && apt-get -y install --no-install-recommends cron netcat \
  && rm -rf /var/lib/apt/lists/*
 
-# Set Workdir
-WORKDIR /code
-
 # Install python requirements
 COPY requirements.txt /code/
-RUN pip install -r requirements.txt
+RUN cd /code \
+ && python3 -m venv venv \
+ && . venv/bin/activate \
+ && venv/bin/pip install --upgrade pip wheel setuptools \
+ && venv/bin/pip install -r requirements.txt
 
 # Setup run script
 COPY init.sh /code/
 RUN chmod +x /code/init.sh
 
 # Copy sources to container
+COPY static /code/static
 COPY manage.py /code/
-COPY amsterdam_app_backend /code
-COPY amsterdam_app_api /code
+COPY README.md /code/
+COPY README-development.md /code/
+COPY amsterdam_app_backend /code/amsterdam_app_backend
+COPY amsterdam_app_api /code/amsterdam_app_api

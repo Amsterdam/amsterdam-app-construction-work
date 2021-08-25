@@ -29,6 +29,11 @@ function header {
     printf "\nInitializing Amsterdam-App-Backend\n"
 }
 
+function enable_python_venv {
+   printf "\nEnabling python venv\n"
+   cd /code && source venv/bin/activate
+}
+
 function make_migrations {
     printf "\nRunning DB migrations scripts ... "
     cd /code && python manage.py makemigrations amsterdam_app_api
@@ -43,6 +48,11 @@ function add_cron_jobs {
     printf "\nSetting new cronjobs ... "
     cd /code && python manage.py crontab add
     printf "Done.\n"
+}
+
+function add_static_files {
+    printf "\nCollecting static add_static_files\n"
+    cd /code && python manage.py collectstatic --no-input
 }
 
 function start_backend {
@@ -63,6 +73,8 @@ function infinity_loop {
 
 db_alive_check
 header
+enable_python_venv
 make_migrations
 add_cron_jobs
+add_static_files
 infinity_loop
