@@ -63,8 +63,7 @@ def project_details(request):
         if identifier is None:
             return Response({'status': False, 'result': invalid_query_message}, status=422)
         else:
-            query_filter = SetFilter(pk=identifier).get()
-            project_object = ProjectDetails.objects.filter(query_filter).first()
+            project_object = ProjectDetails.objects.filter(pk=identifier).first()
             if project_object is not None:
                 serializer = ProjectDetailsSerializer(project_object, many=False)
                 return Response({'status': True, 'result': serializer.data}, status=200)
