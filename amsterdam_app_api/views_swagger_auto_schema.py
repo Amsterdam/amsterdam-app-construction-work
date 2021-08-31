@@ -29,7 +29,7 @@ as_projects = {
                                             required=False),
                           openapi.Parameter('sort-order',
                                             openapi.IN_QUERY,
-                                            'Sorting order (default: asc',
+                                            'Sorting order (default: asc)',
                                             type=openapi.TYPE_STRING,
                                             format='<asc, desc>',
                                             required=False)],

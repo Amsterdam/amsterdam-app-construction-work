@@ -403,15 +403,12 @@ class IngestProjects:
             'kade': '/projecten/kademuren/maatregelen-vernieuwing/'
         }
 
-        self.temp = list()
-
     def get_images(self, fpd_details):
         # Add image objects to the download queue
         for images in fpd_details['images']:
             for size in images['sources']:
                 image_object = images['sources'][size]
                 image_object['size'] = size
-                self.temp.append(image_object)
                 self.image_fetcher.queue.put(image_object)
 
     def get_set_project_details(self, item):

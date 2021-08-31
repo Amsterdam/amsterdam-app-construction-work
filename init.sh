@@ -2,14 +2,14 @@
 
 ###
 #
-# DOCKER ENTRY SCRIPT FOR STARTING UP THE AMSTERDAM BACKEND
+# DOCKER ENTRY SCRIPT FOR STARTING UP THE AMSTERDAM APP BACKEND
 #
-# Touch /code/DEBUG, kill python process and run python manage.py [...] manually for debugging inside the docker
+# touch /code/DEBUG, kill python process and run python manage.py [...] manually for debugging inside the docker
 # container
 #
 ###
 
-function db_alive_check {
+function is_db_alive {
   state=0
   printf "checking for database"
   while ! nc -q 1 ${POSTGRES_HOST} 5432 </dev/null 1> /dev/null 2> /dev/null; do
@@ -25,7 +25,7 @@ function db_alive_check {
   printf '\rchecking for database -> db alive\n'
 }
 
-function header {
+function set_header {
     printf "\nInitializing Amsterdam-App-Backend\n"
 }
 
@@ -60,7 +60,7 @@ function start_backend {
     cd /code && python manage.py runserver 0.0.0.0:8000
 }
 
-function infinity_loop {
+function enter_infinity_loop {
   while true; do
     # Touch /code/DEBUG, kill python process and run python manage.py [...] manually for debugging...
     if [[ ! -f "/code/DEBUG" ]]
@@ -71,10 +71,10 @@ function infinity_loop {
   done
 }
 
-db_alive_check
-header
+is_db_alive
+set_header
 enable_python_venv
 make_migrations
 add_cron_jobs
 add_static_files
-infinity_loop
+enter_infinity_loop
