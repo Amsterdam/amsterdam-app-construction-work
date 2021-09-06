@@ -248,10 +248,26 @@ There's online API documentation available at:
     e.g. http://localhost:8000/api/v1/project/details?id=846f78938721bd84db735dd413c63346
 ```
 
+**Get project news:**
+```
+    /api/v1/project/news
+    Valid query parameter: id=sting (md5 hash, identifier from /api/project/details)
+
+    e.g. http://localhost:8000/api/v1/project/news?id=846f78938721bd84db735dd413c63346
+```
+
 **Get image:**
 ```    
     /api/v1/image
     Valid (mandatory) query parameter: id=string (md5 hash, indentifier from /api/project/details image object)
     
     e.g. http://localhost:8000/api/v1/image?id=0accad7dd900a72a7b2e3f16d6b50ad1
+```
+
+**Get asset:**
+```    
+    /api/v1/asset
+    Valid (mandatory) query parameter: id=string (md5 hash, indentifier from /api/project/details)
+    
+    e.g. http://localhost:8000/api/v1/asset?id=0accad7dd900a72a7b2e3f16d6b50ad1
 ```

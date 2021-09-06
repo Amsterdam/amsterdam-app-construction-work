@@ -1,6 +1,6 @@
 class SetFilter:
     """ SetFilter is used as a single way to set DB filtering based on kwargs. It saves a lot of duplicate and
-        cluttering code from the views.py where we'd like to return DB results based on set query parameters.
+        cluttering code from the views_*_.py where we'd like to return DB results based on set query parameters.
 
         If the value of a keyword is None, it will be omitted from the filter.
 

@@ -2,7 +2,27 @@
 
 ### Pull sources from repository 
     git clone git@ssh.dev.azure.com:v3/CloudCompetenceCenter/Amsterdam-App/Amsterdam-App-Backend
- 
+
+### Branches
+The _master_ branch is the current stable release where the _develop_ branch (made from _master_) is the upcoming
+stable. From the _develop_ feature branches are derived and merged back on _develop_
+
+e.g. timeline:
+
+    O(0)    master -
+    B(1)        - develop
+                    - feature x  
+                    - feature y
+    M(2)        - develop + feature x
+                    - feature y
+    M(3)        - develop + feature x + feature y
+    M(4)    master - new develop
+                - develop
+                
+    O original, B branch, M merge, 0-n points in time
+    
+As you can see, it follows a reasonably normal git-flow.
+                  
 ### Setup virtual python environment
     cd Amsterdam-App-Backend
     python3 -m venv venv

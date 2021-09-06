@@ -1,9 +1,9 @@
-from amsterdam_app_api.FetchData.Projects import IngestProjects
+from amsterdam_app_api.FetchData.IproxIngestion import IproxIngestion
 
 
 class CronJobs:
     def __init__(self):
-        self.ingest_projects = IngestProjects()
+        self.ingest_projects = IproxIngestion()
 
     def run(self):
         # Ingest data for projects 'bruggen' and 'kademuren'

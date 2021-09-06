@@ -1,19 +1,18 @@
-import requests
 import json
-
+import requests
+from amsterdam_app_api.FetchData.IproxRecursion import IproxRecursion
 from amsterdam_app_api.GenericFunctions.Hashing import Hashing
-from amsterdam_app_api.GenericFunctions.TextSanitizers import TextSanitizers
-from amsterdam_app_api.models import Projects, ProjectDetails
-from amsterdam_app_api.FetchData.Image import ImageFetcher
 from amsterdam_app_api.GenericFunctions.Logger import Logger
+from amsterdam_app_api.GenericFunctions.TextSanitizers import TextSanitizers
 
 
-class FetchProjectDetails:
-    """ Fetch all project details from IPROX-endpoind and convert the data into a suitable format. The format is
+class IproxProject:
+    """ Fetch all project details from IPROX-endpoint and convert the data into a suitable format. The format is
         described in: amsterdam_app_api.models.Projects
     """
     def __init__(self, url, identifier):
         self.logger = Logger()
+        self.identifier = identifier
         self.url = '{url}?AppIdt=app-pagetype&reload=true'.format(url=url)
         self.raw_data = dict()
         self.page = dict()
@@ -46,8 +45,16 @@ class FetchProjectDetails:
                 #     }
                 # }
             ],
+            'news': [
+                # { EXAMPLE:
+                #     'project_identifier': self.identifier,
+                #     'identifier': '',
+                #     'url': ''
+                # }
+            ],
             'page_id': -1,
-            'title': '',
+            'title': '',  # If a title has a ':' title is the part before ':' else '~full title'
+            'subtitle': '',  # If a title has a ':' subtitle is the part after ':' else ''
             'rel_url': '',
             'url': ''
         }
@@ -70,6 +77,7 @@ class FetchProjectDetails:
             'Koppeling',
             'Lijst',
             'Meta',
+            'Nieuws',
             'Omschrijving',
             'Samenvatting'
         ]
@@ -122,30 +130,14 @@ class FetchProjectDetails:
 
         # Set page identifier and title
         self.details['page_id'] = int(self.page.get('PagIdt', -1))
-        self.details['title'] = self.page.get('title', ''.join(self.details['rel_url'].split('/')[-1:]))
-
-    def recursive_filter(self, data, result, targets=None, veld=None):
-        # Do we need to search deeper?
-        if isinstance(data, dict):
-            if data.get('Nam') in targets:
-                if data.get('veld', None) is not None:
-                    result.append({veld: data})  # It seems this code is never reached, but it's here for completeness
-                elif data.get('cluster', None) is not None:
-                    result = self.recursive_filter(data['cluster'], result, targets=targets, veld=data.get('Nam'))
-
-        elif isinstance(data, list):
-            for i in range(0, len(data), 1):
-                if data[i].get('Nam') in targets:
-                    if data[i].get('veld', None) is not None:
-                        result.append({data[i].get('Nam'): data[i].get('veld')})
-                    elif data[i].get('cluster', None) is not None:
-                        result = self.recursive_filter(data[i], result, targets=targets, veld=data[i].get('Nam'))
-
-        # No! We can return the result
-        return result
+        title = self.page.get('title', '').split(':')
+        subtitle = None if len(title) == 1 else TextSanitizers.sentence_case("".join([title[i] for i in range(1, len(title))]))
+        self.details['title'] = title[0]
+        self.details['subtitle'] = subtitle
 
     def parse_page(self, dicts):
-        filtered_dicts = self.recursive_filter(dicts, [], targets=self.page_targets)
+        iprox = IproxRecursion()
+        filtered_dicts = iprox.filter(dicts, [], targets=self.page_targets)
 
         # Walk through each item in filtered_dict for setting data in self.details
         for i in range(0, len(filtered_dicts), 1):
@@ -178,15 +170,21 @@ class FetchProjectDetails:
             # Get timeline (if available)
             if filtered_dicts[i].get('Koppeling', None) is not None:
                 set_timeline = False
+                set_news = False
                 url = ''
                 for j in range(0, len(filtered_dicts[i]['Koppeling']), 1):
-                    if filtered_dicts[i]['Koppeling'][j].get('Nam', '') == 'App categorie' and filtered_dicts[i]['Koppeling'][j].get('SelAka', '') == 'when-timeline':
-                        set_timeline = True
+                    if filtered_dicts[i]['Koppeling'][j].get('Nam', '') == 'App categorie':
+                        if filtered_dicts[i]['Koppeling'][j].get('SelAka', '') == 'when-timeline':
+                            set_timeline = True
+                        elif filtered_dicts[i]['Koppeling'][j].get('SelAka', '') == 'news':
+                            set_news = True
                     if filtered_dicts[i]['Koppeling'][j].get('Nam', '') == 'Link':
                         url = filtered_dicts[i]['Koppeling'][j].get('link', {}).get('Url', '')
 
                 if set_timeline is True and url != '':
                     self.get_timeline(url)
+                elif set_news is True and url != '':
+                    self.get_news_items(url)
 
             # Set Coordinates (if available).
             # Note: EPSG:4326 is an identifier of WGS84. WGS84 comprises a standard coordinate frame for the Earth
@@ -205,8 +203,12 @@ class FetchProjectDetails:
             else:
                 self.details['body'][app_category] = [data]
 
+    """ TIMELINE-BEGIN """
+
     def filter_timeline(self, data):
-        filtered_results = self.recursive_filter(data, [], targets=self.timeline_targets)
+        iprox = IproxRecursion()
+        filtered_results = iprox.filter(data, [], targets=self.timeline_targets)
+
         timeline_items = list()
         gegevens = dict()
         inhoud = dict()
@@ -265,6 +267,31 @@ class FetchProjectDetails:
             self.filter_timeline(clusters)
         except Exception as error:
             self.logger.error('failed fetching timeline from data: {error}'.format(url=self.url, error=error))
+
+    """ TIMELINE-END """
+
+    """ NEWS-BEGIN """
+
+    def set_news_item(self, data):
+        item = {
+            'identifier': Hashing.make_md5_hash(data.get('feedid')),
+            'project_identifier': self.identifier,
+            'url': data.get('feedid')
+        }
+        self.details['news'].append(item)
+
+    def get_news_items(self, url):
+        try:
+            self.logger.info('Found news item: {url}?new_json=true'.format(url=url))
+            result = requests.get('{url}?new_json=true'.format(url=url))
+            raw_data = result.json()
+            if isinstance(raw_data, list) and len(raw_data) > 0:
+                for i in range(0, len(raw_data), 1):
+                    self.set_news_item(raw_data[i])
+        except Exception as error:
+            self.logger.error('failed fetching news from data: {error}'.format(url=self.url, error=error))
+
+    """ NEWS-END """
 
     def set_geo_data(self, json_data):
         try:
@@ -325,161 +352,3 @@ class FetchProjectDetails:
 
         return all_images
 
-
-class FetchProjectAll:
-    """ Fetch all projects from IPROX-endpoind and convert the data into a suitable format. The format is described in:
-        amsterdam_app_api.models.Projects
-    """
-    def __init__(self, path, project_type):
-        self.logger = Logger()
-        self.protocol = 'https://'
-        self.domain = 'www.amsterdam.nl'
-        self.path = path
-        self.project_type = project_type
-        self.query_params = '?new_json=true&pager_rows=1000'
-        self.url = '{protocol}{domain}{path}{query_params}'.format(protocol=self.protocol,
-                                                                   domain=self.domain,
-                                                                   path=self.path,
-                                                                   query_params=self.query_params)
-        self.raw_data = list()
-        self.parsed_data = list()
-
-    def get_data(self):
-        """
-        request data from data-end point
-
-        :return: void
-        """
-        try:
-            result = requests.get(self.url)
-            self.raw_data = result.json()
-        except Exception as error:
-            self.logger.error('failed fetching data from {url}: {error}'.format(url=self.url, error=error))
-
-    def parse_data(self):
-        """
-        Convert data from end-point based on the amsterdam_app_api.models.Projects model
-
-        :return: void
-        """
-        for i in range(0, len(self.raw_data), 1):
-            try:
-                # Using md5 will yield the same result for a given string on repeated iterations, hence an identifier
-                identifier = Hashing.make_md5_hash(self.raw_data[i].get('feedid', None))
-                self.parsed_data.append(
-                    {
-                        'project_type': self.project_type,
-                        'identifier': identifier,
-                        'district_id': -1,  # this will be fetched on a successive call...
-                        'district_name': '',  # this will be fetched on a successive call...
-                        'title': self.raw_data[i].get('title', ''),
-                        'content_html': self.raw_data[i].get('content', ''),
-                        'content_text': TextSanitizers.strip_html(self.raw_data[i].get('content', '')),
-                        'images': [],  # these will be fetched on a successive call...
-                        'publication_date': self.raw_data[i].get('publication_date', ''),
-                        'modification_date': self.raw_data[i].get('modification_date', ''),
-                        'source_url': self.raw_data[i].get('source_url', '')
-                    }
-                )
-            except Exception as error:
-                self.logger.error('failed parsing data from {url}: {error}'.format(url=self.url, error=error))
-
-
-class IngestProjects:
-    """ Ingest projects will call the IPROX-endpoint based on path (url). It will fetch the data in three stages:
-
-        stage 1: Fetch all projects based on path
-        stage 2: Fetch all project details based on result from stage 1
-        stage 3: Fetch all images based on result from stage 2
-
-        Ingest Projects will skip fetching records based on modification time. (eg. only fetch new records)
-    """
-
-    def __init__(self):
-        self.logger = Logger()
-        self.image_fetcher = ImageFetcher()
-        self.paths = {
-            'brug': '/projecten/bruggen/maatregelen-vernieuwen-bruggen/',
-            'kade': '/projecten/kademuren/maatregelen-vernieuwing/'
-        }
-
-    def get_images(self, fpd_details):
-        # Add image objects to the download queue
-        for images in fpd_details['images']:
-            for size in images['sources']:
-                image_object = images['sources'][size]
-                image_object['size'] = size
-                self.image_fetcher.queue.put(image_object)
-
-    def get_set_project_details(self, item):
-        fpd = FetchProjectDetails(item['source_url'], item['identifier'])
-        fpd.get_data()
-
-        # Skip news items/articles etc...
-        if fpd.page_type == 'subhome':
-            fpd.parse_data()
-            project_details_object, created = ProjectDetails.objects.update_or_create(identifier=item.get('identifier'))
-
-            # New record
-            if created is True:
-                project_details_object = ProjectDetails(**fpd.details)
-                project_details_object.save()
-
-            # Update existing record
-            else:
-                ProjectDetails.objects.filter(pk=item.get('identifier')).update(**fpd.details)
-
-            # Add images from this project to the download queue
-            self.get_images(fpd.details)
-            return fpd.details
-        return None
-
-    def get_set_projects(self, project_type):
-        # Set the url path from where to fetch the projects
-        path = self.paths[project_type]
-
-        # Fetch projects and ingest data
-        fpa = FetchProjectAll(path, project_type)
-        fpa.get_data()
-        fpa.parse_data()
-
-        updated = new = unmodified = failed = 0
-        for item in fpa.parsed_data:
-            try:
-                project_object, created = Projects.objects.update_or_create(identifier=item.get('identifier'))
-
-                # New record
-                if created is True:
-                    result = self.get_set_project_details(item)
-                    if result is not None:
-                        item['images'] = result['images']
-                        item['district_id'] = result['district_id']
-                        item['district_name'] = result['district_name']
-                        project_object = Projects(**item)
-                        project_object.save()
-                        new += 1
-                    else:
-                        Projects.objects.get(pk=item.get('identifier')).delete()
-
-                # Update existing record
-                else:
-                    if item.get('modification_date', None) != project_object.modification_date:
-                        result = self.get_set_project_details(item)
-                        if result is not None:
-                            item['images'] = result['images']
-                            item['district_id'] = result['district_id']
-                            item['district_name'] = result['district_name']
-                            Projects.objects.filter(pk=item.get('identifier')).update(**item)
-                            updated += 1
-                        else:
-                            Projects.objects.get(pk=item.get('identifier')).delete()
-                    else:
-                        unmodified += 1
-
-            except Exception as error:
-                self.logger.error('failed ingesting data {project}: {error}'.format(project=item.get('title'), error=error))
-                failed += 1
-
-        # Fetch images (queue is filled during project scraping)
-        self.image_fetcher.run()
-        return {'new': new, 'updated': updated, 'unmodified': unmodified, 'failed': failed}

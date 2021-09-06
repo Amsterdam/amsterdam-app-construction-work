@@ -2,11 +2,11 @@ import time
 import requests
 import threading
 from queue import Queue
-from amsterdam_app_api.models import Image
+from amsterdam_app_api.models import Image as ImageModel
 from amsterdam_app_api.GenericFunctions.Logger import Logger
 
 
-class ImageFetcher:
+class Image:
     """ This class is a multi-threaded image fetcher. I has a queue from which workers (threads) fetch a job.
 
         A job looks like:
@@ -48,7 +48,7 @@ class ImageFetcher:
     def save_image_to_db(item):
         extension = item['filename'].split('.')[-1]
         item['mime_type'] = 'image/{extension}'.format(extension=extension)
-        image = Image(**item)
+        image = ImageModel(**item)
         image.save()
 
     def worker(self, worker_id):
@@ -60,7 +60,7 @@ class ImageFetcher:
             item['identifier'] = item.pop('image_id')
 
             # Check if we already have this image in DB
-            image = Image.objects.filter(pk=item['identifier']).first()
+            image = ImageModel.objects.filter(pk=item['identifier']).first()
             if image is None:
                 image_data = self.fetch(item['url'])
                 if image_data is not None:
@@ -69,11 +69,11 @@ class ImageFetcher:
 
             count += 1
         else:
-            self.threads[worker_id]['result'] = '\tWorker {worker_id} out of jobs, processed {count} images. Terminating.'.format(worker_id=worker_id, count=count)
+            self.threads[worker_id]['result'] = '\tWorker {worker_id} out of jobs. Images processed: {count}'.format(worker_id=worker_id, count=count)
 
-    def run(self):
+    def run(self, module='Undefined'):
         now = time.time()
-        self.logger.info('Processing {num} images'.format(num=self.queue.qsize()))
+        self.logger.info('Processing {num} images for {module}'.format(num=self.queue.qsize(), module=module))
 
         # Start worker threads
         for i in range(0, self.num_workers, 1):
