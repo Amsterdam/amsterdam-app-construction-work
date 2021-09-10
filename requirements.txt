@@ -1,5 +1,6 @@
 bs4
 django
+django-nose
 django_crontab
 djangorestframework
 drf-yasg

@@ -41,7 +41,21 @@ def main():
     if os.getenv('DEBUG', False) == 'true':
         source_environment()
 
-    execute_from_command_line(sys.argv)
+    is_testing = 'test' in sys.argv
+
+    if is_testing:
+        import coverage
+        cov = coverage.coverage(source=['amsterdam_app_api'], omit=['*/tests/*'])
+        cov.erase()
+        cov.start()
+
+        execute_from_command_line(sys.argv)
+
+        cov.stop()
+        cov.save()
+        cov.report()
+    else:
+        execute_from_command_line(sys.argv)
 
 
 if __name__ == '__main__':

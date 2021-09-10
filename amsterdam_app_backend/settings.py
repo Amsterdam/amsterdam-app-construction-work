@@ -44,6 +44,7 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 # Application definition
 
 INSTALLED_APPS = [
+    'django_nose',
     'django_crontab',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -133,7 +134,7 @@ DATABASES = {
         'USER': POSTGRES_USER,
         'PASSWORD': POSTGRES_PASSWORD,
         'HOST': POSTGRES_HOST,
-        'PORT': 5432,
+        'PORT': 5432
     }
 }
 
@@ -184,3 +185,10 @@ STATIC_ROOT = "{base_dir}/static".format(base_dir=BASE_DIR)
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Use nose to run all tests
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
+NOSE_ARGS = [
+    '--cover-package=amsterdam_app_api'
+]

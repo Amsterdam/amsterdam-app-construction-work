@@ -16,7 +16,7 @@ as_projects = {
                                             type=openapi.TYPE_STRING,
                                             format='<brug, kade>',
                                             required=False),
-                          openapi.Parameter('district_id',
+                          openapi.Parameter('district-id',
                                             openapi.IN_QUERY,
                                             'Query by district id',
                                             type=openapi.TYPE_INTEGER,

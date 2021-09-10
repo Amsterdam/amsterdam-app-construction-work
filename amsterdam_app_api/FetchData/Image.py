@@ -85,4 +85,6 @@ class Image:
         for key in self.threads:
             self.threads[key]['thread'].join()
             self.logger.info(self.threads[key]['result'])
+
         self.logger.info('Processing done in {elapsed:.2f} seconds'.format(elapsed=time.time() - now))
+

@@ -28,7 +28,7 @@ def projects(request):
 
         # Get list of projects by district
         try:
-            district_id = int(request.GET.get('district_id', None))
+            district_id = int(request.GET.get('district-id', None))
         except Exception as error:
             district_id = None
 
@@ -36,7 +36,7 @@ def projects(request):
         query_filter = SetFilter(district_id=district_id, project_type=project_type).get()
 
         # Return filtered result or all projects
-        if filter != {}:
+        if query_filter != {}:
             projects_object = Projects.objects.filter(**query_filter).all()
         # Get all projects
         else:
@@ -45,8 +45,6 @@ def projects(request):
         serializer = ProjectsSerializer(projects_object, many=True)
         result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
         return Response({'status': True, 'result': result}, status=200)
-    else:
-        return Response({'status': False, 'result': 'Method not allowed'}, status=405)
 
 
 @swagger_auto_schema(**as_project_details)
@@ -65,6 +63,4 @@ def project_details(request):
                 serializer = ProjectDetailsSerializer(project_object, many=False)
                 return Response({'status': True, 'result': serializer.data}, status=200)
             else:
-                return Response({'status': False, 'result': 'No record found'}, status=404)
-    else:
-        return Response({'status': False, 'result': 'Method not allowed'}, status=405)
+                return Response({'status': False, 'result': message.no_record_found}, status=404)

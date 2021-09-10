@@ -8,7 +8,7 @@ class IproxRecursion:
         if isinstance(data, dict):
             if data.get('Nam') in targets:
                 if data.get('veld', None) is not None:
-                    # We reached the leafs of the tree, we can harvest a result
+                    # We reached the leaves of the tree, we can harvest a result
                     result.append({veld: data})
                 elif data.get('cluster', None) is not None:
                     # We need to dive deeper into the tree
@@ -18,11 +18,11 @@ class IproxRecursion:
             for i in range(0, len(data), 1):
                 if data[i].get('Nam') in targets:
                     if data[i].get('veld', None) is not None:
-                        # We reached the leafs of the tree, we can harvest a result
+                        # We reached the leaves of the tree, we can harvest a result
                         result.append({data[i].get('Nam'): data[i].get('veld')})
                     elif data[i].get('cluster', None) is not None:
                         # We need to dive deeper into the tree
                         result = self.filter(data[i], result, targets=targets, veld=data[i].get('Nam'))
 
-        # We got the leafs and can return with the harvest
+        # We got the leaves and can return with the harvest
         return result

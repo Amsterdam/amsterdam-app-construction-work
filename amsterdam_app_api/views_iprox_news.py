@@ -35,5 +35,3 @@ def news(request):
         serializer = NewsSerializer(news_objects, many=True)
         result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
         return Response({'status': True, 'result': result}, status=200)
-    else:
-        return Response({'status': False, 'result': 'Method not allowed'}, status=405)
