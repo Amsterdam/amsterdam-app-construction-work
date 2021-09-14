@@ -1810,6 +1810,19 @@ class TestData:
             "images": []
         }]
 
+        self.om = [
+            {
+                "email": "mock0@example.com",
+                "identifier": "56d7f0b9-ac14-424d-8779-615a60c23591",
+                "projects": ["0000000000", "0000000001"]
+            },
+            {
+                "email": "mock1@example.com",
+                "identifier": "56d7f0b9-ac14-424d-8779-615a60c23592",
+                "projects": ["0000000002", "0000000003"]
+            }
+        ]
+
 # if __name__ == '__main__':
 #     import os
 #     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "amsterdam_app_backend.settings")

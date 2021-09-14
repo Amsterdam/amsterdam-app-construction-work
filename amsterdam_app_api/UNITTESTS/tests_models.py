@@ -5,11 +5,13 @@ from amsterdam_app_api.models import Image
 from amsterdam_app_api.models import Projects
 from amsterdam_app_api.models import ProjectDetails
 from amsterdam_app_api.models import News
+from amsterdam_app_api.models import OM
 from amsterdam_app_api.serializers import ImageSerializer
 from amsterdam_app_api.serializers import AssetsSerializer
 from amsterdam_app_api.serializers import ProjectsSerializer
 from amsterdam_app_api.serializers import ProjectDetailsSerializer
 from amsterdam_app_api.serializers import NewsSerializer
+from amsterdam_app_api.serializers import OMSerializer
 
 
 class TestAssetsModel(TestCase):
@@ -190,3 +192,38 @@ class TestNewsModel(TestCase):
         news_object = News.objects.filter(pk='does not exist').first()
 
         self.assertEqual(news_object, None)
+
+
+class TestOMModel(TestCase):
+    def __init__(self, *args, **kwargs):
+        super(TestOMModel, self).__init__(*args, **kwargs)
+        self.data = TestData()
+
+    def setUp(self):
+        OM.objects.all().delete()
+        for om in self.data.om:
+            OM.objects.create(**om)
+
+    def test_om_delete(self):
+        OM.objects.get(pk='56d7f0b9-ac14-424d-8779-615a60c23591').delete()
+        om_objects = OM.objects.all()
+        serializer = OMSerializer(om_objects, many=True)
+
+        self.assertEqual(len(serializer.data), 1)
+
+    def test_om_get_all(self):
+        om_objects = OM.objects.all()
+
+        self.assertEqual(len(om_objects), 2)
+
+    def test_om_exists(self):
+        om_objects = OM.objects.get(pk='56d7f0b9-ac14-424d-8779-615a60c23591')
+
+        self.assertEqual(om_objects.identifier, '56d7f0b9-ac14-424d-8779-615a60c23591')
+        self.assertEqual(om_objects.email, 'mock0@example.com')
+        self.assertEqual(om_objects.projects, ["0000000000", "0000000001"])
+
+    def test_om_does_not_exist(self):
+        om_object = OM.objects.filter(pk='does not exist').first()
+
+        self.assertEqual(om_object, None)

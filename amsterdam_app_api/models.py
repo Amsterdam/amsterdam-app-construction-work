@@ -171,3 +171,24 @@ class News(models.Model):
     body = models.JSONField(null=True, default=dict)
     images = models.JSONField(null=True, default=list)
     assets = models.JSONField(null=True, default=list)
+
+
+""" Models for 'Omgevings-managers'
+
+    The Omgevings-manager is used to add an 'OM' to a set of projects. An identifier (UUIDv4) is assigned to
+    the OM alongside its assigned projects (list) and email-address of the OM
+
+    Json produced by OM model:
+
+    {
+        "email": "string",
+        "identifier": "string UUIDv4",
+        "projects": ["project id", ...]
+    }
+"""
+
+
+class OM(models.Model):
+    identifier = models.CharField(max_length=36, blank=False, unique=True, primary_key=True)
+    email = models.EmailField(blank=False, unique=True)
+    projects = models.JSONField(null=True, default=list)
