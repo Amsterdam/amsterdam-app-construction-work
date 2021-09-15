@@ -1,6 +1,6 @@
 import uuid
 from django.db import models
-
+from django.contrib.postgres.fields import ArrayField
 
 """ Model for storing assets (e.g. PDF documents)
 
@@ -222,4 +222,4 @@ class ProjectManager(models.Model):
 class MobileDevices(models.Model):
     identifier = models.CharField(max_length=1000, unique=True, primary_key=True)
     os_type = models.CharField(max_length=7, unique=True, null=False)
-    projects = models.JSONField(null=True, default=list)
+    projects = ArrayField(models.CharField(max_length=40, blank=False), blank=False)

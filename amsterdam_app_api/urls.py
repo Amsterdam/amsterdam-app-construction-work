@@ -3,7 +3,7 @@ from django.conf.urls import url
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-from amsterdam_app_api import views_generic, views_iprox_projects, views_iprox_news, views_ingest
+from amsterdam_app_api import views_generic, views_iprox_projects, views_iprox_news, views_ingest, views_mobile_devices
 
 
 schema_view = get_schema_view(
@@ -33,5 +33,8 @@ urlpatterns = [
 
     # Image & Assets
     path('image', views_generic.image),
-    path('asset', views_generic.asset)
+    path('asset', views_generic.asset),
+
+    # Mobile devices (used for adding/removing devices for push-notifications)
+    path('push-notification/registration', views_mobile_devices.registration)
 ]
