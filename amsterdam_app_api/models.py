@@ -1,4 +1,6 @@
+import uuid
 from django.db import models
+
 
 """ Model for storing assets (e.g. PDF documents)
 
@@ -173,22 +175,51 @@ class News(models.Model):
     assets = models.JSONField(null=True, default=list)
 
 
-""" Models for 'Omgevings-managers'
+""" Model for ProjectManagers
 
-    The Omgevings-manager is used to add an 'OM' to a set of projects. An identifier (UUIDv4) is assigned to
-    the OM alongside its assigned projects (list) and email-address of the OM
+    The ProjectManagers model is used to add an project-manager to a set of projects. An identifier (UUIDv4) is 
+    assigned to the project-manager alongside its assigned projects (list) and email-address of the project-manager
 
-    Json produced by OM model:
+    Json produced by ProjectManagers model:
 
     {
-        "email": "string",
-        "identifier": "string UUIDv4",
+        "email": "<string>@amsterdam.nl",
+        "identifier": "string UUID-v4",
         "projects": ["project id", ...]
     }
 """
 
 
-class OM(models.Model):
-    identifier = models.CharField(max_length=36, blank=False, unique=True, primary_key=True)
-    email = models.EmailField(blank=False, unique=True)
+class ProjectManager(models.Model):
+    identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    email = models.EmailField(max_length=60, unique=True)
+    projects = models.JSONField(null=True, default=list)
+
+    def validate_email(self):
+        if self.email.split('@')[1] != 'amsterdam.nl':
+            raise ValueError('Invalid email, should be <username>@amsterdam.nl')
+
+    def save(self, *args, **kwargs):
+        self.validate_email()
+        super(ProjectManager, self).save(*args, **kwargs)
+
+
+""" Model for Mobile Devices
+
+    The MobileDevices model is used for sending a push-notification towards a mobile device. It holds a device
+    identifier (unique token for sending push-notifications via a push-notification-broker (e.g. APN)
+    
+    Json produced by ModelDevices model:
+
+    {
+        "identifier": "device identifier for either Android or IOS",
+        "os_type": "android of ios"
+        "projects": ["project id", ...]
+    }
+"""
+
+
+class MobileDevices(models.Model):
+    identifier = models.CharField(max_length=1000, unique=True, primary_key=True)
+    os_type = models.CharField(max_length=7, unique=True, null=False)
     projects = models.JSONField(null=True, default=list)

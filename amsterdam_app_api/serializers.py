@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from amsterdam_app_api.models import Assets, Image, Projects, ProjectDetails, News, OM
+from amsterdam_app_api.models import Assets, Image, Projects, ProjectDetails, News, ProjectManager, MobileDevices
 
 
 class AssetsSerializer(serializers.ModelSerializer):
@@ -32,7 +32,13 @@ class NewsSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class OMSerializer(serializers.ModelSerializer):
+class ProjectManagerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = OM
+        model = ProjectManager
+        fields = '__all__'
+
+
+class MobileDevicesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MobileDevices
         fields = '__all__'
