@@ -41,6 +41,9 @@ def main():
     if os.getenv('DEBUG', False) == 'true':
         source_environment()
 
+    # print friendly message for easy access to apidocs
+    print('API documentation: http://0.0.0.0:8000/api/v1/apidocs')
+
     is_testing = 'test' in sys.argv
 
     if is_testing:

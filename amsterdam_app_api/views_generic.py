@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from amsterdam_app_api.swagger_views_generic import as_asset, as_image
-from amsterdam_app_api.views_messages import Messages
+from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import Image, Assets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response

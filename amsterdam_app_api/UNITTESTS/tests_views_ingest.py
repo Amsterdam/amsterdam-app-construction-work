@@ -2,7 +2,7 @@ import json
 from django.test import Client
 from django.test import TestCase
 from unittest.mock import patch
-from amsterdam_app_api.views_messages import Messages
+from amsterdam_app_api.api_messages import Messages
 
 messages = Messages()
 

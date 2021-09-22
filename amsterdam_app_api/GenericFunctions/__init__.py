@@ -1,3 +1,4 @@
+from .RequestMustComeFromApp import RequestMustComeFromApp
 from .Hashing import Hashing
 from .TextSanitizers import TextSanitizers
 from .SetFilter import SetFilter
