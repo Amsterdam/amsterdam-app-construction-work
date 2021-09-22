@@ -52,14 +52,15 @@ as_warning_message_get = {
 }
 
 as_push_notification_post = {
-    # /api/v1/notification/push/send
+    # /api/v1/notification/messages/push/send
     'methods': ['POST'],
     'request_body': PushNotificationSerializer,
     'responses': {
         200: openapi.Response('application/json', examples={
             'application/json': {
                 'status': True,
-                'result': {'status': True, 'result': 'push-notification accepted'}}
+                'result': 'push-notification accepted'
+            }
         }),
         422: openapi.Response('application/json', examples={
             'application/json': {
@@ -67,6 +68,24 @@ as_push_notification_post = {
                 'result': message.invalid_query
             }
         })
+    },
+    'tags': ['(push-) Notifications']
+}
+
+as_push_notification_get = {
+    # /api/v1/notification/messages/push/get
+    'methods': ['GET'],
+    'manual_parameters': [openapi.Parameter('project-ids',
+                                            openapi.IN_QUERY,
+                                            'Query push-notifications by project-identifier(s)',
+                                            type=openapi.TYPE_ARRAY,
+                                            items=openapi.Items(type=openapi.TYPE_STRING),
+                                            required=True)],
+    'responses': {
+        200: openapi.Response('application/json',
+                              PushNotificationSerializer,
+                              examples={'application/json': {'status': True, 'result': []}}),
+        422: openapi.Response('Error: Unprocessable Entity')
     },
     'tags': ['(push-) Notifications']
 }

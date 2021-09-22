@@ -1,16 +1,21 @@
+from django.db.models import Q
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from functools import reduce
+from drf_yasg.utils import swagger_auto_schema
+from amsterdam_app_api.PushNotifications.SendNotification import SendNotification
 from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import WarningMessages
 from amsterdam_app_api.models import Projects
 from amsterdam_app_api.models import ProjectManager
 from amsterdam_app_api.models import PushNotification
+from amsterdam_app_api.models import News
 from amsterdam_app_api.serializers import WarningMessagesExternalSerializer
-from amsterdam_app_api.PushNotifications.SendNotification import SendNotification
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
+from amsterdam_app_api.serializers import PushNotificationSerializer
 from amsterdam_app_api.swagger_views_messages import as_warning_message_post
 from amsterdam_app_api.swagger_views_messages import as_warning_message_get
 from amsterdam_app_api.swagger_views_messages import as_push_notification_post
-from drf_yasg.utils import swagger_auto_schema
+from amsterdam_app_api.swagger_views_messages import as_push_notification_get
 
 message = Messages()
 
@@ -72,10 +77,14 @@ def push_notification_post(request):
     news_identifier = request.data.get('news_identifier', None)
     warning_identifier = request.data.get('warning_identifier', None)
 
-    if None in [title, body]:
+    if None in [title, body, warning_identifier]:
         return Response({'status': False, 'result': message.invalid_query}, status=422)
     elif news_identifier is None and warning_identifier is None:
         return Response({'status': False, 'result': message.invalid_query}, status=422)
+    elif news_identifier is not None and News.objects.filter(pk=news_identifier).first() is None:
+        return Response({'status': False, 'result': message.no_record_found}, status=404)
+    elif WarningMessages.objects.filter(pk=warning_identifier).first() is None:
+        return Response({'status': False, 'result': message.no_record_found}, status=404)
 
     push_notification = PushNotification(title=title,
                                          body=body,
@@ -90,3 +99,16 @@ def push_notification_post(request):
     return Response({'status': True, 'result': 'push-notification accepted'}, status=200)
 
 
+@swagger_auto_schema(**as_push_notification_get)
+@api_view(['GET'])
+def push_notification_get(request):
+    query_params = request.GET.get('project-ids', None)
+    if query_params is None:
+        return Response({'status': False, 'result': message.invalid_query}, status=422)
+
+    project_identifiers = query_params.split(',')
+    query = reduce(lambda q, value: q | Q(project_identifier=value), project_identifiers, Q())
+    push_notifications = PushNotification.objects.filter(query).all()
+    serializer = PushNotificationSerializer(push_notifications, many=True)
+
+    return Response({'status': True, 'result': serializer.data}, status=200)

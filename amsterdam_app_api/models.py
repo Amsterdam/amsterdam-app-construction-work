@@ -298,5 +298,12 @@ class PushNotification(models.Model):
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=1000, unique=False)
     body = models.CharField(max_length=1000, unique=False)
-    news_identifier = models.CharField(max_length=100, blank=False, unique=False)
-    warning_identifier = models.UUIDField(blank=False, unique=False)
+    project_identifier = models.CharField(null=True, max_length=100, unique=False)
+    news_identifier = models.CharField(null=True, max_length=100, unique=False)
+    warning_identifier = models.UUIDField(null=True, unique=False)
+    publication_date = models.DateTimeField(auto_now_add=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        warning_message = WarningMessages.objects.filter(pk=self.warning_identifier).first()
+        self.project_identifier = warning_message.project_identifier
+        super(PushNotification, self).save(*args, **kwargs)
