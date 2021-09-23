@@ -50,6 +50,7 @@ urlpatterns = [
     # Warning message
     path('notification/messages/warning/create', views_messages.warning_message_post),
     path('notification/messages/warning/get', views_messages.warning_message_get),
+    path('notification/messages/image/post', views_messages.warning_messages_image_upload),
 
     # Push notification
     path('notification/messages/push/send', views_messages.push_notification_post),

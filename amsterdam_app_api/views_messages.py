@@ -1,3 +1,7 @@
+import base64
+import io
+import uuid
+from PIL import Image as PILImage
 from django.db.models import Q
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -10,12 +14,14 @@ from amsterdam_app_api.models import Projects
 from amsterdam_app_api.models import ProjectManager
 from amsterdam_app_api.models import PushNotification
 from amsterdam_app_api.models import News
+from amsterdam_app_api.models import Image
 from amsterdam_app_api.serializers import WarningMessagesExternalSerializer
 from amsterdam_app_api.serializers import PushNotificationSerializer
 from amsterdam_app_api.swagger_views_messages import as_warning_message_post
 from amsterdam_app_api.swagger_views_messages import as_warning_message_get
 from amsterdam_app_api.swagger_views_messages import as_push_notification_post
 from amsterdam_app_api.swagger_views_messages import as_push_notification_get
+from amsterdam_app_api.swagger_views_messages import as_warning_message_image_post
 
 message = Messages()
 
@@ -112,3 +118,56 @@ def push_notification_get(request):
     serializer = PushNotificationSerializer(push_notifications, many=True)
 
     return Response({'status': True, 'result': serializer.data}, status=200)
+
+
+@swagger_auto_schema(**as_warning_message_image_post)
+@api_view(['POST'])
+def warning_messages_image_upload(request):
+    """ Upload image for warning message
+    """
+    image_data = request.data.get('image', None)
+    project_warning_id = request.data.get('project_warning_id', None)
+    if None in [image_data, project_warning_id]:
+        return Response({'status': False, 'result': message.invalid_query}, status=422)
+    elif WarningMessages.objects.filter(pk=project_warning_id).first() is None:
+        return Response({'status': False, 'result': message.no_record_found}, status=404)
+    elif image_data.get('type', None) not in ['header', 'additional']:
+        return Response({'status': False, 'result': message.invalid_query}, status=422)
+    elif image_data.get('data', None) is None:
+        return Response({'status': False, 'result': message.invalid_query}, status=422)
+
+    # Get image meta-data
+    data = base64.b64decode(image_data.get('data'))
+    buffer = io.BytesIO(data)
+    pil_image = PILImage.open(buffer)
+
+    # Create identifier for image object
+    identifier = uuid.uuid4().hex
+
+    # Build image object and save to database
+    image_object = Image(identifier=identifier,
+                         size='{width}px'.format(width=pil_image.width),
+                         url='db://amsterdam_app_api.warning_message/{identifier}'.format(identifier=identifier),
+                         filename='db://amsterdam_app_api.warning_message/{identifier}'.format(identifier=identifier),
+                         description=image_data.get('description', ''),
+                         mime_type=pil_image.get_format_mimetype(),
+                         data=data)
+    image_object.save()
+
+    # Update warning-message with new image
+    warning_message_image = {
+        "type": image_data.get('type'),
+        "sources": {
+            "{width}px".format(width=pil_image.width): {
+                "url": "db://amsterdam_app_api.warning_message/{identifier}".format(identifier=identifier),
+                "image_id": identifier,
+                "filename": "db://amsterdam_app_api.warning_message/{identifier}".format(identifier=identifier),
+                "description": image_data.get('description', '')},
+        }
+    }
+
+    warning_message = WarningMessages.objects.filter(pk=project_warning_id).first()
+    warning_message.images.append(warning_message_image)
+    warning_message.save()
+
+    return Response({'status': True, 'result': 'Image stored in database'}, status=200)

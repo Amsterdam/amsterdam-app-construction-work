@@ -10,3 +10,4 @@ requests
 wheel
 pycryptodome
 pybase64
+Pillow

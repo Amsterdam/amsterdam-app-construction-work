@@ -89,3 +89,40 @@ as_push_notification_get = {
     },
     'tags': ['(push-) Notifications']
 }
+
+as_warning_message_image_post = {
+    # /api/v1/notification/messages/image/post
+    'methods': ['POST'],
+    'request_body': openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'project_warning_id': openapi.Schema(type=openapi.TYPE_STRING, description='identifier'),
+            'image': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                'type': openapi.Schema(type=openapi.TYPE_STRING, description='<header|additional>'),
+                'description': openapi.Schema(type=openapi.TYPE_STRING, description='about this image'),
+                'data': openapi.Schema(type=openapi.TYPE_STRING, description='base64 image data')
+            })
+        }
+    ),
+    'responses': {
+        200: openapi.Response('application/json', examples={
+            'application/json': {
+                'status': True,
+                'result': 'Image stored in database'
+            }
+        }),
+        404: openapi.Response('application/json', examples={
+            'application/json': {
+                'status': False,
+                'result': message.no_record_found
+            }
+        }),
+        422: openapi.Response('application/json', examples={
+            'application/json': {
+                'status': False,
+                'result': message.invalid_query
+            }
+        })
+    },
+    'tags': ['(push-) Notifications']
+}
