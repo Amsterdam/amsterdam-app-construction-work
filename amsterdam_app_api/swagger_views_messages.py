@@ -1,5 +1,4 @@
 from drf_yasg import openapi
-from amsterdam_app_api.serializers import WarningMessagesInternalSerializer
 from amsterdam_app_api.serializers import WarningMessagesExternalSerializer
 from amsterdam_app_api.serializers import PushNotificationSerializer
 from amsterdam_app_api.api_messages import Messages
@@ -19,6 +18,7 @@ as_warning_message_post = {
                 'content': openapi.Schema(type=openapi.TYPE_STRING, description='full text')
             }),
             'project_identifier': openapi.Schema(type=openapi.TYPE_STRING, description='identifier'),
+            'project_manager_token': openapi.Schema(type=openapi.TYPE_STRING, description='identifier'),
             'author_email': openapi.Schema(type=openapi.TYPE_STRING, description='author@amsterdam.nl'),
         }
     ),
