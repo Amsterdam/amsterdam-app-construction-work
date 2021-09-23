@@ -10,7 +10,18 @@ message = Messages()
 as_warning_message_post = {
     # /api/v1/notification/messages/warning/create
     'methods': ['POST'],
-    'request_body': WarningMessagesInternalSerializer,
+    'request_body': openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'title': openapi.Schema(type=openapi.TYPE_STRING, description='identifier'),
+            'body': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                'preface': openapi.Schema(type=openapi.TYPE_STRING, description='short text'),
+                'content': openapi.Schema(type=openapi.TYPE_STRING, description='full text')
+            }),
+            'project_identifier': openapi.Schema(type=openapi.TYPE_STRING, description='identifier'),
+            'author_email': openapi.Schema(type=openapi.TYPE_STRING, description='author@amsterdam.nl'),
+        }
+    ),
     'responses': {
         200: openapi.Response('application/json', examples={
             'application/json': {
