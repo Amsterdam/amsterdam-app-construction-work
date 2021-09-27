@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from functools import reduce
 from drf_yasg.utils import swagger_auto_schema
+from amsterdam_app_api.GenericFunctions.IsAuthorized import IsAuthorized
 from amsterdam_app_api.PushNotifications.SendNotification import SendNotification
 from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import WarningMessages
@@ -27,6 +28,7 @@ message = Messages()
 
 
 @swagger_auto_schema(**as_warning_message_post)
+@IsAuthorized
 @api_view(['POST'])
 def warning_message_post(request):
     """ Post a warning message. Only warnings by a valid Project manager for a valid project are allowed.
@@ -76,6 +78,7 @@ def warning_message_get(request):
 
 
 @swagger_auto_schema(**as_push_notification_post)
+@IsAuthorized
 @api_view(['POST'])
 def push_notification_post(request):
     title = request.data.get('title', None)
@@ -121,6 +124,7 @@ def push_notification_get(request):
 
 
 @swagger_auto_schema(**as_warning_message_image_post)
+@IsAuthorized
 @api_view(['POST'])
 def warning_messages_image_upload(request):
     """ Upload image for warning message

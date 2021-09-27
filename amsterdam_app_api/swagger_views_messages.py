@@ -9,6 +9,10 @@ message = Messages()
 as_warning_message_post = {
     # /api/v1/notification/messages/warning/create
     'methods': ['POST'],
+    'manual_parameters': [openapi.Parameter('UserAuthorization',
+                                            openapi.IN_HEADER,
+                                            description="authorization token",
+                                            type=openapi.TYPE_STRING)],
     'request_body': openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
@@ -65,6 +69,10 @@ as_warning_message_get = {
 as_push_notification_post = {
     # /api/v1/notification/messages/push/send
     'methods': ['POST'],
+    'manual_parameters': [openapi.Parameter('UserAuthorization',
+                                            openapi.IN_HEADER,
+                                            description="authorization token",
+                                            type=openapi.TYPE_STRING)],
     'request_body': PushNotificationSerializer,
     'responses': {
         200: openapi.Response('application/json', examples={
@@ -104,6 +112,10 @@ as_push_notification_get = {
 as_warning_message_image_post = {
     # /api/v1/notification/messages/image/post
     'methods': ['POST'],
+    'manual_parameters': [openapi.Parameter('UserAuthorization',
+                                            openapi.IN_HEADER,
+                                            description="authorization token",
+                                            type=openapi.TYPE_STRING)],
     'request_body': openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
