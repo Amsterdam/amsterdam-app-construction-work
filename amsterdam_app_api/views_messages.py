@@ -27,9 +27,19 @@ from amsterdam_app_api.swagger_views_messages import as_warning_message_image_po
 message = Messages()
 
 
+@swagger_auto_schema(**as_warning_message_get)
 @swagger_auto_schema(**as_warning_message_post)
+@api_view(['GET', 'POST'])
+def warning_message_crud(request):
+    if request.method == 'POST':
+        data = warning_message_post(request)
+        return Response(data['result'], status=data['status_code'])
+    elif request.method == 'GET':
+        data = warning_message_get(request)
+        return Response(data['result'], status=data['status_code'])
+
+
 @IsAuthorized
-@api_view(['POST'])
 def warning_message_post(request):
     """ Post a warning message. Only warnings by a valid Project manager for a valid project are allowed.
     """
@@ -39,20 +49,20 @@ def warning_message_post(request):
     body = request.data.get('body', {})
 
     if None in [title, project_identifier, project_manager_token]:
-        return Response({'status': False, 'result': message.invalid_query}, status=422)
+        return {'result': {'status': False, 'result': message.invalid_query}, 'status_code': 422}
     elif not isinstance(body.get('preface', None), str):
-        return Response({'status': False, 'result': message.invalid_query}, status=422)
+        return {'result': {'status': False, 'result': message.invalid_query}, 'status_code': 422}
     elif not isinstance(body.get('content', None), str):
-        return Response({'status': False, 'result': message.invalid_query}, status=422)
+        return {'result': {'status': False, 'result': message.invalid_query}, 'status_code': 422}
     elif Projects.objects.filter(pk=project_identifier).first() is None:
-        return Response({'status': False, 'result': message.invalid_query}, status=422)
+        return {'result': {'status': False, 'result': message.invalid_query}, 'status_code': 422}
 
     # Check if the project manager exists and is entitled for sending a message for this project
     project_manager = ProjectManager.objects.filter(pk=project_manager_token).first()
     if project_manager is None:
-        return Response({'status': False, 'result': message.no_record_found}, status=404)
+        return {'result': {'status': False, 'result': message.no_record_found}, 'status_code': 404}
     elif project_identifier not in project_manager.projects:
-        return Response({'status': False, 'result': message.no_record_found}, status=404)
+        return {'result': {'status': False, 'result': message.no_record_found}, 'status_code': 404}
 
     message_object = WarningMessages(title=title,
                                      body=body,
@@ -60,26 +70,34 @@ def warning_message_post(request):
                                      project_manager_token=project_manager_token,
                                      images=[])
     message_object.save()
-    return Response({'status': True, 'result': {'warning_identifier': message_object.identifier}}, status=200)
+    return {'result': {'status': True, 'result': {'warning_identifier': message_object.identifier}}, 'status_code': 200}
 
 
-@swagger_auto_schema(**as_warning_message_get)
-@api_view(['GET'])
 def warning_message_get(request):
     project_identifier = request.GET.get('id', None)
     if project_identifier is None:
-        return Response({'status': False, 'result': message.invalid_query}, status=422)
+        return {'result': {'status': False, 'result': message.invalid_query}, 'status_code': 422}
     elif Projects.objects.filter(pk=project_identifier).first() is None:
-        return Response({'status': False, 'result': message.no_record_found}, status=404)
+        return {'result': {'status': False, 'result': message.no_record_found}, 'status_code': 404}
     else:
         warning_messages_objects = WarningMessages.objects.filter(project_identifier=project_identifier).all()
         serializer = WarningMessagesExternalSerializer(warning_messages_objects, many=True)
-        return Response({'status': True, 'result': serializer.data}, status=200)
+        return {'result': {'status': True, 'result': serializer.data}, 'status_code': 200}
 
 
+@swagger_auto_schema(**as_push_notification_get)
 @swagger_auto_schema(**as_push_notification_post)
+@api_view(['GET', 'POST'])
+def push_notification_crud(request):
+    if request.method == 'POST':
+        data = push_notification_post(request)
+        return Response(data['result'], status=data['status_code'])
+    elif request.method == 'GET':
+        data = push_notification_get(request)
+        return Response(data['result'], status=data['status_code'])
+
+
 @IsAuthorized
-@api_view(['POST'])
 def push_notification_post(request):
     title = request.data.get('title', None)
     body = request.data.get('body', None)
@@ -87,13 +105,13 @@ def push_notification_post(request):
     warning_identifier = request.data.get('warning_identifier', None)
 
     if None in [title, body, warning_identifier]:
-        return Response({'status': False, 'result': message.invalid_query}, status=422)
+        return {'result': {'status': False, 'result': message.invalid_query}, 'status_code': 422}
     elif news_identifier is None and warning_identifier is None:
-        return Response({'status': False, 'result': message.invalid_query}, status=422)
+        return {'result': {'status': False, 'result': message.invalid_query}, 'status_code':422}
     elif news_identifier is not None and News.objects.filter(pk=news_identifier).first() is None:
-        return Response({'status': False, 'result': message.no_record_found}, status=404)
+        return {'result': {'status': False, 'result': message.no_record_found}, 'status_code': 404}
     elif WarningMessages.objects.filter(pk=warning_identifier).first() is None:
-        return Response({'status': False, 'result': message.no_record_found}, status=404)
+        return {'result': {'status': False, 'result': message.no_record_found}, 'status_code': 404}
 
     push_notification = PushNotification(title=title,
                                          body=body,
@@ -104,23 +122,20 @@ def push_notification_post(request):
     # Trigger the push notification services
     notification_services = SendNotification(push_notification.identifier)
     notification_services.send()
+    return {'result': {'status': True, 'result': 'push-notification accepted'}, 'status_code': 200}
 
-    return Response({'status': True, 'result': 'push-notification accepted'}, status=200)
 
-
-@swagger_auto_schema(**as_push_notification_get)
-@api_view(['GET'])
 def push_notification_get(request):
     query_params = request.GET.get('project-ids', None)
     if query_params is None:
-        return Response({'status': False, 'result': message.invalid_query}, status=422)
+        return {'result': {'status': False, 'result': message.invalid_query}, 'status_code': 422}
 
     project_identifiers = query_params.split(',')
     query = reduce(lambda q, value: q | Q(project_identifier=value), project_identifiers, Q())
     push_notifications = PushNotification.objects.filter(query).all()
     serializer = PushNotificationSerializer(push_notifications, many=True)
 
-    return Response({'status': True, 'result': serializer.data}, status=200)
+    return {'result': {'status': True, 'result': serializer.data}, 'status_code': 200}
 
 
 @swagger_auto_schema(**as_warning_message_image_post)

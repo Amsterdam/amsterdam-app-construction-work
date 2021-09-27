@@ -32,6 +32,12 @@ as_warning_message_post = {
                 'status': True,
                 'result': {'warning_identifier': 'identifier'}}
         }),
+        403: openapi.Response('application/json', examples={
+            'application/json': {
+                'status': False,
+                'result': message.access_denied
+            }
+        }),
         404: openapi.Response('application/json', examples={
             'application/json': {
                 'status': False,
@@ -79,6 +85,12 @@ as_push_notification_post = {
             'application/json': {
                 'status': True,
                 'result': 'push-notification accepted'
+            }
+        }),
+        403: openapi.Response('application/json', examples={
+            'application/json': {
+                'status': False,
+                'result': message.access_denied
             }
         }),
         422: openapi.Response('application/json', examples={
@@ -132,6 +144,12 @@ as_warning_message_image_post = {
             'application/json': {
                 'status': True,
                 'result': 'Image stored in database'
+            }
+        }),
+        403: openapi.Response('application/json', examples={
+            'application/json': {
+                'status': False,
+                'result': message.access_denied
             }
         }),
         404: openapi.Response('application/json', examples={
