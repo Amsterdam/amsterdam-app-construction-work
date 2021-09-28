@@ -11,3 +11,4 @@ wheel
 pycryptodome
 pybase64
 Pillow
+pkcs7==0.1.0
