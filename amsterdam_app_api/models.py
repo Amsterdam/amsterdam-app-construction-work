@@ -294,7 +294,7 @@ class WarningMessages(models.Model):
         super(WarningMessages, self).save(*args, **kwargs)
 
 
-class PushNotification(models.Model):
+class Notification(models.Model):
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=1000, unique=False)
     body = models.CharField(max_length=1000, unique=False)
@@ -306,4 +306,4 @@ class PushNotification(models.Model):
     def save(self, *args, **kwargs):
         warning_message = WarningMessages.objects.filter(pk=self.warning_identifier).first()
         self.project_identifier = warning_message.project_identifier
-        super(PushNotification, self).save(*args, **kwargs)
+        super(Notification, self).save(*args, **kwargs)

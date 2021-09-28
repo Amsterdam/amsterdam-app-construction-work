@@ -24,7 +24,7 @@ as_project_manager_get = {
                               ProjectManagerSerializer,
                               examples={'application/json': {'status': True, 'result': []}})
     },
-    'tags': ['Project manager']
+    'tags': ['Projects']
 }
 
 
@@ -49,7 +49,7 @@ as_project_manager_delete = {
                                       'status': False,
                                       'result': message.invalid_query}})
     },
-    'tags': ['Project manager']
+    'tags': ['Projects']
 }
 
 
@@ -75,5 +75,5 @@ as_project_manager_post_patch = {
             }
         })
     },
-    'tags': ['Project manager']
+    'tags': ['Projects']
 }

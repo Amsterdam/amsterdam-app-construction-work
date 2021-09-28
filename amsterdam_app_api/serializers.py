@@ -7,7 +7,7 @@ from amsterdam_app_api.models import News
 from amsterdam_app_api.models import ProjectManager
 from amsterdam_app_api.models import MobileDevices
 from amsterdam_app_api.models import WarningMessages
-from amsterdam_app_api.models import PushNotification
+from amsterdam_app_api.models import Notification
 
 
 class AssetsSerializer(serializers.ModelSerializer):
@@ -64,7 +64,7 @@ class WarningMessagesExternalSerializer(serializers.ModelSerializer):
         exclude = ['project_manager_token']
 
 
-class PushNotificationSerializer(serializers.ModelSerializer):
+class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
-        model = PushNotification
+        model = Notification
         exclude = ['identifier']

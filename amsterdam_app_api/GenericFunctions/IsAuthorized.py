@@ -28,7 +28,7 @@ class IsAuthorized:
             return self.func(*args, **kwargs)
 
         # Access is not allowed, abort with 401
-        return {'result': 'ACCESS DENIED', 'status_code': 401}
+        return {'result': 'ACCESS DENIED', 'status_code': 403}
 
     @staticmethod
     def is_valid_token(encrypted_token=None):

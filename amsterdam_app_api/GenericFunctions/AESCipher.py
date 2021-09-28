@@ -18,7 +18,8 @@ class AESCipher:
         try:
             plain_text = self.pad(self.data)
             iv = Random().read(AES.block_size)
-            cipher = AES.new(self.key, AES.MODE_OFB, iv)
+            cipher = AES.new(self.key, AES.MODE_CFB, iv)
+
             return b64encode(iv + cipher.encrypt(plain_text.encode())).decode()
         except Exception as error:
             self.logger.error(error)
@@ -28,7 +29,7 @@ class AESCipher:
         try:
             cipher_text = b64decode(self.data.encode())
             iv = cipher_text[:self.block_size]
-            cipher = AES.new(self.key, AES.MODE_OFB, iv)
+            cipher = AES.new(self.key, AES.MODE_CFB, iv)
             return self.unpad(cipher.decrypt(cipher_text[self.block_size:])).decode()
         except Exception as error:
             self.logger.error(error)

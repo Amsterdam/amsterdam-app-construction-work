@@ -42,15 +42,16 @@ urlpatterns = [
     path('asset', views_generic.asset),
 
     # Mobile devices (used for CRUD devices for push-notifications)
-    path('notifications/device_registration', views_mobile_devices.crud),
+    path('device_registration', views_mobile_devices.crud),
 
     # Project Manager (used to CRUD a project manager for notifications)
-    path('notifications/user', views_project_manager.crud),
+    path('project/manager', views_project_manager.crud),
 
     # Warning message
-    path('notifications/warning', views_messages.warning_message_crud),
-    path('notifications/image', views_messages.warning_messages_image_upload),
+    path('project/warning', views_messages.warning_message_crud),
+    path('project/warning/image', views_messages.warning_messages_image_upload),
 
-    # Push notification
-    path('notifications/push', views_messages.push_notification_crud)
+    # Notification ('teaser' pointing to news- or warning article)
+    path('notification', views_messages.notification_post),
+    path('notifications', views_messages.notification_get)
 ]

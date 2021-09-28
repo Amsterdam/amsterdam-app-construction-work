@@ -35,7 +35,7 @@ as_push_notifications_registration_device_delete = {
                                       'status': False,
                                       'result': message.invalid_query}})
     },
-    'tags': ['(push-) Notifications']
+    'tags': ['Consumers']
 }
 
 
@@ -60,5 +60,5 @@ as_push_notifications_registration_device_post_patch = {
                                       'status': False,
                                       'result': message.invalid_query}})
     },
-    'tags': ['(push-) Notifications']
+    'tags': ['Consumers']
 }

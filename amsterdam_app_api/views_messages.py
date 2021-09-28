@@ -13,15 +13,15 @@ from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import WarningMessages
 from amsterdam_app_api.models import Projects
 from amsterdam_app_api.models import ProjectManager
-from amsterdam_app_api.models import PushNotification
+from amsterdam_app_api.models import Notification
 from amsterdam_app_api.models import News
 from amsterdam_app_api.models import Image
 from amsterdam_app_api.serializers import WarningMessagesExternalSerializer
-from amsterdam_app_api.serializers import PushNotificationSerializer
+from amsterdam_app_api.serializers import NotificationSerializer
 from amsterdam_app_api.swagger_views_messages import as_warning_message_post
 from amsterdam_app_api.swagger_views_messages import as_warning_message_get
-from amsterdam_app_api.swagger_views_messages import as_push_notification_post
-from amsterdam_app_api.swagger_views_messages import as_push_notification_get
+from amsterdam_app_api.swagger_views_messages import as_notification_post
+from amsterdam_app_api.swagger_views_messages import as_notification_get
 from amsterdam_app_api.swagger_views_messages import as_warning_message_image_post
 
 message = Messages()
@@ -85,58 +85,48 @@ def warning_message_get(request):
         return {'result': {'status': True, 'result': serializer.data}, 'status_code': 200}
 
 
-@swagger_auto_schema(**as_push_notification_get)
-@swagger_auto_schema(**as_push_notification_post)
-@api_view(['GET', 'POST'])
-def push_notification_crud(request):
-    if request.method == 'POST':
-        data = push_notification_post(request)
-        return Response(data['result'], status=data['status_code'])
-    elif request.method == 'GET':
-        data = push_notification_get(request)
-        return Response(data['result'], status=data['status_code'])
-
-
+@swagger_auto_schema(**as_notification_post)
 @IsAuthorized
-def push_notification_post(request):
+@api_view(['POST'])
+def notification_post(request):
     title = request.data.get('title', None)
     body = request.data.get('body', None)
     news_identifier = request.data.get('news_identifier', None)
     warning_identifier = request.data.get('warning_identifier', None)
 
     if None in [title, body, warning_identifier]:
-        return {'result': {'status': False, 'result': message.invalid_query}, 'status_code': 422}
+        Response({'status': False, 'result': message.invalid_query}, status=422)
     elif news_identifier is None and warning_identifier is None:
-        return {'result': {'status': False, 'result': message.invalid_query}, 'status_code':422}
+        Response({'status': False, 'result': message.invalid_query}, status=422)
     elif news_identifier is not None and News.objects.filter(pk=news_identifier).first() is None:
-        return {'result': {'status': False, 'result': message.no_record_found}, 'status_code': 404}
+        Response({'status': False, 'result': message.no_record_found}, status=404)
     elif WarningMessages.objects.filter(pk=warning_identifier).first() is None:
-        return {'result': {'status': False, 'result': message.no_record_found}, 'status_code': 404}
+        Response({'status': False, 'result': message.no_record_found}, status=404)
 
-    push_notification = PushNotification(title=title,
-                                         body=body,
-                                         news_identifier=news_identifier,
-                                         warning_identifier=warning_identifier)
-    push_notification.save()
+    notification = Notification(title=title,
+                                body=body,
+                                news_identifier=news_identifier,
+                                warning_identifier=warning_identifier)
+    notification.save()
 
     # Trigger the push notification services
-    notification_services = SendNotification(push_notification.identifier)
+    notification_services = SendNotification(notification.identifier)
     notification_services.send()
-    return {'result': {'status': True, 'result': 'push-notification accepted'}, 'status_code': 200}
+    Response({'status': True, 'result': 'push-notification accepted'}, status=200)
 
 
-def push_notification_get(request):
+@swagger_auto_schema(**as_notification_get)
+@api_view(['GET'])
+def notification_get(request):
     query_params = request.GET.get('project-ids', None)
     if query_params is None:
-        return {'result': {'status': False, 'result': message.invalid_query}, 'status_code': 422}
-
+        Response({'status': False, 'result': message.invalid_query}, status=422)
     project_identifiers = query_params.split(',')
     query = reduce(lambda q, value: q | Q(project_identifier=value), project_identifiers, Q())
-    push_notifications = PushNotification.objects.filter(query).all()
-    serializer = PushNotificationSerializer(push_notifications, many=True)
+    notifications = Notification.objects.filter(query).all()
+    serializer = NotificationSerializer(notifications, many=True)
 
-    return {'result': {'status': True, 'result': serializer.data}, 'status_code': 200}
-
+    Response({'status': True, 'result': serializer.data}, status=200)
 
 @swagger_auto_schema(**as_warning_message_image_post)
 @IsAuthorized

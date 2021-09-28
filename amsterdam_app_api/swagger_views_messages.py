@@ -1,6 +1,6 @@
 from drf_yasg import openapi
 from amsterdam_app_api.serializers import WarningMessagesExternalSerializer
-from amsterdam_app_api.serializers import PushNotificationSerializer
+from amsterdam_app_api.serializers import NotificationSerializer
 from amsterdam_app_api.api_messages import Messages
 
 message = Messages()
@@ -50,7 +50,7 @@ as_warning_message_post = {
             }
         })
     },
-    'tags': ['(push-) Notifications']
+    'tags': ['Projects']
 }
 
 as_warning_message_get = {
@@ -69,17 +69,17 @@ as_warning_message_get = {
         404: openapi.Response('Error: Not Found'),
         422: openapi.Response('Error: Unprocessable Entity')
     },
-    'tags': ['(push-) Notifications']
+    'tags': ['Projects']
 }
 
-as_push_notification_post = {
+as_notification_post = {
     # /api/v1/notification/messages/push/send
     'methods': ['POST'],
     'manual_parameters': [openapi.Parameter('UserAuthorization',
                                             openapi.IN_HEADER,
                                             description="authorization token",
                                             type=openapi.TYPE_STRING)],
-    'request_body': PushNotificationSerializer,
+    'request_body': NotificationSerializer,
     'responses': {
         200: openapi.Response('application/json', examples={
             'application/json': {
@@ -100,10 +100,10 @@ as_push_notification_post = {
             }
         })
     },
-    'tags': ['(push-) Notifications']
+    'tags': ['Notifications']
 }
 
-as_push_notification_get = {
+as_notification_get = {
     # /api/v1/notification/messages/push/get
     'methods': ['GET'],
     'manual_parameters': [openapi.Parameter('project-ids',
@@ -114,11 +114,11 @@ as_push_notification_get = {
                                             required=True)],
     'responses': {
         200: openapi.Response('application/json',
-                              PushNotificationSerializer,
+                              NotificationSerializer,
                               examples={'application/json': {'status': True, 'result': []}}),
         422: openapi.Response('Error: Unprocessable Entity')
     },
-    'tags': ['(push-) Notifications']
+    'tags': ['Notifications']
 }
 
 as_warning_message_image_post = {
@@ -165,5 +165,5 @@ as_warning_message_image_post = {
             }
         })
     },
-    'tags': ['(push-) Notifications']
+    'tags': ['Projects']
 }
