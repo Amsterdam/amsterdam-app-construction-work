@@ -1,3 +1,4 @@
+import uuid
 from django.test import TestCase
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
 from amsterdam_app_api.models import Assets
@@ -5,13 +6,15 @@ from amsterdam_app_api.models import Image
 from amsterdam_app_api.models import Projects
 from amsterdam_app_api.models import ProjectDetails
 from amsterdam_app_api.models import News
-from amsterdam_app_api.models import OM
+from amsterdam_app_api.models import ProjectManager
+from amsterdam_app_api.models import MobileDevices
 from amsterdam_app_api.serializers import ImageSerializer
 from amsterdam_app_api.serializers import AssetsSerializer
 from amsterdam_app_api.serializers import ProjectsSerializer
 from amsterdam_app_api.serializers import ProjectDetailsSerializer
 from amsterdam_app_api.serializers import NewsSerializer
-from amsterdam_app_api.serializers import OMSerializer
+from amsterdam_app_api.serializers import ProjectManagerSerializer
+from amsterdam_app_api.serializers import MobileDevicesSerializer
 
 
 class TestAssetsModel(TestCase):
@@ -194,36 +197,77 @@ class TestNewsModel(TestCase):
         self.assertEqual(news_object, None)
 
 
-class TestOMModel(TestCase):
+class TestProjectManagerModel(TestCase):
     def __init__(self, *args, **kwargs):
-        super(TestOMModel, self).__init__(*args, **kwargs)
+        super(TestProjectManagerModel, self).__init__(*args, **kwargs)
         self.data = TestData()
 
     def setUp(self):
-        OM.objects.all().delete()
-        for om in self.data.om:
-            OM.objects.create(**om)
+        ProjectManager.objects.all().delete()
+        for pm in self.data.project_manager:
+            ProjectManager.objects.create(**pm)
 
-    def test_om_delete(self):
-        OM.objects.get(pk='56d7f0b9-ac14-424d-8779-615a60c23591').delete()
-        om_objects = OM.objects.all()
-        serializer = OMSerializer(om_objects, many=True)
+    def test_pm_delete(self):
+        ProjectManager.objects.get(pk=uuid.UUID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')).delete()
+        pm_objects = ProjectManager.objects.all()
+        serializer = ProjectManagerSerializer(pm_objects, many=True)
 
         self.assertEqual(len(serializer.data), 1)
 
-    def test_om_get_all(self):
-        om_objects = OM.objects.all()
+    def test_pm_get_all(self):
+        pm_objects = ProjectManager.objects.all()
 
-        self.assertEqual(len(om_objects), 2)
+        self.assertEqual(len(pm_objects), 2)
 
-    def test_om_exists(self):
-        om_objects = OM.objects.get(pk='56d7f0b9-ac14-424d-8779-615a60c23591')
+    def test_pm_exists(self):
+        pm_objects = ProjectManager.objects.get(pk=uuid.UUID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'))
 
-        self.assertEqual(om_objects.identifier, '56d7f0b9-ac14-424d-8779-615a60c23591')
-        self.assertEqual(om_objects.email, 'mock0@example.com')
-        self.assertEqual(om_objects.projects, ["0000000000", "0000000001"])
+        self.assertEqual(pm_objects.identifier, uuid.UUID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'))
+        self.assertEqual(pm_objects.email, 'mock0@amsterdam.nl')
+        self.assertEqual(pm_objects.projects, ["0000000000", "0000000001"])
 
-    def test_om_does_not_exist(self):
-        om_object = OM.objects.filter(pk='does not exist').first()
+    def test_pm_does_not_exist(self):
+        pm_object = ProjectManager.objects.filter(pk=uuid.UUID('00000000-0000-0000-0000-000000000000')).first()
 
-        self.assertEqual(om_object, None)
+        self.assertEqual(pm_object, None)
+
+    def test_pm_has_invalid_email(self):
+        with self.assertRaises(Exception) as context:
+            ProjectManager.objects.create(**self.data.project_manager_invalid)
+
+        self.assertEqual(context.exception.args, ('Invalid email, should be <username>@amsterdam.nl',))
+
+
+class TestMobileDevicesModel(TestCase):
+    def __init__(self, *args, **kwargs):
+        super(TestMobileDevicesModel, self).__init__(*args, **kwargs)
+        self.data = TestData()
+
+    def setUp(self):
+        MobileDevices.objects.all().delete()
+        for mobile_device in self.data.mobile_devices:
+            MobileDevices.objects.create(**mobile_device)
+
+    def test_md_delete(self):
+        MobileDevices.objects.get(pk=uuid.UUID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')).delete()
+        md_objects = MobileDevices.objects.all()
+        serializer = MobileDevicesSerializer(md_objects, many=True)
+
+        self.assertEqual(len(serializer.data), 1)
+
+    def test_md_get_all(self):
+        md_objects = MobileDevices.objects.all()
+
+        self.assertEqual(len(md_objects), 2)
+
+    def test_md_exists(self):
+        md_objects = MobileDevices.objects.get(pk='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+
+        self.assertEqual(md_objects.identifier, 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+        self.assertEqual(md_objects.os_type, 'android')
+        self.assertEqual(md_objects.projects, ["0000000000", "0000000001"])
+
+    def test_md_does_not_exist(self):
+        md_object = MobileDevices.objects.filter(pk='00000000-0000-0000-0000-000000000000').first()
+
+        self.assertEqual(md_object, None)

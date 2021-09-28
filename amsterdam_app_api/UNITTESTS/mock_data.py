@@ -1810,16 +1810,35 @@ class TestData:
             "images": []
         }]
 
-        self.om = [
+        self.project_manager = [
             {
-                "email": "mock0@example.com",
-                "identifier": "56d7f0b9-ac14-424d-8779-615a60c23591",
+                "email": "mock0@amsterdam.nl",
+                "identifier": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                 "projects": ["0000000000", "0000000001"]
             },
             {
-                "email": "mock1@example.com",
-                "identifier": "56d7f0b9-ac14-424d-8779-615a60c23592",
+                "email": "mock1@amsterdam.nl",
+                "identifier": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
                 "projects": ["0000000002", "0000000003"]
+            }
+        ]
+
+        self.project_manager_invalid = {
+            "email": "mock@invalid.domain",
+            "identifier": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            "projects": ["0000000000", "0000000001"]
+        }
+
+        self.mobile_devices = [
+            {
+                "identifier": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                "os_type": "android",
+                "projects": ["0000000000", "0000000001"]
+            },
+            {
+                "identifier": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+                "os_type": "ios",
+                "projects": ["0000000000"]
             }
         ]
 

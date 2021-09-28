@@ -8,3 +8,7 @@ markdown
 psycopg2-binary>=2.8
 requests
 wheel
+pycryptodome
+pybase64
+Pillow
+pkcs7==0.1.0

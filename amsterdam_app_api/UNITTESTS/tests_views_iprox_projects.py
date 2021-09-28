@@ -4,7 +4,7 @@ from django.test import TestCase
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
 from amsterdam_app_api.models import Projects
 from amsterdam_app_api.models import ProjectDetails
-from amsterdam_app_api.views_messages import Messages
+from amsterdam_app_api.api_messages import Messages
 
 messages = Messages()
 
