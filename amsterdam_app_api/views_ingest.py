@@ -1,5 +1,5 @@
 from amsterdam_app_api.swagger_views_ingest import as_ingest_projects
-from amsterdam_app_api.views_messages import Messages
+from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.FetchData.IproxIngestion import IproxIngestion
 from rest_framework.decorators import api_view
 from rest_framework.response import Response

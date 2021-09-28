@@ -217,57 +217,14 @@ near future in favour of a cron-job.
     Valid (mandatory) query parameter: project-type=['brug', 'kade']
 ```
 
-### Current implemented APIs (v1)
+### API documentation
 
-There's online API documentation available at:
+There is online API documentation available at:
 ```
     http://localhost:8000/api/v1/apidocs
 ```
 
-**Fetch initial data:**
-```         
-    /api/projects/v1/ingest
-    Valid (mandatory) query parameter: project-type=['brug', 'kade']
-    
-    e.g: http://localhost:8000/api/v1/projects/ingest?project-type=kade
+There is offline documentation available at:
 ```
-
-**Get all projects:**
-```     
-    /api/v1/projects
-    Valid (optional) query parameter: project-type=['brug', 'kade']
-
-    e.g: http://localhost:8000/api/v1/projects?project-type=kade
-```
-
-**Get project details:**
-```
-    /api/v1/project/details
-    Valid (mandatory) query parameter: id=sting (md5 hash, identifier from /api/projects)
-
-    e.g. http://localhost:8000/api/v1/project/details?id=846f78938721bd84db735dd413c63346
-```
-
-**Get project news:**
-```
-    /api/v1/project/news
-    Valid query parameter: id=sting (md5 hash, identifier from /api/project/details)
-
-    e.g. http://localhost:8000/api/v1/project/news?id=846f78938721bd84db735dd413c63346
-```
-
-**Get image:**
-```    
-    /api/v1/image
-    Valid (mandatory) query parameter: id=string (md5 hash, indentifier from /api/project/details image object)
-    
-    e.g. http://localhost:8000/api/v1/image?id=0accad7dd900a72a7b2e3f16d6b50ad1
-```
-
-**Get asset:**
-```    
-    /api/v1/asset
-    Valid (mandatory) query parameter: id=string (md5 hash, indentifier from /api/project/details)
-    
-    e.g. http://localhost:8000/api/v1/asset?id=0accad7dd900a72a7b2e3f16d6b50ad1
+    /amsterdam_app_api/swagger_views_*.py
 ```
