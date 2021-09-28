@@ -289,7 +289,7 @@ class WarningMessages(models.Model):
 
     def save(self, *args, **kwargs):
         project_manager = ProjectManager.objects.filter(pk=self.project_manager_token).first()
-        self.author_email = project_manager.email if project_manager is not None else 'redactie@amsterdam.nl'
+        self.author_email = project_manager.email if project_manager is not None else 'redactieprojecten@amsterdam.nl'
         self.modification_date = datetime.datetime.now()
         super(WarningMessages, self).save(*args, **kwargs)
 
