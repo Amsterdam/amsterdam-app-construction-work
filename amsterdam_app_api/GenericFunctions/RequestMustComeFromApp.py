@@ -23,7 +23,10 @@ class RequestMustComeFromApp:
 
     def __call__(self, *args, **kwargs):
         request = args[0]
-        encrypted_token = request.META.get('HTTP_DEVICEAUTHORIZATION', None)
+
+        http_userauthorization = request.META.get('HTTP_DEVICEAUTHORIZATION', None)
+        header_userauthorization = request.META.get('headers', {}).get('DeviceAuthorization', None)
+        encrypted_token = http_userauthorization if http_userauthorization is not None else header_userauthorization
 
         if self.is_valid_token(encrypted_token=encrypted_token):
             return self.func(*args, **kwargs)
