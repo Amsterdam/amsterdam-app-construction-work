@@ -10,7 +10,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 
-message = Messages()
+messages = Messages()
 
 """ Views for CRUD a project-manager and assign projects
 """
@@ -57,11 +57,11 @@ def post_patch(request):
     projects = request.data.get('projects', list())
 
     if email is None:
-        return {'result': {'status': False, 'result': message.invalid_query}, 'status': 422}
+        return {'result': {'status': False, 'result': messages.invalid_query}, 'status': 422}
 
     for project in projects:
         if Projects.objects.filter(pk=project).first() is None:
-            return {'result': {'status': False, 'result': message.no_record_found}, 'status': 404}
+            return {'result': {'status': False, 'result': messages.no_record_found}, 'status': 404}
 
     project_manager_object = ProjectManager.objects.filter(Q(pk=identifier) | Q(email=email)).first()
 
@@ -83,8 +83,9 @@ def post_patch(request):
 def delete(request):
     identifier = request.GET.get('id', None)
     if identifier is None:
-        return {'result': {'status': False, 'result': message.invalid_query}, 'status': 422}
+        return {'result': {'status': False, 'result': messages.invalid_query}, 'status': 422}
     else:
         # remove project manager from database
         ProjectManager.objects.filter(pk=identifier).delete()
         return {'result': {'status': True, 'result': 'Project manager removed'}, 'status': 200}
+

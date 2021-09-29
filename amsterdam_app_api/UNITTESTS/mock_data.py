@@ -1814,7 +1814,7 @@ class TestData:
             {
                 "email": "mock0@amsterdam.nl",
                 "identifier": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-                "projects": ["0000000000", "0000000001"]
+                "projects": ["0000000000"]
             },
             {
                 "email": "mock1@amsterdam.nl",
@@ -1841,6 +1841,14 @@ class TestData:
                 "projects": ["0000000000"]
             }
         ]
+
+        self.warning_message = {
+            'title': 'title',
+            'body': {'preface': 'short text', 'content': 'long text'},
+            'project_identifier': '0000000000',
+            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'images': []
+        }
 
 # if __name__ == '__main__':
 #     import os

@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 
-message = Messages()
+messages = Messages()
 
 """ Views for CRUD a mobile-device and assign subscriptions for push-notifications
 """
@@ -35,7 +35,7 @@ def post_patch(request):
     projects = request.data.get('projects', None)
 
     if identifier is None or os_type is None:
-        return {'result': {'status': False, 'result': message.invalid_query}, 'status': 422}
+        return {'result': {'status': False, 'result': messages.invalid_query}, 'status': 422}
     elif projects == [] or projects is None:
         # remove mobile device because it has no push-notification subscriptions
         MobileDevices.objects.filter(pk=identifier).delete()
@@ -58,7 +58,7 @@ def post_patch(request):
 def delete(request):
     identifier = request.GET.get('id', None)
     if identifier is None:
-        return {'result': {'status': False, 'result': message.invalid_query}, 'status': 422}
+        return {'result': {'status': False, 'result': messages.invalid_query}, 'status': 422}
     else:
         # remove mobile device from database
         MobileDevices.objects.filter(pk=identifier).delete()

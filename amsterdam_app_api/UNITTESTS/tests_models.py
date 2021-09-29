@@ -8,6 +8,8 @@ from amsterdam_app_api.models import ProjectDetails
 from amsterdam_app_api.models import News
 from amsterdam_app_api.models import ProjectManager
 from amsterdam_app_api.models import MobileDevices
+from amsterdam_app_api.models import WarningMessages
+from amsterdam_app_api.models import Notification
 from amsterdam_app_api.serializers import ImageSerializer
 from amsterdam_app_api.serializers import AssetsSerializer
 from amsterdam_app_api.serializers import ProjectsSerializer
@@ -15,6 +17,9 @@ from amsterdam_app_api.serializers import ProjectDetailsSerializer
 from amsterdam_app_api.serializers import NewsSerializer
 from amsterdam_app_api.serializers import ProjectManagerSerializer
 from amsterdam_app_api.serializers import MobileDevicesSerializer
+from amsterdam_app_api.serializers import WarningMessagesInternalSerializer
+from amsterdam_app_api.serializers import WarningMessagesExternalSerializer
+from amsterdam_app_api.serializers import Notification
 
 
 class TestAssetsModel(TestCase):
@@ -224,7 +229,7 @@ class TestProjectManagerModel(TestCase):
 
         self.assertEqual(pm_objects.identifier, uuid.UUID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'))
         self.assertEqual(pm_objects.email, 'mock0@amsterdam.nl')
-        self.assertEqual(pm_objects.projects, ["0000000000", "0000000001"])
+        self.assertEqual(pm_objects.projects, ["0000000000"])
 
     def test_pm_does_not_exist(self):
         pm_object = ProjectManager.objects.filter(pk=uuid.UUID('00000000-0000-0000-0000-000000000000')).first()
@@ -271,3 +276,113 @@ class TestMobileDevicesModel(TestCase):
         md_object = MobileDevices.objects.filter(pk='00000000-0000-0000-0000-000000000000').first()
 
         self.assertEqual(md_object, None)
+
+
+class TestWarningMessagesModel(TestCase):
+    def __init__(self, *args, **kwargs):
+        super(TestWarningMessagesModel, self).__init__(*args, **kwargs)
+        self.data = TestData()
+
+    def setUp(self):
+        WarningMessages.objects.all().delete()
+        ProjectManager.objects.all().delete()
+        for project_manager in self.data.project_manager:
+            ProjectManager.objects.create(**project_manager)
+
+    def test_create_message(self):
+        warning_message = WarningMessages.objects.create(**self.data.warning_message)
+
+        self.assertEqual(type(warning_message.identifier), type(uuid.uuid4()))
+        self.assertEqual(warning_message.author_email, self.data.project_manager[0]['email'])
+        self.assertNotEqual(warning_message.publication_date, None)
+        self.assertNotEqual(warning_message.modification_date, None)
+
+    def test_default_email(self):
+        data = dict(self.data.warning_message)
+        data['project_manager_token'] = uuid.uuid4()
+        warning_message = WarningMessages.objects.create(**data)
+
+        self.assertEqual(warning_message.author_email, 'redactieprojecten@amsterdam.nl')
+
+    def test_modification_date(self):
+        warning_message = WarningMessages.objects.create(**self.data.warning_message)
+        date = warning_message.modification_date
+        warning_message.save()
+
+        self.assertNotEqual(warning_message.modification_date, date)
+
+    def test_serializer_internal(self):
+        """ Purpose: test if project_manager_token is present in serializer
+        """
+        warning_message = WarningMessages.objects.create(**self.data.warning_message)
+        serializer = WarningMessagesInternalSerializer(warning_message, many=False)
+        data = dict(serializer.data)
+        expected_result = {
+            'identifier': data['identifier'],
+            'title': 'title',
+            'body': {'preface': 'short text', 'content': 'long text'},
+            'project_identifier': '0000000000',
+            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'images': [],
+            'publication_date': data['publication_date'],
+            'modification_date': data['modification_date'],
+            'author_email': 'mock0@amsterdam.nl'
+        }
+
+        self.assertDictEqual(data, expected_result)
+
+    def test_serializer_external(self):
+        """ Purpose: test if project_manager_token is NOT present in serializer
+        """
+        warning_message = WarningMessages.objects.create(**self.data.warning_message)
+        serializer = WarningMessagesExternalSerializer(warning_message, many=False)
+        data = dict(serializer.data)
+        expected_result = {
+            'identifier': data['identifier'],
+            'title': 'title',
+            'body': {'preface': 'short text', 'content': 'long text'},
+            'project_identifier': '0000000000',
+            'images': [],
+            'publication_date': data['publication_date'],
+            'modification_date': data['modification_date'],
+            'author_email': 'mock0@amsterdam.nl'
+        }
+
+        self.assertDictEqual(data, expected_result)
+
+
+class TestNotificationModel(TestCase):
+    def __init__(self, *args, **kwargs):
+        super(TestNotificationModel, self).__init__(*args, **kwargs)
+        self.data = TestData()
+        self.warning_identifier = None
+
+    def setUp(self):
+        WarningMessages.objects.all().delete()
+        warning_message = WarningMessages.objects.create(**self.data.warning_message)
+        self.warning_identifier = warning_message.identifier
+
+    def test_create_notification(self):
+        data = {'title': 'test', 'body': 'test', 'warning_identifier': self.warning_identifier}
+        notification = Notification.objects.create(**data)
+        notification.save()
+
+        self.assertEqual(notification.project_identifier, '0000000000')
+
+    def test_serializer(self):
+        data = {'title': 'test', 'body': 'test', 'warning_identifier': self.warning_identifier}
+        notification = Notification.objects.create(**data)
+        serializer = NewsSerializer(notification, many=False)
+        serializer_data = dict(serializer.data)
+
+        expected_result = {
+            'identifier': str(notification.identifier),
+            'project_identifier': '0000000000',
+            'title': 'test',
+            'publication_date': str(notification.publication_date),
+            'body': 'test',
+            'images': None,
+            'assets': None
+        }
+
+        self.assertDictEqual(serializer_data, expected_result)
