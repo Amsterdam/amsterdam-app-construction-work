@@ -32,8 +32,12 @@ messages = Messages()
 @api_view(['GET', 'POST'])
 def warning_message_crud(request):
     if request.method == 'POST':
-        data = warning_message_post(request)
-        return Response(data['result'], status=data['status_code'])
+        data = None
+        try:
+            data = warning_message_post(request)
+            return Response(data['result'], status=data['status_code'])
+        except:
+            return data
     elif request.method == 'GET':
         data = warning_message_get(request)
         return Response(data['result'], status=data['status_code'])

@@ -125,7 +125,7 @@ class TestApiProjectWarning(TestCase):
         result = self.client.post(self.url, json.dumps(data), content_type=self.content_type)
 
         self.assertEqual(result.status_code, 403)
-        self.assertEqual(result.data, 'ACCESS DENIED')
+        self.assertEqual(result.reason_phrase, 'Forbidden')
 
     def test_get_warning_message(self):
         data = {

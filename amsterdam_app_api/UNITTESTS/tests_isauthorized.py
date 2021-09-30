@@ -35,8 +35,8 @@ class TestIsAuthorized(TestCase):
 
         headers = {'Accept': 'application/json', 'UserAuthorization': 'invalid'}
         request = self.factory.post('/', headers=headers)
-        resp = a_view(request)
-        self.assertEqual(resp, {'result': 'ACCESS DENIED', 'status_code': 403})
+        result = a_view(request)
+        self.assertEqual(result.reason_phrase, 'Forbidden')
 
     def test_no_token(self):
         @IsAuthorized
@@ -45,5 +45,5 @@ class TestIsAuthorized(TestCase):
 
         headers = {'Accept': 'application/json'}
         request = self.factory.post('/', headers=headers)
-        resp = a_view(request)
-        self.assertEqual(resp, {'result': 'ACCESS DENIED', 'status_code': 403})
+        result = a_view(request)
+        self.assertEqual(result.reason_phrase, 'Forbidden')
