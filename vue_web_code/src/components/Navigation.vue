@@ -9,15 +9,29 @@
           <b-navbar-item
             class="is-active"
             tag="router-link"
-            to="/LandingPage">
+            to="/">
             <span
-              v-if="this.$router.currentRoute.path === '/LandingPage'"
+              v-if="this.$router.currentRoute.path === '/'"
               class="active-link"
               style="font-weight: bolder">LandingPage</span>
             <span
               v-else
               class="underline-on-hover inactive-link"
               style="font-weight: bolder">LandingPage</span>
+          </b-navbar-item>
+
+          <b-navbar-item
+            class="is-active"
+            tag="router-link"
+            to="/OtherPage">
+            <span
+              v-if="this.$router.currentRoute.path === '/OtherPage'"
+              class="active-link"
+              style="font-weight: bolder">Other Page</span>
+            <span
+              v-else
+              class="underline-on-hover inactive-link"
+              style="font-weight: bolder">Other Page</span>
           </b-navbar-item>
         </template>
 
