@@ -1,7 +1,9 @@
+import io
 import markdown
+import mimetypes
+from PIL import Image as PILImage
 from django.http import HttpResponse
 from amsterdam_app_backend.settings import BASE_DIR
-import mimetypes
 
 
 def readme(request):
@@ -48,3 +50,39 @@ def static(request):
     except Exception as error:
         pass
     return HttpResponse(status=404)
+
+
+""" Below end-points are for the VUEjs website
+"""
+
+
+def index(request):
+    path = '{base_dir}/static/dist'.format(base_dir=BASE_DIR)
+    with open('{path}/index.html'.format(path=path), 'r') as f:
+        content = f.read()
+        return HttpResponse(content, content_type='text/html')
+
+
+def css_files(request):
+    path = '{base_dir}/static/dist'.format(base_dir=BASE_DIR)
+    with open('{path}/{filename}'.format(path=path, filename=request.path), 'r') as f:
+        content = f.read()
+        return HttpResponse(content, content_type='text/css')
+
+
+def js_files(request):
+    path = '{base_dir}/static/dist'.format(base_dir=BASE_DIR)
+    with open('{path}/{filename}'.format(path=path, filename=request.path), 'r') as f:
+        content = f.read()
+        return HttpResponse(content, content_type='text/javascript')
+
+
+def img_files(request):
+    path = '{base_dir}/static/dist'.format(base_dir=BASE_DIR)
+    with open('{path}/{filename}'.format(path=path, filename=request.path), 'rb') as f:
+        data = f.read()
+        if '.svg' in request.path:
+            return HttpResponse(data, content_type='image/svg+xml')
+        buffer = io.BytesIO(data)
+        pil_image = PILImage.open(buffer)
+        return HttpResponse(data, content_type=pil_image.get_format_mimetype())
