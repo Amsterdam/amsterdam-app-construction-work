@@ -54,7 +54,7 @@ urlpatterns = [
     path('device_registration', csrf_exempt(views_mobile_devices.crud)),
 
     # Project Manager (used to CRUD a project manager for notifications)
-    path('project/manager', views_project_manager.crud),
+    path('project/manager', csrf_exempt(views_project_manager.crud)),
 
     # Warning message
     path('project/warning', csrf_exempt(views_messages.warning_message_crud)),

@@ -13,11 +13,11 @@
             <span
               v-if="this.$router.currentRoute.path === '/'"
               class="active-link"
-              style="font-weight: bolder">LandingPage</span>
+              style="font-weight: bolder">Account beheer</span>
             <span
               v-else
               class="underline-on-hover inactive-link"
-              style="font-weight: bolder">LandingPage</span>
+              style="font-weight: bolder">Account beheer</span>
           </b-navbar-item>
 
           <b-navbar-item

@@ -1,4 +1,7 @@
 import functools
+import jwt
+from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError
+from amsterdam_app_backend.settings import SECRET_KEY
 from amsterdam_app_api.GenericFunctions.AESCipher import AESCipher
 from django.http.response import HttpResponseForbidden
 from amsterdam_app_api.models import ProjectManager
@@ -24,21 +27,34 @@ class IsAuthorized:
         request = args[0]
         http_userauthorization = request.META.get('HTTP_USERAUTHORIZATION', None)
         header_userauthorization = request.META.get('headers', {}).get('UserAuthorization', None)
-        encrypted_token = http_userauthorization if http_userauthorization is not None else header_userauthorization
+        jwt_token = request.META.get('HTTP_AUTHORIZATION', None)
+        header_jwt_token = str(request.META.get('headers', {}).get('HTTP_AUTHORIZATION', None)).encode('utf-8')
 
-        if self.is_valid_token(encrypted_token=encrypted_token):
-            return self.func(*args, **kwargs)
+        encrypted_token = http_userauthorization if http_userauthorization is not None else header_userauthorization
+        jwt_encrypted_token = jwt_token if jwt_token is not None else header_jwt_token
+
+        if encrypted_token is not None:
+            if self.is_valid_AES_token(encrypted_token=encrypted_token):
+                return self.func(*args, **kwargs)
+        elif jwt_encrypted_token is not None:
+            if self.is_valid_JWT_token(jwt_encrypted_token=jwt_encrypted_token):
+                return self.func(*args, **kwargs)
 
         # Access is not allowed, abort with 401
         return HttpResponseForbidden()
-        # return {'result': 'ACCESS DENIED', 'status_code': 403}
 
     @staticmethod
-    def is_valid_token(encrypted_token=None):
-        if encrypted_token is None:
-            return False
+    def is_valid_AES_token(encrypted_token=None):
         token = AESCipher(encrypted_token, '6886b31dfe27e9306c3d2b553345d9e5').decrypt()
         project_manager = ProjectManager.objects.filter(pk=token).first()
         if project_manager is None:
             return False
         return True
+
+    @staticmethod
+    def is_valid_JWT_token(jwt_encrypted_token=None):
+        try:
+            token_dict = jwt.decode(jwt_encrypted_token, SECRET_KEY, algorithms=["HS256"])
+            return isinstance(token_dict, dict)
+        except (InvalidSignatureError, ExpiredSignatureError, Exception) as error:
+            return False

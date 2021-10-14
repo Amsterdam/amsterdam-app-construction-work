@@ -18,7 +18,7 @@ class TestApiDeviceRegistration(TestCase):
         MobileDevices.objects.all().delete()
 
     def test_register_device_valid(self):
-        json_data = '{"identifier": "0000000000", "os_type": "ios", "projects": ["0000000000"]}'
+        json_data = '{"device_token": "0000000000", "os_type": "ios", "projects": ["0000000000"]}'
 
         c = Client()
         result = c.post(self.url, json_data, headers={"DeviceAuthorization": self.token}, content_type="application/json")
@@ -29,13 +29,32 @@ class TestApiDeviceRegistration(TestCase):
     def test_register_device_update(self):
         c = Client()
 
-        json_data0 = '{"identifier": "0000000000", "os_type": "ios", "projects": ["0000000000"]}'
+        json_data0 = '{"device_token": "0000000000", "os_type": "ios", "projects": ["0000000000"]}'
         result = c.post(self.url, json_data0, headers={"DeviceAuthorization": self.token}, content_type="application/json")
 
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(result.data, {'status': True, 'result': 'Device registration updated'})
 
-        json_data1 = '{"identifier": "0000000000", "os_type": "ios", "projects": ["0000000000", "1111111111"]}'
+        json_data1 = '{"device_token": "0000000000", "os_type": "ios", "projects": ["0000000000", "1111111111"]}'
+        result = c.post(self.url, json_data1, headers={"DeviceAuthorization": self.token}, content_type="application/json")
+
+        self.assertEqual(result.status_code, 200)
+        self.assertDictEqual(result.data, {'status': True, 'result': 'Device registration updated'})
+
+        mobile_devices = MobileDevices.objects.all()
+        serializer = MobileDevicesSerializer(mobile_devices, many=True)
+        self.assertEqual(len(serializer.data), 1)
+
+    def test_register_device_update_refresh_token(self):
+        c = Client()
+
+        json_data0 = '{"device_token": "0000000000", "os_type": "ios", "projects": ["0000000000"]}'
+        result = c.post(self.url, json_data0, headers={"DeviceAuthorization": self.token}, content_type="application/json")
+
+        self.assertEqual(result.status_code, 200)
+        self.assertDictEqual(result.data, {'status': True, 'result': 'Device registration updated'})
+
+        json_data1 = '{"device_token": "0000000000", "device_refresh_token": "0000000001", "os_type": "ios", "projects": ["0000000000", "1111111111"]}'
         result = c.post(self.url, json_data1, headers={"DeviceAuthorization": self.token}, content_type="application/json")
 
         self.assertEqual(result.status_code, 200)
@@ -48,13 +67,13 @@ class TestApiDeviceRegistration(TestCase):
     def test_register_device_auto_removal(self):
         c = Client()
 
-        json_data0 = '{"identifier": "0000000000", "os_type": "ios", "projects": ["0000000000"]}'
+        json_data0 = '{"device_token": "0000000000", "os_type": "ios", "projects": ["0000000000"]}'
         result = c.post(self.url, json_data0, headers={"DeviceAuthorization": self.token}, content_type="application/json")
 
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(result.data, {'status': True, 'result': 'Device registration updated'})
 
-        json_data1 = '{"identifier": "0000000000", "os_type": "ios", "projects": []}'
+        json_data1 = '{"device_token": "0000000000", "os_type": "ios", "projects": []}'
         result = c.post(self.url, json_data1, headers={"DeviceAuthorization": self.token}, content_type="application/json")
 
         self.assertEqual(result.status_code, 200)
@@ -67,7 +86,7 @@ class TestApiDeviceRegistration(TestCase):
     def test_register_device_invalid_request(self):
         c = Client()
 
-        json_data0 = '{"identifier": "0000000000", "projects": ["0000000000"]}'
+        json_data0 = '{"device_token": "0000000000", "projects": ["0000000000"]}'
         result = c.post(self.url, json_data0, headers={"DeviceAuthorization": self.token}, content_type="application/json")
 
         self.assertEqual(result.status_code, 422)
@@ -82,7 +101,7 @@ class TestApiDeviceRegistration(TestCase):
     def test_register_device_delete(self):
         c = Client()
 
-        json_data0 = '{"identifier": "0000000000", "os_type": "ios", "projects": ["0000000000"]}'
+        json_data0 = '{"device_token": "0000000000", "os_type": "ios", "projects": ["0000000000"]}'
         result = c.post(self.url, json_data0, headers={"DeviceAuthorization": self.token}, content_type="application/json")
 
         self.assertEqual(result.status_code, 200)

@@ -1831,12 +1831,12 @@ class TestData:
 
         self.mobile_devices = [
             {
-                "identifier": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                "device_token": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                 "os_type": "android",
                 "projects": ["0000000000", "0000000001"]
             },
             {
-                "identifier": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+                "device_token": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
                 "os_type": "ios",
                 "projects": ["0000000000"]
             }

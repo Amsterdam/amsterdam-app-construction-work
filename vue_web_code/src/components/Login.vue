@@ -1,5 +1,5 @@
 <template>
-  <section>
+  <div>
     <div
       class="card login"
       @submit="login">
@@ -16,23 +16,27 @@
         <div class="spacer"/>
       </div>
       <form>
+        <div
+          class="align-left margin-less">
+          <span class="help-text">
+            Voer uw gebruikersnaam in
+          </span>
+        </div>
         <b-field
-          :type="message ? 'is-danger' : 'is-primary'"
-          message="Voer uw gebruikersnaam in">
+          :type="message ? 'is-danger' : 'is-primary'">
           <b-input
-            v-model="username"
-            placeholder="Gebruikersnaam"
-            required/>
+            v-model="username"/>
         </b-field>
+        <div
+          class="align-left margin-less">
+          <span class="help-text">
+            Voer uw wachtwoord in
+          </span>
+        </div>
         <b-field
-          :type="message ? 'is-danger' : 'is-primary'"
-          message="Voer uw wachtwoord in">
+          :type="message ? 'is-danger' : 'is-primary'">
           <b-input
             v-model="password"
-            password-reveal
-            required
-            icon-pack="fas"
-            placeholder="Wachtwoord"
             type="password"/>
         </b-field>
         <b-button
@@ -45,7 +49,7 @@
         </b-button>
       </form>
     </div>
-  </section>
+  </div>
 </template>
 
 <script>
@@ -90,6 +94,19 @@ export default {
 <style>
 .spacer {
   margin: 15px;
+}
+
+.margin-less {
+  margin: 0;
+  padding: 0;
+}
+
+.help-text {
+  color: #004699;
+  font-weight: bolder;
+  font-size: 12px;
+  margin: 0;
+  padding: 0;
 }
 
 .login {

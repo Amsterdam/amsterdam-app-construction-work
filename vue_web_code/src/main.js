@@ -1,5 +1,6 @@
 import Vue from 'vue'
 import App from './App.vue'
+import jsPDF from 'jspdf'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
 import Buefy from 'buefy'
@@ -13,6 +14,7 @@ Vue.config.productionTip = false
 
 Vue.use(Buefy)
 Vue.use(VueAxios, axios)
+Vue.use(jsPDF)
 
 new Vue({
   router,
