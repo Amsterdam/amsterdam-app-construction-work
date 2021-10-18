@@ -58,6 +58,7 @@ def main():
         cov.save()
         cov.report()
     else:
+        # Start the application
         execute_from_command_line(sys.argv)
 
 

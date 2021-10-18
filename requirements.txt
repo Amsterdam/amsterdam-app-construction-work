@@ -1,8 +1,10 @@
 bs4
+coverage
 django
 django-nose
 django_crontab
 djangorestframework
+djangorestframework-simplejwt
 drf-yasg
 markdown
 psycopg2-binary>=2.8
