@@ -6,10 +6,10 @@ from amsterdam_app_api.swagger_views_project_manager import as_project_manager_p
 from amsterdam_app_api.swagger_views_project_manager import as_project_manager_delete
 from amsterdam_app_api.swagger_views_project_manager import as_project_manager_get
 from django.db.models import Q
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
-
+from rest_framework.decorators import api_view
+from amsterdam_app_api.GenericFunctions.IsAuthorized import IsAuthorized
 messages = Messages()
 
 """ Views for CRUD a project-manager and assign projects
@@ -20,6 +20,7 @@ messages = Messages()
 @swagger_auto_schema(**as_project_manager_delete)
 @swagger_auto_schema(**as_project_manager_get)
 @api_view(['GET', 'POST', 'PATCH', 'DELETE'])
+@IsAuthorized
 def crud(request):
     if request.method in ['GET']:
         """ Get project manager(s). Optionally filter by id 
@@ -70,12 +71,13 @@ def post_patch(request):
         try:
             project_manager_object = ProjectManager(identifier=identifier, email=email, projects=projects)
             project_manager_object.save()
+            return {'result': {'status': True, 'result': 'Project manager created', 'identifier': project_manager_object.identifier}, 'status': 200}
         except Exception as error:
             return {'result': {'status': False, 'result': str(error)}, 'status': 422}
 
     # Update existing record
     else:
-        ProjectManager.objects.filter(pk=identifier).update(identifier=identifier, email=email, projects=projects)
+        ProjectManager.objects.filter(identifier=identifier).update(identifier=identifier, email=email, projects=projects)
 
     return {'result': {'status': True, 'result': 'Project manager updated'}, 'status': 200}
 

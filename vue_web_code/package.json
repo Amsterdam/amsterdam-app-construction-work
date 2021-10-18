@@ -1,0 +1,46 @@
+{
+  "name": "Amsterdam-App-Backend",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "serve": "npm run build && vue-cli-service serve",
+    "build": "vue-cli-service build && npm run copy",
+    "build_dev": "vue-cli-service build --mode development",
+    "lint": "vue-cli-service lint",
+    "copy": "cp -r dist ../static"
+  },
+  "dependencies": {
+    "@dattn/dnd-grid": "0.0.14",
+    "axios": "^0.21.1",
+    "buefy": "^0.9.3",
+    "core-js": "^3.6.5",
+    "jspdf": "^2.4.0",
+    "vue": "^2.6.11",
+    "vue-axios": "^3.2.0",
+    "vue-router": "^3.4.8",
+    "vuex": "^3.5.1"
+  },
+  "devDependencies": {
+    "@kazupon/vue-i18n-loader": "^0.5.0",
+    "@vue/cli-plugin-babel": "~4.5.0",
+    "@vue/cli-plugin-eslint": "~4.5.0",
+    "@vue/cli-service": "~4.5.0",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^4.15.0",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-friendly-formatter": "^3.0.0",
+    "eslint-loader": "^1.7.1",
+    "eslint-plugin-babel": "^5.3.0",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-node": "^5.2.0",
+    "eslint-plugin-promise": "^3.4.0",
+    "eslint-plugin-standard": "^3.0.1",
+    "eslint-plugin-vue": "^4.0.0",
+    "vue-template-compiler": "^2.6.11"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead"
+  ]
+}

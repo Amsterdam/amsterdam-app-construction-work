@@ -39,14 +39,46 @@ as_push_notifications_registration_device_delete = {
 }
 
 
-as_push_notifications_registration_device_post_patch = {
+as_push_notifications_registration_device_post = {
     # /api/v1/image swagger_auto_schema
-    'methods': ['POST', 'PATCH'],
+    'methods': ['POST'],
     'manual_parameters': [openapi.Parameter('DeviceAuthorization',
                                             openapi.IN_HEADER,
                                             description="Device authorization token",
                                             type=openapi.TYPE_STRING)],
     'request_body': MobileDevicesSerializer,
+    'responses': {
+        200: openapi.Response('application/json',
+                              examples={
+                                  'application/json': {
+                                      'status': True,
+                                      'result': 'Device registration updated'}}),
+        403: openapi.Response('Error: Forbidden'),
+        422: openapi.Response('application/json',
+                              examples={
+                                  'application/json': {
+                                      'status': False,
+                                      'result': message.invalid_query}})
+    },
+    'tags': ['Consumers']
+}
+
+as_push_notifications_registration_device_patch = {
+    # /api/v1/image swagger_auto_schema
+    'methods': ['PATCH'],
+    'manual_parameters': [openapi.Parameter('DeviceAuthorization',
+                                            openapi.IN_HEADER,
+                                            description="Device authorization token",
+                                            type=openapi.TYPE_STRING)],
+    'request_body': openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'device_token': openapi.Schema(type=openapi.TYPE_STRING, description='device_token'),
+            'device_refresh_token': openapi.Schema(type=openapi.TYPE_STRING, description='device_refresh_token'),
+            'os_type': openapi.Schema(type=openapi.TYPE_STRING, description='<android|ios>'),
+            'projects': dict(type=openapi.TYPE_ARRAY, items=openapi.Items(type=openapi.TYPE_STRING), description='project_identifier')
+        }
+    ),
     'responses': {
         200: openapi.Response('application/json',
                               examples={

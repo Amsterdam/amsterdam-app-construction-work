@@ -268,7 +268,7 @@ class TestMobileDevicesModel(TestCase):
     def test_md_exists(self):
         md_objects = MobileDevices.objects.get(pk='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
 
-        self.assertEqual(md_objects.identifier, 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+        self.assertEqual(md_objects.device_token, 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
         self.assertEqual(md_objects.os_type, 'android')
         self.assertEqual(md_objects.projects, ["0000000000", "0000000001"])
 

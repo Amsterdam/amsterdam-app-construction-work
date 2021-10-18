@@ -14,6 +14,10 @@ venv
 # Django migrations
 **/migrations
 
+# VueJS build files
+**/dist
+/vue_web_code/node_modules
+
 # Temp files
 kladblok.py
 **/kladblok.py
@@ -24,3 +28,4 @@ env
 # Persistent data directory for POSTGRES docker environment
 data
 data/db
+

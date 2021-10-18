@@ -1,4 +1,5 @@
-"""amsterdam_app_backend URL Configuration
+"""
+amsterdam_app_backend URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.2/topics/http/urls/
@@ -17,11 +18,15 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from amsterdam_app_backend import views
 
-
 urlpatterns = [
-    path('', views.readme),
     path('api/v1/', include('amsterdam_app_api.urls')),
+    path('readme', views.readme),
+    path('', views.index),
+    re_path(r'^css/.*$', views.css_files),
+    re_path(r'^js/.*$', views.js_files),
+    re_path(r'^img/.*$', views.img_files),
+    re_path(r'^assets/.*$', views.img_files),
     re_path(r'^static/.*$', views.static),
-    re_path(r'^favicon.ico$', views.favicon)
-    # path('admin/', admin.site.urls),
+    re_path(r'^favicon.ico$', views.favicon),
+    path('admin/', admin.site.urls),
 ]
