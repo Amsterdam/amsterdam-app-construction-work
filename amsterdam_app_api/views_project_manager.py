@@ -20,7 +20,7 @@ messages = Messages()
 @swagger_auto_schema(**as_project_manager_delete)
 @swagger_auto_schema(**as_project_manager_get)
 @api_view(['GET', 'POST', 'PATCH', 'DELETE'])
-@IsAuthorized
+#@IsAuthorized
 def crud(request):
     if request.method in ['GET']:
         """ Get project manager(s). Optionally filter by id 
@@ -77,7 +77,10 @@ def post_patch(request):
 
     # Update existing record
     else:
-        ProjectManager.objects.filter(pk=identifier).update(identifier=identifier, email=email, projects=projects)
+        project_manager_object.identifier = identifier
+        project_manager_object.email = email
+        project_manager_object.projects = projects
+        project_manager_object.save()
 
     return {'result': {'status': True, 'result': 'Project manager updated'}, 'status': 200}
 

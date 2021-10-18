@@ -116,9 +116,12 @@ export default {
     selected_project_manager: {
       handler () {
         this.selected_projects = []
-        for (let index in this.projects) {
-          if (this.selected_project_manager.projects.includes(this.projects[index].identifier)) {
-            this.selected_projects.push(this.projects[index])
+        console.log(this.selected_project_manager)
+        for (let i = 0; i < this.projects.length; i++) {
+          if (this.projects[i].hasOwnProperty('identifier')) {
+            if (this.selected_project_manager.projects.includes(this.projects[i].identifier)) {
+              this.selected_projects.push(this.projects[i])
+            }
           }
         }
       },
@@ -194,7 +197,7 @@ export default {
       let lineHeight = doc.getLineHeight(text) / doc.internal.scaleFactor
       let textY = lines * lineHeight
 
-      doc.text('https://www.google.com/?id=' + identifier, 10, textY)
+      doc.text('apn://www.google.com/?id=' + identifier, 10, textY)
       doc.save(name + '.pdf')
     },
     save () {
@@ -202,12 +205,14 @@ export default {
       message += '<div style="margin-bottom: 15px;"><p>U heeft de onderstaande projecten geselecteerd:</p></div>'
 
       // Updated selected projects for the selected project-manager
+      this.selected_project_manager.projects = []
       message += '<div><ul>'
-      for (let item in this.selected_projects) {
-        this.selected_project_manager.projects.push(this.selected_projects[item].identifier)
-        message += '<li><b> &middot; ' + this.selected_projects[item].title + '</b></li>'
+      for (let i = 0; i < this.selected_projects.length; i++) {
+        this.selected_project_manager.projects.push(this.selected_projects[i].identifier)
+        message += '<li><b> &middot; ' + this.selected_projects[i].title + '</b></li>'
       }
       message += '</ul></div>'
+      let projectManager = this.selected_project_manager
 
       this.$buefy.dialog.confirm({
         title: 'Account bijwerken / opslaan',
@@ -217,7 +222,7 @@ export default {
         type: 'is-primary',
         hasIcon: true,
         onConfirm: () => {
-          axios.patch('/project/manager', this.selected_project_manager).then(response => {
+          axios.patch('/project/manager', projectManager).then(response => {
             if (response.data.hasOwnProperty('identifier')) {
               this.create_pdf(response.data.identifier)
               this.$buefy.toast.open('Account toegevoegd!')
@@ -228,6 +233,7 @@ export default {
             // reload accounts and projects
             this.init()
             this.name = ''
+            this.selected_projects = []
             this.selected_project_manager = null
           }, error => {
             console.log(error)

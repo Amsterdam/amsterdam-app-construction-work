@@ -55,6 +55,11 @@ function add_static_files {
     cd /code && python manage.py collectstatic --no-input
 }
 
+function create_user {
+    printf "\nCreating web-user\n"
+    cd /code && cat create_user.py | python manage.py shell
+}
+
 function start_backend {
     printf "\nStarting Django API server\n\n"
     cd /code && python manage.py runserver 0.0.0.0:8000
@@ -75,6 +80,7 @@ is_db_alive
 set_header
 enable_python_venv
 make_migrations
+create_user
 add_cron_jobs
 add_static_files
 enter_infinity_loop
