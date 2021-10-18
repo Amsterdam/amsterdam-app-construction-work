@@ -1,54 +1,51 @@
 <template>
   <section>
     <div class="card container">
-      <h1>Change password</h1>
+      <h1>Wijzig uw wachtwoord</h1>
 
       <form @submit="changePassword">
         <b-field
           :type="type"
-          label="Old password"
-          label-position="on-border">
+          class="align-left"
+          label="Oude wachtwoord">
           <b-input
             v-model="oldPassword"
             password-reveal
             required
-            placeholder="Old Password"
             icon-pack="fas"
             type="password"/>
         </b-field>
         <b-field
           :type="type"
-          label="New password"
-          label-position="on-border">
+          class="align-left"
+          label="Nieuw wachtwoord">
           <b-input
             v-model="newPassword"
             password-reveal
             required
-            placeholder="New Password"
             icon-pack="fas"
             type="password"/>
         </b-field>
         <b-field
           :message="message"
           :type="type"
-          label="New password (verify)"
-          label-position="on-border">
+          class="align-left"
+          label="Nieuwe wachtwoord (verificatie)">
           <b-input
             v-model="newPasswordVerify"
             password-reveal
             required
-            placeholder="New Password (Verify)"
             icon-pack="fas"
             type="password"/>
         </b-field>
-        <b-button
-          native-type="submit"
-          type="is-primary">
-          <b-icon
-            icon="key"
-            pack="fas"/>
-          <span>Change password</span>
-        </b-button>
+        <b-field
+          class="align-left">
+          <b-button
+            native-type="submit"
+            type="is-primary">
+            <span>Opslaan</span>
+          </b-button>
+        </b-field>
       </form>
     </div>
   </section>
@@ -79,28 +76,34 @@ export default {
   },
   methods: {
     changePassword: function () {
-      if (this.newPassword.length < 0) {
-        this.message = 'Password must be at least 8 characters long'
+      if (this.newPassword.length < 7) {
+        this.message = 'Uw wachtwoord moet tenminste acht karakters lang zijn.'
         return
       }
 
       if (this.newPassword !== this.newPasswordVerify) {
-        this.message = 'Passwords are not the same'
+        this.message = 'De wachtwoorden komen niet overeen.'
         return
       }
 
       let data = {
+        username: this.$store.state.username,
         old_password: this.oldPassword,
-        new_password: this.newPassword,
-        new_password_verify: this.newPasswordVerify
+        password: this.newPassword,
+        password_verify: this.newPasswordVerify
       }
 
       this.$http.post('user/password', data)
         .then(response => {
-          this.$router.push('/')
+          if (response.data.status === true) {
+            this.$store.commit('logout')
+            this.$router.push('/login')
+          } else {
+            this.message = response.data.result
+          }
         })
         .catch(error => {
-          this.message = error.data.message || JSON.stringify(error)
+          this.message = error.data.result || JSON.stringify(error)
           this.success = false
         })
     }

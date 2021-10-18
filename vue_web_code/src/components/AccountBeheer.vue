@@ -118,7 +118,7 @@ export default {
         this.selected_projects = []
         console.log(this.selected_project_manager)
         for (let i = 0; i < this.projects.length; i++) {
-          if (this.projects[i].hasOwnProperty('identifier')) {
+          if (this.projects[i].hasOwnProperty('identifier') && this.selected_project_manager !== null) {
             if (this.selected_project_manager.projects.includes(this.projects[i].identifier)) {
               this.selected_projects.push(this.projects[i])
             }

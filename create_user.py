@@ -1,5 +1,8 @@
 import os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "amsterdam_app_backend.settings")
 from django.contrib.auth import get_user_model
+import django
+django.setup()
 
 
 def source_environment():
@@ -27,11 +30,16 @@ def create_user():
     source_environment()
 
     UserModel = get_user_model()
-    username = os.environ.get('WEB_USERNAME')
-    password = os.environ.get('WEB_PASSWORD')
+    username = os.getenv('WEB_USERNAME')
+    password = os.getenv('WEB_PASSWORD')
+    print(username, password)
 
     if not UserModel.objects.filter(username=username).exists():
         user = UserModel.objects.create_user(username, password=password)
         user.is_superuser = False
         user.is_staff = True
         user.save()
+
+
+if __name__ == '__main__':
+    create_user()

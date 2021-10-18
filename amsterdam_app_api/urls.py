@@ -6,6 +6,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.views import TokenRefreshView
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+from amsterdam_app_api import views_user
 from amsterdam_app_api import views_generic
 from amsterdam_app_api import views_iprox_projects
 from amsterdam_app_api import views_iprox_news
@@ -30,10 +31,12 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     # Path to obtain a new access and refresh token (refresh token expires after 24h)
-    path('get-token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('get-token/', csrf_exempt(TokenObtainPairView.as_view()), name='token_obtain_pair'),
 
     # Submit your refresh token to this path to obtain a fresh access token
-    path('refresh-token/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('refresh-token/', csrf_exempt(TokenRefreshView.as_view()), name='token_refresh'),
+
+    path('user/password', csrf_exempt(views_user.change_password)),
 
     # Swagger (drf-yasg framework)
     url(r'^apidocs$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

@@ -57,7 +57,12 @@ function add_static_files {
 
 function create_user {
     printf "\nCreating web-user\n"
-    cd /code && cat create_user.py | python manage.py shell
+    cd /code && python create_user.py
+}
+
+function create_vue_code {
+  printf "\nCompiling Vue\n"
+  cd /code/vue_web_code && npm install && npm run build
 }
 
 function start_backend {
@@ -81,6 +86,7 @@ set_header
 enable_python_venv
 make_migrations
 create_user
+create_vue_code
 add_cron_jobs
 add_static_files
 enter_infinity_loop

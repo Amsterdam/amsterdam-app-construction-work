@@ -17,11 +17,6 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 from amsterdam_app_backend import views
-from amsterdam_app_api.models import Notification, ProjectManager, WarningMessages
-
-#admin.site.register(Notification)
-#admin.site.register(ProjectManager)
-#admin.site.register(WarningMessages)
 
 urlpatterns = [
     path('api/v1/', include('amsterdam_app_api.urls')),

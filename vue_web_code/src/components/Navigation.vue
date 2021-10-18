@@ -20,6 +20,7 @@
               style="font-weight: bolder">Account beheer</span>
           </b-navbar-item>
 
+          <!--
           <b-navbar-item
             class="is-active"
             tag="router-link"
@@ -33,6 +34,7 @@
               class="underline-on-hover inactive-link"
               style="font-weight: bolder">Other Page</span>
           </b-navbar-item>
+          -->
         </template>
 
         <template slot="end">
@@ -43,10 +45,10 @@
             <b-navbar-item
               tag="router-link"
               to="/password">
-              Change Password
+              Wijzig wachtwoord
             </b-navbar-item>
             <b-navbar-item @click.native="logout">
-              Logout
+              Afmelden
             </b-navbar-item>
           </b-navbar-dropdown>
         </template>
