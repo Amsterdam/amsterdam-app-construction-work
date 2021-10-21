@@ -11,6 +11,8 @@
           :show-detail-icon="showDetailIcon"
           :sticky-header="true"
           :selected.sync="selected"
+          sort-icon="chevron-up"
+          sort-icon-size="is-medium"
           detail-transition="fade"
           icon-pack="fas"
           height="60vh"
@@ -28,6 +30,7 @@
             v-slot="props"
             field="author_email"
             label="Auteur"
+            width="21%"
             sortable
             searchable>
             {{ props.row.author_email }}
@@ -37,7 +40,7 @@
             v-slot="props"
             field="project_title"
             label="Project"
-            width="40%"
+            width="41%"
             sortable
             searchable>
             {{ props.row.project_title }}
@@ -45,16 +48,18 @@
 
           <b-table-column
             v-slot="props"
-            field="publication_date"
+            :custom-sort="sortByDate"
+            field="modification_date"
             label="Datum"
-            width="15%"
+            width="10%"
             sortable
             searchable>
             {{ props.row.date }}
           </b-table-column>
 
           <b-table-column
-            v-slot="props">
+            v-slot="props"
+            width="14%">
             <b-button
               v-if="selectedIdentifier === props.row.identifier"
               size="is-small"
@@ -64,10 +69,12 @@
               @click="editor()">
               <span style="font-weight: 600;">Bewerken</span>
             </b-button>
+            <div v-else>&nbsp;</div>
           </b-table-column>
 
           <b-table-column
-            v-slot="props">
+            v-slot="props"
+            width="14%">
             <b-button
               v-if="selectedIdentifier === props.row.identifier"
               size="is-small"
@@ -77,6 +84,7 @@
               @click="remove()">
               <span style="font-weight: 600;">Verwijderen</span>
             </b-button>
+            <div v-else>&nbsp;</div>
           </b-table-column>
 
           <template #detail="props">
@@ -229,11 +237,19 @@ export default {
             warningResponse[i]['project_title'] = titles[warningResponse[i]['project_identifier']]
             warningResponse[i]['date'] = warningResponse[i]['modification_date'].split('T')[0]
           }
-          this.warnings = warningResponse
+
+          this.warnings = warningResponse.sort(function (a, b) { return new Date(b.modification_date) - new Date(a.modification_date) })
         })
       }, error => {
         console.log(error)
       })
+    },
+    sortByDate (a, b, isAsc) {
+      if (isAsc) {
+        return new Date(b.publication_date).getTime() - new Date(a.publication_date).getTime()
+      } else {
+        return new Date(a.publication_date).getTime() - new Date(b.publication_date).getTime()
+      }
     },
     editor: function () {
       this.title = this.selected.title
