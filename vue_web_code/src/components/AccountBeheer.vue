@@ -1,10 +1,16 @@
 <template>
   <section class="section">
-    <h1>Account beheer</h1>
+    <h1 class="align-left">Accountbeheer</h1>
 
     <b-field
-      class="align-left"
-      label="Selecteer een bestaand account of voeg een account toe.">
+      class="align-left">
+      <span
+        style="font-weight: 600; color: darkgray">
+        Selecteer een bestaand account of voeg een account toe.
+      </span>
+    </b-field>
+    <b-field
+      class="align-left">
       <b-autocomplete
         ref="autocomplete"
         v-model="name"
@@ -31,6 +37,7 @@
         :checked-rows.sync="selected_projects"
         :checkbox-position="checkboxPosition"
         :sticky-header="true"
+        icon-pack="fas"
         striped
         class="align-left"
         checkable>
@@ -46,20 +53,15 @@
       <b-button
         class="is-primary"
         @click="save()">
-        bijwerken / opslaan
+        <span style="font-weight: 600;">Bijwerken / Opslaan</span>
       </b-button>
 
       <b-button
         class="is-danger has-padding"
         @click="remove()">
-        verwijderen
+        <span style="font-weight: 600;">Verwijderen</span>
       </b-button>
     </b-field>
-    <div
-      v-if="show_content"
-      ref="pdf">
-      text <a href="https://www.google.com">google</a> text
-    </div>
   </section>
 </template>
 
@@ -70,7 +72,6 @@ import jsPDF from 'jspdf'
 export default {
   data () {
     return {
-      show_content: false,
       name: '',
       selected: null,
       selected_project_manager: null,
@@ -217,7 +218,7 @@ export default {
       this.$buefy.dialog.confirm({
         title: 'Account bijwerken / opslaan',
         message: message,
-        confirmText: 'bijwerken / opslaan',
+        confirmText: 'Bijwerken / Opslaan',
         cancelText: 'Afbreken',
         type: 'is-primary',
         hasIcon: true,

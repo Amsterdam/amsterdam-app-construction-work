@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@dattn/dnd-grid": "0.0.14",
+    "@mdi/font": "^6.3.95",
     "axios": "^0.21.1",
     "buefy": "^0.9.3",
     "core-js": "^3.6.5",

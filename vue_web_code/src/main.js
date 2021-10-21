@@ -65,7 +65,9 @@ new Vue({
           if (to.name === 'login' && this.$store.state.isLoggedIn) {
             next({name: '/'})
           } else {
-            next()
+            if (to.name !== this.$router.currentRoute.path) {
+              next()
+            }
           }
         }
       })

@@ -13,28 +13,26 @@
             <span
               v-if="this.$router.currentRoute.path === '/'"
               class="active-link"
-              style="font-weight: bolder">Account beheer</span>
+              style="font-weight: bolder">Accountbeheer</span>
             <span
               v-else
               class="underline-on-hover inactive-link"
-              style="font-weight: bolder">Account beheer</span>
+              style="font-weight: bolder">Accountbeheer</span>
           </b-navbar-item>
 
-          <!--
           <b-navbar-item
             class="is-active"
             tag="router-link"
-            to="/OtherPage">
+            to="/BerichtenBeheer">
             <span
-              v-if="this.$router.currentRoute.path === '/OtherPage'"
+              v-if="this.$router.currentRoute.path === '/BerichtenBeheer'"
               class="active-link"
-              style="font-weight: bolder">Other Page</span>
+              style="font-weight: bolder">Berichtenbeheer</span>
             <span
               v-else
               class="underline-on-hover inactive-link"
-              style="font-weight: bolder">Other Page</span>
+              style="font-weight: bolder">Berichtenbeheer</span>
           </b-navbar-item>
-          -->
         </template>
 
         <template slot="end">
