@@ -23,9 +23,9 @@
           <b-navbar-item
             class="is-active"
             tag="router-link"
-            to="/BerichtenBeheer">
+            to="/berichtenbeheer">
             <span
-              v-if="this.$router.currentRoute.path === '/BerichtenBeheer'"
+              v-if="this.$router.currentRoute.path === '/berichtenbeheer'"
               class="active-link"
               style="font-weight: bolder">Berichtenbeheer</span>
             <span

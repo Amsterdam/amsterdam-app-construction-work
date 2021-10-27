@@ -16,7 +16,7 @@ const routes = [
   { path: '/login', component: Login, name: 'login' },
   { path: '/password', component: Password },
   { path: '/', component: AccountBeheer },
-  { path: '/BerichtenBeheer', component: BerichtenBeheer }
+  { path: '/berichtenbeheer', component: BerichtenBeheer }
 ]
 
 const router = new VueRouter({

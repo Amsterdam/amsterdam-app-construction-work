@@ -49,7 +49,7 @@
           <b-table-column
             v-slot="props"
             :custom-sort="sortByDate"
-            field="modification_date"
+            field="date"
             label="Datum"
             width="10%"
             sortable
@@ -245,10 +245,12 @@ export default {
       })
     },
     sortByDate (a, b, isAsc) {
+      let firstArgument = new Date(a.modification_date).getTime()
+      let secondArgument = new Date(b.modification_date).getTime()
       if (isAsc) {
-        return new Date(b.publication_date).getTime() - new Date(a.publication_date).getTime()
+        return secondArgument - firstArgument
       } else {
-        return new Date(a.publication_date).getTime() - new Date(b.publication_date).getTime()
+        return firstArgument - secondArgument
       }
     },
     editor: function () {
