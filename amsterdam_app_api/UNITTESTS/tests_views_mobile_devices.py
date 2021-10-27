@@ -54,15 +54,16 @@ class TestApiDeviceRegistration(TestCase):
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(result.data, {'status': True, 'result': 'Device registration updated'})
 
-        json_data1 = '{"device_token": "0000000000", "device_refresh_token": "0000000001", "os_type": "ios", "projects": ["0000000000", "1111111111"]}'
+        json_data1 = '{"device_token": "0000000000", "device_refresh_token": "0000000001"}'
         result = c.post(self.url, json_data1, headers={"DeviceAuthorization": self.token}, content_type="application/json")
 
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(result.data, {'status': True, 'result': 'Device registration updated'})
 
-        mobile_devices = MobileDevices.objects.all()
-        serializer = MobileDevicesSerializer(mobile_devices, many=True)
-        self.assertEqual(len(serializer.data), 1)
+        mobile_devices = MobileDevices.objects.filter(pk="0000000001").first()
+        self.assertEqual(mobile_devices.device_token, "0000000001")
+        self.assertEqual(mobile_devices.os_type, "ios")
+        self.assertEqual(mobile_devices.projects, ["0000000000"])
 
     def test_register_device_auto_removal(self):
         c = Client()
