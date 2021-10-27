@@ -7,7 +7,7 @@ message = Messages()
 
 
 as_warning_message_post = {
-    # /api/v1/notification/messages/warning/create
+    # /api/v1/notification/messages/warning
     'methods': ['POST'],
     'manual_parameters': [openapi.Parameter('UserAuthorization',
                                             openapi.IN_HEADER,
@@ -16,7 +16,7 @@ as_warning_message_post = {
     'request_body': openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            'title': openapi.Schema(type=openapi.TYPE_STRING, description='identifier'),
+            'title': openapi.Schema(type=openapi.TYPE_STRING, description='title'),
             'body': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
                 'preface': openapi.Schema(type=openapi.TYPE_STRING, description='short text'),
                 'content': openapi.Schema(type=openapi.TYPE_STRING, description='full text')
@@ -53,6 +53,80 @@ as_warning_message_post = {
     'tags': ['Projects']
 }
 
+as_warning_message_patch = {
+    # /api/v1/notification/messages/warning
+    'methods': ['PATCH'],
+    'manual_parameters': [openapi.Parameter('UserAuthorization',
+                                            openapi.IN_HEADER,
+                                            description="authorization token",
+                                            type=openapi.TYPE_STRING)],
+    'request_body': openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'title': openapi.Schema(type=openapi.TYPE_STRING, description='title'),
+            'body': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                'preface': openapi.Schema(type=openapi.TYPE_STRING, description='short text'),
+                'content': openapi.Schema(type=openapi.TYPE_STRING, description='full text')
+            }),
+            'project_identifier': openapi.Schema(type=openapi.TYPE_STRING, description='identifier')
+        }
+    ),
+    'responses': {
+        200: openapi.Response('application/json', examples={
+            'application/json': {
+                'status': True,
+                'result': 'Message patched'}
+        }),
+        403: openapi.Response('application/json', examples={
+            'application/json': {
+                'status': False,
+                'result': message.access_denied
+            }
+        }),
+        404: openapi.Response('application/json', examples={
+            'application/json': {
+                'status': False,
+                'result': message.no_record_found}
+        }),
+        422: openapi.Response('application/json', examples={
+            'application/json': {
+                'status': False,
+                'result': message.invalid_query
+            }
+        })
+    },
+    'tags': ['Projects']
+}
+
+as_warning_message_delete = {
+    # /api/v1/asset swagger_auto_schema
+    'methods': ['DELETE'],
+    'manual_parameters': [openapi.Parameter('id',
+                                            openapi.IN_QUERY,
+                                            'Warning message identifier',
+                                            type=openapi.TYPE_STRING,
+                                            format='<identifier>',
+                                            required=True),
+                          openapi.Parameter('UserAuthorization',
+                                            openapi.IN_HEADER,
+                                            description="authorization token",
+                                            type=openapi.TYPE_STRING)],
+    'responses': {
+        200: openapi.Response('application/json',
+                              examples={
+                                  'application/json': {
+                                      'status': True,
+                                      'result': 'Message deleted'}}),
+        403: openapi.Response('Error: Forbidden'),
+        422: openapi.Response('application/json',
+                              examples={
+                                  'application/json': {
+                                      'status': False,
+                                      'result': message.invalid_query}})
+    },
+    'tags': ['Projects']
+}
+
 as_warning_message_get = {
     # /api/v1/notification/messages/warning/get
     'methods': ['GET'],
@@ -61,7 +135,7 @@ as_warning_message_get = {
                                             'Query by project-identifier',
                                             type=openapi.TYPE_STRING,
                                             format='<identifier>',
-                                            required=True)],
+                                            required=False)],
     'responses': {
         200: openapi.Response('application/json',
                               WarningMessagesExternalSerializer,

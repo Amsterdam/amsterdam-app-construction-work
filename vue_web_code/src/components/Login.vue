@@ -18,7 +18,9 @@
       <form>
         <div
           class="align-left margin-less">
-          <span class="help-text">
+          <span
+            class="align-left"
+            style="font-weight: 600; color: darkgray">
             Voer uw gebruikersnaam in
           </span>
         </div>
@@ -29,7 +31,9 @@
         </b-field>
         <div
           class="align-left margin-less">
-          <span class="help-text">
+          <span
+            class="align-left"
+            style="font-weight: 600; color: darkgrey">
             Voer uw wachtwoord in
           </span>
         </div>
@@ -45,7 +49,7 @@
           <b-icon
             icon="sign-in-alt"
             pack="fas"/>
-          <span>Aanmelden</span>
+          <span style="font-weight: 600;">Aanmelden</span>
         </b-button>
       </form>
     </div>
@@ -97,14 +101,6 @@ export default {
 }
 
 .margin-less {
-  margin: 0;
-  padding: 0;
-}
-
-.help-text {
-  color: #004699;
-  font-weight: bolder;
-  font-size: 12px;
   margin: 0;
   padding: 0;
 }

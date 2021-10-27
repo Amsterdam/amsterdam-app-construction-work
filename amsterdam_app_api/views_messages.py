@@ -19,7 +19,9 @@ from amsterdam_app_api.models import Image
 from amsterdam_app_api.serializers import WarningMessagesExternalSerializer
 from amsterdam_app_api.serializers import NotificationSerializer
 from amsterdam_app_api.swagger_views_messages import as_warning_message_post
+from amsterdam_app_api.swagger_views_messages import as_warning_message_patch
 from amsterdam_app_api.swagger_views_messages import as_warning_message_get
+from amsterdam_app_api.swagger_views_messages import as_warning_message_delete
 from amsterdam_app_api.swagger_views_messages import as_notification_post
 from amsterdam_app_api.swagger_views_messages import as_notification_get
 from amsterdam_app_api.swagger_views_messages import as_warning_message_image_post
@@ -29,18 +31,61 @@ messages = Messages()
 
 @swagger_auto_schema(**as_warning_message_get)
 @swagger_auto_schema(**as_warning_message_post)
-@api_view(['GET', 'POST'])
+@swagger_auto_schema(**as_warning_message_patch)
+@swagger_auto_schema(**as_warning_message_delete)
+@api_view(['GET', 'POST', 'PATCH', 'DELETE'])
 def warning_message_crud(request):
-    if request.method == 'POST':
+    if request.method == 'GET':
+        data = warning_message_get(request)
+        return Response(data['result'], status=data['status_code'])
+
+    elif request.method == 'POST':
         data = None
         try:
             data = warning_message_post(request)
             return Response(data['result'], status=data['status_code'])
         except:
             return data
-    elif request.method == 'GET':
-        data = warning_message_get(request)
-        return Response(data['result'], status=data['status_code'])
+
+    elif request.method == 'PATCH':
+        data = None
+        try:
+            data = warning_message_patch(request)
+            return Response(data['result'], status=data['status_code'])
+        except:
+            return data
+
+    elif request.method == 'DELETE':
+        data = None
+        try:
+            data = warning_message_delete(request)
+            return Response(data['result'], status=data['status_code'])
+        except:
+            return data
+
+
+@IsAuthorized
+def warning_message_patch(request):
+    """ Patch a warning message (most likely by web-redactie)
+    """
+    title = request.data.get('title', None)
+    identifier = request.data.get('identifier', None)
+    body = request.data.get('body', {})
+
+    if None in [title, identifier]:
+        return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
+    elif not isinstance(body.get('preface', None), str):
+        return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
+    elif not isinstance(body.get('content', None), str):
+        return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
+    elif WarningMessages.objects.filter(identifier=identifier).first() is None:
+        return {'result': {'status': False, 'result': messages.no_record_found}, 'status_code': 404}
+
+    message_object = WarningMessages.objects.filter(identifier=identifier).first()
+    message_object.body = body
+    message_object.title = title
+    message_object.save()
+    return {'result': {'status': True, 'result': 'Message patched'}, 'status_code': 200}
 
 
 @IsAuthorized
@@ -77,10 +122,22 @@ def warning_message_post(request):
     return {'result': {'status': True, 'result': {'warning_identifier': str(message_object.identifier)}}, 'status_code': 200}
 
 
+@IsAuthorized
+def warning_message_delete(request):
+    identifier = request.GET.get('id', None)
+    if identifier is None:
+        return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
+    else:
+        WarningMessages.objects.filter(identifier=identifier).delete()
+        return {'result': {'status': False, 'result': 'Message deleted'}, 'status_code': 200}
+
+
 def warning_message_get(request):
     project_identifier = request.GET.get('id', None)
     if project_identifier is None:
-        return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
+        warning_messages_objects = WarningMessages.objects.all()
+        serializer = WarningMessagesExternalSerializer(warning_messages_objects, many=True)
+        return {'result': {'status': True, 'result': serializer.data}, 'status_code': 200}
     elif Projects.objects.filter(pk=project_identifier).first() is None:
         return {'result': {'status': False, 'result': messages.no_record_found}, 'status_code': 404}
     else:
