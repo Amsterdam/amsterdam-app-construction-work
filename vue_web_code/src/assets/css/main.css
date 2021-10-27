@@ -265,7 +265,7 @@
   -webkit-appearance: none;
   align-items: center;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: 0;
   box-shadow: none;
   display: inline-flex;
   font-size: 1rem;
@@ -2550,8 +2550,8 @@ div.icon-text {
   text-align: inherit;
 }
 .table tr.is-selected {
-  background-color: #004699;
-  color: #fff;
+  background-color: #dcdcdc;
+  color: #363636;
 }
 .table tr.is-selected a,
 .table tr.is-selected strong {

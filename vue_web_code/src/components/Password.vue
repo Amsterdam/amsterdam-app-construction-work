@@ -1,13 +1,19 @@
 <template>
   <section>
     <div class="card container">
-      <h1>Wijzig uw wachtwoord</h1>
+      <h1 class="align-left">Wijzig uw wachtwoord</h1>
 
       <form @submit="changePassword">
+        <div
+          class="align-left">
+          <span
+            style="font-weight: 600; color: darkgray">
+            Oude wachtwoord
+          </span>
+        </div>
         <b-field
           :type="type"
-          class="align-left"
-          label="Oude wachtwoord">
+          class="align-left">
           <b-input
             v-model="oldPassword"
             password-reveal
@@ -15,10 +21,17 @@
             icon-pack="fas"
             type="password"/>
         </b-field>
+
+        <div
+          class="align-left">
+          <span
+            style="font-weight: 600; color: darkgray">
+            Nieuw wachtwoord
+          </span>
+        </div>
         <b-field
           :type="type"
-          class="align-left"
-          label="Nieuw wachtwoord">
+          class="align-left">
           <b-input
             v-model="newPassword"
             password-reveal
@@ -26,11 +39,18 @@
             icon-pack="fas"
             type="password"/>
         </b-field>
+
+        <div
+          class="align-left">
+          <span
+            style="font-weight: 600; color: darkgray">
+            Nieuwe wachtwoord (verificatie)
+          </span>
+        </div>
         <b-field
           :message="message"
           :type="type"
-          class="align-left"
-          label="Nieuwe wachtwoord (verificatie)">
+          class="align-left">
           <b-input
             v-model="newPasswordVerify"
             password-reveal
@@ -43,7 +63,7 @@
           <b-button
             native-type="submit"
             type="is-primary">
-            <span>Opslaan</span>
+            <span style="font-weight: 600;">Opslaan</span>
           </b-button>
         </b-field>
       </form>

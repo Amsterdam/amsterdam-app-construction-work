@@ -170,10 +170,25 @@ class TestApiProjectWarning(TestCase):
         self.assertDictEqual(result.data, {'status': False, 'result': messages.no_record_found})
 
     def test_get_warning_message_no_project_identifier(self):
-        result = self.client.get('{url}'.format(url=self.url))
+        data = {
+            'title': 'title',
+            'project_identifier': '0000000000',
+            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'body': {'preface': 'short text', 'content': 'long text'}
+        }
 
-        self.assertEqual(result.status_code, 422)
-        self.assertDictEqual(result.data, {'status': False, 'result': messages.invalid_query})
+        result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+        warning_message = WarningMessages.objects.filter(project_identifier='0000000000').first()
+
+        self.assertEqual(result.status_code, 200)
+        self.assertDictEqual(result.data,
+                             {'status': True, 'result': {'warning_identifier': str(warning_message.identifier)}})
+
+        result = self.client.get('{url}'.format(url=self.url))
+        self.assertEqual(result.status_code, 200)
+
+        result_data = json.loads(result.content.decode('utf-8'))
+        self.assertEqual(len(result_data['result']), 1)
 
     def test_post_warning_message_image_upload(self):
         data = {
@@ -300,3 +315,165 @@ class TestApiProjectWarning(TestCase):
 
         self.assertEqual(result.status_code, 422)
         self.assertDictEqual(result.data, {'status': False, 'result': messages.invalid_query})
+
+    def test_patch_warning_message_valid(self):
+        data = {
+            'title': 'title',
+            'project_identifier': '0000000000',
+            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'body': {'preface': 'short text', 'content': 'long text'}
+        }
+
+        self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+
+        warning_message = WarningMessages.objects.filter(project_identifier='0000000000').first()
+
+        patch_data = {
+            'title': 'new title',
+            'body': {'preface': 'new short text', 'content': 'new long text'},
+            'identifier': str(warning_message.identifier)
+        }
+
+        result = self.client.patch(self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type)
+        patched_warning_message = WarningMessages.objects.filter(identifier=warning_message.identifier).first()
+
+        self.assertEqual(result.status_code, 200)
+        self.assertDictEqual(result.data, {'status': True, 'result': 'Message patched'})
+        self.assertDictEqual(patched_warning_message.body, patch_data['body'])
+        self.assertEqual(patched_warning_message.title, patch_data['title'])
+
+    def test_patch_warning_message_missing_title(self):
+        data = {
+            'title': 'title',
+            'project_identifier': '0000000000',
+            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'body': {'preface': 'short text', 'content': 'long text'}
+        }
+
+        self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+
+        warning_message = WarningMessages.objects.filter(project_identifier='0000000000').first()
+
+        patch_data = {
+            'body': {'preface': 'new short text', 'content': 'new long text'},
+            'identifier': str(warning_message.identifier)
+        }
+
+        result = self.client.patch(self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type)
+        patched_warning_message = WarningMessages.objects.filter(identifier=warning_message.identifier).first()
+
+        self.assertEqual(result.status_code, 422)
+        self.assertDictEqual(result.data, {'status': False, 'result': messages.invalid_query})
+        self.assertDictEqual(patched_warning_message.body, data['body'])
+        self.assertEqual(patched_warning_message.title, data['title'])
+
+    def test_patch_warning_message_missing_preface(self):
+        data = {
+            'title': 'title',
+            'project_identifier': '0000000000',
+            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'body': {'preface': 'short text', 'content': 'long text'}
+        }
+
+        self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+
+        warning_message = WarningMessages.objects.filter(project_identifier='0000000000').first()
+
+        patch_data = {
+            'title': 'new title',
+            'body': {'content': 'new long text'},
+            'identifier': str(warning_message.identifier)
+        }
+
+        result = self.client.patch(self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type)
+        patched_warning_message = WarningMessages.objects.filter(identifier=warning_message.identifier).first()
+
+        self.assertEqual(result.status_code, 422)
+        self.assertDictEqual(result.data, {'status': False, 'result': messages.invalid_query})
+        self.assertDictEqual(patched_warning_message.body, data['body'])
+        self.assertEqual(patched_warning_message.title, data['title'])
+
+    def test_patch_warning_message_missing_content(self):
+        data = {
+            'title': 'title',
+            'project_identifier': '0000000000',
+            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'body': {'preface': 'short text', 'content': 'long text'}
+        }
+
+        self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+
+        warning_message = WarningMessages.objects.filter(project_identifier='0000000000').first()
+
+        patch_data = {
+            'title': 'new title',
+            'body': {'preface': 'short text'},
+            'identifier': str(warning_message.identifier)
+        }
+
+        result = self.client.patch(self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type)
+        patched_warning_message = WarningMessages.objects.filter(identifier=warning_message.identifier).first()
+
+        self.assertEqual(result.status_code, 422)
+        self.assertDictEqual(result.data, {'status': False, 'result': messages.invalid_query})
+        self.assertDictEqual(patched_warning_message.body, data['body'])
+        self.assertEqual(patched_warning_message.title, data['title'])
+
+    def test_patch_warning_message_missing_message(self):
+        patch_data = {
+            'title': 'new title',
+            'body': {'preface': 'short text', 'content': 'long text'},
+            'identifier': str(uuid.uuid4())
+        }
+
+        result = self.client.patch(self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type)
+
+        self.assertEqual(result.status_code, 404)
+        self.assertDictEqual(result.data, {'status': False, 'result': messages.no_record_found})
+
+    def test_patch_warning_message_unauthorized(self):
+        patch_data = {
+            'title': 'new title',
+            'body': {'preface': 'short text', 'content': 'long text'},
+            'identifier': str(uuid.uuid4())
+        }
+
+        result = self.client.patch(self.url, json.dumps(patch_data), content_type=self.content_type)
+
+        self.assertEqual(result.status_code, 403)
+        self.assertEqual(result.reason_phrase, 'Forbidden')
+
+    def test_delete_warning_message(self):
+        data = {
+            'title': 'title',
+            'project_identifier': '0000000000',
+            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'body': {'preface': 'short text', 'content': 'long text'}
+        }
+
+        self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+
+        warning_message = WarningMessages.objects.filter(project_identifier='0000000000').first()
+
+        result = self.client.delete('{url}?id={identifier}'.format(url=self.url, identifier=warning_message.identifier),
+                                    headers=self.headers,
+                                    content_type=self.content_type)
+
+        patched_warning_message = WarningMessages.objects.filter(identifier=warning_message.identifier).first()
+
+        self.assertEqual(result.status_code, 200)
+        self.assertDictEqual(result.data, {'status': False, 'result': 'Message deleted'})
+        self.assertEqual(patched_warning_message, None)
+
+    def test_delete_warning_message_missing_identifier(self):
+        result = self.client.delete(self.url, headers=self.headers, content_type=self.content_type)
+
+        self.assertEqual(result.status_code, 422)
+        self.assertDictEqual(result.data, {'status': False, 'result': messages.invalid_query})
+
+    def test_delete_warning_message__unauthorized(self):
+        result = self.client.delete('{url}?id={identifier}'.format(url=self.url, identifier=str(uuid.uuid4())),
+                                    content_type=self.content_type)
+
+        self.assertEqual(result.status_code, 403)
+        self.assertEqual(result.reason_phrase, 'Forbidden')
