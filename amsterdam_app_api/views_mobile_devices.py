@@ -37,7 +37,10 @@ def post_patch(request):
     os_type = request.data.get('os_type', None)
     projects = request.data.get('projects', None)
 
-    if device_token is None or os_type is None:
+    if device_token is not None and device_refresh_token is not None:
+        MobileDevices.objects.filter(pk=device_token).update(device_token=device_refresh_token)
+        return {'result': {'status': True, 'result': 'Device registration updated'}, 'status': 200}
+    elif device_token is None or os_type is None:
         return {'result': {'status': False, 'result': messages.invalid_query}, 'status': 422}
     elif projects == [] or projects is None:
         # remove mobile device because it has no push-notification subscriptions
@@ -53,14 +56,9 @@ def post_patch(request):
 
         # Update existing record
         else:
-            if device_refresh_token is not None:
-                MobileDevices.objects.filter(pk=device_token).update(device_token=device_refresh_token,
-                                                                     os_type=os_type,
-                                                                     projects=projects)
-            else:
-                MobileDevices.objects.filter(pk=device_token).update(device_token=device_token,
-                                                                     os_type=os_type,
-                                                                     projects=projects)
+            MobileDevices.objects.filter(pk=device_token).update(device_token=device_token,
+                                                                 os_type=os_type,
+                                                                 projects=projects)
 
         return {'result': {'status': True, 'result': 'Device registration updated'}, 'status': 200}
 
