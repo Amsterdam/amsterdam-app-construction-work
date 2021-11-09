@@ -1,5 +1,5 @@
 from amsterdam_app_api.api_messages import Messages
-from amsterdam_app_api.swagger_views_iprox_news import as_news
+from amsterdam_app_api.swagger.swagger_views_iprox_news import as_news
 from amsterdam_app_api.models import News
 from amsterdam_app_api.serializers import NewsSerializer
 from amsterdam_app_api.GenericFunctions.SetFilter import SetFilter

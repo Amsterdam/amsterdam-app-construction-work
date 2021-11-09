@@ -1,3 +1,4 @@
+import firebase_admin
 from threading import Thread
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
 import requests
@@ -46,3 +47,22 @@ class MockedThreading(Thread):
     @staticmethod
     def join(**kwargs):
         return
+
+
+def firebase_admin_messaging_send_multicast(args):
+    class response:
+        def __init__(self, success):
+            self.success = success
+
+    class Response:
+        def __init__(self, args):
+            self.args = args
+            self.failure_count = 1
+            self.responses = []
+            for i in range(0, len(args.tokens)):
+                if i == 0:
+                    self.responses.append(response(False))
+                else:
+                    self.responses.append(response(True))
+
+    return Response(args)

@@ -1,4 +1,4 @@
-from amsterdam_app_api.swagger_views_iprox_projects import as_projects, as_project_details
+from amsterdam_app_api.swagger.swagger_views_iprox_projects import as_projects, as_project_details
 from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import Projects, ProjectDetails
 from amsterdam_app_api.serializers import ProjectsSerializer, ProjectDetailsSerializer

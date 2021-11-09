@@ -25,6 +25,10 @@ def source_environment():
         exit(False)
 
 
+def set_fcm_credentials_location():
+    os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = '{cwd}/fcm-credentials.json'.format(cwd=os.getcwd())
+
+
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'amsterdam_app_backend.settings')

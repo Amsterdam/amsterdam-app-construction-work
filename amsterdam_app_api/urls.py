@@ -6,15 +6,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.views import TokenRefreshView
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-from amsterdam_app_api import views_user
-from amsterdam_app_api import views_generic
-from amsterdam_app_api import views_iprox_projects
-from amsterdam_app_api import views_iprox_news
-from amsterdam_app_api import views_ingest
-from amsterdam_app_api import views_mobile_devices
-from amsterdam_app_api import views_messages
-from amsterdam_app_api import views_project_manager
-
+from amsterdam_app_api.views import views_ingest, views_iprox_news, views_iprox_projects, views_messages, views_generic, \
+    views_user, views_project_manager, views_mobile_devices
 
 schema_view = get_schema_view(
    openapi.Info(
