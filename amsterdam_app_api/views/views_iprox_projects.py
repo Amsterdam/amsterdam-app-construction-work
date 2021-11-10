@@ -1,7 +1,13 @@
 from amsterdam_app_api.swagger.swagger_views_iprox_projects import as_projects, as_project_details
 from amsterdam_app_api.api_messages import Messages
-from amsterdam_app_api.models import Projects, ProjectDetails
-from amsterdam_app_api.serializers import ProjectsSerializer, ProjectDetailsSerializer
+from amsterdam_app_api.models import Projects
+from amsterdam_app_api.models import ProjectDetails
+from amsterdam_app_api.models import News
+from amsterdam_app_api.models import WarningMessages
+from amsterdam_app_api.serializers import ProjectsSerializer
+from amsterdam_app_api.serializers import ProjectDetailsSerializer
+from amsterdam_app_api.serializers import NewsSerializer
+from amsterdam_app_api.serializers import WarningMessagesExternalSerializer
 from amsterdam_app_api.GenericFunctions.SetFilter import SetFilter
 from amsterdam_app_api.GenericFunctions.Sort import Sort
 from rest_framework.decorators import api_view
@@ -53,6 +59,18 @@ def project_details(request):
     """
     Get details for a project by identifier
     """
+    def filter(data, article_type):
+        articles = []
+        for item in data:
+            articles.append({
+                'identifier': item['identifier'],
+                'title': item['title'],
+                'publication_date': item['publication_date'].split('T')[0],
+                'type': article_type,
+                'image': next(iter([x for x in item['images'] if x['type'] in ['banner', 'header']]), None)
+            })
+        return articles
+
     if request.method == 'GET':
         identifier = request.GET.get('id', None)
         if identifier is None:
@@ -60,7 +78,16 @@ def project_details(request):
         else:
             project_object = ProjectDetails.objects.filter(pk=identifier).first()
             if project_object is not None:
-                serializer = ProjectDetailsSerializer(project_object, many=False)
-                return Response({'status': True, 'result': serializer.data}, status=200)
+                articles = []
+                project_data = ProjectDetailsSerializer(project_object, many=False).data
+                news_objects = News.objects.filter(project_identifier=identifier).all()
+                warning_messages_objects = WarningMessages.objects.filter(project_identifier=identifier).all()
+                news_data = NewsSerializer(news_objects, many=True).data
+                warning_messages_data = WarningMessagesExternalSerializer(warning_messages_objects, many=True).data
+                articles += filter(news_data, 'news')
+                articles += filter(warning_messages_data, 'warning')
+                del project_data['news']
+                project_data['articles'] = articles
+                return Response({'status': True, 'result': project_data}, status=200)
             else:
                 return Response({'status': False, 'result': message.no_record_found}, status=404)
