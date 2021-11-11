@@ -5,7 +5,7 @@ from amsterdam_app_api.GenericFunctions.TextSanitizers import TextSanitizers
 
 
 class IproxProjects:
-    """ Fetch all projects from IPROX-endpoind and convert the data into a suitable format. The format is described in:
+    """ Fetch all projects from IPROX-endpoint and convert the data into a suitable format. The format is described in:
         amsterdam_app_api.models.Projects
     """
     def __init__(self, path, project_type):

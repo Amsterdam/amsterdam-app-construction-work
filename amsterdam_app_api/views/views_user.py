@@ -3,7 +3,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from amsterdam_app_api.api_messages import Messages
-from amsterdam_app_api.swagger_views_user import as_change_password
+from amsterdam_app_api.swagger.swagger_views_user import as_change_password
 from amsterdam_app_api.GenericFunctions.IsAuthorized import IsAuthorized
 
 messages = Messages()

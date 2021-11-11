@@ -56,7 +56,25 @@ as_project_details = {
                                             required=True)],
     'responses': {
         200: openapi.Response('application/json',
-                              ProjectDetailsSerializer,
+                              openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                                  'identifier': openapi.Schema(type=openapi.TYPE_STRING, description='identifier'),
+                                  'body': openapi.Schema(type=openapi.TYPE_OBJECT, properties={}),
+                                  'district_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='dictrict id'),
+                                  'district_name': openapi.Schema(type=openapi.TYPE_STRING, description='district name'),
+                                  'articles': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                                      'identifier': openapi.Schema(type=openapi.TYPE_STRING, description='identifier'),
+                                      'title': openapi.Schema(type=openapi.TYPE_STRING, description='title'),
+                                      'publication_date': openapi.Schema(type=openapi.TYPE_STRING, description='year-month-day'),
+                                      'type': openapi.Schema(type=openapi.TYPE_STRING, description='<news|warning>>'),
+                                      'image': openapi.Schema(type=openapi.TYPE_OBJECT, properties={}),
+                                  })),
+                                  'images': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={})),
+                                  'page_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='page id'),
+                                  'title': openapi.Schema(type=openapi.TYPE_STRING, description='title'),
+                                  'subtitle': openapi.Schema(type=openapi.TYPE_STRING, description='subtitle'),
+                                  'rel_url': openapi.Schema(type=openapi.TYPE_STRING, description='relative url'),
+                                  'url': openapi.Schema(type=openapi.TYPE_STRING, description='url')
+                              }),
                               examples={'application/json': {'status': True, 'result': {}}}),
         404: openapi.Response('Error: No record found'),
         405: openapi.Response('Error: Method not allowed'),

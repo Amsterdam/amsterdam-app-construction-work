@@ -1,5 +1,5 @@
 from django.http import HttpResponse
-from amsterdam_app_api.swagger_views_generic import as_asset, as_image
+from amsterdam_app_api.swagger.swagger_views_generic import as_asset, as_image
 from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import Image
 from amsterdam_app_api.models import Assets
