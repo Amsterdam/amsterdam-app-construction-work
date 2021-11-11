@@ -7,6 +7,7 @@ from amsterdam_app_api.views.views_messages import Messages
 
 message = Messages()
 
+
 class SetUp:
     def __init__(self):
         self.data = TestData()

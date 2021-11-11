@@ -86,3 +86,25 @@ def img_files(request):
         buffer = io.BytesIO(data)
         pil_image = PILImage.open(buffer)
         return HttpResponse(data, content_type=pil_image.get_format_mimetype())
+
+
+""" Appstore end-point
+"""
+
+
+def appstore(request):
+    content = '''<!DOCTYPE html>
+                 <html lang="en">
+                 <head>
+                     <meta charset="utf-8">
+                     <meta content="IE=edge" http-equiv="X-UA-Compatible">
+                     <meta content="width=device-width,initial-scale=1.0" name="viewport">
+                     <link href="<%= BASE_URL %>favicon.ico" rel="icon">
+                     <link href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" rel="stylesheet">
+                     <title>Amsterdam App Backend</title>
+                 </head>
+                 <body>
+                     Download eerst uw app in de appstore!!!
+                 </body>
+                 </html>'''
+    return HttpResponse(content, content_type='text/html')
