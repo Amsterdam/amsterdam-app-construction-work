@@ -22,6 +22,7 @@ urlpatterns = [
     path('api/v1/', include('amsterdam_app_api.urls')),
     path('readme', views.readme),
     path('', views.index),
+    re_path(r'^appstore/.*$', views.appstore),
     re_path(r'^css/.*$', views.css_files),
     re_path(r'^js/.*$', views.js_files),
     re_path(r'^img/.*$', views.img_files),

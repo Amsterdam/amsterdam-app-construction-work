@@ -2,9 +2,9 @@ from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import Projects
 from amsterdam_app_api.models import ProjectManager
 from amsterdam_app_api.serializers import ProjectManagerSerializer
-from amsterdam_app_api.swagger_views_project_manager import as_project_manager_post_patch
-from amsterdam_app_api.swagger_views_project_manager import as_project_manager_delete
-from amsterdam_app_api.swagger_views_project_manager import as_project_manager_get
+from amsterdam_app_api.swagger.swagger_views_project_manager import as_project_manager_post_patch
+from amsterdam_app_api.swagger.swagger_views_project_manager import as_project_manager_delete
+from amsterdam_app_api.swagger.swagger_views_project_manager import as_project_manager_get
 from django.db.models import Q
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema

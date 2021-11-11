@@ -18,7 +18,11 @@ as_project_manager_get = {
                                             'Query project manager (optionally by identifier)',
                                             type=openapi.TYPE_STRING,
                                             format='<id>',
-                                            required=False)],
+                                            required=False),
+                          openapi.Parameter('UserAuthorization',
+                                            openapi.IN_HEADER,
+                                            description="authorization token",
+                                            type=openapi.TYPE_STRING)],
     'responses': {
         200: openapi.Response('application/json',
                               ProjectManagerSerializer,
@@ -36,7 +40,11 @@ as_project_manager_delete = {
                                             'Remove project manager by identifier',
                                             type=openapi.TYPE_STRING,
                                             format='<identifier>',
-                                            required=True)],
+                                            required=True),
+                          openapi.Parameter('UserAuthorization',
+                                            openapi.IN_HEADER,
+                                            description="authorization token",
+                                            type=openapi.TYPE_STRING)],
     'responses': {
         200: openapi.Response('application/json',
                               examples={
@@ -56,6 +64,10 @@ as_project_manager_delete = {
 as_project_manager_post_patch = {
     # /api/v1/image swagger_auto_schema
     'methods': ['POST', 'PATCH'],
+    'manual_parameters': [openapi.Parameter('UserAuthorization',
+                                            openapi.IN_HEADER,
+                                            description="authorization token",
+                                            type=openapi.TYPE_STRING)],
     'request_body': ProjectManagerSerializer,
     'responses': {
         200: openapi.Response('application/json', examples={

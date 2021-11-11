@@ -18,13 +18,13 @@ from amsterdam_app_api.models import News
 from amsterdam_app_api.models import Image
 from amsterdam_app_api.serializers import WarningMessagesExternalSerializer
 from amsterdam_app_api.serializers import NotificationSerializer
-from amsterdam_app_api.swagger_views_messages import as_warning_message_post
-from amsterdam_app_api.swagger_views_messages import as_warning_message_patch
-from amsterdam_app_api.swagger_views_messages import as_warning_message_get
-from amsterdam_app_api.swagger_views_messages import as_warning_message_delete
-from amsterdam_app_api.swagger_views_messages import as_notification_post
-from amsterdam_app_api.swagger_views_messages import as_notification_get
-from amsterdam_app_api.swagger_views_messages import as_warning_message_image_post
+from amsterdam_app_api.swagger.swagger_views_messages import as_warning_message_post
+from amsterdam_app_api.swagger.swagger_views_messages import as_warning_message_patch
+from amsterdam_app_api.swagger.swagger_views_messages import as_warning_message_get
+from amsterdam_app_api.swagger.swagger_views_messages import as_warning_message_delete
+from amsterdam_app_api.swagger.swagger_views_messages import as_notification_post
+from amsterdam_app_api.swagger.swagger_views_messages import as_notification_get
+from amsterdam_app_api.swagger.swagger_views_messages import as_warning_message_image_post
 
 messages = Messages()
 
@@ -172,7 +172,9 @@ def notification_post(request):
 
     # Trigger the push notification services
     notification_services = SendNotification(notification.identifier)
-    notification_services.send()
+    notification_services.send_multicast_and_handle_errors()
+
+    # Send response to end-user
     return Response({'status': True, 'result': 'push-notification accepted'}, status=200)
 
 
