@@ -65,7 +65,7 @@ class SendNotification:
         for batch in self.subscribed_device_batches:
             registration_tokens = [x.device_token for x in batch]
             message = messaging.MulticastMessage(
-                data={'entry': self.identifier, 'type': self.article_type},
+                data={'id': self.identifier, 'type': self.article_type},
                 notification=self.notification,
                 tokens=registration_tokens,
             )
