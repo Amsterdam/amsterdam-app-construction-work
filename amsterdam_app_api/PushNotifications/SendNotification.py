@@ -22,6 +22,7 @@ class SendNotification:
         self.notification = None
         self.project_identifier = None
         self.article_type = None  # news, warning
+        self.link_source_id = None
         self.valid_notification = self.setup()
 
     def setup(self):
@@ -41,8 +42,10 @@ class SendNotification:
             self.project_identifier = notification.project_identifier
             if notification.news_identifier != '' and notification.news_identifier is not None:
                 self.article_type = 'NewsUpdatedByProjectManager'
+                self.link_source_id = notification.news_identifier
             elif notification.warning_identifier != '' and notification.warning_identifier is not None:
                 self.article_type = 'WarningCreatedByProjectManager'
+                self.link_source_id = notification.warning_identifier
 
             return messaging.Notification(
                 title=notification.title,
@@ -65,7 +68,7 @@ class SendNotification:
         for batch in self.subscribed_device_batches:
             registration_tokens = [x.device_token for x in batch]
             message = messaging.MulticastMessage(
-                data={'linkSourceid': self.identifier, 'type': self.article_type},
+                data={'linkSourceid': str(self.link_source_id), 'type': self.article_type},
                 notification=self.notification,
                 tokens=registration_tokens,
             )
