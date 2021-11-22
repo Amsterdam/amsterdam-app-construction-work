@@ -94,10 +94,10 @@ def warning_message_post(request):
     """
     title = request.data.get('title', None)
     project_identifier = request.data.get('project_identifier', None)
-    project_manager_token = request.data.get('project_manager_token', None)
+    project_manager_id = request.data.get('project_manager_id', None)
     body = request.data.get('body', {})
 
-    if None in [title, project_identifier, project_manager_token]:
+    if None in [title, project_identifier, project_manager_id]:
         return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
     elif not isinstance(body.get('preface', None), str):
         return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
@@ -107,7 +107,7 @@ def warning_message_post(request):
         return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
 
     # Check if the project manager exists and is entitled for sending a message for this project
-    project_manager = ProjectManager.objects.filter(pk=project_manager_token).first()
+    project_manager = ProjectManager.objects.filter(pk=project_manager_id).first()
     if project_manager is None:
         return {'result': {'status': False, 'result': messages.no_record_found}, 'status_code': 404}
     elif project_identifier not in project_manager.projects:
@@ -116,7 +116,7 @@ def warning_message_post(request):
     message_object = WarningMessages(title=title,
                                      body=body,
                                      project_identifier=project_identifier,
-                                     project_manager_token=project_manager_token,
+                                     project_manager_id=project_manager_id,
                                      images=[])
     message_object.save()
     return {'result': {'status': True, 'result': {'warning_identifier': str(message_object.identifier)}}, 'status_code': 200}

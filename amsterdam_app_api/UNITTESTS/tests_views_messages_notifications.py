@@ -29,7 +29,7 @@ class TestApiNotification(TestCase):
         data = {
             'title': 'title',
             'project_identifier': '0000000000',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'preface': 'short text', 'content': 'long text'},
             'images': []
         }

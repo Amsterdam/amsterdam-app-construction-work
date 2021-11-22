@@ -299,7 +299,7 @@ class TestWarningMessagesModel(TestCase):
 
     def test_default_email(self):
         data = dict(self.data.warning_message)
-        data['project_manager_token'] = uuid.uuid4()
+        data['project_manager_id'] = uuid.uuid4()
         warning_message = WarningMessages.objects.create(**data)
 
         self.assertEqual(warning_message.author_email, 'redactieprojecten@amsterdam.nl')
@@ -312,7 +312,7 @@ class TestWarningMessagesModel(TestCase):
         self.assertNotEqual(warning_message.modification_date, date)
 
     def test_serializer_internal(self):
-        """ Purpose: test if project_manager_token is present in serializer
+        """ Purpose: test if project_manager_id is present in serializer
         """
         warning_message = WarningMessages.objects.create(**self.data.warning_message)
         serializer = WarningMessagesInternalSerializer(warning_message, many=False)
@@ -322,7 +322,7 @@ class TestWarningMessagesModel(TestCase):
             'title': 'title',
             'body': {'preface': 'short text', 'content': 'long text'},
             'project_identifier': '0000000000',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'images': [],
             'publication_date': data['publication_date'],
             'modification_date': data['modification_date'],
@@ -332,7 +332,7 @@ class TestWarningMessagesModel(TestCase):
         self.assertDictEqual(data, expected_result)
 
     def test_serializer_external(self):
-        """ Purpose: test if project_manager_token is NOT present in serializer
+        """ Purpose: test if project_manager_id is NOT present in serializer
         """
         warning_message = WarningMessages.objects.create(**self.data.warning_message)
         serializer = WarningMessagesExternalSerializer(warning_message, many=False)

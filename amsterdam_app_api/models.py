@@ -242,7 +242,7 @@ class MobileDevices(models.Model):
           "content": "longer text"
         },
         "project_id": "8ac7ed07fc76a0812b3afbd5f0182aeb",
-        "project_manager_token": "UUIDv4"
+        "project_manager_id": "UUIDv4"
         "publication_date": DateTimefield,
         "modification_date": DateTimefield
     }
@@ -257,7 +257,7 @@ class MobileDevices(models.Model):
             "content": "longer text"
         },
         "project_identifier": "8ac7ed07fc76a0812b3afbd5f0182aeb",
-        "project_manager_token": "UUIDv4",
+        "project_manager_id": "UUIDv4",
         "publication_date": DateTimefield,
         "modification_date": DateTimefield,
         "author_email": "p.puk@amsterdam.nl"
@@ -281,14 +281,14 @@ class WarningMessages(models.Model):
     title = models.CharField(max_length=1000, unique=False)
     body = models.JSONField(null=False, blank=False, default=dict)
     project_identifier = models.CharField(max_length=100, blank=False, unique=False)
-    project_manager_token = models.CharField(max_length=100, blank=False, unique=False)
+    project_manager_id = models.CharField(max_length=100, blank=False, unique=False)
     images = ArrayField(models.JSONField(null=True, default=dict), blank=False)
     publication_date = models.DateTimeField(auto_now_add=True, blank=True)
     modification_date = models.DateTimeField(auto_now_add=True, blank=True)
     author_email = models.EmailField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        project_manager = ProjectManager.objects.filter(pk=self.project_manager_token).first()
+        project_manager = ProjectManager.objects.filter(pk=self.project_manager_id).first()
         self.author_email = project_manager.email if project_manager is not None else 'redactieprojecten@amsterdam.nl'
         self.modification_date = datetime.datetime.now()
         super(WarningMessages, self).save(*args, **kwargs)
