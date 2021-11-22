@@ -197,7 +197,7 @@ export default {
       let lineHeight = doc.getLineHeight(text) / doc.internal.scaleFactor
       let textY = lines * lineHeight
 
-      doc.text('apn://www.google.com/?id=' + identifier, 10, textY)
+      doc.text('https://api.backend.luscinia-solutions.com/omgevingsmanager/' + identifier, 10, textY)
       doc.save(name + '.pdf')
     },
     save () {
