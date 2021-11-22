@@ -32,7 +32,7 @@ class TestSendNotification(TestCase):
         warning_message_data1 = {
             'title': 'title',
             'project_identifier': '0000000000',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'preface': 'short text', 'content': 'long text'},
             'images': []
         }
@@ -40,7 +40,7 @@ class TestSendNotification(TestCase):
         warning_message_data2 = {
             'title': 'title',
             'project_identifier': '0000000002',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'preface': 'short text', 'content': 'long text'},
             'images': []
         }

@@ -1846,7 +1846,7 @@ class TestData:
             'title': 'title',
             'body': {'preface': 'short text', 'content': 'long text'},
             'project_identifier': '0000000000',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'images': []
         }
 

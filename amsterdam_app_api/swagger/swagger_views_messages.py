@@ -22,7 +22,7 @@ as_warning_message_post = {
                 'content': openapi.Schema(type=openapi.TYPE_STRING, description='full text')
             }),
             'project_identifier': openapi.Schema(type=openapi.TYPE_STRING, description='identifier'),
-            'project_manager_token': openapi.Schema(type=openapi.TYPE_STRING, description='identifier'),
+            'project_manager_id': openapi.Schema(type=openapi.TYPE_STRING, description='identifier'),
             'author_email': openapi.Schema(type=openapi.TYPE_STRING, description='author@amsterdam.nl'),
         }
     ),

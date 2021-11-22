@@ -35,7 +35,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             'title': 'title',
             'project_identifier': '0000000000',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'preface': 'short text', 'content': 'long text'}
         }
 
@@ -50,7 +50,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             'title': 'title',
             'project_identifier': '0000000001',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'preface': 'short text', 'content': 'long text'}
         }
 
@@ -63,7 +63,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             'title': 'title',
             'project_identifier': '0000000001',
-            'project_manager_token': str(uuid.uuid4()),
+            'project_manager_id': str(uuid.uuid4()),
             'body': {'preface': 'short text', 'content': 'long text'}
         }
 
@@ -76,7 +76,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             'title': 'title',
             'project_identifier': 'AAAAAAAAAA',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'preface': 'short text', 'content': 'long text'}
         }
 
@@ -89,7 +89,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             'title': 'title',
             'project_identifier': '0000000000',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'preface': 'short text'}
         }
 
@@ -102,7 +102,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             'title': 'title',
             'project_identifier': '0000000000',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'content': 'long text'}
         }
 
@@ -131,7 +131,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             'title': 'title',
             'project_identifier': '0000000000',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'preface': 'short text', 'content': 'long text'}
         }
 
@@ -173,7 +173,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             'title': 'title',
             'project_identifier': '0000000000',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'preface': 'short text', 'content': 'long text'}
         }
 
@@ -194,7 +194,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             'title': 'title',
             'project_identifier': '0000000000',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'preface': 'short text', 'content': 'long text'}
         }
 
@@ -235,7 +235,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             'title': 'title',
             'project_identifier': '0000000000',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'preface': 'short text', 'content': 'long text'}
         }
 
@@ -264,7 +264,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             'title': 'title',
             'project_identifier': '0000000000',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'preface': 'short text', 'content': 'long text'}
         }
 
@@ -320,7 +320,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             'title': 'title',
             'project_identifier': '0000000000',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'preface': 'short text', 'content': 'long text'}
         }
 
@@ -346,7 +346,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             'title': 'title',
             'project_identifier': '0000000000',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'preface': 'short text', 'content': 'long text'}
         }
 
@@ -371,7 +371,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             'title': 'title',
             'project_identifier': '0000000000',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'preface': 'short text', 'content': 'long text'}
         }
 
@@ -397,7 +397,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             'title': 'title',
             'project_identifier': '0000000000',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'preface': 'short text', 'content': 'long text'}
         }
 
@@ -447,7 +447,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             'title': 'title',
             'project_identifier': '0000000000',
-            'project_manager_token': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'preface': 'short text', 'content': 'long text'}
         }
 

@@ -61,7 +61,7 @@ class WarningMessagesInternalSerializer(serializers.ModelSerializer):
 class WarningMessagesExternalSerializer(serializers.ModelSerializer):
     class Meta:
         model = WarningMessages
-        exclude = ['project_manager_token']
+        exclude = ['project_manager_id']
 
 
 class NotificationSerializer(serializers.ModelSerializer):
