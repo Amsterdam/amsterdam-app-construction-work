@@ -172,6 +172,8 @@ def notification_post(request):
 
     # Trigger the push notification services
     notification_services = SendNotification(notification.identifier)
+    if not notification_services.valid_notification:
+        return Response(notification_services.setup_result, 422)
     notification_services.send_multicast_and_handle_errors()
 
     # Send response to end-user
