@@ -127,7 +127,7 @@ as_warning_message_delete = {
     'tags': ['Projects']
 }
 
-as_warning_message_get = {
+as_warning_messages_get = {
     # /api/v1/notification/messages/warning/get
     'methods': ['GET'],
     'manual_parameters': [openapi.Parameter('id',
@@ -135,11 +135,42 @@ as_warning_message_get = {
                                             'Query by project-identifier',
                                             type=openapi.TYPE_STRING,
                                             format='<identifier>',
+                                            required=False),
+                          openapi.Parameter('sort-by',
+                                            openapi.IN_QUERY,
+                                            'Sort response (default: modification_date)',
+                                            type=openapi.TYPE_STRING,
+                                            format='<any key from model>',
+                                            required=False),
+                          openapi.Parameter('sort-order',
+                                            openapi.IN_QUERY,
+                                            'Sorting order (default: asc)',
+                                            type=openapi.TYPE_STRING,
+                                            format='<asc, desc>',
                                             required=False)],
     'responses': {
         200: openapi.Response('application/json',
                               WarningMessagesExternalSerializer,
                               examples={'application/json': {'status': True, 'result': []}}),
+        404: openapi.Response('Error: Not Found'),
+        422: openapi.Response('Error: Unprocessable Entity')
+    },
+    'tags': ['Projects']
+}
+
+as_warning_message_get = {
+    # /api/v1/notification/messages/warning/get
+    'methods': ['GET'],
+    'manual_parameters': [openapi.Parameter('id',
+                                            openapi.IN_QUERY,
+                                            'Query by identifier',
+                                            type=openapi.TYPE_STRING,
+                                            format='<identifier>',
+                                            required=False)],
+    'responses': {
+        200: openapi.Response('application/json',
+                              WarningMessagesExternalSerializer,
+                              examples={'application/json': {'status': True, 'result': {}}}),
         404: openapi.Response('Error: Not Found'),
         422: openapi.Response('Error: Unprocessable Entity')
     },
