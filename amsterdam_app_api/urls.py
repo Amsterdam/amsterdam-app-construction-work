@@ -55,6 +55,7 @@ urlpatterns = [
 
     # Warning message
     path('project/warning', csrf_exempt(views_messages.warning_message_crud)),
+    path('project/warnings', csrf_exempt(views_messages.warning_messages_get)),
     path('project/warning/image', csrf_exempt(views_messages.warning_messages_image_upload)),
 
     # Notification ('teaser' pointing to news- or warning article)

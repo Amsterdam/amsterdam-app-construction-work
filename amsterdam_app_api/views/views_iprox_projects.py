@@ -69,7 +69,8 @@ def project_details(request):
                 'type': article_type,
                 'image': next(iter([x for x in item['images'] if x['type'] in ['banner', 'header']]), None)
             })
-        return articles
+        sorted_articles = Sort().list_of_dicts(articles, key='publication_date', sort_order='asc')
+        return sorted_articles
 
     if request.method == 'GET':
         identifier = request.GET.get('id', None)

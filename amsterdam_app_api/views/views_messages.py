@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from functools import reduce
 from drf_yasg.utils import swagger_auto_schema
 from amsterdam_app_api.GenericFunctions.IsAuthorized import IsAuthorized
+from amsterdam_app_api.GenericFunctions.Sort import Sort
 from amsterdam_app_api.PushNotifications.SendNotification import SendNotification
 from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import WarningMessages
@@ -21,12 +22,34 @@ from amsterdam_app_api.serializers import NotificationSerializer
 from amsterdam_app_api.swagger.swagger_views_messages import as_warning_message_post
 from amsterdam_app_api.swagger.swagger_views_messages import as_warning_message_patch
 from amsterdam_app_api.swagger.swagger_views_messages import as_warning_message_get
+from amsterdam_app_api.swagger.swagger_views_messages import as_warning_messages_get
 from amsterdam_app_api.swagger.swagger_views_messages import as_warning_message_delete
 from amsterdam_app_api.swagger.swagger_views_messages import as_notification_post
 from amsterdam_app_api.swagger.swagger_views_messages import as_notification_get
 from amsterdam_app_api.swagger.swagger_views_messages import as_warning_message_image_post
 
 messages = Messages()
+
+
+@swagger_auto_schema(**as_warning_messages_get)
+@api_view(['GET'])
+def warning_messages_get(request):
+    project_identifier = request.GET.get('id', None)
+    sort_by = request.GET.get('sort-by', 'modification_date')
+    sort_order = request.GET.get('sort-order', None)
+
+    if project_identifier is None:
+        warning_messages_objects = WarningMessages.objects.all()
+        serializer = WarningMessagesExternalSerializer(warning_messages_objects, many=True)
+        result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
+        return Response({'status': True, 'result': result}, 200)
+    elif Projects.objects.filter(pk=project_identifier).first() is None:
+        return Response({'status': False, 'result': messages.no_record_found}, 404)
+    else:
+        warning_messages_objects = WarningMessages.objects.filter(project_identifier=project_identifier).all()
+        serializer = WarningMessagesExternalSerializer(warning_messages_objects, many=True)
+        result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
+        return Response({'status': True, 'result': result}, 200)
 
 
 @swagger_auto_schema(**as_warning_message_get)
@@ -62,6 +85,18 @@ def warning_message_crud(request):
             return Response(data['result'], status=data['status_code'])
         except:
             return data
+
+
+def warning_message_get(request):
+    identifier = request.GET.get('id', None)
+    if identifier is None:
+        return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
+    elif WarningMessages.objects.filter(pk=identifier).first() is None:
+        return {'result': {'status': False, 'result': messages.no_record_found}, 'status_code': 404}
+    else:
+        warning_messages_object = WarningMessages.objects.filter(pk=identifier).first()
+        serializer = WarningMessagesExternalSerializer(warning_messages_object, many=False)
+        return {'result': {'status': True, 'result': serializer.data}, 'status_code': 200}
 
 
 @IsAuthorized
@@ -130,20 +165,6 @@ def warning_message_delete(request):
     else:
         WarningMessages.objects.filter(identifier=identifier).delete()
         return {'result': {'status': False, 'result': 'Message deleted'}, 'status_code': 200}
-
-
-def warning_message_get(request):
-    project_identifier = request.GET.get('id', None)
-    if project_identifier is None:
-        warning_messages_objects = WarningMessages.objects.all()
-        serializer = WarningMessagesExternalSerializer(warning_messages_objects, many=True)
-        return {'result': {'status': True, 'result': serializer.data}, 'status_code': 200}
-    elif Projects.objects.filter(pk=project_identifier).first() is None:
-        return {'result': {'status': False, 'result': messages.no_record_found}, 'status_code': 404}
-    else:
-        warning_messages_objects = WarningMessages.objects.filter(project_identifier=project_identifier).all()
-        serializer = WarningMessagesExternalSerializer(warning_messages_objects, many=True)
-        return {'result': {'status': True, 'result': serializer.data}, 'status_code': 200}
 
 
 @swagger_auto_schema(**as_notification_post)
