@@ -23,18 +23,19 @@ class SendNotification:
         self.project_identifier = None
         self.article_type = None  # news, warning
         self.link_source_id = None
-        self.valid_notification = self.setup()
+        self.setup_result = self.setup()
+        self.valid_notification = self.setup_result['status']
 
     def setup(self):
         self.notification = self.set_notification()
         if self.notification is None or self.article_type is None:
-            return False
+            return {'status': False, 'result': 'No notification or article type found'}
 
         self.subscribed_device_batches = self.create_subscribed_device_batches()
         if len(self.subscribed_device_batches) == 0:
-            return False
+            return {'status': False, 'result': 'No subscribed devices found'}
 
-        return True
+        return {'status': True, 'result': 'valid notification'}
 
     def set_notification(self):
         try:

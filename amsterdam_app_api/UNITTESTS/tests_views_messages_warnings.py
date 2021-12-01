@@ -15,6 +15,7 @@ class TestApiProjectWarning(TestCase):
         super(TestApiProjectWarning, self).__init__(*args, **kwargs)
         self.data = TestData()
         self.url = '/api/v1/project/warning'
+        self.url_warnings_get = '/api/v1/project/warnings'
         self.token = AESCipher('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '6886b31dfe27e9306c3d2b553345d9e5').encrypt()
         self.headers = {"UserAuthorization": self.token}
         self.content_type = "application/json"
@@ -127,6 +128,7 @@ class TestApiProjectWarning(TestCase):
         self.assertEqual(result.status_code, 403)
         self.assertEqual(result.reason_phrase, 'Forbidden')
 
+
     def test_get_warning_message(self):
         data = {
             'title': 'title',
@@ -142,7 +144,53 @@ class TestApiProjectWarning(TestCase):
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(result.data, {'status': True, 'result': {'warning_identifier': str(warning_message.identifier)}})
 
-        result = self.client.get('{url}?id=0000000000'.format(url=self.url))
+        result = self.client.get('{url}?id={identifier}'.format(url=self.url, identifier=warning_message.identifier))
+        data = result.data
+        data['result']['publication_date'] = data['result']['publication_date'].replace('T', ' ')
+        data['result']['modification_date'] = data['result']['modification_date'].replace('T', ' ')
+
+        expected_result = {
+            "status": True,
+            "result": {
+                "identifier": str(warning_message.identifier),
+                "title": "title",
+                "body": {"content": "long text", "preface": "short text"},
+                "project_identifier":"0000000000",
+                "images":[],
+                "publication_date": str(warning_message.publication_date),
+                "modification_date": str(warning_message.modification_date),
+                "author_email":"mock0@amsterdam.nl"
+            }
+        }
+        self.assertEqual(result.status_code, 200)
+        self.assertDictEqual(data, expected_result)
+
+    def test_get_warning_message_no_identifier(self):
+        result = self.client.get('{url}'.format(url=self.url))
+        self.assertEqual(result.status_code, 422)
+        self.assertDictEqual(result.data, {'status': False, 'result': 'Invalid query parameter(s). See /api/v1/apidocs for more information'})
+
+    def test_get_warning_message_invalid_identifier(self):
+        result = self.client.get('{url}?id={uuid}'.format(url=self.url, uuid=str(uuid.uuid4())))
+        self.assertEqual(result.status_code, 404)
+        self.assertDictEqual(result.data, {'status': False, 'result': 'No record found'})
+
+    def test_get_warning_messages(self):
+        data = {
+            'title': 'title',
+            'project_identifier': '0000000000',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'body': {'preface': 'short text', 'content': 'long text'}
+        }
+
+        result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+
+        warning_message = WarningMessages.objects.filter(project_identifier='0000000000').first()
+
+        self.assertEqual(result.status_code, 200)
+        self.assertDictEqual(result.data, {'status': True, 'result': {'warning_identifier': str(warning_message.identifier)}})
+
+        result = self.client.get('{url}?id=0000000000'.format(url=self.url_warnings_get))
         data = result.data
         data['result'][0]['publication_date'] = data['result'][0]['publication_date'].replace('T', ' ')
         data['result'][0]['modification_date'] = data['result'][0]['modification_date'].replace('T', ' ')
@@ -164,12 +212,12 @@ class TestApiProjectWarning(TestCase):
         self.assertDictEqual(data, expected_result)
 
     def test_get_warning_message_project_identifier_does_not_exist(self):
-        result = self.client.get('{url}?id=1111111111'.format(url=self.url))
+        result = self.client.get('{url}?id=1111111111'.format(url=self.url_warnings_get))
 
         self.assertEqual(result.status_code, 404)
         self.assertDictEqual(result.data, {'status': False, 'result': messages.no_record_found})
 
-    def test_get_warning_message_no_project_identifier(self):
+    def test_get_warning_messages_no_project_identifier(self):
         data = {
             'title': 'title',
             'project_identifier': '0000000000',
@@ -181,10 +229,9 @@ class TestApiProjectWarning(TestCase):
         warning_message = WarningMessages.objects.filter(project_identifier='0000000000').first()
 
         self.assertEqual(result.status_code, 200)
-        self.assertDictEqual(result.data,
-                             {'status': True, 'result': {'warning_identifier': str(warning_message.identifier)}})
+        self.assertDictEqual(result.data, {'status': True, 'result': {'warning_identifier': str(warning_message.identifier)}})
 
-        result = self.client.get('{url}'.format(url=self.url))
+        result = self.client.get('{url}'.format(url=self.url_warnings_get))
         self.assertEqual(result.status_code, 200)
 
         result_data = json.loads(result.content.decode('utf-8'))
