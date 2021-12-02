@@ -24,21 +24,24 @@ class IsAuthorized:
         self.func = func
 
     def __call__(self, *args, **kwargs):
-        request = args[0]
-        http_userauthorization = request.META.get('HTTP_USERAUTHORIZATION', None)
-        header_userauthorization = request.META.get('headers', {}).get('UserAuthorization', None)
-        jwt_token = request.META.get('HTTP_AUTHORIZATION', None)
-        header_jwt_token = str(request.META.get('headers', {}).get('HTTP_AUTHORIZATION', None)).encode('utf-8')
+        try:
+            request = args[0]
+            http_userauthorization = request.META.get('HTTP_USERAUTHORIZATION', None)
+            header_userauthorization = request.META.get('headers', {}).get('UserAuthorization', None)
+            jwt_token = request.META.get('HTTP_AUTHORIZATION', None)
+            header_jwt_token = str(request.META.get('headers', {}).get('HTTP_AUTHORIZATION', None)).encode('utf-8')
 
-        encrypted_token = http_userauthorization if http_userauthorization is not None else header_userauthorization
-        jwt_encrypted_token = jwt_token if jwt_token is not None else header_jwt_token
+            encrypted_token = http_userauthorization if http_userauthorization is not None else header_userauthorization
+            jwt_encrypted_token = jwt_token if jwt_token is not None else header_jwt_token
 
-        if encrypted_token is not None:
-            if self.is_valid_AES_token(encrypted_token=encrypted_token):
-                return self.func(*args, **kwargs)
-        elif jwt_encrypted_token is not None:
-            if self.is_valid_JWT_token(jwt_encrypted_token=jwt_encrypted_token):
-                return self.func(*args, **kwargs)
+            if encrypted_token is not None:
+                if self.is_valid_AES_token(encrypted_token=encrypted_token):
+                    return self.func(*args, **kwargs)
+            elif jwt_encrypted_token is not None:
+                if self.is_valid_JWT_token(jwt_encrypted_token=jwt_encrypted_token):
+                    return self.func(*args, **kwargs)
+        except Exception as error:
+            pass
 
         # Access is not allowed, abort with 401
         return HttpResponseForbidden()
