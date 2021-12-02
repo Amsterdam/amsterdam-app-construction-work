@@ -225,7 +225,7 @@ export default {
   methods: {
     init: function () {
       // Get current project_managers
-      axios({methods: 'GET', 'url': '/project/warning'}).then(response => {
+      axios({methods: 'GET', 'url': '/project/warnings'}).then(response => {
         let warningResponse = response.data.result
 
         axios({methods: 'GET', 'url': '/projects'}).then(response => {
