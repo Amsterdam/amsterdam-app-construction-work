@@ -1,3 +1,4 @@
+import re
 import requests
 from queue import Queue
 from amsterdam_app_api.GenericFunctions.Logger import Logger
@@ -121,7 +122,8 @@ class IproxNews:
                     # Get summary for this news item
                     if filtered_results[i]['Gegevens'][j].get('Nam') == 'Samenvatting':
                         news_item_data['body']['summary']['text'] = self.santizer.strip_html(filtered_results[i]['Gegevens'][j].get('Txt'))
-                        news_item_data['body']['summary']['html'] = filtered_results[i]['Gegevens'][j].get('Txt')
+                        html = filtered_results[i]['Gegevens'][j].get('Txt')
+                        news_item_data['body']['summary']['html'] = re.sub('/publish/pages/', 'https://www.amsterdam.nl/publish/pages/', html)
 
                     if filtered_results[i]['Gegevens'][j].get('Nam') == 'Brondatum':
                         date = filtered_results[i]['Gegevens'][j].get('Dtm', '')
@@ -163,12 +165,15 @@ class IproxNews:
                     # Get preface for this news item
                     if filtered_results[i]['Inhoud'][j].get('Nam') == 'Inleiding':
                         news_item_data['body']['preface']['text'] = self.santizer.strip_html(filtered_results[i]['Inhoud'][j].get('Txt'))
-                        news_item_data['body']['preface']['html'] = filtered_results[i]['Inhoud'][j].get('Txt')
+                        html = filtered_results[i]['Inhoud'][j].get('Txt')
+                        news_item_data['body']['preface']['html'] = re.sub('/publish/pages/', 'https://www.amsterdam.nl/publish/pages/', html)
 
                     # Get content for this news item
                     if filtered_results[i]['Inhoud'][j].get('Nam') == 'Tekst':
                         news_item_data['body']['content']['text'] = self.santizer.strip_html(filtered_results[i]['Inhoud'][j].get('Txt'))
-                        news_item_data['body']['content']['html'] = filtered_results[i]['Inhoud'][j].get('Txt')
+                        html = filtered_results[i]['Inhoud'][j].get('Txt')
+                        news_item_data['body']['content']['html'] = re.sub('/publish/pages/', 'https://www.amsterdam.nl/publish/pages/', html)
+
 
                         # Get additional images for this news item
                         for asset in filtered_results[i]['Inhoud'][j].get('asset', {}):
