@@ -30,7 +30,7 @@ class Image(models.Model):
     description = models.CharField(max_length=1000, blank=True, unique=False, default='')
     mime_type = models.CharField(max_length=100, blank=False, default='image/jpg')
     data = models.BinaryField()
-
+    
 
 """ Models for Projects 'kademuren' and 'bruggen'
     
@@ -116,6 +116,8 @@ class Projects(models.Model):
     publication_date = models.CharField(max_length=40, blank=False)
     modification_date = models.CharField(max_length=40, blank=False)
     source_url = models.CharField(max_length=1000, blank=True, default='')
+    last_seen = models.DateTimeField(auto_now=True, blank=True)
+    active = models.BooleanField(default=True, blank=True)
 
     class Meta:
         ordering = ['title']
@@ -123,6 +125,7 @@ class Projects(models.Model):
 
 class ProjectDetails(models.Model):
     identifier = models.CharField(max_length=100, blank=False, unique=True, primary_key=True)
+    project_type = models.CharField(max_length=100, default='', blank=False, unique=False)
     body = models.JSONField(null=True, default=list)
     district_id = models.IntegerField(default=-1)
     district_name = models.CharField(max_length=1000, blank=True, default='')
@@ -133,6 +136,8 @@ class ProjectDetails(models.Model):
     subtitle = models.CharField(max_length=1000, null=True)
     rel_url = models.CharField(max_length=1000, blank=True, default='')
     url = models.CharField(max_length=1000, blank=True, default='')
+    last_seen = models.DateTimeField(auto_now=True, blank=True)
+    active = models.BooleanField(default=True, blank=True)
 
     class Meta:
         ordering = ['district_id', 'title']
@@ -168,12 +173,15 @@ class ProjectDetails(models.Model):
 class News(models.Model):
     identifier = models.CharField(max_length=100, blank=False, unique=True, primary_key=True)
     project_identifier = models.CharField(max_length=100, blank=False, unique=False)
+    project_type = models.CharField(max_length=100, default='', blank=False, unique=False)
     url = models.CharField(max_length=1000, blank=True, default='')
     title = models.CharField(max_length=1000, blank=True, default='')
     publication_date = models.CharField(max_length=10, blank=True, default='')
     body = models.JSONField(null=True, default=dict)
     images = models.JSONField(null=True, default=list)
     assets = models.JSONField(null=True, default=list)
+    last_seen = models.DateTimeField(auto_now=True, blank=True)
+    active = models.BooleanField(default=True, blank=True)
 
 
 """ Model for ProjectManagers

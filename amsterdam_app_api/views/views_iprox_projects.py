@@ -39,14 +39,10 @@ def projects(request):
             district_id = None
 
         # Set filter
-        query_filter = SetFilter(district_id=district_id, project_type=project_type).get()
+        query_filter = SetFilter(district_id=district_id, project_type=project_type, active=True).get()
 
         # Return filtered result or all projects
-        if query_filter != {}:
-            projects_object = Projects.objects.filter(**query_filter).all()
-        # Get all projects
-        else:
-            projects_object = Projects.objects.all()
+        projects_object = Projects.objects.filter(**query_filter).all()
 
         serializer = ProjectsSerializer(projects_object, many=True)
         result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
@@ -77,11 +73,11 @@ def project_details(request):
         if identifier is None:
             return Response({'status': False, 'result': message.invalid_query}, status=422)
         else:
-            project_object = ProjectDetails.objects.filter(pk=identifier).first()
+            project_object = ProjectDetails.objects.filter(pk=identifier, active=True).first()
             if project_object is not None:
                 articles = []
                 project_data = ProjectDetailsSerializer(project_object, many=False).data
-                news_objects = News.objects.filter(project_identifier=identifier).all()
+                news_objects = News.objects.filter(project_identifier=identifier, active=True).all()
                 warning_messages_objects = WarningMessages.objects.filter(project_identifier=identifier).all()
                 news_data = NewsSerializer(news_objects, many=True).data
                 warning_messages_data = WarningMessagesExternalSerializer(warning_messages_objects, many=True).data

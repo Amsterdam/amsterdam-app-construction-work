@@ -1,5 +1,6 @@
 import re
 import requests
+import datetime
 from queue import Queue
 from amsterdam_app_api.GenericFunctions.Logger import Logger
 from amsterdam_app_api.GenericFunctions.TextSanitizers import TextSanitizers
@@ -216,9 +217,10 @@ class IproxNews:
     def save_news_item(news_item_data):
         news_item_object, created = News.objects.update_or_create(identifier=news_item_data.get('identifier'))
         if created is True:
-            news_item_object = News(**news_item_data)
+            news_item_object = News(**news_item_data)  # Update last scrape time is done implicitly
             news_item_object.save()
         else:
+            news_item_data['last_seen'] = datetime.datetime.now()  # Update last scrape time
             News.objects.filter(pk=news_item_data.get('identifier')).update(**news_item_data)
 
     def get_images(self, news_item_data):
@@ -232,8 +234,9 @@ class IproxNews:
     def run(self):
         while not self.queue.empty():
             # Get queued news_items and scrape data
-            news_item = self.queue.get()
-            news_item_data = self.scraper(news_item)
+            job = self.queue.get()
+            news_item_data = self.scraper(job['news_item'])
+            news_item_data['project_type'] = job['project_type']
             self.save_news_item(news_item_data)
             self.get_images(news_item_data)
         else:
