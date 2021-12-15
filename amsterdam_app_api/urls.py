@@ -6,8 +6,16 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.views import TokenRefreshView
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-from amsterdam_app_api.views import views_ingest, views_iprox_news, views_iprox_projects, views_messages, views_generic, \
-    views_user, views_project_manager, views_mobile_devices
+from amsterdam_app_api.views import views_ingest
+from amsterdam_app_api.views import views_iprox_news
+from amsterdam_app_api.views import views_iprox_projects
+from amsterdam_app_api.views import views_messages
+from amsterdam_app_api.views import views_generic
+from amsterdam_app_api.views import views_user
+from amsterdam_app_api.views import views_project_manager
+from amsterdam_app_api.views import views_mobile_devices
+from amsterdam_app_api.views import views_distance
+
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -36,6 +44,7 @@ urlpatterns = [
 
     # Project(s)
     path('projects', csrf_exempt(views_iprox_projects.projects)),
+    path('projects/distance', csrf_exempt(views_distance.distance)),
     path('project/details', csrf_exempt(views_iprox_projects.project_details)),
     path('project/news_by_project_id', csrf_exempt(views_iprox_news.news_by_project_id)),
     path('project/news', csrf_exempt(views_iprox_news.news)),

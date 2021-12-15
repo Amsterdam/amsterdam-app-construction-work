@@ -31,7 +31,7 @@ class TestNews(TestCase):
         for i in range(0, len(self.setup.identifiers)):
             response = c.get('/api/v1/project/news?id={identifier}'.format(identifier=self.setup.identifiers[i]))
             result = json.loads(response.content)
-
+            self.data.news[i]['last_seen'] = result['result']['last_seen']
             self.assertEqual(response.status_code, 200)
             self.assertDictEqual(result, {'status': True, 'result': self.data.news[i]})
 
@@ -71,34 +71,46 @@ class TestNewsItemsByProjectId(TestCase):
     def test_get_all_news(self):
         c = Client()
         response = c.get('/api/v1/project/news_by_project_id')
-        result = json.loads(response.content)
+        results = json.loads(response.content)
+        for result in results['result']:
+            for i in range(0, len(self.data.news), 1):
+                if result['identifier'] == self.data.news[i]['identifier']:
+                    self.data.news[i]['last_seen'] = result['last_seen']
 
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(result, {'status': True, 'result': self.data.news[::-1]})
+        self.assertDictEqual(results, {'status': True, 'result': self.data.news[::-1]})
 
     def test_get_news_by_project_identifier_exists(self):
         c = Client()
         response = c.get('/api/v1/project/news_by_project_id', {'project-identifier': '0000000000'})
         result = json.loads(response.content)
-
+        self.data.news[0]['last_seen'] = result['result'][0]['last_seen']
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(result, {'status': True, 'result': [self.data.news[0]]})
 
     def test_get_news_sorted_by_publication_date_desc(self):
         c = Client()
         response = c.get('/api/v1/project/news_by_project_id', {'sort-by': 'publication_date'})
-        result = json.loads(response.content)
+        results = json.loads(response.content)
+        for result in results['result']:
+            for i in range(0, len(self.data.news), 1):
+                if result['identifier'] == self.data.news[i]['identifier']:
+                    self.data.news[i]['last_seen'] = result['last_seen']
 
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(result, {'status': True, 'result': self.data.news[::-1]})
+        self.assertDictEqual(results, {'status': True, 'result': self.data.news[::-1]})
 
     def test_get_news_sorted_by_publication_date_asc(self):
         c = Client()
         response = c.get('/api/v1/project/news_by_project_id', {'sort-by': 'publication_date', 'sort-order': 'asc'})
-        result = json.loads(response.content)
+        results = json.loads(response.content)
+        for result in results['result']:
+            for i in range(0, len(self.data.news), 1):
+                if result['identifier'] == self.data.news[i]['identifier']:
+                    self.data.news[i]['last_seen'] = result['last_seen']
 
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(result, {'status': True, 'result': self.data.news})
+        self.assertDictEqual(results, {'status': True, 'result': self.data.news})
 
     def test_get_news_by_project_identifier_does_not_exists(self):
         c = Client()
