@@ -6,7 +6,7 @@ from unittest.mock import patch
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
 from amsterdam_app_api.UNITTESTS.mock_functions import firebase_admin_messaging_send_multicast
 from amsterdam_app_api.GenericFunctions.AESCipher import AESCipher
-from amsterdam_app_api.models import ProjectManager, WarningMessages, MobileDevices
+from amsterdam_app_api.models import Projects, ProjectManager, WarningMessages, MobileDevices
 from amsterdam_app_api.api_messages import Messages
 
 messages = Messages()
@@ -24,6 +24,9 @@ class TestApiNotification(TestCase):
         self.warning_identifier = None
 
     def setUp(self):
+        for project in self.data.projects:
+            Projects.objects.create(**project)
+
         ProjectManager.objects.all().delete()
         for project_manager in self.data.project_manager:
             ProjectManager.objects.create(**project_manager)
@@ -114,6 +117,27 @@ class TestApiNotification(TestCase):
 
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(result_data, expected_result)
+
+    @patch('firebase_admin.messaging.send_multicast', side_effect=firebase_admin_messaging_send_multicast)
+    def test_get_notification_inactive_project(self, firebase_admin_messaging_send_multicast):
+        MobileDevices.objects.all().delete()
+        for mobile_device in self.data.mobile_devices:
+            MobileDevices.objects.create(**mobile_device)
+        data = {'title': 'title', 'body': 'text', 'warning_identifier': self.warning_identifier}
+        result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+
+        self.assertEqual(result.status_code, 200)
+        self.assertDictEqual(result.data, {'status': True, 'result': 'push-notification accepted'})
+
+        project = Projects.objects.filter(pk='0000000000').first()
+        project.active = False
+        project.save()
+
+        result = self.client.get('{url}s?project-ids=0000000000'.format(url=self.url))
+
+        self.assertEqual(result.status_code, 404)
+        self.assertDictEqual(result.data, {'status': False, 'result': 'No record found'})
+
 
     def test_get_notification_invalid_query(self):
         result = self.client.get('{url}s'.format(url=self.url))
