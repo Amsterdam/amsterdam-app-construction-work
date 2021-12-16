@@ -5,6 +5,7 @@ from amsterdam_app_api.FetchData.IproxGarbageCollector import IproxGarbageCollec
 from amsterdam_app_api.models import Projects
 from amsterdam_app_api.models import ProjectDetails
 from amsterdam_app_api.models import News
+from amsterdam_app_api.models import ProjectManager
 
 
 class TestIproxGarbageCollector(TestCase):
@@ -24,6 +25,10 @@ class TestIproxGarbageCollector(TestCase):
         News.objects.all().delete()
         for news in self.data.news:
             News.objects.create(**news)
+
+        ProjectManager.objects.all().delete()
+        for project_manager in self.data.project_manager:
+            ProjectManager.objects.create(**project_manager)
 
     def test_no_objects_changed(self):
         gc = IproxGarbageCollector(datetime.datetime.now() - datetime.timedelta(hours=1))
