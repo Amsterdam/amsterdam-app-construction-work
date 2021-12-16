@@ -45,8 +45,14 @@ def get(request):
         return {'result': {'status': True, 'result': serializer.data}, 'status': 200}
     else:
         project_manager_object = ProjectManager.objects.filter(pk=identifier).first()
-        serializer = ProjectManagerSerializer(project_manager_object, many=False)
-        return {'result': {'status': True, 'result': [serializer.data]}, 'status': 200}
+        data = ProjectManagerSerializer(project_manager_object, many=False).data
+        active_projects = list()
+        for identifier in data['projects']:
+            project = Projects.objects.filter(pk=identifier, active=True).first()
+            if project is not None:
+                active_projects.append(identifier)
+        data['projects'] = active_projects
+        return {'result': {'status': True, 'result': [data]}, 'status': 200}
 
 
 def post_patch(request):

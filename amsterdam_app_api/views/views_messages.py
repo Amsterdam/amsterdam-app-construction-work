@@ -2,10 +2,8 @@ import base64
 import io
 import uuid
 from PIL import Image as PILImage
-from django.db.models import Q
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from functools import reduce
 from drf_yasg.utils import swagger_auto_schema
 from amsterdam_app_api.GenericFunctions.IsAuthorized import IsAuthorized
 from amsterdam_app_api.GenericFunctions.Sort import Sort
