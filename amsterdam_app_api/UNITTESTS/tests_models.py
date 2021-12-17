@@ -9,7 +9,6 @@ from amsterdam_app_api.models import News
 from amsterdam_app_api.models import ProjectManager
 from amsterdam_app_api.models import MobileDevices
 from amsterdam_app_api.models import WarningMessages
-from amsterdam_app_api.models import Notification
 from amsterdam_app_api.serializers import ImageSerializer
 from amsterdam_app_api.serializers import AssetsSerializer
 from amsterdam_app_api.serializers import ProjectsSerializer
@@ -117,12 +116,15 @@ class TestProjectsModel(TestCase):
     def test_projects_get_all(self):
         project_objects = Projects.objects.all()
         serializer = ProjectsSerializer(project_objects, many=True)
+        for i in range(0, len(serializer.data), 1):
+            self.data.projects[i]['last_seen'] = serializer.data[i]['last_seen']
 
         self.assertEqual(serializer.data, self.data.projects)
 
     def test_projects_does_exist(self):
         projects_objects = Projects.objects.filter(pk='0000000000').first()
         serializer = ProjectsSerializer(projects_objects)
+        self.data.projects[0]['last_seen'] = serializer.data['last_seen']
 
         self.assertEqual(serializer.data, self.data.projects[0])
 
@@ -152,12 +154,15 @@ class TestProjectDetailsModel(TestCase):
     def test_project_details_get_all(self):
         project_objects = ProjectDetails.objects.all()
         serializer = ProjectDetailsSerializer(project_objects, many=True)
+        for i in range(0, len(serializer.data), 1):
+            self.data.project_details[i]['last_seen'] = serializer.data[i]['last_seen']
 
         self.assertEqual(serializer.data, self.data.project_details)
 
     def test_project_details_does_exist(self):
         project_objects = ProjectDetails.objects.filter(pk='0000000000').first()
         serializer = ProjectDetailsSerializer(project_objects)
+        self.data.project_details[0]['last_seen'] = serializer.data['last_seen']
 
         self.assertEqual(serializer.data, self.data.project_details[0])
 
@@ -193,8 +198,9 @@ class TestNewsModel(TestCase):
     def test_news_exists(self):
         news_object = News.objects.get(pk='0000000000')
         serializer = NewsSerializer(news_object)
+        self.data.news[0]['last_seen'] = serializer.data['last_seen']
 
-        self.assertEqual(serializer.data, self.data.news[0])
+        self.assertDictEqual(serializer.data, self.data.news[0])
 
     def test_news_does_not_exist(self):
         news_object = News.objects.filter(pk='does not exist').first()

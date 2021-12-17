@@ -47,6 +47,7 @@ class TestApiProjects(TestCase):
         c = Client()
         response = c.get('/api/v1/projects', {'district-id': 0})
         result = json.loads(response.content)
+        self.data.projects[0]['last_seen'] = result['result'][0]['last_seen']
 
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(result, {'status': True, 'result': [self.data.projects[0]]})
@@ -54,15 +55,20 @@ class TestApiProjects(TestCase):
     def test_projects_by_district_id_erroneous(self):
         c = Client()
         response = c.get('/api/v1/projects', {'district-id': 'a'})
-        result = json.loads(response.content)
+        results = json.loads(response.content)
+        for result in results['result']:
+            for i in range(0, len(self.data.projects), 1):
+                if result['identifier'] == self.data.projects[i]['identifier']:
+                    self.data.projects[i]['last_seen'] = result['last_seen']
 
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(result, {'status': True, 'result': self.data.projects})
+        self.assertDictEqual(results, {'status': True, 'result': self.data.projects})
 
     def test_projects_by_project_type(self):
         c = Client()
         response = c.get('/api/v1/projects', {'project-type': 'kade'})
         result = json.loads(response.content)
+        self.data.projects[0]['last_seen'] = result['result'][0]['last_seen']
 
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(result, {'status': True, 'result': [self.data.projects[0]]})
@@ -70,26 +76,38 @@ class TestApiProjects(TestCase):
     def test_projects_sort_by_district_id_desc(self):
         c = Client()
         response = c.get('/api/v1/projects', {'sort-by': 'district_id', 'sort-order': 'desc'})
-        result = json.loads(response.content)
+        results = json.loads(response.content)
+        for result in results['result']:
+            for i in range(0, len(self.data.projects), 1):
+                if result['identifier'] == self.data.projects[i]['identifier']:
+                    self.data.projects[i]['last_seen'] = result['last_seen']
 
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(result, {'status': True, 'result': self.data.projects[::-1]})
+        self.assertDictEqual(results, {'status': True, 'result': self.data.projects[::-1]})
 
     def test_projects_sort_by_district_id_asc(self):
         c = Client()
         response = c.get('/api/v1/projects', {'sort-by': 'district_id', 'sort-order': 'asc'})
-        result = json.loads(response.content)
+        results = json.loads(response.content)
+        for result in results['result']:
+            for i in range(0, len(self.data.projects), 1):
+                if result['identifier'] == self.data.projects[i]['identifier']:
+                    self.data.projects[i]['last_seen'] = result['last_seen']
 
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(result, {'status': True, 'result': self.data.projects})
+        self.assertDictEqual(results, {'status': True, 'result': self.data.projects})
 
     def test_projects_all(self):
         c = Client()
         response = c.get('/api/v1/projects')
-        result = json.loads(response.content)
+        results = json.loads(response.content)
+        for result in results['result']:
+            for i in range(0, len(self.data.projects), 1):
+                if result['identifier'] == self.data.projects[i]['identifier']:
+                    self.data.projects[i]['last_seen'] = result['last_seen']
 
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(result, {'status': True, 'result': self.data.projects})
+        self.assertDictEqual(results, {'status': True, 'result': self.data.projects})
 
 
 class TestApiProjectDetails(TestCase):
@@ -124,6 +142,7 @@ class TestApiProjectDetails(TestCase):
         c = Client()
         response = c.get('/api/v1/project/details', {'id': '0000000000'})
         result = json.loads(response.content)
+        self.data.project_details[0]['last_seen'] = result['result']['last_seen']
         expected_result = self.data.project_details[0]
         del expected_result['news']
         expected_result['articles'] = [{'identifier': '0000000000', 'title': 'title0', 'publication_date': '1970-01-01', 'type': 'news', 'image': {'type': 'banner', 'sources': {'orig': {'url': 'https://localhost/image.jpg', 'size': 'orig', 'filename': 'image.jpg', 'image_id': '0000000000', 'description': ''}}}}]

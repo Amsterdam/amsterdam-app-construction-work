@@ -27,8 +27,23 @@ as_push_notifications_registration_device_delete = {
                               examples={
                                   'application/json': {
                                       'status': True,
+                                      'result': {
+                                          'active': [],
+                                          'inactive': [],
+                                          'deleted': []
+                                      }}
+                              }),
+        204: openapi.Response('application/json',
+                              examples={
+                                  'application/json': {
+                                      'status': True,
                                       'result': 'Device removed from database'}}),
         403: openapi.Response('Error: Forbidden'),
+        404: openapi.Response('application/json',
+                              examples={
+                                  'application/json': {
+                                      'status': False,
+                                      'result': message.no_record_found}}),
         422: openapi.Response('application/json',
                               examples={
                                   'application/json': {
@@ -52,8 +67,23 @@ as_push_notifications_registration_device_post = {
                               examples={
                                   'application/json': {
                                       'status': True,
-                                      'result': 'Device registration updated'}}),
+                                      'result': {
+                                          'active': [],
+                                          'inactive': [],
+                                          'deleted': []
+                                      }}
+                              }),
+        204: openapi.Response('application/json',
+                              examples={
+                                  'application/json': {
+                                      'status': True,
+                                      'result': 'Device removed from database'}}),
         403: openapi.Response('Error: Forbidden'),
+        404: openapi.Response('application/json',
+                              examples={
+                                  'application/json': {
+                                      'status': False,
+                                      'result': message.no_record_found}}),
         422: openapi.Response('application/json',
                               examples={
                                   'application/json': {
@@ -84,8 +114,23 @@ as_push_notifications_registration_device_patch = {
                               examples={
                                   'application/json': {
                                       'status': True,
-                                      'result': 'Device registration updated'}}),
+                                      'result': {
+                                          'active': [],
+                                          'inactive': [],
+                                          'deleted': []
+                                      }}
+                              }),
+        204: openapi.Response('application/json',
+                              examples={
+                                  'application/json': {
+                                      'status': True,
+                                      'result': 'Device removed from database'}}),
         403: openapi.Response('Error: Forbidden'),
+        404: openapi.Response('application/json',
+                              examples={
+                                  'application/json': {
+                                      'status': False,
+                                      'result': message.no_record_found}}),
         422: openapi.Response('application/json',
                               examples={
                                   'application/json': {

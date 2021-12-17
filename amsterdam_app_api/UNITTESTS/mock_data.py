@@ -1,3 +1,6 @@
+import datetime
+
+
 class TestData:
     def __init__(self):
         self.assets = [
@@ -67,6 +70,7 @@ class TestData:
             {
                 "identifier": "0000000000",
                 "project_type": "kade",
+                "active": True,
                 "district_id": 0,
                 "district_name": "West",
                 "title": "title",
@@ -81,6 +85,7 @@ class TestData:
             {
                 "identifier": "0000000001",
                 "project_type": "brug",
+                "active": True,
                 "district_id": 1,
                 "district_name": "Oost",
                 "title": "title",
@@ -97,6 +102,8 @@ class TestData:
         self.project_details = [
             {
                 "identifier": "0000000000",
+                "project_type": "brug",
+                "active": True,
                 "body": {
                     "what": [{"html": "html content", "text": "text content", "title": "title"}],
                     "when": [{"html": "html content", "text": "text content", "title": "title"}],
@@ -119,6 +126,8 @@ class TestData:
             },
             {
                 "identifier": "0000000001",
+                "project_type": "brug",
+                "active": True,
                 "body": {
                     "what": [{"html": "html content", "text": "text content", "title": "title"}],
                     "when": [{"html": "html content", "text": "text content", "title": "title"}],
@@ -127,7 +136,7 @@ class TestData:
                     "contact": [{"html": "html content", "text": "text content", "title": "title"}],
                     "timeline": {},
                     "more-info": [{"html": "html content", "text": "text content", "title": "title"}],
-                    "coordinates": {"lat": 0.0, "lon": 0.0}
+                    "coordinates": {"lat": 1.0, "lon": 1.0}
                 },
                 "district_id": 0,
                 "district_name": "West",
@@ -143,6 +152,9 @@ class TestData:
 
         self.news = [
             {
+                "last_seen": datetime.datetime.strptime('1970-01-01T00:00:00.000000', '%Y-%d-%mT%H:%M:%S.000000'),
+                "active": True,
+                "project_type": "kade",
                 "identifier": "0000000000",
                 "project_identifier": "0000000000",
                 "url": "https://localhost/news0",
@@ -174,6 +186,9 @@ class TestData:
                 ]
             },
             {
+                "last_seen": datetime.datetime.strptime('1970-01-01T00:00:00.000000', '%Y-%d-%mT%H:%M:%S.000000'),
+                "active": True,
+                "project_type": "kade",
                 "identifier": "0000000001",
                 "project_identifier": "0000000001",
                 "url": "https://localhost/news1",

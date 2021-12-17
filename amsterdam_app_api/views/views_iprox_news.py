@@ -23,14 +23,10 @@ def news_by_project_id(request):
         sort_order = request.GET.get('sort-order', 'desc')
 
         # Set filter
-        query_filter = SetFilter(project_identifier=project_identifier).get()
+        query_filter = SetFilter(project_identifier=project_identifier, active=True).get()
 
         # Return filtered result or all projects
-        if query_filter != {}:
-            news_objects = News.objects.filter(**query_filter).all()
-        # Get all projects
-        else:
-            news_objects = News.objects.all()
+        news_objects = News.objects.filter(**query_filter).all()
 
         serializer = NewsSerializer(news_objects, many=True)
         result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
@@ -48,7 +44,7 @@ def news(request):
         if identifier is None:
             return Response({'status': False, 'result': message.invalid_query}, status=422)
 
-        news_object = News.objects.filter(pk=identifier).first()
+        news_object = News.objects.filter(pk=identifier, active=True).first()
         if news_object is None:
             return Response({'status': False, 'result': message.no_record_found}, status=404)
 

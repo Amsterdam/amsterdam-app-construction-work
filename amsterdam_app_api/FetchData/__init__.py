@@ -4,3 +4,5 @@ from .IproxNews import IproxNews
 from .IproxRecursion import IproxRecursion
 from .IproxProject import IproxProject
 from .IproxProjects import IproxProjects
+from .IproxGarbageCollector import IproxGarbageCollector
+

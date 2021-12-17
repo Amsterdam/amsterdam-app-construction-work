@@ -40,7 +40,7 @@ class IsAuthorized:
             elif jwt_encrypted_token is not None:
                 if self.is_valid_JWT_token(jwt_encrypted_token=jwt_encrypted_token):
                     return self.func(*args, **kwargs)
-        except Exception as error:
+        except Exception as error:  # pragma: no cover
             pass
 
         # Access is not allowed, abort with 401
