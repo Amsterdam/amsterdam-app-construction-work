@@ -5,7 +5,7 @@ from drf_yasg import openapi
 """
 
 as_distance = {
-    # /api/v1/projects_by_gps swagger_auto_schema
+    # /api/v1/projects/distance swagger_auto_schema
     'methods': ['get'],
     'manual_parameters': [openapi.Parameter('lat',
                                             openapi.IN_QUERY,

@@ -1,5 +1,5 @@
 from amsterdam_app_api.api_messages import Messages
-from amsterdam_app_api.models import MobileDevices
+from amsterdam_app_api.models import MobileDevices, Projects
 from amsterdam_app_api.swagger.swagger_views_mobile_devices import as_push_notifications_registration_device_post
 from amsterdam_app_api.swagger.swagger_views_mobile_devices import as_push_notifications_registration_device_patch
 from amsterdam_app_api.swagger.swagger_views_mobile_devices import as_push_notifications_registration_device_delete
@@ -32,35 +32,64 @@ def post_patch(request):
     """
     Register a mobile device with a set of project identifiers
     """
+    def filter(projects):
+        all_projects = list(Projects.objects.all())
+        inactive = [x.identifier for x in all_projects if x.active is False]
+        deleted = [x for x in projects if Projects.objects.filter(pk=x).first() is None] if projects is not None else []
+        active = [x for x in projects if x not in inactive + deleted] if projects is not None else []
+        return active, inactive, deleted,
+
     device_token = request.data.get('device_token', None)
     device_refresh_token = request.data.get('device_refresh_token', None)
     os_type = request.data.get('os_type', None)
     projects = request.data.get('projects', None)
 
     if device_token is not None and device_refresh_token is not None:
-        MobileDevices.objects.filter(pk=device_token).update(device_token=device_refresh_token)
-        return {'result': {'status': True, 'result': 'Device registration updated'}, 'status': 200}
+        md = MobileDevices.objects.filter(pk=device_token).first()
+        if md is not None:
+            active, inactive, deleted = filter(md.projects)
+            md.device_token = device_refresh_token
+            md.projects = active
+            md.save()
+            return {'result':
+                        {
+                            'status': True,
+                            'result': {
+                                'active': active,  # array of identifiers
+                                'inactive': inactive,  # array of identifiers
+                                'deleted': deleted  # array of identifiers
+                            }
+                        }, 'status': 200}
+        return {'result': {'status': False, 'result': messages.no_record_found}, 'status': 404}
     elif device_token is None or os_type is None:
         return {'result': {'status': False, 'result': messages.invalid_query}, 'status': 422}
     elif projects == [] or projects is None:
         # remove mobile device because it has no push-notification subscriptions
         MobileDevices.objects.filter(pk=device_token).delete()
-        return {'result': {'status': True, 'result': 'Device registration updated'}, 'status': 200}
+        return {'result': {'status': True, 'result': 'Device removed from database'}, 'status': 204}
     else:
         mobile_device_object = MobileDevices.objects.filter(pk=device_token).first()
-
+        active, inactive, deleted = filter(projects)
         # New record
         if mobile_device_object is None:
-            mobile_device_object = MobileDevices(device_token=device_token, os_type=os_type, projects=projects)
+            mobile_device_object = MobileDevices(device_token=device_token, os_type=os_type, projects=active)
             mobile_device_object.save()
 
         # Update existing record
         else:
             MobileDevices.objects.filter(pk=device_token).update(device_token=device_token,
                                                                  os_type=os_type,
-                                                                 projects=projects)
+                                                                 projects=active)
 
-        return {'result': {'status': True, 'result': 'Device registration updated'}, 'status': 200}
+        return {'result':
+                    {
+                        'status': True,
+                        'result': {
+                            'active': active,  # array of identifiers
+                            'inactive': inactive,  # array of identifiers
+                            'deleted': deleted  # array of identifiers
+                        }
+                    }, 'status': 200}
 
 
 def delete(request):
@@ -70,4 +99,4 @@ def delete(request):
     else:
         # remove mobile device from database
         MobileDevices.objects.filter(pk=identifier).delete()
-        return {'result': {'status': True, 'result': 'Device removed from database'}, 'status': 200}
+        return {'result': {'status': True, 'result': 'Device removed from database'}, 'status': 204}

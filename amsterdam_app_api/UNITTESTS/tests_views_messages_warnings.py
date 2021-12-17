@@ -165,6 +165,32 @@ class TestApiProjectWarning(TestCase):
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(data, expected_result)
 
+    def test_get_warning_message_inactive_project(self):
+        data = {
+            'title': 'title',
+            'project_identifier': '0000000000',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'body': {'preface': 'short text', 'content': 'long text'}
+        }
+
+        result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+
+        warning_message = WarningMessages.objects.filter(project_identifier='0000000000').first()
+
+        self.assertEqual(result.status_code, 200)
+        self.assertDictEqual(result.data, {'status': True, 'result': {'warning_identifier': str(warning_message.identifier)}})
+
+        project = Projects.objects.filter(pk='0000000000').first()
+        project.active = False
+        project.save()
+
+        result = self.client.get('{url}?id={identifier}'.format(url=self.url, identifier=warning_message.identifier))
+        data = result.data
+
+        self.assertEqual(result.status_code, 404)
+        self.assertDictEqual(data, {'status': False, 'result': messages.no_record_found})
+
+
     def test_get_warning_message_no_identifier(self):
         result = self.client.get('{url}'.format(url=self.url))
         self.assertEqual(result.status_code, 422)

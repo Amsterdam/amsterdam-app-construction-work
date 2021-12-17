@@ -228,3 +228,10 @@ There is offline documentation available at:
 ```
     /amsterdam_app_api/swagger_views_*.py
 ```
+
+### Garbage collector
+
+When a content item was seen before but not in the last Iprox scrape, the content item will be marked inactive. 
+If the content item has been marked inactive for over 1 week, the content item and its siblings will be removed.
+
+    Siblings are: Warning-messages, News items, Project, Project details, subscriptions for phones, authorizations for project-managers and so forth.

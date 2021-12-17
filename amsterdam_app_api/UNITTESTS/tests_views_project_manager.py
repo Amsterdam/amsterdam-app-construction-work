@@ -50,6 +50,17 @@ class TestApiProjectManager(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(response.data, {'status': True, 'result': [self.data.project_manager[0]]})
 
+    def test_get_single_project_managers_inactive_project(self):
+        project = Projects.objects.filter(pk='0000000000').first()
+        project.active = False
+        project.save()
+
+        c = Client()
+        response = c.get('{url}?id=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'.format(url=self.url), **self.headers)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertDictEqual(response.data, {'status': True, 'result': [{'identifier': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'email': 'mock0@amsterdam.nl', 'projects': []}]})
+
     def test_delete_project_manager_no_identifier(self):
         c = Client()
         response = c.delete(self.url, **self.headers)
