@@ -1,3 +1,4 @@
+from amsterdam_app_api.GenericFunctions.StaticData import StaticData
 from drf_yasg import openapi
 
 """ Swagger definitions used in the views_*_.py decorators '@swagger_auto_schema(**object)'. Each parameter is given the
@@ -39,3 +40,18 @@ as_asset = {
     'tags': ['Generic']
 }
 
+
+as_districts = {
+    # /api/v1/districts swagger_auto_schema
+    'methods': ['get'],
+    'responses': {
+        200: openapi.Response('application/json',
+                              examples={
+                                  'application/json': {
+                                      'status': True,
+                                      'result': StaticData.districts()
+                                  }
+                              }),
+    },
+    'tags': ['Generic']
+}
