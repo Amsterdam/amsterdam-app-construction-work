@@ -109,6 +109,18 @@ class TestApiProjects(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(results, {'status': True, 'result': self.data.projects})
 
+    def test_projects_filter_by_title_and_identifier(self):
+        c = Client()
+        response = c.get('/api/v1/projects', {'fields': 'title,identifier'})
+        results = json.loads(response.content)
+        expected_result = {
+            'status': True,
+            'result': [{'title': 'title', 'identifier': '0000000000'}, {'title': 'title', 'identifier': '0000000001'}]
+        }
+
+        self.assertEqual(response.status_code, 200)
+        self.assertDictEqual(results, expected_result)
+
 
 class TestApiProjectDetails(TestCase):
     def __init__(self, *args, **kwargs):

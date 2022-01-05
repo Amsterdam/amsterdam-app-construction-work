@@ -27,6 +27,7 @@ def projects(request):
         project_type = request.GET.get('project-type', None)
         sort_by = request.GET.get('sort-by', None)
         sort_order = request.GET.get('sort-order', None)
+        model_items = request.GET.get('fields', None)
 
         # Check query parameters
         if project_type is not None and project_type not in ['brug', 'kade']:
@@ -44,7 +45,11 @@ def projects(request):
         # Return filtered result or all projects
         projects_object = Projects.objects.filter(**query_filter).all()
 
-        serializer = ProjectsSerializer(projects_object, many=True)
+        if model_items is not None:
+            fields = model_items.split(',')
+            serializer = ProjectsSerializer(projects_object, context={'fields': fields}, many=True)
+        else:
+            serializer = ProjectsSerializer(projects_object, many=True)
         result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
         return Response({'status': True, 'result': result}, status=200)
 
@@ -55,18 +60,17 @@ def project_details(request):
     """
     Get details for a project by identifier
     """
-    def filter(data, article_type):
-        articles = []
+    def filtering(data, article_type):
+        _articles = []
         for item in data:
-            articles.append({
+            _articles.append({
                 'identifier': item['identifier'],
                 'title': item['title'],
                 'publication_date': item['publication_date'].split('T')[0],
                 'type': article_type,
                 'image': next(iter([x for x in item['images'] if x['type'] in ['banner', 'header']]), None)
             })
-        sorted_articles = Sort().list_of_dicts(articles, key='publication_date', sort_order='asc')
-        return sorted_articles
+        return _articles
 
     if request.method == 'GET':
         identifier = request.GET.get('id', None)
@@ -75,16 +79,18 @@ def project_details(request):
         else:
             project_object = ProjectDetails.objects.filter(pk=identifier, active=True).first()
             if project_object is not None:
-                articles = []
                 project_data = ProjectDetailsSerializer(project_object, many=False).data
                 news_objects = News.objects.filter(project_identifier=identifier, active=True).all()
                 warning_messages_objects = WarningMessages.objects.filter(project_identifier=identifier).all()
                 news_data = NewsSerializer(news_objects, many=True).data
                 warning_messages_data = WarningMessagesExternalSerializer(warning_messages_objects, many=True).data
-                articles += filter(news_data, 'news')
-                articles += filter(warning_messages_data, 'warning')
                 del project_data['news']
-                project_data['articles'] = articles
+
+                # Set articles and sort them
+                articles = filtering(news_data, 'news')
+                articles += filtering(warning_messages_data, 'warning')
+                project_data['articles'] = Sort().list_of_dicts(articles, key='publication_date', sort_order='desc')
+
                 return Response({'status': True, 'result': project_data}, status=200)
             else:
                 return Response({'status': False, 'result': message.no_record_found}, status=404)
