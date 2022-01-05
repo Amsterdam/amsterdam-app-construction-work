@@ -1,6 +1,7 @@
 import json
 from django.test import Client
 from django.test import TestCase
+from amsterdam_app_api.GenericFunctions.StaticData import StaticData
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
 from amsterdam_app_api.models import Assets
 from amsterdam_app_api.models import Image
@@ -85,3 +86,12 @@ class TestApiAsset(TestCase):
 
         self.assertEqual(response.status_code, 405)
         self.assertDictEqual(result, {'detail': 'Method "POST" not allowed.'})
+
+
+class TestApiDistricts(TestCase):
+    def test_invalid_query(self):
+        c = Client()
+        response = c.get('/api/v1/districts')
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data, {'status': True, 'result': StaticData.districts()})
