@@ -214,6 +214,9 @@ def notification_post(request):
 @api_view(['GET'])
 def notification_get(request):
     query_params = request.GET.get('project-ids', None)
+    sort_by = request.GET.get('sort-by', 'publication_date')
+    sort_order = request.GET.get('sort-order', 'desc')
+
     if query_params is None:
         return Response({'status': False, 'result': messages.invalid_query}, status=422)
     project_identifiers = query_params.split(',')
@@ -221,15 +224,15 @@ def notification_get(request):
     for project_identifier in project_identifiers:
         project = Projects.objects.filter(pk=project_identifier).first()
         if project is not None and project.active is True:
-            notification = Notification.objects.filter(project_identifier=project_identifier).first()
-            if notification is not None:
-                notifications.append(notification)
+            notifications += list(Notification.objects.filter(project_identifier=project_identifier).all())
 
     serializer = NotificationSerializer(notifications, many=True)
     if len(serializer.data) != 0:
-        return Response({'status': True, 'result': serializer.data}, status=200)
+        result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
+        return Response({'status': True, 'result': result}, status=200)
     else:
         return Response({'status': False, 'result': messages.no_record_found}, status=404)
+
 
 @swagger_auto_schema(**as_warning_message_image_post)
 @IsAuthorized
