@@ -1,3 +1,7 @@
+import json
+import requests
+import urllib.parse
+from amsterdam_app_api.GenericFunctions.StaticData import StaticData
 from amsterdam_app_api.GenericFunctions.Distance import Distance
 from amsterdam_app_api.GenericFunctions.Sort import Sort
 from amsterdam_app_api.api_messages import Messages
@@ -19,9 +23,19 @@ def distance(request):
     lat = request.GET.get('lat', None)
     lon = request.GET.get('lon', None)
     radius = request.GET.get('radius', None)
+    address = request.GET.get('address', None)  # akkerstraat%2014 -> akkerstraat 14
+
+    if address is not None:
+        apis = StaticData.urls()
+        url = '{api}{address}'.format(api=apis['address_to_gps'], address=urllib.parse.quote_plus(address))
+        result = requests.get(url=url, timeout=1)
+        data = json.loads(result.content)
+        if len(data['results']) == 1:
+            lon = data['results'][0]['centroid'][0]
+            lat = data['results'][0]['centroid'][1]
 
     if lat is None or lon is None:
-        return Response({'status': False, 'result': messages.invalid_query}, 422)
+        return Response({'status': False, 'result': messages.distance_params}, 422)
 
     try:
         cords_1 = (float(lat), float(lon))
