@@ -231,6 +231,7 @@ def notification_get(request):
     else:
         return Response({'status': False, 'result': messages.no_record_found}, status=404)
 
+
 @swagger_auto_schema(**as_warning_message_image_post)
 @IsAuthorized
 @api_view(['POST'])
