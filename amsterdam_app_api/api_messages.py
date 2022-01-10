@@ -9,3 +9,4 @@ class Messages:
         self.access_denied = 'ACCESS DENIED'
         self.do_not_match = 'Passwords do not match'
         self.invalid_username_or_password = 'Invalid username or password'
+        self.distance_params = 'Use either street + num or lat/lon'

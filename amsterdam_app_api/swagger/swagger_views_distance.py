@@ -12,19 +12,25 @@ as_distance = {
                                             'latitude',
                                             type=openapi.TYPE_STRING,
                                             format='float',
-                                            required=True),
+                                            required=False),
                           openapi.Parameter('lon',
                                             openapi.IN_QUERY,
                                             'longitude',
                                             type=openapi.TYPE_STRING,
                                             format='float',
-                                            required=True)
+                                            required=False)
                           ,
                           openapi.Parameter('radius',
                                             openapi.IN_QUERY,
                                             'radius (unit is meter)',
                                             type=openapi.TYPE_STRING,
                                             format='float',
+                                            required=False),
+                          openapi.Parameter('address',
+                                            openapi.IN_QUERY,
+                                            'address (street and number)',
+                                            type=openapi.TYPE_STRING,
+                                            format='string',
                                             required=False)
                           ],
     'responses': {

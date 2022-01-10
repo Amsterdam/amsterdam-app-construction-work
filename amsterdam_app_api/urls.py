@@ -55,6 +55,7 @@ urlpatterns = [
     # Image & Assets
     path('image', csrf_exempt(views_generic.image)),
     path('asset', csrf_exempt(views_generic.asset)),
+    path('districts', csrf_exempt(views_generic.districts)),
 
     # Mobile devices (used for CRUD devices for push-notifications)
     path('device_registration', csrf_exempt(views_mobile_devices.crud)),

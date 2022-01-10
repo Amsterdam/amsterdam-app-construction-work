@@ -1,6 +1,8 @@
 import json
 from django.test import Client
 from django.test import TestCase
+from unittest.mock import patch
+from amsterdam_app_api.UNITTESTS.mock_functions import address_to_coordinates
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
 from amsterdam_app_api.models import Projects
 from amsterdam_app_api.models import ProjectDetails
@@ -33,7 +35,7 @@ class TestApiProjectDistance(TestCase):
         result = json.loads(response.content)
 
         self.assertEqual(response.status_code, 422)
-        self.assertDictEqual(result, {'status': False, 'result': messages.invalid_query})
+        self.assertDictEqual(result, {'status': False, 'result': messages.distance_params})
 
     def test_invalid_lon_lat(self):
         c = Client()
@@ -58,3 +60,16 @@ class TestApiProjectDistance(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(result, {'status': True, 'result': [{'project_id': '0000000000', 'name': 'test0', 'meter': 110574, 'strides': 149424}]})
+
+    @patch('requests.get', side_effect=address_to_coordinates)
+    def test_by_street(self, address_to_coordinates):
+        c = Client()
+        response = c.get('/api/v1/projects/distance', {'address': 'sesame street 1'})
+        result = json.loads(response.content)
+        expected_result = {
+            'status': True,
+            'result': [{'project_id': '0000000000', 'name': 'test0', 'meter': 10001965, 'strides': 13516169},
+                       {'project_id': '0000000001', 'name': 'test0', 'meter': 10112540, 'strides': 13665594}]}
+
+        self.assertEqual(response.status_code, 200)
+        self.assertDictEqual(result, expected_result)

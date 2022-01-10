@@ -27,6 +27,12 @@ class ProjectsSerializer(serializers.ModelSerializer):
         model = Projects
         fields = '__all__'
 
+    def get_field_names(self, *args, **kwargs):
+        field_names = self.context.get('fields', None)
+        if field_names:
+            return field_names
+        return super(ProjectsSerializer, self).get_field_names(*args, **kwargs)
+
 
 class ProjectDetailsSerializer(serializers.ModelSerializer):
     class Meta:
@@ -67,4 +73,4 @@ class WarningMessagesExternalSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        exclude = ['identifier']
+        fields = '__all__'

@@ -1,5 +1,6 @@
 from django.http import HttpResponse
-from amsterdam_app_api.swagger.swagger_views_generic import as_asset, as_image
+from amsterdam_app_api.GenericFunctions.StaticData import StaticData
+from amsterdam_app_api.swagger.swagger_views_generic import as_asset, as_image, as_districts
 from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import Image
 from amsterdam_app_api.models import Assets
@@ -43,3 +44,10 @@ def asset(request):
             return HttpResponse(asset_object.data, content_type=asset_object.mime_type, status=200)
         else:
             return Response('Error: file not found', status=404)
+
+
+@swagger_auto_schema(**as_districts)
+@api_view(['GET'])
+def districts(request):
+    districts_data = StaticData.districts()
+    return Response({'status': True, 'result': districts_data}, status=200)
