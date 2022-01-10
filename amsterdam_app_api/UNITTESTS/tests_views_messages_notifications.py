@@ -103,9 +103,11 @@ class TestApiNotification(TestCase):
 
         result = self.client.get('{url}s?project-ids=0000000000'.format(url=self.url))
         result_data = json.loads(result.content.decode())
+        identifier = result_data['result'][0]['identifier']
         expected_result = {
             'status': True,
             'result': [{
+                'identifier': identifier,
                 'title': 'title',
                 'body': 'text',
                 'project_identifier': '0000000000',

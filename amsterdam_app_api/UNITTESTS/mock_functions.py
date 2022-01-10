@@ -66,3 +66,8 @@ def firebase_admin_messaging_send_multicast(args):
                     self.responses.append(response(True))
 
     return Response(args)
+
+
+class address_to_coordinates:
+    def __init__(self, *args, **kwargs):
+        self.content = '{"results": [{"centroid": [0, -90]}]}'

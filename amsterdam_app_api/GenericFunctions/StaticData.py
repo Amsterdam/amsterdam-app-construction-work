@@ -10,3 +10,9 @@ class StaticData:
             {'id': 5396, 'name': 'Zuid'},
             {'id': 5393, 'name': 'Zuidoost'}
         ]
+
+    @staticmethod
+    def urls():
+        return {
+            'address_to_gps': 'https://api.data.amsterdam.nl/atlas/search/adres/?q='
+        }

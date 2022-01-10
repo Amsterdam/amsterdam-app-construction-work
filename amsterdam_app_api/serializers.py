@@ -73,4 +73,4 @@ class WarningMessagesExternalSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
-        exclude = ['identifier']
+        fields = '__all__'
