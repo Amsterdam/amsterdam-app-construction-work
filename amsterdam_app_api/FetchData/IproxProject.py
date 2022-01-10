@@ -28,9 +28,9 @@ class IproxProject:
                 'where': [],  # [{'text': '', 'html': '', 'title': ''}, ...],
                 'work': [],  # [{'text': '', 'html': '', 'title': ''}, ...],
                 'more-info': [],  # [{'text': '', 'html': '', 'title': ''}, ...],
-                'coordinates': {'lon': float(), 'lat': float()},
                 'timeline': {}
             },
+            'coordinates': {'lon': float(), 'lat': float()},
             'district_id': -1,
             'district_name': '',
             'images': [
@@ -298,7 +298,7 @@ class IproxProject:
             geo_data = [x for x in json_data if x['type'] == 'EPSG:4326'][0]
             data = json.loads(geo_data['_'])
             coordinates = data['features'][0]['geometry']['coordinates']
-            self.details['body']['coordinates'] = {'lon': float(coordinates[0]), 'lat': float(coordinates[1])}
+            self.details['coordinates'] = {'lon': float(coordinates[0]), 'lat': float(coordinates[1])}
         except Exception as error:
             self.logger.error('failed fetching coordinates from data: {error}'.format(url=self.url, error=error))
 

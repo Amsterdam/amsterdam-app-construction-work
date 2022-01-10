@@ -111,9 +111,9 @@ class TestData:
                     "where": [{"html": "html content", "text": "text content", "title": "title"}],
                     "contact": [{"html": "html content", "text": "text content", "title": "title"}],
                     "timeline": {},
-                    "more-info": [{"html": "html content", "text": "text content", "title": "title"}],
-                    "coordinates": {"lat": 0.0, "lon": 0.0}
+                    "more-info": [{"html": "html content", "text": "text content", "title": "title"}]
                 },
+                "coordinates": {"lat": 0.0, "lon": 0.0},
                 "district_id": 0,
                 "district_name": "West",
                 "images": self.project_images,
@@ -135,9 +135,9 @@ class TestData:
                     "where": [{"html": "html content", "text": "text content", "title": "title"}],
                     "contact": [{"html": "html content", "text": "text content", "title": "title"}],
                     "timeline": {},
-                    "more-info": [{"html": "html content", "text": "text content", "title": "title"}],
-                    "coordinates": {"lat": 1.0, "lon": 1.0}
+                    "more-info": [{"html": "html content", "text": "text content", "title": "title"}]
                 },
+                "coordinates": {"lat": 1.0, "lon": 1.0},
                 "district_id": 0,
                 "district_name": "West",
                 "images": self.project_images,
