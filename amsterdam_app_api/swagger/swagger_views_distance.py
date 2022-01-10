@@ -28,7 +28,7 @@ as_distance = {
                                             required=False),
                           openapi.Parameter('address',
                                             openapi.IN_QUERY,
-                                            'address (street and number',
+                                            'address (street and number)',
                                             type=openapi.TYPE_STRING,
                                             format='string',
                                             required=False)
