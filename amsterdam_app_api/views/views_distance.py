@@ -45,7 +45,7 @@ def distance(request):
     results = list()
     projects = list(ProjectDetails.objects.filter().all())
     for project in projects:
-        cords_2 = (project.body['coordinates']['lat'], project.body['coordinates']['lon'])
+        cords_2 = (project.coordinates['lat'], project.coordinates['lon'])
         distance = Distance(cords_1, cords_2)
 
         result = {

@@ -127,6 +127,7 @@ class ProjectDetails(models.Model):
     identifier = models.CharField(max_length=100, blank=False, unique=True, primary_key=True)
     project_type = models.CharField(max_length=100, default='', blank=False, unique=False)
     body = models.JSONField(null=True, default=list)
+    coordinates = models.JSONField(null=True, default=dict)
     district_id = models.IntegerField(default=-1)
     district_name = models.CharField(max_length=1000, blank=True, default='')
     images = models.JSONField(null=True, default=list)
