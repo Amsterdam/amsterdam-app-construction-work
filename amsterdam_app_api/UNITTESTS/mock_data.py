@@ -1825,6 +1825,59 @@ class TestData:
             "images": []
         }]
 
+        self.iprox_stadsloketten = {
+            "item": {
+                "page": {
+                    "pagetype": "subhome",
+                    "cluster": [
+                        {
+                            "Nam": "Blok",
+                            "cluster": [
+                                {
+                                    "Nam": "Superlink",
+                                    "cluster": [
+                                        {
+                                            "Nam": "Verwijzing",
+                                            "cluster": {
+                                                "Nam": "Intern",
+                                                "veld": [
+                                                    {
+                                                        "Nam": "Link",
+                                                        "Wrd": "loketten",
+                                                        "link": {
+                                                            "Url": "https://127.0.0.1/"
+                                                        },
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Nam": "Lijst",
+                                    "cluster": [
+                                        {
+                                            "Nam": "Omschrijving",
+                                            "veld": [
+                                                {
+                                                    "Nam": "Titel",
+                                                    "Wrd": "contact",
+                                                },
+                                                {
+                                                    "Nam": "Tekst",
+                                                    "Txt": "text"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+
         self.project_manager = [
             {
                 "email": "mock0@amsterdam.nl",

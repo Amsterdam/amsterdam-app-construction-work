@@ -321,3 +321,11 @@ class Notification(models.Model):
         if message is not None:
             self.project_identifier = message.project_identifier
             super(Notification, self).save(*args, **kwargs)
+
+
+class CityContacts(models.Model):
+    contact = models.JSONField(null=True, default=dict)
+
+    def save(self, *args, **kwargs):
+        self.id = 1  # Allow only 1 row in table
+        super().save(*args, **kwargs)

@@ -2,6 +2,7 @@ import firebase_admin
 from threading import Thread
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
 import requests
+import json
 
 
 def mocked_requests_get(*args, **kwargs):
@@ -71,3 +72,27 @@ def firebase_admin_messaging_send_multicast(args):
 class address_to_coordinates:
     def __init__(self, *args, **kwargs):
         self.content = '{"results": [{"centroid": [0, -90]}]}'
+
+
+class IproxStadslokettenValid:
+    def __init__(self, *args, **kwargs):
+        self.test_data = TestData()
+
+    def json(self):
+        return self.test_data.iprox_stadsloketten
+
+
+class IproxStadslokettenInvalid:
+    def __init__(self, *args, **kwargs):
+        self.test_data = TestData()
+
+    def json(self):
+        return {}
+
+
+class IproxStadslokettenException:
+    def __init__(self, *args, **kwargs):
+        self.test_data = TestData()
+
+    def json(self):
+        return 'Exception Data'
