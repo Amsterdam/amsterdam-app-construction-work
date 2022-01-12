@@ -8,6 +8,8 @@ from amsterdam_app_api.models import ProjectManager
 from amsterdam_app_api.models import MobileDevices
 from amsterdam_app_api.models import WarningMessages
 from amsterdam_app_api.models import Notification
+from amsterdam_app_api.models import CityContacts
+from amsterdam_app_api.models import CityCounter
 
 
 class AssetsSerializer(serializers.ModelSerializer):
@@ -73,4 +75,16 @@ class WarningMessagesExternalSerializer(serializers.ModelSerializer):
 class NotificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notification
+        fields = '__all__'
+
+
+class CityContactsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CityContacts
+        fields = '__all__'
+
+
+class CityCounterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CityCounter
         fields = '__all__'
