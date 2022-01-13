@@ -1,9 +1,9 @@
-# Begin Debug
+### DEBUG IMPORT FOR DJANGO
+import io
 import os
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "amsterdam_app_backend.settings")
 import django
 django.setup()
-# End debug
 
 import requests
 import datetime
@@ -13,7 +13,7 @@ from amsterdam_app_api.FetchData.Image import Image
 from amsterdam_app_api.GenericFunctions.Hashing import Hashing
 from amsterdam_app_api.GenericFunctions.Logger import Logger
 from amsterdam_app_api.GenericFunctions.TextSanitizers import TextSanitizers
-from amsterdam_app_api.models import CityContacts, CityCounter
+from amsterdam_app_api.models import CityContact, CityOffice, CityOffices
 
 
 class IproxStadsloketten:
@@ -25,8 +25,8 @@ class IproxStadsloketten:
         self.url = 'https://www.amsterdam.nl/contact/?AppIdt=app-pagetype&reload=true'
         self.raw_data = dict()
         self.page = dict()
-        self.contact = {}
-        self.stadsloketten = {}
+        self.sections = []
+        self.stadsloketten = []
 
         # A list for matching interesting data in retrieved json (used in the recursive_filter)
         self.page_targets = [
@@ -90,7 +90,7 @@ class IproxStadsloketten:
                         html = item.get('Txt')
                         text = TextSanitizers.strip_html(html)
                 if None not in (title, html):
-                    self.contact[title] = {'html': html, 'text': text}
+                    self.sections.append({'title': title, 'html': html, 'text': text})
 
             # Get stadsloket locations
             if 'Verwijzing' in _dict:
@@ -99,11 +99,13 @@ class IproxStadsloketten:
                         location = item.get('Wrd')
                         url = item.get('link', {}).get('Url')
                         identifier = Hashing.make_md5_hash(url)
-                        self.stadsloketten[location]= {'url': url, 'identifier': identifier}
+                        self.stadsloketten.append({'location': location, 'url': url, 'identifier': identifier})
 
         # Store contact info in db  (save method is overridden to allow only 1 single record)
-        city_contacts = CityContacts(contact=self.contact, city_counters=self.stadsloketten)
-        city_contacts.save()
+        city_contact = CityContact(sections=self.sections)
+        city_contact.save()
+        city_offices = CityOffices(offices=self.stadsloketten)
+        city_offices.save()
 
 
 class IproxStadsloket:
@@ -226,17 +228,17 @@ class IproxStadsloket:
         self.save()
 
     def save(self):
-        project_details_object, created = CityCounter.objects.update_or_create(identifier=self.identifier)
+        project_details_object, created = CityOffice.objects.update_or_create(identifier=self.identifier)
 
         # New record
         if created is True:
-            project_details_object = CityCounter(**self.details)  # Update last scrape time is done implicitly
+            project_details_object = CityOffice(**self.details)  # Update last scrape time is done implicitly
             project_details_object.save()
 
         # Update existing record
         else:
             self.details['last_seen'] = datetime.datetime.now()  # Update last scrape time
-            CityCounter.objects.filter(pk=self.identifier).update(**self.details)
+            CityOffice.objects.filter(pk=self.identifier).update(**self.details)
 
 
 class Scraper:
@@ -257,9 +259,9 @@ class Scraper:
         isl.parse_data()
 
         # scrape each stadsloket information
-        for key in isl.stadsloketten:
-            url = isl.stadsloketten[key]['url']
-            identifier = isl.stadsloketten[key]['identifier']
+        for item in isl.stadsloketten:
+            url = item['url']
+            identifier = item['identifier']
             isl_sub = IproxStadsloket(url, identifier)
             isl_sub.get_data()
             isl_sub.parse_data()
@@ -276,4 +278,3 @@ class Scraper:
         # Join threads (blocking!)
         for thread in threads:
             thread.join()
-

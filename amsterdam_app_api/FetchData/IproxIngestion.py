@@ -7,6 +7,7 @@ from amsterdam_app_api.FetchData.IproxProject import IproxProject
 from amsterdam_app_api.FetchData.IproxProjects import IproxProjects
 from amsterdam_app_api.FetchData.IproxGarbageCollector import IproxGarbageCollector
 from amsterdam_app_api.FetchData.IproxNews import IproxNews
+from amsterdam_app_api.FetchData.IproxStadsloketten import Scraper as IproxStadslokettenScraper
 
 
 class IproxIngestion:
@@ -139,3 +140,19 @@ class IproxIngestion:
 
         self.iprox_garbage_collector.run(project_type=project_type)
         return {'new': new, 'updated': updated, 'failed': failed}
+
+    def get_stads_loketten(self):
+        # Scrape StadsLoketten
+        stads_loketten = IproxStadslokettenScraper()
+        stads_loketten.run()
+        return {'status': True, 'result': 'scraped stads-loketten'}
+
+    def start(self, project_type):
+        result = {}
+        if project_type in ['brug', 'kade']:
+            result = self.get_set_projects(project_type)
+
+        elif project_type in ['stadsloket']:
+            result = self.get_stads_loketten()
+
+        return result

@@ -323,16 +323,23 @@ class Notification(models.Model):
             super(Notification, self).save(*args, **kwargs)
 
 
-class CityContacts(models.Model):
-    contact = models.JSONField(null=True, default=dict)
-    city_counters = models.JSONField(null=True, default=dict)
+class CityContact(models.Model):
+    sections = ArrayField(models.JSONField(null=True, default=dict), blank=False)
 
     def save(self, *args, **kwargs):
         self.id = 1  # Allow only 1 row in table
         super().save(*args, **kwargs)
 
 
-class CityCounter(models.Model):
+class CityOffices(models.Model):
+    offices = ArrayField(models.JSONField(null=True, default=dict), blank=False)
+
+    def save(self, *args, **kwargs):
+        self.id = 1  # Allow only 1 row in table
+        super().save(*args, **kwargs)
+
+
+class CityOffice(models.Model):
     identifier = models.CharField(max_length=100, blank=False, unique=True, primary_key=True)
     location = models.CharField(max_length=100, blank=False, unique=True)
     contact = models.JSONField(null=True, default=dict)

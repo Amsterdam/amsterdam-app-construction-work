@@ -15,17 +15,14 @@ def ingest_projects(request):
     """
     Ingestion route for acquiring data for the backend from multiple 'Gemeente Amsterdam' sources
     """
-    paths = {
-        'brug': '/projecten/bruggen/maatregelen-vernieuwen-bruggen/',
-        'kade': '/projecten/kademuren/maatregelen-vernieuwing/'
-    }
+    project_types = ['brug', 'kade', 'stadsloket']
 
     # Get project type from query string or return invalid
     project_type = request.GET.get('project-type', '')
-    if paths.get(request.GET.get('project-type', '')) is None:
+    if project_type not in project_types:
         return Response({'status': False, 'result': message.invalid_query}, status=422)
 
     ingest = IproxIngestion()
-    result = ingest.get_set_projects(project_type)
+    result = ingest.start(project_type)
 
     return Response({'status': True, 'result': result}, status=200)

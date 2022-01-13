@@ -13,7 +13,7 @@ as_ingest_projects = {
                                             openapi.IN_QUERY,
                                             'Ingest projects by type',
                                             type=openapi.TYPE_STRING,
-                                            format='<brug, kade>',
+                                            format='<brug, kade, stadsloket>',
                                             required=True)],
     'responses': {
         200: openapi.Response('application/json',

@@ -1,5 +1,5 @@
 from django.test import TestCase
-from unittest.mock import patch, call
+from unittest.mock import patch
 from amsterdam_app_api.UNITTESTS.mock_functions import IproxStadslokettenValid
 from amsterdam_app_api.UNITTESTS.mock_functions import IproxStadslokettenInvalid
 from amsterdam_app_api.UNITTESTS.mock_functions import IproxStadslokettenException
@@ -12,8 +12,8 @@ from amsterdam_app_api.UNITTESTS.mock_functions import MockedThreading
 from amsterdam_app_api.FetchData.IproxStadsloketten import IproxStadsloketten
 from amsterdam_app_api.FetchData.IproxStadsloketten import IproxStadsloket
 from amsterdam_app_api.FetchData.IproxStadsloketten import Scraper
-from amsterdam_app_api.models import CityContacts, CityCounter
-from amsterdam_app_api.serializers import CityContactsSerializer, CityCounterSerializer
+from amsterdam_app_api.models import CityContact, CityOffice, CityOffices
+from amsterdam_app_api.serializers import CityContactSerializer, CityOfficeSerializer,CityOfficesSerializer
 
 
 class TestIproxStadsLoketten(TestCase):
@@ -22,22 +22,21 @@ class TestIproxStadsLoketten(TestCase):
         isl = IproxStadsloketten()
         isl.get_data()
         isl.parse_data()
-        contact_info = CityContacts.objects.first()
-        serializer = CityContactsSerializer(contact_info, many=False)
-        expected_result = {
-            'id': 1,
-            'contact': {'contact': {'html': 'text', 'text': 'text'}},
-            'city_counters': {
-                'loketten': {'url': 'https://sub-page/', 'identifier': 'acddc71dab316d120cc5d84b5565c874'}
-            }
-        }
-        self.assertDictEqual(serializer.data, expected_result)
+        contact_info = CityContact.objects.first()
+        serializer = CityContactSerializer(contact_info, many=False)
+        expected_contact_info = {'sections': [{'html': 'text', 'text': 'text', 'title': 'contact'}]}
+        self.assertDictEqual(serializer.data, expected_contact_info)
+
+        offices_info = CityOffices.objects.first()
+        serializer = CityOfficesSerializer(offices_info, many=False)
+        expected_offices_info = {'offices': [{'location': 'loketten', 'url': 'https://sub-page/', 'identifier': 'acddc71dab316d120cc5d84b5565c874'}]}
+        self.assertDictEqual(serializer.data, expected_offices_info)
 
     @patch('requests.get', side_effect=IproxStadslokettenInvalid)
     def test_ingest_invalid_data(self, IproxStadslokettenInvalid):
         isl = IproxStadsloketten()
         isl.get_data()
-        contact_info = CityContacts.objects.first()
+        contact_info = CityContact.objects.first()
 
         self.assertEqual(contact_info, None)
 
@@ -45,7 +44,7 @@ class TestIproxStadsLoketten(TestCase):
     def test_ingest_Exception(self, IproxStadslokettenException):
         isl = IproxStadsloketten()
         isl.get_data()
-        contact_info = CityContacts.objects.first()
+        contact_info = CityContact.objects.first()
 
         self.assertEqual(contact_info, None)
 
@@ -56,8 +55,8 @@ class TestIproxStadsLoket(TestCase):
         isl = IproxStadsloket('https://unittest', '0000000000')
         isl.get_data()
         isl.parse_data()
-        data = CityCounter.objects.first()
-        serializer = CityCounterSerializer(data, many=False)
+        data = CityOffice.objects.first()
+        serializer = CityOfficeSerializer(data, many=False)
         expected_result = {
             'identifier': '0000000000',
             'location': 'Stadsloket Centrum',
@@ -97,8 +96,8 @@ class TestIproxStadsLoket(TestCase):
         isl.parse_data()
         isl.get_data()
         isl.parse_data()
-        data = CityCounter.objects.all()
-        serializer = CityCounterSerializer(data, many=True)
+        data = CityOffice.objects.all()
+        serializer = CityOfficeSerializer(data, many=True)
         expected_result = {
             'identifier': '0000000000',
             'location': 'Stadsloket Centrum',
@@ -137,7 +136,7 @@ class TestIproxStadsLoket(TestCase):
         isl = IproxStadsloket('https://unittest', '0000000000')
         isl.get_data()
         isl.parse_data()
-        data = CityCounter.objects.first()
+        data = CityOffice.objects.first()
 
         self.assertEqual(data, None)
 
@@ -146,7 +145,7 @@ class TestIproxStadsLoket(TestCase):
         isl = IproxStadsloket('https://unittest', '0000000000')
         isl.get_data()
         isl.parse_data()
-        data = CityCounter.objects.first()
+        data = CityOffice.objects.first()
 
         self.assertEqual(data, None)
 
@@ -159,19 +158,19 @@ class TestIproxStadsLoketScraper(TestCase):
             scraper = Scraper()
             scraper.run()
 
-        contact_info = CityContacts.objects.first()
-        serializer = CityContactsSerializer(contact_info, many=False)
-        expected_result = {
-            'id': 1,
-            'contact': {'contact': {'html': 'text', 'text': 'text'}},
-            'city_counters': {
-                'loketten': {'url': 'https://sub-page/', 'identifier': 'acddc71dab316d120cc5d84b5565c874'}
-            }
-        }
-        self.assertDictEqual(serializer.data, expected_result)
+        contact_info = CityContact.objects.first()
+        serializer = CityContactSerializer(contact_info, many=False)
+        expected_contact_info = {'sections': [{'html': 'text', 'text': 'text', 'title': 'contact'}]}
+        self.assertDictEqual(serializer.data, expected_contact_info)
 
-        data = CityCounter.objects.first()
-        serializer = CityCounterSerializer(data, many=False)
+        offices_info = CityOffices.objects.first()
+        serializer = CityOfficesSerializer(offices_info, many=False)
+        expected_offices_info = {'offices': [
+            {'location': 'loketten', 'url': 'https://sub-page/', 'identifier': 'acddc71dab316d120cc5d84b5565c874'}]}
+        self.assertDictEqual(serializer.data, expected_offices_info)
+
+        data = CityOffice.objects.first()
+        serializer = CityOfficeSerializer(data, many=False)
         expected_result = {
             'identifier': 'acddc71dab316d120cc5d84b5565c874',
             'location': 'Stadsloket Centrum',
