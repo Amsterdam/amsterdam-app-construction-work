@@ -7,8 +7,9 @@ class CronJobs:
 
     def run(self):
         # Ingest data for projects 'bruggen' and 'kademuren'
-        self.ingest_projects.get_set_projects('brug')
-        self.ingest_projects.get_set_projects('kade')
+        self.ingest_projects.start('brug')
+        self.ingest_projects.start('kade')
+        self.ingest_projects.start('stadsloket')
 
 
 def run():

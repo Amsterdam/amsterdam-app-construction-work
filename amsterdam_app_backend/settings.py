@@ -144,7 +144,7 @@ DATABASES = {
 
 # The lifetime of a database connection, as an integer of seconds. Use 0 to close database connections at the end of
 # each request — Django’s historical behavior — and None for unlimited persistent connections.
-CONN_MAX_AGE = 300
+CONN_MAX_AGE = 0
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

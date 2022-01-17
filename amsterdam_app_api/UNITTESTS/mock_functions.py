@@ -1,7 +1,9 @@
 import firebase_admin
 from threading import Thread
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
+from queue import Queue
 import requests
+import json
 
 
 def mocked_requests_get(*args, **kwargs):
@@ -36,13 +38,17 @@ def mocked_requests_get(*args, **kwargs):
 
 
 class MockedThreading(Thread):
-    def __init__(self, target=None, args=None):
+    def __init__(self, target=None, args=None, kwargs=None):
         super(Thread).__init__()
         self.target = target
         self.args = args
+        self.kwargs = kwargs
 
     def start(self):
-        self.target(*self.args)
+        if self.args is not None:
+            self.target(*self.args)
+        else:
+            self.target(**self.kwargs)
 
     @staticmethod
     def join(**kwargs):
@@ -71,3 +77,68 @@ def firebase_admin_messaging_send_multicast(args):
 class address_to_coordinates:
     def __init__(self, *args, **kwargs):
         self.content = '{"results": [{"centroid": [0, -90]}]}'
+
+
+class IproxStadslokettenValid:
+    def __init__(self, *args, **kwargs):
+        self.test_data = TestData()
+
+    def json(self):
+        return self.test_data.iprox_stadsloketten
+
+
+class IproxStadslokettenInvalid:
+    def __init__(self, *args, **kwargs):
+        self.test_data = TestData()
+
+    def json(self):
+        return {}
+
+
+class IproxStadslokettenException:
+    def __init__(self, *args, **kwargs):
+        self.test_data = TestData()
+
+    def json(self):
+        return 'Exception Data'
+
+
+class IproxStadsloketValid:
+    def __init__(self, *args, **kwargs):
+        self.test_data = TestData()
+
+    def json(self):
+        return self.test_data.iprox_stadsloket
+
+
+class IproxStadsloketInvalid:
+    def __init__(self, *args, **kwargs):
+        self.test_data = TestData()
+
+    def json(self):
+        return {}
+
+
+class IproxStadsloketException:
+    def __init__(self, *args, **kwargs):
+        self.test_data = TestData()
+
+    def json(self):
+        return 'Exception Data'
+
+
+class IproxStadsloketScraper:
+    def __init__(self, url, **kwargs):
+        self.url = url
+        self.test_data = TestData()
+
+    def json(self):
+        if self.url == 'https://www.amsterdam.nl/contact/?AppIdt=app-pagetype&reload=true':
+            return self.test_data.iprox_stadsloketten
+        else:
+            return self.test_data.iprox_stadsloket
+
+
+class IproxStadsloketScraperImages:
+    def __init__(self, *args, **kwargs):
+        self.queue = Queue()
