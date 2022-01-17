@@ -129,11 +129,6 @@ class TestApiProjectDetails(TestCase):
 
     def setUp(self):
         SetUp()
-        self.identifiers = []
-        for news in self.data.news:
-            news_item = News.objects.create(**news)
-            news_item.save()
-            self.identifiers.append(news_item.identifier)
 
     def test_method_not_allowed(self):
         c = Client()
@@ -155,12 +150,9 @@ class TestApiProjectDetails(TestCase):
         response = c.get('/api/v1/project/details', {'id': '0000000000'})
         result = json.loads(response.content)
         self.data.project_details[0]['last_seen'] = result['result']['last_seen']
-        expected_result = self.data.project_details[0]
-        del expected_result['news']
-        expected_result['articles'] = [{'identifier': '0000000000', 'title': 'title0', 'publication_date': '1970-01-01', 'type': 'news', 'image': {'type': 'banner', 'sources': {'orig': {'url': 'https://localhost/image.jpg', 'size': 'orig', 'filename': 'image.jpg', 'image_id': '0000000000', 'description': ''}}}}]
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(result, {'status': True, 'result': expected_result})
+        self.assertEqual(result, {'status': True, 'result': self.data.project_details[0]})
 
     def test_identifier_does_not_exist(self):
         c = Client()

@@ -1,7 +1,7 @@
 from amsterdam_app_api.api_messages import Messages
-from amsterdam_app_api.swagger.swagger_views_iprox_news import as_news, as_news_by_project_id
-from amsterdam_app_api.models import News
-from amsterdam_app_api.serializers import NewsSerializer
+from amsterdam_app_api.swagger.swagger_views_iprox_news import as_news, as_news_by_project_id, as_articles_get
+from amsterdam_app_api.models import News, WarningMessages
+from amsterdam_app_api.serializers import NewsSerializer, WarningMessagesExternalSerializer
 from amsterdam_app_api.GenericFunctions.SetFilter import SetFilter
 from amsterdam_app_api.GenericFunctions.Sort import Sort
 from rest_framework.decorators import api_view
@@ -50,3 +50,50 @@ def news(request):
 
         serializer = NewsSerializer(news_object, many=False)
         return Response({'status': True, 'result': serializer.data}, status=200)
+
+
+@swagger_auto_schema(**as_articles_get)
+@api_view(['GET'])
+def articles(request):
+    def filtering(data, article_type):
+        _articles = []
+        for item in data:
+            _articles.append({
+                'identifier': item['identifier'],
+                'title': item['title'],
+                'publication_date': item['publication_date'].split('T')[0],
+                'type': article_type,
+                'image': next(iter([x for x in item['images'] if x['type'] in ['banner', 'header']]), None)
+            })
+        return _articles
+
+    query_params = request.GET.get('project-ids', None)
+    sort_by = request.GET.get('sort-by', 'publication_date')
+    sort_order = request.GET.get('sort-order', 'desc')
+    try:
+        limit = int(request.GET.get('limit', default=0))
+    except:
+        limit = 0
+
+    result = list()
+    if query_params is not None:
+        project_identifiers = query_params.split(',')
+        for project_identifier in project_identifiers:
+            news_object = News.objects.filter(project_identifier=project_identifier).first()
+            if news_object is not None:
+                result += filtering([NewsSerializer(news_object, many=False).data], 'news')
+            warning_object = WarningMessages.objects.filter(project_identifier=project_identifier).first()
+            if warning_object is not None:
+                result += filtering([WarningMessagesExternalSerializer(warning_object, many=False).data], 'warning')
+    else:
+        news_objects = News.objects.all()
+        news_serializer = NewsSerializer(news_objects, many=True)
+        warning_objects = WarningMessages.objects.all()
+        warning_serializer = WarningMessagesExternalSerializer(warning_objects, many=True)
+        result += filtering(news_serializer.data, 'news')
+        result += filtering(warning_serializer.data, 'warning')
+
+    result = Sort().list_of_dicts(result, key=sort_by, sort_order=sort_order)
+    if limit != 0:
+        result = result[:limit]
+    return Response({'status': True, 'result': result}, status=200)

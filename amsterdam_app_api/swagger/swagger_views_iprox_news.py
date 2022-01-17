@@ -59,3 +59,58 @@ as_news = {
     },
     'tags': ['Projects']
 }
+
+
+as_articles_get = {
+    # /api/v1/projects/articles
+    'methods': ['GET'],
+    'manual_parameters': [openapi.Parameter('project-ids',
+                                            openapi.IN_QUERY,
+                                            'Query push-notifications by project-identifier(s)',
+                                            type=openapi.TYPE_ARRAY,
+                                            items=openapi.Items(type=openapi.TYPE_STRING),
+                                            required=False),
+                          openapi.Parameter('limit',
+                                            openapi.IN_QUERY,
+                                            'Limit returned items',
+                                            type=openapi.TYPE_INTEGER,
+                                            format='<int>',
+                                            required=False),
+                          openapi.Parameter('sort-by',
+                                            openapi.IN_QUERY,
+                                            'Sort response (default: publication_date)',
+                                            type=openapi.TYPE_STRING,
+                                            format='<any key from model>',
+                                            required=False),
+                          openapi.Parameter('sort-order',
+                                            openapi.IN_QUERY,
+                                            'Sorting order (default: desc)',
+                                            type=openapi.TYPE_STRING,
+                                            format='<asc, desc>',
+                                            required=False)],
+    'responses': {
+        200: openapi.Response(
+            'application/json',
+            openapi.Schema(type=openapi.TYPE_ARRAY,
+                           items=openapi.Schema(type=openapi.TYPE_OBJECT,
+                                                properties={
+                                                    'identifier': openapi.Schema(
+                                                        type=openapi.TYPE_STRING,
+                                                        description='identifier'),
+                                                    'title': openapi.Schema(
+                                                        type=openapi.TYPE_STRING,
+                                                        description='title'),
+                                                    'publication_date': openapi.Schema(
+                                                        type=openapi.TYPE_STRING,
+                                                        description='year-month-day'),
+                                                    'type': openapi.Schema(
+                                                        type=openapi.TYPE_STRING,
+                                                        description='<news|warning>>'),
+                                                    'image': openapi.Schema(
+                                                        type=openapi.TYPE_OBJECT,
+                                                        properties={})
+                                                })),
+            examples={'application/json': {'status': True, 'result': {}}})
+    },
+    'tags': ['Projects']
+}

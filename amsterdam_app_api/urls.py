@@ -49,6 +49,7 @@ urlpatterns = [
     path('project/details', csrf_exempt(views_iprox_projects.project_details)),
     path('project/news_by_project_id', csrf_exempt(views_iprox_news.news_by_project_id)),
     path('project/news', csrf_exempt(views_iprox_news.news)),
+    path('project/articles', csrf_exempt(views_iprox_news.articles)),
 
     # Ingestion
     path('ingest', csrf_exempt(views_ingest.ingest_projects)),
