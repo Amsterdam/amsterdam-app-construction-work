@@ -60,18 +60,6 @@ def project_details(request):
     """
     Get details for a project by identifier
     """
-    def filtering(data, article_type):
-        _articles = []
-        for item in data:
-            _articles.append({
-                'identifier': item['identifier'],
-                'title': item['title'],
-                'publication_date': item['publication_date'].split('T')[0],
-                'type': article_type,
-                'image': next(iter([x for x in item['images'] if x['type'] in ['banner', 'header']]), None)
-            })
-        return _articles
-
     if request.method == 'GET':
         identifier = request.GET.get('id', None)
         if identifier is None:
@@ -80,17 +68,6 @@ def project_details(request):
             project_object = ProjectDetails.objects.filter(pk=identifier, active=True).first()
             if project_object is not None:
                 project_data = ProjectDetailsSerializer(project_object, many=False).data
-                news_objects = News.objects.filter(project_identifier=identifier, active=True).all()
-                warning_messages_objects = WarningMessages.objects.filter(project_identifier=identifier).all()
-                news_data = NewsSerializer(news_objects, many=True).data
-                warning_messages_data = WarningMessagesExternalSerializer(warning_messages_objects, many=True).data
-                del project_data['news']
-
-                # Set articles and sort them
-                articles = filtering(news_data, 'news')
-                articles += filtering(warning_messages_data, 'warning')
-                project_data['articles'] = Sort().list_of_dicts(articles, key='publication_date', sort_order='desc')
-
                 return Response({'status': True, 'result': project_data}, status=200)
             else:
                 return Response({'status': False, 'result': message.no_record_found}, status=404)
