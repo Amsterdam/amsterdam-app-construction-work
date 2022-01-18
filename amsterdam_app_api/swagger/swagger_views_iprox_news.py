@@ -62,11 +62,11 @@ as_news = {
 
 
 as_articles_get = {
-    # /api/v1/projects/articles
+    # /api/v1/articles
     'methods': ['GET'],
     'manual_parameters': [openapi.Parameter('project-ids',
                                             openapi.IN_QUERY,
-                                            'Query push-notifications by project-identifier(s)',
+                                            'Query articles by project-identifier(s)',
                                             type=openapi.TYPE_ARRAY,
                                             items=openapi.Items(type=openapi.TYPE_STRING),
                                             required=False),
@@ -112,5 +112,5 @@ as_articles_get = {
                                                 })),
             examples={'application/json': {'status': True, 'result': {}}})
     },
-    'tags': ['Projects']
+    'tags': ['Articles', 'Projects']
 }

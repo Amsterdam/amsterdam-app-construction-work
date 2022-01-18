@@ -46,7 +46,7 @@ class TestArticles(TestCase):
     def __init__(self, *args, **kwargs):
         super(TestArticles, self).__init__(*args, **kwargs)
         self.data = TestData()
-        self.url = '/api/v1/project/articles'
+        self.url = '/api/v1/articles'
         self.client = Client()
 
     def setUp(self):
