@@ -111,9 +111,9 @@ class TestData:
                     "where": [{"html": "html content", "text": "text content", "title": "title"}],
                     "contact": [{"html": "html content", "text": "text content", "title": "title"}],
                     "timeline": {},
-                    "more-info": [{"html": "html content", "text": "text content", "title": "title"}],
-                    "coordinates": {"lat": 0.0, "lon": 0.0}
+                    "more-info": [{"html": "html content", "text": "text content", "title": "title"}]
                 },
+                "coordinates": {"lat": 0.0, "lon": 0.0},
                 "district_id": 0,
                 "district_name": "West",
                 "images": self.project_images,
@@ -135,9 +135,9 @@ class TestData:
                     "where": [{"html": "html content", "text": "text content", "title": "title"}],
                     "contact": [{"html": "html content", "text": "text content", "title": "title"}],
                     "timeline": {},
-                    "more-info": [{"html": "html content", "text": "text content", "title": "title"}],
-                    "coordinates": {"lat": 1.0, "lon": 1.0}
+                    "more-info": [{"html": "html content", "text": "text content", "title": "title"}]
                 },
+                "coordinates": {"lat": 1.0, "lon": 1.0},
                 "district_id": 0,
                 "district_name": "West",
                 "images": self.project_images,
@@ -1825,6 +1825,185 @@ class TestData:
             "images": []
         }]
 
+        self.iprox_stadsloketten = {
+            "item": {
+                "page": {
+                    "pagetype": "subhome",
+                    "cluster": [
+                        {
+                            "Nam": "Blok",
+                            "cluster": [
+                                {
+                                    "Nam": "Superlink",
+                                    "cluster": [
+                                        {
+                                            "Nam": "Verwijzing",
+                                            "cluster": {
+                                                "Nam": "Intern",
+                                                "veld": [
+                                                    {
+                                                        "Nam": "Link",
+                                                        "Wrd": "loketten",
+                                                        "link": {
+                                                            "Url": "https://sub-page/"
+                                                        },
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Nam": "Lijst",
+                                    "cluster": [
+                                        {
+                                            "Nam": "Omschrijving",
+                                            "veld": [
+                                                {
+                                                    "Nam": "Titel",
+                                                    "Wrd": "contact",
+                                                },
+                                                {
+                                                    "Nam": "Tekst",
+                                                    "Txt": "text"
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+
+        self.iprox_stadsloket = {
+            "item": {
+                "page": {
+                    "pagetype": "subhome",
+                    "cluster": [
+                        {
+                            "Nam": "Meta",
+                            "cluster": {
+                                "Nam": "Meta",
+                                "cluster": [
+                                    {
+                                        "Nam": "Gegevens",
+                                        "veld": [
+                                            {
+                                                "Nam": "Samenvatting",
+                                                "Txt": "text"
+                                            }
+                                        ]
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "Nam": "Blok",
+                            "cluster": [
+                                {
+                                    "Nam": "Afbeelding",
+                                    "cluster": [
+                                        {
+                                            "Nam": "Afbeelding",
+                                            "veld": [
+                                                {
+                                                    "Nam": "Afbeelding",
+                                                    "FilNam": "test_orig.jpg",
+                                                    "Src": {
+                                                        "_": "/1/2/3/test_orig.jpg"
+                                                    },
+                                                    "asset": [
+                                                        {
+                                                            "FilNam": "test.jpg",
+                                                            "Src": {
+                                                                "_": "/1/2/3/1px/text.jpg"
+                                                            }
+                                                        },
+                                                        {
+                                                            "FilNam": None,
+                                                            "Src": {
+                                                                "_": None
+                                                            }
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Nam": "Leestekst",
+                                    "veld": [
+                                        {
+                                            "Nam": "Titel",
+                                            "Wrd": "Stadsloket Centrum",
+                                        },
+                                        {
+                                            "Nam": "Tekst",
+                                            "Txt": "text",
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Nam": "Lijst",
+                                    "cluster": [
+                                        {
+                                            "Nam": "Omschrijving",
+                                            "veld": [
+                                                {
+                                                    "Nam": "Titel",
+                                                    "Wrd": "Openingstijden",
+                                                },
+                                                {
+                                                    "Nam": "Tekst",
+                                                    "Txt": "text",
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Nam": "Lijst",
+                                    "cluster": [
+                                        {
+                                            "Nam": "Omschrijving",
+                                            "veld": [
+                                                {
+                                                    "Nam": "Tekst",
+                                                    "Txt": "text",
+                                                },
+                                            ]
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Nam": "Lijst",
+                                    "cluster": [
+                                        {
+                                            "Nam": "Omschrijving",
+                                            "veld": [
+                                                {
+                                                    "Nam": "Titel",
+                                                    "Wrd": "Mailen",
+                                                },
+                                                {
+                                                    "Nam": "Tekst",
+                                                    "Txt": "text",
+                                                },
+                                            ]
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            }
+        }
+
         self.project_manager = [
             {
                 "email": "mock0@amsterdam.nl",
@@ -1864,15 +2043,3 @@ class TestData:
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'images': []
         }
-
-# if __name__ == '__main__':
-#     import os
-#     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "amsterdam_app_backend.settings")
-#     import django
-#     django.setup()
-#     from amsterdam_app_api.FetchData.IproxRecursion import IproxRecursion
-#     targets = ['Target', 'Target-list', 'Target-dict']
-#     td = TestData()
-#     ir = IproxRecursion()
-#     result = ir.filter(td.iprox_recursion, [], targets=targets)
-#     pass

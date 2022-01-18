@@ -1,6 +1,7 @@
 import time
 import requests
 import threading
+from threading import Lock
 from queue import Queue
 from amsterdam_app_api.models import Image as ImageModel
 from amsterdam_app_api.GenericFunctions.Logger import Logger
@@ -27,6 +28,7 @@ class Image:
         self.num_workers = 10
         self.queue = Queue()
         self.threads = dict()
+        self.lock = Lock()
 
     def fetch(self, url):
         try:
@@ -44,12 +46,15 @@ class Image:
             self.logger.error('failed fetching image data for {url}: {error}'.format(url=url, error=error))
             return None
 
-    @staticmethod
-    def save_image_to_db(item):
+    def save_image_to_db(self, item):
         extension = item['filename'].split('.')[-1]
         item['mime_type'] = 'image/{extension}'.format(extension=extension)
         image = ImageModel(**item)
+
+        # Prevent db-connection saturation
+        self.lock.acquire()
         image.save()
+        self.lock.release()
 
     def worker(self, worker_id):
         count = 0
@@ -59,14 +64,16 @@ class Image:
             # Images use identifier not image_id from other models
             item['identifier'] = item.pop('image_id')
 
-            # Check if we already have this image in DB
+            # Check if we already have this image in DB, Prevent db-connection saturation
+            self.lock.acquire()
             image = ImageModel.objects.filter(pk=item['identifier']).first()
+            self.lock.release()
+
             if image is None:
                 image_data = self.fetch(item['url'])
                 if image_data is not None:
                     item['data'] = image_data
                     self.save_image_to_db(item)
-
             count += 1
         else:
             self.threads[worker_id]['result'] = '\tWorker {worker_id} out of jobs. Images processed: {count}'.format(worker_id=worker_id, count=count)

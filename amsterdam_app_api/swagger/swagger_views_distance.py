@@ -18,8 +18,7 @@ as_distance = {
                                             'longitude',
                                             type=openapi.TYPE_STRING,
                                             format='float',
-                                            required=False)
-                          ,
+                                            required=False),
                           openapi.Parameter('radius',
                                             openapi.IN_QUERY,
                                             'radius (unit is meter)',

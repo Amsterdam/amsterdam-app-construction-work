@@ -127,6 +127,7 @@ class ProjectDetails(models.Model):
     identifier = models.CharField(max_length=100, blank=False, unique=True, primary_key=True)
     project_type = models.CharField(max_length=100, default='', blank=False, unique=False)
     body = models.JSONField(null=True, default=list)
+    coordinates = models.JSONField(null=True, default=dict)
     district_id = models.IntegerField(default=-1)
     district_name = models.CharField(max_length=1000, blank=True, default='')
     images = models.JSONField(null=True, default=list)
@@ -320,3 +321,30 @@ class Notification(models.Model):
         if message is not None:
             self.project_identifier = message.project_identifier
             super(Notification, self).save(*args, **kwargs)
+
+
+class CityContact(models.Model):
+    sections = ArrayField(models.JSONField(null=True, default=dict), blank=False)
+
+    def save(self, *args, **kwargs):
+        self.id = 1  # Allow only 1 row in table
+        super().save(*args, **kwargs)
+
+
+class CityOffices(models.Model):
+    offices = ArrayField(models.JSONField(null=True, default=dict), blank=False)
+
+    def save(self, *args, **kwargs):
+        self.id = 1  # Allow only 1 row in table
+        super().save(*args, **kwargs)
+
+
+class CityOffice(models.Model):
+    identifier = models.CharField(max_length=100, blank=False, unique=True, primary_key=True)
+    location = models.CharField(max_length=100, blank=False, unique=True)
+    contact = models.JSONField(null=True, default=dict)
+    images = models.JSONField(null=True, default=dict)
+    info = models.JSONField(null=True, default=dict)
+    address = models.JSONField(null=True, default=dict)
+    last_seen = models.DateTimeField(auto_now=True, blank=True)
+    active = models.BooleanField(default=True, blank=True)

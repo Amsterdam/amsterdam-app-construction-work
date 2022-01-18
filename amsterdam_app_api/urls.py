@@ -15,6 +15,7 @@ from amsterdam_app_api.views import views_user
 from amsterdam_app_api.views import views_project_manager
 from amsterdam_app_api.views import views_mobile_devices
 from amsterdam_app_api.views import views_distance
+from amsterdam_app_api.views import views_city
 
 
 schema_view = get_schema_view(
@@ -49,6 +50,9 @@ urlpatterns = [
     path('project/news_by_project_id', csrf_exempt(views_iprox_news.news_by_project_id)),
     path('project/news', csrf_exempt(views_iprox_news.news)),
 
+    # Articles belonging to projects (news and warnings)
+    path('articles', csrf_exempt(views_iprox_news.articles)),
+
     # Ingestion
     path('ingest', csrf_exempt(views_ingest.ingest_projects)),
 
@@ -70,5 +74,10 @@ urlpatterns = [
 
     # Notification ('teaser' pointing to news- or warning article)
     path('notification', csrf_exempt(views_messages.notification_post)),
-    path('notifications', csrf_exempt(views_messages.notification_get))
+    path('notifications', csrf_exempt(views_messages.notification_get)),
+
+    # City information (contact, counters)
+    path('city/contact', csrf_exempt(views_city.city_contact)),
+    path('city/office', csrf_exempt(views_city.city_office)),
+    path('city/offices', csrf_exempt(views_city.city_offices))
 ]

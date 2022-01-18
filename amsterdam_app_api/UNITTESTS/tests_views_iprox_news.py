@@ -2,8 +2,9 @@ import json
 from django.test import Client
 from django.test import TestCase
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
-from amsterdam_app_api.models import News
+from amsterdam_app_api.models import News, WarningMessages, Projects, ProjectManager
 from amsterdam_app_api.views.views_messages import Messages
+from amsterdam_app_api.GenericFunctions.AESCipher import AESCipher
 
 message = Messages()
 
@@ -16,6 +17,69 @@ class SetUp:
             news_item = News.objects.create(**news)
             news_item.save()
             self.identifiers.append(news_item.identifier)
+
+        WarningMessages.objects.all().delete()
+
+        Projects.objects.all().delete()
+        for project in self.data.projects:
+            Projects.objects.create(**project)
+
+        ProjectManager.objects.all().delete()
+        for project_manager in self.data.project_manager:
+            ProjectManager.objects.create(**project_manager)
+
+        self.url = '/api/v1/project/warning'
+        self.client = Client()
+        self.token = AESCipher('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '6886b31dfe27e9306c3d2b553345d9e5').encrypt()
+        self.headers = {"UserAuthorization": self.token}
+        self.content_type = "application/json"
+        data = {
+            'title': 'title',
+            'project_identifier': '0000000000',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'body': {'preface': 'short text', 'content': 'long text'}
+        }
+        self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+
+
+class TestArticles(TestCase):
+    def __init__(self, *args, **kwargs):
+        super(TestArticles, self).__init__(*args, **kwargs)
+        self.data = TestData()
+        self.url = '/api/v1/articles'
+        self.client = Client()
+
+    def setUp(self):
+        self.setup = SetUp()
+
+    def test_get_all(self):
+        result = self.client.get(self.url)
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(len(result.data['result']), 3)
+
+    def test_get_limit_one(self):
+        result = self.client.get(self.url, {'limit': 1})
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(len(result.data['result']), 1)
+
+    def test_get_limit_project_ids(self):
+        result = self.client.get(self.url, {'project-ids': '0000000000,0000000001', 'sort-order': 'asc', 'limit': 2})
+        expected_result = {
+            'status': True,
+            'result': [
+                {'identifier': '0000000000', 'title': 'title0', 'publication_date': '1970-01-01', 'type': 'news', 'image': {'type': 'banner', 'sources': {'orig': {'url': 'https://localhost/image.jpg', 'size': 'orig', 'filename': 'image.jpg', 'image_id': '0000000000', 'description': ''}}}},
+                {'identifier': '0000000001', 'title': 'title1', 'publication_date': '1970-01-02', 'type': 'news', 'image': {'type': 'banner', 'sources': {'orig': {'url': 'https://localhost/image.jpg', 'size': 'orig', 'filename': 'image.jpg', 'image_id': '0000000000', 'description': ''}}}}
+            ]
+        }
+
+        self.assertEqual(result.status_code, 200)
+        self.assertDictEqual(result.data, expected_result)
+
+    def test_get_limit_error(self):
+        result = self.client.get(self.url, {'project-ids': '0000000000,0000000001', 'sort-order': 'asc', 'limit': 'error'})
+
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(len(result.data['result']), 3)
 
 
 class TestNews(TestCase):
