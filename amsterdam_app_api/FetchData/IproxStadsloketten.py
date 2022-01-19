@@ -96,10 +96,10 @@ class IproxStadsloketten:
             if 'Verwijzing' in _dict:
                 for item in _dict['Verwijzing'].get('veld', []):
                     if item.get('Nam') == 'Link':
-                        location = item.get('Wrd')
+                        title = item.get('Wrd')
                         url = item.get('link', {}).get('Url')
                         identifier = Hashing.make_md5_hash(url)
-                        self.stadsloketten.append({'location': location, 'url': url, 'identifier': identifier})
+                        self.stadsloketten.append({'title': title, 'url': url, 'identifier': identifier})
 
         # Store contact info in db  (save method is overridden to allow only 1 single record)
         city_contact = CityContact(sections=self.sections)
@@ -168,31 +168,31 @@ class IproxStadsloket:
                     if item.get('Nam') == 'Samenvatting':
                         self.details['info'] = {
                             'html': item.get('Txt'),
-                            'txt': TextSanitizers.strip_html(item.get('Txt'))
+                            'text': TextSanitizers.strip_html(item.get('Txt'))
                         }
 
             # Full text
             if 'Leestekst' in _dict:
                 for item in _dict['Leestekst']:
                     if item.get('Nam') == 'Titel':
-                        self.details['location'] = item.get('Wrd')
+                        self.details['title'] = item.get('Wrd')
                     if item.get('Nam') == 'Tekst':
                         self.details['address'] = {
                             'html': item.get('Txt'),
-                            'txt': TextSanitizers.strip_html(item.get('Txt'))
+                            'text': TextSanitizers.strip_html(item.get('Txt'))
                         }
 
             # Opening hours and contact
             if 'Omschrijving' in _dict:
-                title = txt = html = None
+                title = text = html = None
                 for item in _dict['Omschrijving']:
                     if item.get('Nam') == 'Titel':
                         title = item.get('Wrd')
                     if item.get('Nam') == 'Tekst':
-                        txt = TextSanitizers.strip_html(item.get('Txt'))
+                        text = TextSanitizers.strip_html(item.get('Txt'))
                         html = item.get('Txt')
-                if None not in (title, txt, html):
-                    self.details['contact'][title] = {'txt': txt, 'html': html}
+                if None not in (title, text, html):
+                    self.details['contact'][title] = {'text': text, 'html': html}
 
             # Get Image(s)
             if 'Afbeelding' in _dict:
