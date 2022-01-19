@@ -29,7 +29,7 @@ class TestIproxStadsLoketten(TestCase):
 
         offices_info = CityOffices.objects.first()
         serializer = CityOfficesSerializer(offices_info, many=False)
-        expected_offices_info = {'offices': [{'location': 'loketten', 'url': 'https://sub-page/', 'identifier': 'acddc71dab316d120cc5d84b5565c874'}]}
+        expected_offices_info = {'offices': [{'title': 'loketten', 'url': 'https://sub-page/', 'identifier': 'acddc71dab316d120cc5d84b5565c874'}]}
         self.assertDictEqual(serializer.data, expected_offices_info)
 
     @patch('requests.get', side_effect=IproxStadslokettenInvalid)
@@ -59,10 +59,10 @@ class TestIproxStadsLoket(TestCase):
         serializer = CityOfficeSerializer(data, many=False)
         expected_result = {
             'identifier': '0000000000',
-            'location': 'Stadsloket Centrum',
+            'title': 'Stadsloket Centrum',
             'contact': {
-                'Mailen': {'txt': 'text', 'html': 'text'},
-                'Openingstijden': {'txt': 'text', 'html': 'text'}
+                'Mailen': {'text': 'text', 'html': 'text'},
+                'Openingstijden': {'text': 'text', 'html': 'text'}
             },
             'images': {
                 'type': '',
@@ -81,8 +81,8 @@ class TestIproxStadsLoket(TestCase):
                     }
                 }
             },
-            'info': {'txt': 'text', 'html': 'text'},
-            'address': {'txt': 'text', 'html': 'text'},
+            'info': {'text': 'text', 'html': 'text'},
+            'address': {'text': 'text', 'html': 'text'},
             'last_seen': str(data.last_seen).replace(' ', 'T'),
             'active': True
         }
@@ -100,10 +100,10 @@ class TestIproxStadsLoket(TestCase):
         serializer = CityOfficeSerializer(data, many=True)
         expected_result = {
             'identifier': '0000000000',
-            'location': 'Stadsloket Centrum',
+            'title': 'Stadsloket Centrum',
             'contact': {
-                'Mailen': {'txt': 'text', 'html': 'text'},
-                'Openingstijden': {'txt': 'text', 'html': 'text'}
+                'Mailen': {'text': 'text', 'html': 'text'},
+                'Openingstijden': {'text': 'text', 'html': 'text'}
             },
             'images': {
                 'type': '',
@@ -122,8 +122,8 @@ class TestIproxStadsLoket(TestCase):
                     }
                 }
             },
-            'info': {'txt': 'text', 'html': 'text'},
-            'address': {'txt': 'text', 'html': 'text'},
+            'info': {'text': 'text', 'html': 'text'},
+            'address': {'text': 'text', 'html': 'text'},
             'last_seen': str(data[0].last_seen).replace(' ', 'T'),
             'active': True
         }
@@ -166,17 +166,17 @@ class TestIproxStadsLoketScraper(TestCase):
         offices_info = CityOffices.objects.first()
         serializer = CityOfficesSerializer(offices_info, many=False)
         expected_offices_info = {'offices': [
-            {'location': 'loketten', 'url': 'https://sub-page/', 'identifier': 'acddc71dab316d120cc5d84b5565c874'}]}
+            {'title': 'loketten', 'url': 'https://sub-page/', 'identifier': 'acddc71dab316d120cc5d84b5565c874'}]}
         self.assertDictEqual(serializer.data, expected_offices_info)
 
         data = CityOffice.objects.first()
         serializer = CityOfficeSerializer(data, many=False)
         expected_result = {
             'identifier': 'acddc71dab316d120cc5d84b5565c874',
-            'location': 'Stadsloket Centrum',
+            'title': 'Stadsloket Centrum',
             'contact': {
-                'Mailen': {'txt': 'text', 'html': 'text'},
-                'Openingstijden': {'txt': 'text', 'html': 'text'}
+                'Mailen': {'text': 'text', 'html': 'text'},
+                'Openingstijden': {'text': 'text', 'html': 'text'}
             },
             'images': {
                 'type': '',
@@ -195,8 +195,8 @@ class TestIproxStadsLoketScraper(TestCase):
                     }
                 }
             },
-            'info': {'txt': 'text', 'html': 'text'},
-            'address': {'txt': 'text', 'html': 'text'},
+            'info': {'text': 'text', 'html': 'text'},
+            'address': {'text': 'text', 'html': 'text'},
             'last_seen': str(data.last_seen).replace(' ', 'T'),
             'active': True
         }
