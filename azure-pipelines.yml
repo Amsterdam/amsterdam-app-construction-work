@@ -4,10 +4,11 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
 trigger:
-- develop
+- develop-ccc
 
 pool:
-  {{ pool }}
+  vmImage: ubuntu-latest # This is the default if you don't specify a pool or vmImage.
+
 strategy:
   matrix:
     Python38:
