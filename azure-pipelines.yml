@@ -4,7 +4,8 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/python
 
 trigger:
-- develop-ccc
+- develop
+- main
 
 pool:
   vmImage: ubuntu-latest # This is the default if you don't specify a pool or vmImage.
@@ -42,6 +43,7 @@ steps:
         project_location = path.dirname(path.abspath(manage_py))
         print('Found Django project in', project_location)
         print('##vso[task.setvariable variable=projectRoot]{}'.format(project_location))
+
   - script: |
       sudo apt -y install docker-compose
       python -m pip install --upgrade pip setuptools wheel
@@ -51,12 +53,6 @@ steps:
 
   - script: |
       pushd '$(projectRoot)'
-      # Needed inside django
-      export POSTGRES_HOST=localhost
-      export POSTGRES_PASSWORD=$(PSQL_UT_UPASS)
-      export POSTGRES_USER=$(PSQL_UT_UNAME)
-      export POSTGRES_DB=$(PSQL_UT_DB)
-
       # Create PSQL user+pass and db for unittest
       docker-compose -f docker-compose-unittest.yml up -d db
       DOCKER_CONTAINER_NAME="unittest-db"
