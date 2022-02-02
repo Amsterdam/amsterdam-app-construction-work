@@ -23,6 +23,12 @@ steps:
 
   - task: PythonScript@0
     displayName: 'Export project path'
+    variables:
+      POSTGRES_HOST: localhost
+      POSTGRES_PASSWORD: $(PSQL_UT_UPASS)
+      POSTGRES_USER: $(PSQL_UT_UNAME)
+      POSTGRES_DB: $(PSQL_UT_DB)
+
     inputs:
       scriptSource: 'inline'
       script: |
@@ -45,17 +51,12 @@ steps:
 
   - script: |
       pushd '$(projectRoot)'
-      # Needed inside django
-      export POSTGRES_HOST=localhost
-      export POSTGRES_PASSWORD=$(PSQL_UT_UPASS)
-      export POSTGRES_USER=$(PSQL_UT_UNAME)
-      export POSTGRES_DB=$(PSQL_UT_DB)
 
       # Create PSQL user+pass and db for unittest
       docker-compose -f docker-compose-unittest.yml up -d db
       DOCKER_CONTAINER_NAME="unittest-db"
 
-      #check if DB is running
+      # Wait untill the DB is running, timeout after 90s
       timeout 90s bash -c "until docker exec $DOCKER_CONTAINER_NAME pg_isready ; do sleep 0.1 ; done"
 
       # Run migrations for unittest

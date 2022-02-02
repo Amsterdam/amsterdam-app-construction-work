@@ -1,5 +1,4 @@
-from django.urls import path
-from django.conf.urls import url
+from django.urls import path, re_path
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework import permissions
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -41,7 +40,7 @@ urlpatterns = [
     path('user/password', csrf_exempt(views_user.change_password)),
 
     # Swagger (drf-yasg framework)
-    url(r'^apidocs$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    re_path(r'^apidocs$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 
     # Project(s)
     path('projects', csrf_exempt(views_iprox_projects.projects)),
