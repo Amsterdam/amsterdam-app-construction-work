@@ -23,9 +23,9 @@ steps:
 
   - task: DownloadSecureFile@1
     displayName: 'Download fcm_credentials.json'
-    name: 'fcm_credentials.json'
+    name: fcm_credentials
     inputs:
-      secureFile: 'fcm_credentials.json'
+      secureFile: fcm_credentials.json
 
   - task: PythonScript@0
     displayName: 'Export project path'
