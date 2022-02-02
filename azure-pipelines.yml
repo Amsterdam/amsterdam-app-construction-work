@@ -25,42 +25,50 @@ steps:
     displayName: 'Export project path'
     inputs:
       scriptSource: 'inline'
-      - script: |
+      script: |
         """Search all subdirectories for `manage.py`."""
         from glob import iglob
         from os import path
+        # Python >= 3.5
         manage_py = next(iglob(path.join('**', 'manage.py'), recursive=True), None)
         if not manage_py:
             raise SystemExit('Could not find a Django project')
         project_location = path.dirname(path.abspath(manage_py))
         print('Found Django project in', project_location)
         print('##vso[task.setvariable variable=projectRoot]{}'.format(project_location))
+  - script: |
+      sudo apt -y install docker-io docker-compose netcat
+      python -m pip install --upgrade pip setuptools wheel
+      pip install -r requirements.txt
+      pip install unittest-xml-reporting
+    displayName: 'Install prerequisites'
 
-      - script: |
-        sudo apt -y install docker-io docker-compose netcat
-        python -m pip install --upgrade pip setuptools wheel
-        pip install -r requirements.txt
-        pip install unittest-xml-reporting
-        displayName: 'Install prerequisites'
+  - script: |
+      pushd '$(projectRoot)'
+      # Needed inside django
+      export POSTGRES_HOST=localhost
+      export POSTGRES_PASSWORD=$(PSQL_UT_UPASS)
+      export POSTGRES_USER=$(PSQL_UT_UNAME)
+      export POSTGRES_DB=$(PSQL_UT_DB)
 
-      - script: |
-        pushd '$(projectRoot)'
+      # Create PSQL user+pass and db for unittest
+      docker-compose -f docker-compose-unittest.yml up -d db
+      DOCKER_CONTAINER_NAME="unittest-db"
 
-        # Create PSQL user+pass and db for unittest
-        docker-compose -f docker-compose-unittest.yml up -d db
-        DOCKER_CONTAINER_NAME="unittest-db"
+      # Wait untill the DB is running, timeout after 90s
+      timeout 90s bash -c "until docker exec $DOCKER_CONTAINER_NAME pg_isready ; do sleep 0.1 ; done"
 
-        # Wait until the DB is running, timeout after 90s
-        timeout 90s bash -c "until docker exec $DOCKER_CONTAINER_NAME pg_isready ; do sleep 0.1 ; done"
+      # Run migrations for unittest
+      POSTGRESS_USER=$(PSQL_UT_UNAME) POSTGRESS_PASSWORD=$(PSQL_UT_UPASS) POSTGRES_DB=${PSQL_UT_DB} bash -c 'python manage.py makemigrations'
+      POSTGRESS_USER=$(PSQL_UT_UNAME) POSTGRESS_PASSWORD=$(PSQL_UT_UPASS) POSTGRES_DB=${PSQL_UT_DB} bash -c 'python manage.py makemigrations amsterdam_app_api'
+      POSTGRESS_USER=$(PSQL_UT_UNAME) POSTGRESS_PASSWORD=$(PSQL_UT_UPASS) POSTGRES_DB=${PSQL_UT_DB} bash -c 'python manage.py migrate'
 
-        # Run migrations for unittest
-        POSTGRESS_USERNAME=$(PSQL_UT_UNAME) POSTGRESS_PASSWORD=$(PSQL_UT_UPASS) POSTGRES_DB=${PSQL_UT_DB} bash -c 'python manage.py makemigrations'
-        POSTGRESS_USERNAME=$(PSQL_UT_UNAME) POSTGRESS_PASSWORD=$(PSQL_UT_UPASS) POSTGRES_DB=${PSQL_UT_DB} bash -c 'python manage.py makemigrations amsterdam_app_api'
-        POSTGRESS_USERNAME=$(PSQL_UT_UNAME) POSTGRESS_PASSWORD=$(PSQL_UT_UPASS) POSTGRES_DB=${PSQL_UT_DB} bash -c 'python manage.py migrate'
+      # Start unittest
+      POSTGRESS_USER=$(PSQL_UT_UNAME) POSTGRESS_PASSWORD=$(PSQL_UT_UPASS) POSTGRES_DB=${PSQL_UT_DB} bash -c 'python manage.py test --testrunner xmlrunner.extra.djangotestrunner.XMLTestRunner --no-input'
+    displayName: 'Run tests'
 
-        # Start unittest
-        POSTGRESS_USERNAME=$(PSQL_UT_UNAME) POSTGRESS_PASSWORD=$(PSQL_UT_UPASS) POSTGRES_DB=${PSQL_UT_DB} bash -c 'python manage.py test --testrunner xmlrunner.extra.djangotestrunner.XMLTestRunner --no-input'
-        displayName: 'Run tests'
+  - script: |
+     PGPASSWORD=$(PSQL_UT_APASS) psql -h $(PSQL_UT_HOST) -U $(PSQL_UT_ANAME) -c "DROP DB $(PSQL_UT_DB)';"
 
   - task: PublishTestResults@2
     inputs:
