@@ -47,6 +47,9 @@ steps:
       pushd '$(projectRoot)'
       # Needed inside django
       export POSTGRES_HOST=localhost
+      export POSTGRES_PASSWORD=$(PSQL_UT_UPASS)
+      export POSTGRES_USER=$(PSQL_UT_UNAME)
+      export POSTGRES_DB=$(PSQL_UT_DB)
 
       # Create PSQL user+pass and db for unittest
       docker-compose -f docker-compose-unittest.yml up -d db
@@ -55,10 +58,12 @@ steps:
       #check if DB is running
       timeout 90s bash -c "until docker exec $DOCKER_CONTAINER_NAME pg_isready ; do sleep 0.1 ; done"
 
-      # Migrations for test-db
+      # Run migrations for unittest
       python manage.py makemigrations
       python manage.py makemigrations amsterdam_app_api
       python manage.py migrate
+
+      # Start unittest
       python manage.py test --testrunner xmlrunner.extra.djangotestrunner.XMLTestRunner --no-input
     displayName: 'Run tests'
 
