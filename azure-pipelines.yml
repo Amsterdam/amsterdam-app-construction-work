@@ -25,9 +25,9 @@ steps:
     displayName: 'Export project path'
     variables:
       POSTGRES_HOST: localhost
-      POSTGRES_PASSWORD: $(PSQL_UT_UPASS)
-      POSTGRES_USER: $(PSQL_UT_UNAME)
-      POSTGRES_DB: $(PSQL_UT_DB)
+      POSTGRES_PASSWORD: unittest
+      POSTGRES_USER: unittest
+      POSTGRES_DB: unittest
 
     inputs:
       scriptSource: 'inline'
