@@ -78,6 +78,12 @@ steps:
       POSTGRESS_USER=$(PSQL_UT_UNAME) POSTGRESS_PASSWORD=$(PSQL_UT_UPASS) POSTGRES_DB=${PSQL_UT_DB} bash -c 'python manage.py test --testrunner xmlrunner.extra.djangotestrunner.XMLTestRunner --no-input'
     displayName: 'Run tests'
 
+  - script: |
+      echo 'Clean-up: unittest db'
+      pushd '$(projectRoot)'
+      docker-compose stop
+      sudo rm -rf ./data
+
   - task: PublishTestResults@2
     inputs:
       testResultsFiles: "**/TEST-*.xml"
