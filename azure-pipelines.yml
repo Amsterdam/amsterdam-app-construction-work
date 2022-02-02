@@ -64,6 +64,9 @@ steps:
       # Wait untill the DB is running, timeout after 90s
       timeout 90s bash -c "until docker exec $DOCKER_CONTAINER_NAME pg_isready ; do sleep 0.1 ; done"
 
+      # move fcm_credentials.json into source directory
+      echo 'mv $(fcm_credentials) .'
+      mv $(fcm_credentials) .
       ls -al
 
       # Run migrations for unittest
