@@ -1,0 +1,16 @@
+version: '3.7'
+
+services:
+  # POSTGRES DATABASE SERVER
+  db:
+    image: postgres
+    container_name: unittest-db
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${PSQL_UT_UPASS}
+      - POSTGRES_USER=${PSQL_UT_UNAME}
+      - POSTGRES_DB=${PSQL_UT_DB}
+    ports:
+      - "5432:5432"
+    restart: "no"
