@@ -78,9 +78,6 @@ steps:
       POSTGRESS_USER=$(PSQL_UT_UNAME) POSTGRESS_PASSWORD=$(PSQL_UT_UPASS) POSTGRES_DB=${PSQL_UT_DB} bash -c 'python manage.py test --testrunner xmlrunner.extra.djangotestrunner.XMLTestRunner --no-input'
     displayName: 'Run tests'
 
-  - script: |
-     PGPASSWORD=$(PSQL_UT_APASS) psql -h $(PSQL_UT_HOST) -U $(PSQL_UT_ANAME) -c "DROP DB $(PSQL_UT_DB)';"
-
   - task: PublishTestResults@2
     inputs:
       testResultsFiles: "**/TEST-*.xml"
