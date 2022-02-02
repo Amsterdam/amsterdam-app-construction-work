@@ -55,7 +55,8 @@ steps:
       # PGPASSWORD=$(PSQL_UT_APASS) psql -h $(PSQL_UT_HOST) -U $(PSQL_UT_ANAME) -c "CREATE DB $(PSQL_UT_DB);"
       # PGPASSWORD=$(PSQL_UT_APASS) psql -h $(PSQL_UT_HOST) -U $(PSQL_UT_ANAME) -c "GRANT ALL PRIVILEGES ON DATABASE $(PSQL_UT_DB) to $(PSQL_UT_UNAME);"
       docker-compose -f docker-compose-unittest.yml up db -d
-      while ! nc -q 1 localhost 5432 </dev/null 1> /dev/null 2> /dev/null; do sleep 0.1; done
+      DOCKER_CONTAINER_NAME="unittest-db"
+      timeout 90s bash -c "until docker exec $DOCKER_CONTAINER_NAME pg_isready ; do sleep 0.1 ; done"
       python manage.py makemigrations
       python manage.py makemigrations amsterdam_app_api
       python manage.py migrate

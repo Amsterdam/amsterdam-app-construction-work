@@ -4,6 +4,7 @@ services:
   # POSTGRES DATABASE SERVER
   db:
     image: postgres
+    container_name: unittest-db
     volumes:
       - ./data/db:/var/lib/postgresql/data
     environment:
