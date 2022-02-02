@@ -21,6 +21,12 @@ steps:
       versionSpec: '$(PYTHON_VERSION)'
       architecture: 'x64'
 
+  - task: DownloadSecureFile@1
+    displayName: 'Download fcm-credentials.json'
+    name: fcm-credentials.json
+    inputs:
+      secureFile: 'fcm-credentials.json'
+
   - task: PythonScript@0
     displayName: 'Export project path'
     inputs:
