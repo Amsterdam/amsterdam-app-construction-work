@@ -22,10 +22,10 @@ steps:
       architecture: 'x64'
 
   - task: DownloadSecureFile@1
-    displayName: 'Download fcm-credentials.json'
-    name: 'fcm credentials'
+    displayName: 'Download fcm_credentials.json'
+    name: 'fcm_credentials.json'
     inputs:
-      secureFile: 'fcm-credentials.json'
+      secureFile: 'fcm_credentials.json'
 
   - task: PythonScript@0
     displayName: 'Export project path'

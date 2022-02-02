@@ -26,7 +26,7 @@ kladblok.py
 env
 
 # Omit FCM credentials file
-fcm-credentials.json
+fcm_credentials.json
 
 # Persistent data directory for POSTGRES docker environment
 data
