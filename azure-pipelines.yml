@@ -23,7 +23,7 @@ steps:
 
   - task: DownloadSecureFile@1
     displayName: 'Download fcm-credentials.json'
-    name: fcm-credentials.json
+    name: fcm-credentials
     inputs:
       secureFile: 'fcm-credentials.json'
 
