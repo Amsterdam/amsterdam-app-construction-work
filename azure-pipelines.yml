@@ -67,7 +67,6 @@ steps:
       # move fcm_credentials.json into source directory
       echo 'mv $(fcm_credentials.secureFilePath) .'
       mv $(fcm_credentials.secureFilePath) .
-      ls -al
 
       # Run migrations for unittest
       POSTGRESS_USER=$(PSQL_UT_UNAME) POSTGRESS_PASSWORD=$(PSQL_UT_UPASS) POSTGRES_DB=${PSQL_UT_DB} bash -c 'python manage.py makemigrations'
@@ -86,7 +85,7 @@ steps:
 
   - script: |
       echo 'Create code coverage xml file'
-      pushd '$(projectRoot)
+      pushd '$(projectRoot)'
       coverage xml
 
   - task: PublishCodeCoverageResults@1
