@@ -37,7 +37,7 @@ steps:
         print('Found Django project in', project_location)
         print('##vso[task.setvariable variable=projectRoot]{}'.format(project_location))
   - script: |
-      sudo apt -y install postgresql-client
+      sudo apt -y install docker-io docker-compose netcat
       python -m pip install --upgrade pip setuptools wheel
       pip install -r requirements.txt
       pip install unittest-xml-reporting
@@ -46,15 +46,16 @@ steps:
   - script: |
       pushd '$(projectRoot)'
       # Needed inside django
-      export POSTGRES_HOST=$(PSQL_UT_HOST)
+      export POSTGRES_HOST=localhost
       export POSTGRES_PASSWORD=$(PSQL_UT_UPASS)
       export POSTGRES_USER=$(PSQL_UT_UNAME)
       export POSTGRES_DB=$(PSQL_UT_DB)
-      echo $(PSQL_UT_DB)
       # Create PSQL user+pass and db for unittest
-      PGPASSWORD=$(PSQL_UT_APASS) psql -h $(PSQL_UT_HOST) -U $(PSQL_UT_ANAME) -c "CREATE USER $(PSQL_UT_UNAME) WITH PASSWORD '$(PSQL_UT_UPASS)';"
-      PGPASSWORD=$(PSQL_UT_APASS) psql -h $(PSQL_UT_HOST) -U $(PSQL_UT_ANAME) -c "CREATE DB $(PSQL_UT_DB);"
-      PGPASSWORD=$(PSQL_UT_APASS) psql -h $(PSQL_UT_HOST) -U $(PSQL_UT_ANAME) -c "GRANT ALL PRIVILEGES ON DATABASE $(PSQL_UT_DB) to $(PSQL_UT_UNAME);"
+      # PGPASSWORD=$(PSQL_UT_APASS) psql -h $(PSQL_UT_HOST) -U $(PSQL_UT_ANAME) -c "CREATE USER $(PSQL_UT_UNAME) WITH PASSWORD '$(PSQL_UT_UPASS)';"
+      # PGPASSWORD=$(PSQL_UT_APASS) psql -h $(PSQL_UT_HOST) -U $(PSQL_UT_ANAME) -c "CREATE DB $(PSQL_UT_DB);"
+      # PGPASSWORD=$(PSQL_UT_APASS) psql -h $(PSQL_UT_HOST) -U $(PSQL_UT_ANAME) -c "GRANT ALL PRIVILEGES ON DATABASE $(PSQL_UT_DB) to $(PSQL_UT_UNAME);"
+      docker-compose -f docker-compose-unittest.yml up db -d
+      while ! nc -q 1 localhost 5432 </dev/null 1> /dev/null 2> /dev/null; do sleep 0.1; done
       python manage.py makemigrations
       python manage.py makemigrations amsterdam_app_api
       python manage.py migrate
