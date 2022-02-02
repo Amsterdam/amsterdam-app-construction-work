@@ -50,6 +50,7 @@ steps:
       export POSTGRES_PASSWORD=$(PSQL_UT_UPASS)
       export POSTGRES_USER=$(PSQL_UT_UNAME)
       export POSTGRES_DB=$(PSQL_UT_DB)
+      echo $(PSQL_UT_DB)
       # Create PSQL user+pass and db for unittest
       PGPASSWORD=$(PSQL_UT_APASS) psql -h $(PSQL_UT_HOST) -U $(PSQL_UT_ANAME) -c "CREATE USER $(PSQL_UT_UNAME) WITH PASSWORD '$(PSQL_UT_UPASS)';"
       PGPASSWORD=$(PSQL_UT_APASS) psql -h $(PSQL_UT_HOST) -U $(PSQL_UT_ANAME) -c "CREATE DB $(PSQL_UT_DB);"
