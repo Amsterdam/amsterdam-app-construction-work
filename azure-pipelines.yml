@@ -7,6 +7,9 @@ trigger:
 - develop
 - main
 
+resources:
+- repo: self
+
 pool:
   vmImage: ubuntu-latest # This is the default if you don't specify a pool or vmImage.
 
@@ -95,9 +98,19 @@ steps:
       testRunTitle: 'Python $(PYTHON_VERSION)'
     condition: succeededOrFailed()
 
+  - task: Docker@2
+    displayName: Build an image
+    inputs:
+      command: build
+      dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
+      tags: |
+        $(tag)
+
 variables:
   - group: Python Django Variables
   - name: lc.all
     value: 'en_US.UTF-8'
   - name: lang
     value: 'en_US.UTF-8'
+  - name: tag
+    value: '$(Build.BuildId)'
