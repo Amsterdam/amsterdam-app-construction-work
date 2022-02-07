@@ -56,9 +56,9 @@ steps:
       # Change cwd to project-root
       pushd '$(projectRoot)'
 
-      # move fcm_credentials.json into source directory
-      echo 'mv $(fcm_credentials.secureFilePath) .'
-      mv $(fcm_credentials.secureFilePath) .
+      # Copy fcm_credentials.json into source directory
+      echo 'cp $(fcm_credentials.secureFilePath) .'
+      cp $(fcm_credentials.secureFilePath) .
 
       # Create PSQL user+pass and db for unittest and wait untill the DB is running (timeout after 90s)
       docker-compose -f docker-compose-unittest.yml up -d db
@@ -100,6 +100,13 @@ steps:
 
   - script: |
       pushd '$(projectRoot)'
+
+      # Copy fcm_credentials.json into source directory
+      echo 'cp $(fcm_credentials.secureFilePath) .'
+      cp $(fcm_credentials.secureFilePath) .
+
+      # Build the docker container
+      echo 'Building docker container with tag: $(tag)'
       docker build -f Dockerfile-Azure -t $(tag) .
     displayName: 'docker build'
 
