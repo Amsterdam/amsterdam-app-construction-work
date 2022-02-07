@@ -98,13 +98,10 @@ steps:
       testRunTitle: 'Python $(PYTHON_VERSION)'
     condition: succeededOrFailed()
 
-  - task: Docker@2
-    displayName: Build an image
-    inputs:
-      command: build
-      dockerfile: '$(Build.SourcesDirectory)/Dockerfile-Azure'
-      tags: |
-        $(tag)
+  - script: |
+      pushd '$(projectRoot)'
+      docker build -f '$(Build.SourcesDirectory)/Dockerfile-Azure' -t $(tag)
+    displayName: 'docker build'
 
 variables:
   - group: Python Django Variables
