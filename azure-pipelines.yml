@@ -100,7 +100,7 @@ steps:
 
   - script: |
       pushd '$(projectRoot)'
-      docker build -f $(Build.SourcesDirectory)/Dockerfile-Azure -t $(tag)
+      docker build -f Dockerfile-Azure -t $(tag)
     displayName: 'docker build'
 
 variables:
