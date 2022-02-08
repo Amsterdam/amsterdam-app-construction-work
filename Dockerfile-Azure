@@ -18,11 +18,9 @@ RUN cd /code \
 COPY init.sh /code/
 RUN chmod +x /code/init.sh
 
-# Create Environment file
-RUN echo "POSTGRES_PASSWORD=${PSQL_AZ_UPASS}\nPOSTGRES_USER=${PSQL_AZ_UNAME}\nPOSTGRES_DB=${PSQL_AZ_DB}\nWEB_USERNAME=${WEB_USERNAME}\nWEB_PASSWORD=${WEB_PASSWORD}" > /code/env
-
 # Copy sources to container
 COPY static /code/static
+COPY env /code/env
 COPY manage.py /code/
 COPY create_user.py /code/
 COPY README.md /code/

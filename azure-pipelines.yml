@@ -105,6 +105,9 @@ steps:
       echo 'cp $(fcm_credentials.secureFilePath) .'
       cp $(fcm_credentials.secureFilePath) .
 
+      # Create connection environment variables
+      echo "POSTGRES_PASSWORD=$(PSQL_AZ_UPASS)\nPOSTGRES_USER=$(PSQL_AZ_UNAME)\nPOSTGRES_DB=$(PSQL_AZ_DB)\nWEB_USERNAME=$(WEB_USERNAME)\nWEB_PASSWORD=$(WEB_PASSWORD)" > ./env
+
       # Build the docker container
       echo 'Building docker container with tag: $(tag)'
       docker build -f Dockerfile-Azure -t $(tag) .
