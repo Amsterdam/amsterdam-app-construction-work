@@ -112,6 +112,10 @@ steps:
       # Build the docker container
       echo 'Building docker container with tag: $(tag)'
       docker build -f Dockerfile-Azure -t $(tag) .
+
+      # Push to docker registry
+      echo 'Pushing artifact to $(dockerRegistryServiceConnection)'
+
     displayName: 'docker build'
 
 variables:
