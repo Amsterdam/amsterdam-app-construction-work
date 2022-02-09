@@ -81,22 +81,26 @@ steps:
       pushd '$(projectRoot)'
       docker-compose stop
       sudo rm -rf ./data
+    displayName: 'Cleanup: unittest db'
 
   - script: |
       echo 'Create code coverage xml file'
       pushd '$(projectRoot)'
       coverage xml
+    displayName: 'Create code coverage xml file'
 
   - task: PublishCodeCoverageResults@1
     inputs:
       codeCoverageTool: 'Cobertura'
       summaryFileLocation: $(projectRoot)/coverage.xml
+    displayName: 'Publish code-coverage results'
 
   - task: PublishTestResults@2
     inputs:
       testResultsFiles: "**/TEST-*.xml"
       testRunTitle: 'Python $(PYTHON_VERSION)'
     condition: succeededOrFailed()
+    displayName: 'Publish unittest results'
 
   - script: |
       pushd '$(projectRoot)'
@@ -125,8 +129,7 @@ steps:
         echo 'Pushing artifact to: "cccaappont01registry.azurecr.io"'
         docker push cccaappont01registry.azurecr.io/backend-$(Build.SourceBranchName)
       fi
-
-    displayName: 'docker build'
+    displayName: 'Build and push docker'
 
 variables:
   - group: Python Django Variables
