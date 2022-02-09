@@ -110,19 +110,19 @@ steps:
       echo "POSTGRES_PASSWORD=$(PSQL_AZ_UPASS)\nPOSTGRES_USER=$(PSQL_AZ_UNAME)\nPOSTGRES_DB=$(PSQL_AZ_DB)\nWEB_USERNAME=$(WEB_USERNAME)\nWEB_PASSWORD=$(WEB_PASSWORD)" > ./env
 
       # Build the docker container
-      echo 'Building docker container with tag: Backend-$(Build.SourceBranch)'
-      docker build -f Dockerfile-Azure -t Backend-$(Build.SourceBranch) .
+      echo 'Building docker container with tag: backend-$(Build.SourceBranch)'
+      docker build -f Dockerfile-Azure -t backend-$(Build.SourceBranch) .
 
       # Push to docker registry (destingues between production, test and develop
 
       if [ $(Build.SourceBranch) == 'main' ]; then
         docker login -u $(DOCKER_PR_UNAME) -p $(DOCKER_PR_UPASS) $(DOCKER_PR_URL)
         echo 'Pushing artifact to: "cccaappprd01registry.azurecr.io"'
-        docker push cccaappprd01registry.azurecr.io/Backend-$(Build.SourceBranch)
+        docker push cccaappprd01registry.azurecr.io/backend-$(Build.SourceBranch)
       else
         docker login -u $(DOCKER_UT_UNAME) -p $(DOCKER_UT_UPASS) $(DOCKER_UT_URL)
         echo 'Pushing artifact to: "cccaappont01registry.azurecr.io"'
-        docker push cccaappont01registry.azurecr.io/Backend-$(Build.SourceBranch)
+        docker push cccaappont01registry.azurecr.io/backend-$(Build.SourceBranch)
       fi
 
     displayName: 'docker build'
