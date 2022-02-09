@@ -111,7 +111,8 @@ steps:
 
       # Build the docker container
       echo 'Building docker container with tag: backend-$(Build.SourceBranch)'
-      docker build -f Dockerfile-Azure -t backend-$(Build.SourceBranch) .
+      docker build -f Dockerfile-Azure .
+      docker tag backend-$(Build.SourceBranch) cccaappont01registry.azurecr.io/backend-$(Build.SourceBranch)
 
       # Push to docker registry (destingues between production, test and develop
 
