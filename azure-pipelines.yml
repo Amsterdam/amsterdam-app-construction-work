@@ -110,6 +110,7 @@ stages:
       displayName: 'Publish unittest results'
 
   - job: Build
+    steps:
     - script: |
         pushd '$(projectRoot)'
 
