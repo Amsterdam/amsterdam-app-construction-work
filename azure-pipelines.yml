@@ -3,29 +3,29 @@ trigger:
 - develop
 - main
 
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+- group: Python Django Variables
+  - name: lc.all
+    value: 'en_US.UTF-8'
+  - name: lang
+    value: 'en_US.UTF-8'
+  - name: tag
+    value: '$(Build.BuildId)'
+
 stages:
 - stage: Unittest
   displayName: 'Stage: unit-test'
 
   jobs:
   - job: unittest
-    pool:
-      vmImage: ubuntu-latest
-
     strategy:
       matrix:
         Python38:
           PYTHON_VERSION: '3.8'
       maxParallel: 1
-
-    variables:
-    - group: Python Django Variables
-    - name: lc.all
-      value: 'en_US.UTF-8'
-    - name: lang
-      value: 'en_US.UTF-8'
-    - name: tag
-      value: '$(Build.BuildId)'
 
     steps:
     - task: UsePythonVersion@0
