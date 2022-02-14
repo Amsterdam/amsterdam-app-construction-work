@@ -3,24 +3,21 @@ trigger:
 - develop
 - main
 
-pool:
-  vmImage: ubuntu-latest
-
-variables:
-- group: Python Django Variables
-  - name: lc.all
-    value: 'en_US.UTF-8'
-  - name: lang
-    value: 'en_US.UTF-8'
-  - name: tag
-    value: '$(Build.BuildId)'
-
 stages:
 - stage: Unittest
-  displayName: 'Stage: unit-test'
-
   jobs:
   - job: unittest
+    pool:
+      vmImage: ubuntu-latest
+    variables:
+      - group: Python Django Variables
+        - name: lc.all
+          value: 'en_US.UTF-8'
+        - name: lang
+          value: 'en_US.UTF-8'
+        - name: tag
+          value: '$(Build.BuildId)'
+
     strategy:
       matrix:
         Python38:
@@ -29,9 +26,9 @@ stages:
 
     steps:
     - task: UsePythonVersion@0
-        inputs:
-          versionSpec: '$(PYTHON_VERSION)'
-          architecture: 'x64'
+      inputs:
+        versionSpec: '$(PYTHON_VERSION)'
+        architecture: 'x64'
 
 #      - task: DownloadSecureFile@1
 #        displayName: 'Download fcm_credentials.json'
