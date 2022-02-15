@@ -7,6 +7,7 @@ stages:
 - stage: Unittest
   jobs:
   - job: unittest
+
     pool:
       vmImage: ubuntu-latest
 
@@ -116,12 +117,19 @@ stages:
       vmImage: ubuntu-latest
 
     variables:
+      - group: Python Django Variables
       - name: tag
         value: backend-$(Build.SourceBranchName)
       - name: branch
         value: $(Build.SourceBranch)
 
     steps:
+    - task: DownloadSecureFile@1
+        displayName: 'Download fcm_credentials.json'
+        name: fcm_credentials
+        inputs:
+          secureFile: fcm_credentials.json
+
     - script: |
         pushd '$(projectRoot)'
 
