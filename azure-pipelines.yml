@@ -125,10 +125,10 @@ stages:
 
     steps:
     - task: DownloadSecureFile@1
-        displayName: 'Download fcm_credentials.json'
-        name: fcm_credentials
-        inputs:
-          secureFile: fcm_credentials.json
+      displayName: 'Download fcm_credentials.json'
+      name: fcm_credentials
+      inputs:
+        secureFile: fcm_credentials.json
 
     - script: |
         pushd '$(projectRoot)'
