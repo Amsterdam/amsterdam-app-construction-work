@@ -11,18 +11,22 @@ class UnsupportedFormat(Exception):
 
 
 class ImageConversion:
+    """ Convert/Scale images to jpg while maintaining the aspect-ration and extract gps data if possible
+        Supported images formats: HEIC, AVIF, JPG, PNG
+    """
     def __init__(self, image_data, image_name=None):
         self.image_data = image_data
         self.target_sizes = [(320, 180), (768, 432), (1280, 720), (1920, 1080)]
         self.width = None
         self.height = None
+        self.aspect_ratio = None
         self.landscape = False
         self.image_format = None
         self.raw_data = None
-        self.gps_info = {'longitude': None, 'latitude': None}
+        self.gps_info = {'lat': None, 'lon': None}
         self.images = {}
         self.image_name = image_name
-        self.mime_type = 'image/jpg'
+        self.mime_type = 'image/jpeg'
 
     def run(self):
         self.get_format()
@@ -33,6 +37,7 @@ class ImageConversion:
             return
         self.get_gps_info()
         self.scale_image()
+        self.mime_type = 'image/{format}'.format(format=self.image_format)
         self.set_image(data=self.image_data, width=self.width, height=self.height, key='original')
 
     def get_format(self):
@@ -52,7 +57,15 @@ class ImageConversion:
                 raise UnsupportedFormat('Unsupported format')
             self.width = self.raw_data.width
             self.height = self.raw_data.height
+            self.aspect_ratio = round(float(self.height) / float(self.width), 2)
             self.landscape = True if self.width > self.height else False
+
+            # Convert original image to jpeg
+            if self.image_format != 'jpeg':
+                stream = io.BytesIO()
+                self.raw_data.save(stream, format='JPEG')
+                self.set_image(data=stream.getvalue(), width=self.width, height=self.height, key='original-size-jpeg')
+
             return True
         except UnsupportedFormat:
             return False
@@ -64,11 +77,11 @@ class ImageConversion:
             tags = exifread.process_file(BytesIO(self.image_data))
             lat_ref = 'N' in tags.get('GPS GPSLatitudeRef').values
             lat_dms = tags.get('GPS GPSLatitude').values
-            self.gps_info['latitude'] = (lat_dms[0] + lat_dms[1] / 60. + lat_dms[2] / 3600.) * (1 if lat_ref else -1)
+            self.gps_info['lat'] = (lat_dms[0] + lat_dms[1] / 60. + lat_dms[2] / 3600.) * (1 if lat_ref else -1)
 
             lon_ref = 'W' in tags.get('GPS GPSLongitudeRef').values
             lon_dms = tags.get('GPS GPSLongitude').values
-            self.gps_info['longitude'] = (lon_dms[0] + lon_dms[1] / 60. + lon_dms[2] / 3600.) * (-1 if lon_ref else 1)
+            self.gps_info['lon'] = (lon_dms[0] + lon_dms[1] / 60. + lon_dms[2] / 3600.) * (-1 if lon_ref else 1)
         except Exception as error:
             pass
 
@@ -89,8 +102,8 @@ class ImageConversion:
         # For each desired image size convert the image and write the result into self.images dict
         for target_size in self.target_sizes:
             stream = io.BytesIO()
-            valid_landscape_target = self.landscape and self.width > target_size[0]
-            valid_portrait_target = not self.landscape and self.height > target_size[1]
+            valid_landscape_target = self.landscape and self.width >= target_size[0]
+            valid_portrait_target = not self.landscape and self.height >= target_size[1]
             if valid_landscape_target or valid_portrait_target:
                 new_size = self.calculate_new_size(target_size)
                 img = self.raw_data.resize(new_size, Image.ANTIALIAS)
@@ -102,10 +115,8 @@ class ImageConversion:
         # Populate self.images
         self.images[key] = {
             'data': data,
-            'gps': self.gps_info,
             'width': width,
             'height': height,
-            'landscape': self.landscape,
             'filename': '{key}-{image_name}'.format(key=key, image_name=self.image_name),
             'mime_type': self.mime_type
         }

@@ -1,5 +1,7 @@
 import json
 import uuid
+import base64
+import os
 from django.test import Client
 from django.test import TestCase
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
@@ -20,6 +22,12 @@ class TestApiProjectWarning(TestCase):
         self.headers = {"UserAuthorization": self.token}
         self.content_type = "application/json"
         self.client = Client()
+
+    @staticmethod
+    def read_file(filename):
+        with open(filename, 'rb') as f:
+            data = f.read()
+        return data
 
     def setUp(self):
         WarningMessages.objects.all().delete()
@@ -190,7 +198,6 @@ class TestApiProjectWarning(TestCase):
         self.assertEqual(result.status_code, 404)
         self.assertDictEqual(data, {'status': False, 'result': messages.no_record_found})
 
-
     def test_get_warning_message_no_identifier(self):
         result = self.client.get('{url}'.format(url=self.url))
         self.assertEqual(result.status_code, 422)
@@ -278,10 +285,14 @@ class TestApiProjectWarning(TestCase):
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(result.data, {'status': True, 'result': {'warning_identifier': str(warning_message.identifier)}})
 
+        path = '{cwd}/amsterdam_app_api/UNITTESTS/image_data/landscape.HEIC'.format(cwd=os.getcwd())
+        base64_image_data = base64.b64encode(self.read_file(path)).decode('utf-8')
+
         image_data = {
             "image": {
-                "type": "header",
-                "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg=="
+                "main": "true",
+                "data": base64_image_data,
+                "description": "unittest"
             },
             "project_warning_id": str(warning_message.identifier)
         }
@@ -292,17 +303,17 @@ class TestApiProjectWarning(TestCase):
                                   content_type=self.content_type)
 
         self.assertEqual(result.status_code, 200)
-        self.assertDictEqual(result.data, {'status': True, 'result': 'Image stored in database'})
+        self.assertDictEqual(result.data, {'status': True, 'result': 'Images stored in database'})
 
         warning_message = WarningMessages.objects.filter(project_identifier='0000000000').first()
-        image_identifier = warning_message.images[0]['sources']['1px']['image_id']
-
-        image = Image.objects.filter(pk=image_identifier).first()
-
-        self.assertEqual(image.filename, 'db://amsterdam_app_api.warning_message/{id}'.format(id=image_identifier))
-        self.assertEqual(image.url, 'db://amsterdam_app_api.warning_message/{id}'.format(id=image_identifier))
-        self.assertEqual(image.mime_type, 'image/png')
-        self.assertEqual(image.size, '1px')
+        self.assertEqual(len(warning_message.images), 1)
+        sources = warning_message.images[0]['sources']
+        self.assertEqual(len(sources), 6)
+        for source in sources:
+            image = Image.objects.filter(pk=source['image_id']).first()
+            self.assertEqual(image.url, 'db://amsterdam_app_api.warning_message/{id}'.format(id=source['image_id']))
+            self.assertEqual(image.mime_type, source['mime_type'])
+            self.assertEqual(image.size, '{width}x{height}'.format(width=source['width'], height=source['height']))
 
     def test_post_warning_message_image_upload_no_data(self):
         data = {
@@ -320,7 +331,7 @@ class TestApiProjectWarning(TestCase):
 
         image_data = {
             "image": {
-                "type": "header"
+                "main": "true"
             },
             "project_warning_id": str(warning_message.identifier)
         }
@@ -365,7 +376,7 @@ class TestApiProjectWarning(TestCase):
     def test_post_warning_message_image_upload_no_warning_message(self):
         image_data = {
             "image": {
-                "type": "header",
+                "main": "true",
                 "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg=="
             },
             "project_warning_id": str(uuid.uuid4())

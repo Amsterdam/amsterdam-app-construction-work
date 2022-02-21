@@ -1,12 +1,11 @@
 import base64
-import io
 import uuid
-from PIL import Image as PILImage
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from amsterdam_app_api.GenericFunctions.IsAuthorized import IsAuthorized
 from amsterdam_app_api.GenericFunctions.Sort import Sort
+from amsterdam_app_api.GenericFunctions.ImageConversion import ImageConversion
 from amsterdam_app_api.PushNotifications.SendNotification import SendNotification
 from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import WarningMessages
@@ -107,6 +106,7 @@ def warning_message_get(request):
             return {'result': {'status': True, 'result': serializer.data}, 'status_code': 200}
         else:
             return {'result': {'status': False, 'result': messages.no_record_found}, 'status_code': 404}
+
 
 @IsAuthorized
 def warning_message_patch(request):
@@ -246,43 +246,52 @@ def warning_messages_image_upload(request):
         return Response({'status': False, 'result': messages.invalid_query}, status=422)
     elif WarningMessages.objects.filter(pk=project_warning_id).first() is None:
         return Response({'status': False, 'result': messages.no_record_found}, status=404)
-    elif image_data.get('type', None) not in ['header', 'additional']:
+    elif image_data.get('main', '').lower() not in ['false', 'true']:
         return Response({'status': False, 'result': messages.invalid_query}, status=422)
     elif image_data.get('data', None) is None:
         return Response({'status': False, 'result': messages.invalid_query}, status=422)
 
-    # Get image meta-data
+    # Get description
+    description = image_data.get('description', 'Warning Message')
+
+    # Get image data and run ImageConversion
     data = base64.b64decode(image_data.get('data'))
-    buffer = io.BytesIO(data)
-    pil_image = PILImage.open(buffer)
+    image_conversion = ImageConversion(data, description)
+    image_conversion.run()
 
-    # Create identifier for image object
-    identifier = uuid.uuid4().hex
+    # Store images into DB and build warning-messages images list
+    sources = list()
+    for key in image_conversion.images:
+        # Build image object and save to database
+        image = image_conversion.images[key]
+        identifier = uuid.uuid4().hex
+        image_object = Image(identifier=identifier,
+                             size='{width}x{height}'.format(width=image['width'], height=image['height']),
+                             url='db://amsterdam_app_api.warning_message/{identifier}'.format(identifier=identifier),
+                             filename=image['filename'],
+                             description=description,
+                             mime_type=image['mime_type'],
+                             data=image['data'])
+        image_object.save()
+        sources.append({
+            "image_id": identifier,
+            "mime_type": image['mime_type'],
+            "width": image['width'],
+            "height": image['height'],
+        })
 
-    # Build image object and save to database
-    image_object = Image(identifier=identifier,
-                         size='{width}px'.format(width=pil_image.width),
-                         url='db://amsterdam_app_api.warning_message/{identifier}'.format(identifier=identifier),
-                         filename='db://amsterdam_app_api.warning_message/{identifier}'.format(identifier=identifier),
-                         description=image_data.get('description', ''),
-                         mime_type=pil_image.get_format_mimetype(),
-                         data=data)
-    image_object.save()
-
-    # Update warning-message with new image
+    # Update warning-message with new images
     warning_message_image = {
-        "type": image_data.get('type'),
-        "sources": {
-            "{width}px".format(width=pil_image.width): {
-                "url": "db://amsterdam_app_api.warning_message/{identifier}".format(identifier=identifier),
-                "image_id": identifier,
-                "filename": "db://amsterdam_app_api.warning_message/{identifier}".format(identifier=identifier),
-                "description": image_data.get('description', '')},
-        }
+        "main": image_data.get('main'),
+        "aspect_ratio": image_conversion.aspect_ratio,
+        "description": description,
+        "coordinates": image_conversion.gps_info,
+        "landscape": image_conversion.landscape,
+        "sources": sources  # list; created earlier
     }
 
     warning_message = WarningMessages.objects.filter(pk=project_warning_id).first()
     warning_message.images.append(warning_message_image)
     warning_message.save()
 
-    return Response({'status': True, 'result': 'Image stored in database'}, status=200)
+    return Response({'status': True, 'result': 'Images stored in database'}, status=200)
