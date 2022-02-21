@@ -132,17 +132,6 @@ class TestImageConversion(TestCase):
         image_data = b'0xff'
         image_conversion = ImageConversion(image_data, 'foobar')
         image_conversion.run()
-        expected_result = {
-            'original': {
-                'data': b'0xff',
-                'width': None,
-                'height': None,
-                'filename': 'original-foobar',
-                'mime_type': ''
-            }
-        }
 
-        self.assertEqual(len(image_conversion.images), 1)
-        self.assertDictEqual(image_conversion.images, expected_result)
-        self.assertDictEqual(image_conversion.gps_info, {'lon': None, 'lat': None})
-        self.assertEqual(image_conversion.landscape, False)
+        self.assertEqual(len(image_conversion.images), 0)
+        self.assertDictEqual(image_conversion.images, {})

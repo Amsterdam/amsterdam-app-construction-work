@@ -315,6 +315,43 @@ class TestApiProjectWarning(TestCase):
             self.assertEqual(image.mime_type, source['mime_type'])
             self.assertEqual(image.size, '{width}x{height}'.format(width=source['width'], height=source['height']))
 
+    def test_post_warning_message_unsupported_image_upload(self):
+        data = {
+            'title': 'title',
+            'project_identifier': '0000000000',
+            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            'body': {'preface': 'short text', 'content': 'long text'}
+        }
+
+        result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+
+        warning_message = WarningMessages.objects.filter(project_identifier='0000000000').first()
+
+        self.assertEqual(result.status_code, 200)
+        self.assertDictEqual(result.data, {'status': True, 'result': {'warning_identifier': str(warning_message.identifier)}})
+
+        base64_image_data = base64.b64encode(b'0xff').decode('utf-8')
+
+        image_data = {
+            "image": {
+                "main": "true",
+                "data": base64_image_data,
+                "description": "unittest"
+            },
+            "project_warning_id": str(warning_message.identifier)
+        }
+
+        result = self.client.post('{url}/image'.format(url=self.url),
+                                  json.dumps(image_data),
+                                  headers=self.headers,
+                                  content_type=self.content_type)
+
+        self.assertEqual(result.status_code, 422)
+        self.assertDictEqual(result.data, {'status': False, 'result': messages.unsupported_image_format})
+
+        warning_message = WarningMessages.objects.filter(project_identifier='0000000000').first()
+        self.assertEqual(len(warning_message.images), 0)
+
     def test_post_warning_message_image_upload_no_data(self):
         data = {
             'title': 'title',

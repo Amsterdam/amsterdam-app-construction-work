@@ -10,3 +10,4 @@ class Messages:
         self.do_not_match = 'Passwords do not match'
         self.invalid_username_or_password = 'Invalid username or password'
         self.distance_params = 'Use either street + num or lat/lon'
+        self.unsupported_image_format = 'Unsupported image format'

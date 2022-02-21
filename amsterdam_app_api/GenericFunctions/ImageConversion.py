@@ -31,14 +31,13 @@ class ImageConversion:
     def run(self):
         self.get_format()
         if not self.get_raw_data():
-            # Bail-out! We caught an unsupported image format. Populate self.images with what we have...
-            self.mime_type = ''
-            self.set_image(data=self.image_data, width=None, height=None, key='original')
-            return
+            # Bail-out! We caught an unsupported image format.
+            return False
         self.get_gps_info()
         self.scale_image()
         self.mime_type = 'image/{format}'.format(format=self.image_format)
         self.set_image(data=self.image_data, width=self.width, height=self.height, key='original')
+        return True
 
     def get_format(self):
         # Get image format, returns None if unknown format

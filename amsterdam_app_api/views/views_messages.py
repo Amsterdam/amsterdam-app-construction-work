@@ -257,7 +257,9 @@ def warning_messages_image_upload(request):
     # Get image data and run ImageConversion
     data = base64.b64decode(image_data.get('data'))
     image_conversion = ImageConversion(data, description)
-    image_conversion.run()
+    result = image_conversion.run()
+    if result is False:
+        return Response({'status': False, 'result': messages.unsupported_image_format}, status=422)
 
     # Store images into DB and build warning-messages images list
     sources = list()
@@ -282,7 +284,7 @@ def warning_messages_image_upload(request):
 
     # Update warning-message with new images
     warning_message_image = {
-        "main": image_data.get('main'),
+        "main": True if image_data.get('main').lower() == 'true' else False,
         "aspect_ratio": image_conversion.aspect_ratio,
         "description": description,
         "coordinates": image_conversion.gps_info,

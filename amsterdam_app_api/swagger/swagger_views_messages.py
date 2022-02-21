@@ -278,7 +278,8 @@ as_warning_message_image_post = {
         422: openapi.Response('application/json', examples={
             'application/json': {
                 'status': False,
-                'result': message.invalid_query
+                'result': '{invalid}|{unsupported}'.format(invalid=message.invalid_query,
+                                                           unsupported=message.unsupported_image_format)
             }
         })
     },
