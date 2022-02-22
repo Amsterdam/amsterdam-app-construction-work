@@ -19,8 +19,8 @@ COPY init.sh /code/
 RUN chmod +x /code/init.sh
 
 # Copy sources to container
-COPY env /code/
 COPY static /code/static
+COPY env /code/env
 COPY manage.py /code/
 COPY create_user.py /code/
 COPY README.md /code/
