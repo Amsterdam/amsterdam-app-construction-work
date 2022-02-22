@@ -38,7 +38,7 @@ as_distance = {
                                   'application/json': {
                                       'project_id': '0123456789',
                                       'name': 'project title',
-                                      'distance_meter': 1.0,
+                                      'distance_meter': 1000,
                                       'distance_strides': 1351
                                   }
                               }),
