@@ -72,10 +72,6 @@ stages:
         DOCKER_CONTAINER_NAME="unittest-db"
         timeout 90s bash -c "until docker exec $DOCKER_CONTAINER_NAME pg_isready ; do sleep 0.1 ; done"
 
-        # Create connection environment variable
-        echo "Create the Django enviroment file to connect with the database: ./env"
-        echo "POSTGRES_HOST=localhost\nPOSTGRES_PASSWORD=$(PSQL_UT_UPASS)\nPOSTGRES_USER=$(PSQL_UT_UNAME)\nPOSTGRES_DB=$(PSQL_UT_DB)\nWEB_USERNAME=$(WEB_USERNAME)\nWEB_PASSWORD=$(WEB_PASSWORD)" > ./env
-
         # Run migrations and start unit-tests
         export POSTGRES_HOST=localhost
         export POSTGRES_USER=$(PSQL_UT_UNAME)
