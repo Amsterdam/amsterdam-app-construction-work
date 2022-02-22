@@ -73,6 +73,7 @@ stages:
         timeout 90s bash -c "until docker exec $DOCKER_CONTAINER_NAME pg_isready ; do sleep 0.1 ; done"
 
         # Run migrations and start unit-tests
+        touch env
         export POSTGRES_HOST=localhost
         export POSTGRES_USER=$(PSQL_UT_UNAME)
         export POSTGRES_PASSWORD=$(PSQL_UT_UPASS)
