@@ -6,6 +6,7 @@ django-nose
 djangorestframework
 djangorestframework-simplejwt
 drf-yasg
+ExifRead
 firebase-admin
 geopy
 lorem
@@ -15,5 +16,7 @@ pkcs7==0.1.0
 psycopg2-binary>=2.8
 pybase64
 pycryptodome
+pyheif
 requests
+whatimage
 wheel

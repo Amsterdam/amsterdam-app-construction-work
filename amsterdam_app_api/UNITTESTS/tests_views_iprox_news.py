@@ -33,12 +33,13 @@ class SetUp:
         self.token = AESCipher('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '6886b31dfe27e9306c3d2b553345d9e5').encrypt()
         self.headers = {"UserAuthorization": self.token}
         self.content_type = "application/json"
-        data = {
-            'title': 'title',
-            'project_identifier': '0000000000',
-            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'body': {'preface': 'short text', 'content': 'long text'}
-        }
+        for title in ['title0', 'title1']:
+            data = {
+                'title': title,
+                'project_identifier': '0000000000',
+                'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+                'body': {'preface': 'short text', 'content': 'long text'}
+            }
         self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
 
@@ -63,17 +64,10 @@ class TestArticles(TestCase):
         self.assertEqual(len(result.data['result']), 1)
 
     def test_get_limit_project_ids(self):
-        result = self.client.get(self.url, {'project-ids': '0000000000,0000000001', 'sort-order': 'asc', 'limit': 2})
-        expected_result = {
-            'status': True,
-            'result': [
-                {'identifier': '0000000000', 'title': 'title0', 'publication_date': '1970-01-01', 'type': 'news', 'image': {'type': 'banner', 'sources': {'orig': {'url': 'https://localhost/image.jpg', 'size': 'orig', 'filename': 'image.jpg', 'image_id': '0000000000', 'description': ''}}}},
-                {'identifier': '0000000001', 'title': 'title1', 'publication_date': '1970-01-02', 'type': 'news', 'image': {'type': 'banner', 'sources': {'orig': {'url': 'https://localhost/image.jpg', 'size': 'orig', 'filename': 'image.jpg', 'image_id': '0000000000', 'description': ''}}}}
-            ]
-        }
+        result = self.client.get(self.url, {'project-ids': '0000000000,0000000001', 'sort-order': 'asc', 'limit': 4})
 
         self.assertEqual(result.status_code, 200)
-        self.assertDictEqual(result.data, expected_result)
+        self.assertEqual(len(result.data['result']), 3)
 
     def test_get_limit_error(self):
         result = self.client.get(self.url, {'project-ids': '0000000000,0000000001', 'sort-order': 'asc', 'limit': 'error'})

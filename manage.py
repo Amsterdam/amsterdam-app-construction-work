@@ -30,6 +30,10 @@ def set_fcm_credentials_location():
 
 
 def main():
+    is_testing = 'test' in sys.argv
+    if is_testing:
+        os.environ['DEBUG'] = 'true'
+
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'amsterdam_app_backend.settings')
     try:
@@ -47,8 +51,6 @@ def main():
 
     # print friendly message for easy access to apidocs
     print('API documentation: http://0.0.0.0:8000/api/v1/apidocs')
-
-    is_testing = 'test' in sys.argv
 
     if is_testing:
         import coverage

@@ -250,7 +250,7 @@ as_warning_message_image_post = {
         properties={
             'project_warning_id': openapi.Schema(type=openapi.TYPE_STRING, description='identifier'),
             'image': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
-                'type': openapi.Schema(type=openapi.TYPE_STRING, description='<header|additional>'),
+                'main': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='<false|true>'),
                 'description': openapi.Schema(type=openapi.TYPE_STRING, description='about this image'),
                 'data': openapi.Schema(type=openapi.TYPE_STRING, description='base64 image data')
             })
@@ -260,7 +260,7 @@ as_warning_message_image_post = {
         200: openapi.Response('application/json', examples={
             'application/json': {
                 'status': True,
-                'result': 'Image stored in database'
+                'result': 'Images stored in database'
             }
         }),
         403: openapi.Response('application/json', examples={
@@ -278,7 +278,8 @@ as_warning_message_image_post = {
         422: openapi.Response('application/json', examples={
             'application/json': {
                 'status': False,
-                'result': message.invalid_query
+                'result': '{invalid}|{unsupported}'.format(invalid=message.invalid_query,
+                                                           unsupported=message.unsupported_image_format)
             }
         })
     },

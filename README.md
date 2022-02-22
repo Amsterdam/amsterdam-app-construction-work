@@ -1,3 +1,6 @@
+[![Build Status](https://dev.azure.com/CloudCompetenceCenter/Amsterdam-App/_apis/build/status/Amsterdam-App-Backend?branchName=main)](https://dev.azure.com/CloudCompetenceCenter/Amsterdam-App/_build/latest?definitionId=480&branchName=main)
+[![Build Status](https://dev.azure.com/CloudCompetenceCenter/Amsterdam-App/_apis/build/status/Amsterdam-App-Backend?branchName=develop)](https://dev.azure.com/CloudCompetenceCenter/Amsterdam-App/_build/latest?definitionId=480&branchName=develop)
+
 # Pre-requisites
 
 Make sure your docker environment is up and running and you have a recent version of docker-compose installed.

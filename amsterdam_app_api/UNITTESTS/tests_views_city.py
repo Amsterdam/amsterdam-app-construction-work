@@ -51,7 +51,7 @@ class TestApiCity(TestCase):
         result = json.loads(response.content)
 
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(result, {'status': True, 'result': {'offices': [{'url': 'https://sub-page/', 'location': 'loketten', 'identifier': 'acddc71dab316d120cc5d84b5565c874'}]}})
+        self.assertDictEqual(result, {'status': True, 'result': {'offices': [{'url': 'https://sub-page/', 'title': 'loketten', 'identifier': 'acddc71dab316d120cc5d84b5565c874'}]}})
 
     def test_office_valid(self):
         c = Client()
@@ -62,9 +62,9 @@ class TestApiCity(TestCase):
             'status': True,
             'result': {
                 'identifier': '0000000000',
-                'location': 'Stadsloket Centrum',
-                'contact': {'Mailen': {'txt': 'text', 'html': 'text'},
-                            'Openingstijden': {'txt': 'text', 'html': 'text'}},
+                'title': 'Stadsloket Centrum',
+                'contact': {'Mailen': {'text': 'text', 'html': 'text'},
+                            'Openingstijden': {'text': 'text', 'html': 'text'}},
                 'images': {'type': '',
                            'sources': {'1px':
                                            {'url': 'https://www.amsterdam.nl/1/2/3/1px/text.jpg',
@@ -76,8 +76,8 @@ class TestApiCity(TestCase):
                                             'filename': 'test_orig.jpg',
                                             'image_id': 'c717e41e0e5d4946a62dc567b2fda45e',
                                             'description': ''}}},
-                'info': {'txt': 'text', 'html': 'text'},
-                'address': {'txt': 'text', 'html': 'text'},
+                'info': {'text': 'text', 'html': 'text'},
+                'address': {'text': 'text', 'html': 'text'},
                 'last_seen': str(office.last_seen).replace(' ', 'T'),
                 'active': True
             }

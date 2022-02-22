@@ -341,7 +341,7 @@ class CityOffices(models.Model):
 
 class CityOffice(models.Model):
     identifier = models.CharField(max_length=100, blank=False, unique=True, primary_key=True)
-    location = models.CharField(max_length=100, blank=False, unique=True)
+    title = models.CharField(max_length=100, blank=False, unique=True)
     contact = models.JSONField(null=True, default=dict)
     images = models.JSONField(null=True, default=dict)
     info = models.JSONField(null=True, default=dict)

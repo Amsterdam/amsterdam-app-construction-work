@@ -79,11 +79,12 @@ def articles(request):
     if query_params is not None:
         project_identifiers = query_params.split(',')
         for project_identifier in project_identifiers:
-            news_object = News.objects.filter(project_identifier=project_identifier).first()
-            if news_object is not None:
+            news_objects = list(News.objects.filter(project_identifier=project_identifier).all())
+            for news_object in news_objects:
                 result += filtering([NewsSerializer(news_object, many=False).data], 'news')
-            warning_object = WarningMessages.objects.filter(project_identifier=project_identifier).first()
-            if warning_object is not None:
+
+            warning_objects = list(WarningMessages.objects.filter(project_identifier=project_identifier).all())
+            for warning_object in warning_objects:
                 result += filtering([WarningMessagesExternalSerializer(warning_object, many=False).data], 'warning')
     else:
         news_objects = News.objects.all()

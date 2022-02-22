@@ -13,7 +13,7 @@ class SendNotification:
         self.identifier = identifier
         self.batch_size = batch_size
         if not firebase_admin._apps:
-            cred = credentials.Certificate('{base_dir}/fcm-credentials.json'.format(base_dir=BASE_DIR))
+            cred = credentials.Certificate('{base_dir}/fcm_credentials.json'.format(base_dir=BASE_DIR))
             self.default_app = firebase_admin.initialize_app(cred)
         else:
             self.default_app = firebase_admin.get_app()
