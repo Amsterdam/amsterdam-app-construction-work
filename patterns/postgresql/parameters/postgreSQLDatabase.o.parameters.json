@@ -1,0 +1,30 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "applicationName": {
+            "value": "aapp"
+        },
+        "regionShortName": {
+            "value": "weu"
+        },
+        "dtapName": {
+            "value": "o"
+        },
+        "location": {
+            "value": "West Europe"
+        },
+        "postgreSQLServerName": {
+            "value": ""
+        },
+        "databases": {
+            "value": [
+                {
+                    "name": "backend",
+                    "charset": "utf-8",
+                    "collation": "English_United States.1252"
+                }
+            ]
+        }
+    }
+}

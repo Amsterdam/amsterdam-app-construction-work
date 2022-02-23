@@ -1,7 +1,18 @@
 trigger:
-- develop-ccc
+- ccc-deploy-ontwikkel
 - develop
 - main
+
+resources:
+  repositories:
+    - repository: BB-PostgreSQL
+      type: git
+      name: CCC-Public/BB-PostgreSQL
+      ref: refs/tags/1.0.0
+
+variables:
+  isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
+  isDevelop: $[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]
 
 stages:
 - stage: Unittest
@@ -161,3 +172,26 @@ stages:
           docker push cccaappont01registry.azurecr.io/$(tag)
         fi
       displayName: 'Push docker-image to registry'
+
+- stage: Deploy Ontwikkel-omgeving
+  displayName: "deploy: ontwikkel-omgeving"
+  condition: and(succeeded(), eq(variables.isMain, 'false'), eq(variables.isDevelop, 'false'))
+  jobs:
+    - job: Checkout Building Block PostgreSQL
+      displayName: "Checkout: BB-PostgreSQL"
+      steps:
+      - checkout: BB-PostgreSQL
+
+- template: pipelines/bb-steps.yaml@BB-PostgreSQL
+  parameters:
+    resourceGroupName: "$(resourceGroupName)"
+    serviceConnectionName: "${{ parameters.serviceConnectionName }}"
+    keyVaultResourceId: "$(keyVaultResourceId)"
+    adminSecretName: "workloadAdmin"
+    passwordSecretName: "psqlPassword"
+    serverParameterFilePath: "$(Build.SourcesDirectory)/$(Build.Repository.Name)/patterns/postgresql/parameters/postgreSQLServer.o.parameters.json"
+    databaseParameterFilePath: "$(Build.SourcesDirectory)/$(Build.Repository.Name)/patterns/postgresql/parameters/postgreSQLDatabase.o.parameters.json"
+    dtapName: "${{ parameters.dtapName }}"
+    logAnalyticsWorkspaceResourceId: "$(logAnalyticsWorkspaceResourceId)"
+    storageAccountResourceId: "$(storageAccountsResourceId)"
+    subnetResourceId: "/subscriptions/b6c7847a-1a69-49f8-b74e-30c469ffa844/resourceGroups/infr-weu-networking-rg/providers/Microsoft.Network/virtualNetworks/infr-weu-vnet-aapp-ont-01/subnets/AppFrontEnd"

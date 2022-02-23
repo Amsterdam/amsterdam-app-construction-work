@@ -1,0 +1,68 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"applicationName": {
+			"value": "aapp"
+		},
+		"regionShortName": {
+			"value": "weu"
+		},
+		"dtapName": {
+			"value": "o"
+		},
+		"location": {
+			"value": "West Europe"
+		},
+		"skuName": {
+			"value": "GP_Gen5_2"
+		},
+		"skuTier": {
+			"value": "Basic"
+		},
+		"skuCapacity": {
+			"value": 2
+		},
+		"skuFamily": {
+			"value": "Gen5"
+		},
+		"skuSizeMB": {
+			"value": 5120
+		},
+		"azureUserGroupName": {
+			"value": "ARM-CCC-aapp-ont-01"
+		},
+		"azureUserGroupObjectId": {
+			"value": "b6c7847a-1a69-49f8-b74e-30c469ffa844"
+		},
+		"createMode": {
+			"value": "Default"
+		},
+		"administratorLogin": {
+			"reference": {
+				"keyVault": {
+			  		"id": "%%keyVaultResourceId%%"
+				},
+				"secretName": "%%adminSecretName%%"
+		  	}
+		},
+		"administratorLoginPassword": {
+		  	"reference": {
+				"keyVault": {
+			  		"id": "%%keyVaultResourceId%%"
+				},
+				"secretName": "%%passwordSecretName%%"
+		  	}
+		},
+		"secAlertEmailAddresses": {
+			"value": [
+				"r.nagtegaal@amsterdam.nl",
+				"f.filius@amsterdam.nl",
+				"v.smedinga@amsterdam.nl"
+			]
+		},
+		"instanceNumber": {
+			"value": "01"
+		}
+	}
+}
