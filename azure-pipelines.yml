@@ -177,7 +177,7 @@ stages:
   displayName: "deploy: ontwikkel-omgeving"
   condition: and(succeeded(), eq(variables.isMain, 'false'), eq(variables.isDevelop, 'false'))
   jobs:
-    - job: Checkout Building Block PostgreSQL
+    - job: Checkout-Building-Block-PostgreSQL
       displayName: "Checkout: BB-PostgreSQL"
       steps:
       - checkout: BB-PostgreSQL
