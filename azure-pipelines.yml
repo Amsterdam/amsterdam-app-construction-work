@@ -178,7 +178,7 @@ stages:
     isDevelop: $[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]
 
   jobs:
-    - job: Checkout Building Block PostgreSQL
+    - job: Checkout-Building-Block-PostgreSQL
       displayName: "Checkout: BB-PostgreSQL"
       steps:
       - checkout: BB-PostgreSQL
