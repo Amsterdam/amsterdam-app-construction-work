@@ -3,17 +3,6 @@ trigger:
 - develop
 - main
 
-resources:
-  repositories:
-    - repository: BB-PostgreSQL
-      type: git
-      name: CCC-Public/BB-PostgreSQL
-      ref: refs/tags/1.0.0
-
-variables:
-  isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
-  isDevelop: $[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]
-
 stages:
 - stage: Unittest
   jobs:
@@ -176,6 +165,18 @@ stages:
 - stage: Deploy Ontwikkel-omgeving
   displayName: "deploy: ontwikkel-omgeving"
   condition: and(succeeded(), eq(variables.isMain, 'false'), eq(variables.isDevelop, 'false'))
+
+  resources:
+    repositories:
+      - repository: BB-PostgreSQL
+        type: git
+        name: CCC-Public/BB-PostgreSQL
+        ref: refs/tags/1.0.0
+
+  variables:
+    isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
+    isDevelop: $[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]
+
   jobs:
     - job: Checkout Building Block PostgreSQL
       displayName: "Checkout: BB-PostgreSQL"
