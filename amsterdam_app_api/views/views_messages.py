@@ -246,10 +246,13 @@ def warning_messages_image_upload(request):
         return Response({'status': False, 'result': messages.invalid_query}, status=422)
     elif WarningMessages.objects.filter(pk=project_warning_id).first() is None:
         return Response({'status': False, 'result': messages.no_record_found}, status=404)
-    elif image_data.get('main', '').lower() not in ['false', 'true']:
+    elif 'main' not in image_data:
         return Response({'status': False, 'result': messages.invalid_query}, status=422)
     elif image_data.get('data', None) is None:
         return Response({'status': False, 'result': messages.invalid_query}, status=422)
+
+    # Make sure we've got a boolean not a string
+    image_data['main'] = True if image_data['main'] in ['True', 'true', True] else False
 
     # Get description
     description = image_data.get('description', 'Warning Message')
@@ -284,7 +287,7 @@ def warning_messages_image_upload(request):
 
     # Update warning-message with new images
     warning_message_image = {
-        "main": True if image_data.get('main').lower() == 'true' else False,
+        "main": image_data.get('main'),
         "aspect_ratio": image_conversion.aspect_ratio,
         "description": description,
         "coordinates": image_conversion.gps_info,
