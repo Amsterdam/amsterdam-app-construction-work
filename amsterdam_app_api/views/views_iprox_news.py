@@ -61,7 +61,8 @@ def articles(request):
             _article = {
                 'identifier': item['identifier'],
                 'title': item['title'],
-                'publication_date': item['publication_date'].split('T')[0],
+                # 'publication_date': item['publication_date'].split('T')[0],
+                'publication_date': item['publication_date'],
                 'type': article_type
             }
             if article_type == 'news':
@@ -100,6 +101,9 @@ def articles(request):
         result += filtering(warning_serializer.data, 'warning')
 
     result = Sort().list_of_dicts(result, key=sort_by, sort_order=sort_order)
+    for i in range(0, len(result), 1):
+        result[i]['publication_date'] = result[i]['publication_date'].split('T')[0]
+
     if limit != 0:
         result = result[:limit]
     return Response({'status': True, 'result': result}, status=200)
