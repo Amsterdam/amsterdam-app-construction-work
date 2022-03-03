@@ -61,7 +61,6 @@ def articles(request):
             _article = {
                 'identifier': item['identifier'],
                 'title': item['title'],
-                # 'publication_date': item['publication_date'].split('T')[0],
                 'publication_date': item['publication_date'],
                 'type': article_type
             }
