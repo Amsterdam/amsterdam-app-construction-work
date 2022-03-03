@@ -47,29 +47,53 @@ class TestApiProjectDistance(TestCase):
 
     def test_valid_lon_lat(self):
         c = Client()
-        response = c.get('/api/v1/projects/distance', {'lat': '1.0', 'lon': '0.0'})
+        response = c.get('/api/v1/projects/distance', {'lat': '1.0', 'lon': '0.0', 'fields': 'identifier,title'})
         result = json.loads(response.content)
-
+        expected_result = {
+            'status': True,
+            'result': [
+                {'identifier': '0000000000', 'title': 'title', 'meter': 110574, 'strides': 149424},
+                {'identifier': '0000000001', 'title': 'title', 'meter': 111302, 'strides': 150408}
+            ]
+        }
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(result, {'status': True, 'result': [{'project_id': '0000000000', 'name': 'test0', 'meter': 110574, 'strides': 149424}, {'project_id': '0000000001', 'name': 'test0', 'meter': 111302, 'strides': 150408}]})
+        self.assertDictEqual(result, expected_result)
 
     def test_valid_lon_lat_radius(self):
         c = Client()
-        response = c.get('/api/v1/projects/distance', {'lat': '1.0', 'lon': '0.0', 'radius': 111000})
+        response = c.get('/api/v1/projects/distance', {'lat': '1.0', 'lon': '0.0', 'radius': 111000, 'fields': 'identifier,title'})
         result = json.loads(response.content)
+        expected_result = {
+            'status': True,
+            'result': [{'identifier': '0000000000', 'title': 'title', 'meter': 110574, 'strides': 149424}]
+        }
 
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(result, {'status': True, 'result': [{'project_id': '0000000000', 'name': 'test0', 'meter': 110574, 'strides': 149424}]})
+        self.assertDictEqual(result, expected_result)
 
     @patch('requests.get', side_effect=address_to_coordinates)
     def test_by_street(self, address_to_coordinates):
         c = Client()
-        response = c.get('/api/v1/projects/distance', {'address': 'sesame street 1'})
+        response = c.get('/api/v1/projects/distance', {'address': 'sesame street 1', 'fields': 'identifier,title'})
         result = json.loads(response.content)
         expected_result = {
             'status': True,
-            'result': [{'project_id': '0000000000', 'name': 'test0', 'meter': 10001965, 'strides': 13516169},
-                       {'project_id': '0000000001', 'name': 'test0', 'meter': 10112540, 'strides': 13665594}]}
+            'result': [
+                {'identifier': '0000000000', 'title': 'title', 'meter': 10001965, 'strides': 13516169},
+                {'identifier': '0000000001', 'title': 'title', 'meter': 10112540, 'strides': 13665594}
+            ]
+        }
 
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(result, expected_result)
+
+    @patch('requests.get', side_effect=address_to_coordinates)
+    def test_no_fields_filter(self, address_to_coordinates):
+        c = Client()
+        response = c.get('/api/v1/projects/distance', {'address': 'sesame street 1'})
+        result = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(result['result']), 2)
+        self.assertEqual(len(result['result'][0]), 16)
+        self.assertEqual(len(result['result'][1]), 16)
