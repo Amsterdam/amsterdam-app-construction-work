@@ -1,4 +1,5 @@
 import os
+import base64
 from django.test import TestCase
 from amsterdam_app_api.GenericFunctions.ImageConversion import ImageConversion
 
@@ -135,3 +136,18 @@ class TestImageConversion(TestCase):
 
         self.assertEqual(len(image_conversion.images), 0)
         self.assertDictEqual(image_conversion.images, {})
+
+    def test_RGBA_to_RGB(self):
+        base64_data = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=='
+        image_data = base64.b64decode(base64_data)
+        image_conversion = ImageConversion(image_data, 'foobar')
+        image_conversion.run()
+
+        self.assertEqual(len(image_conversion.images), 2)
+        self.assertEqual(image_conversion.mime_type, 'image/png')
+        self.assertEqual(image_conversion.landscape, False)
+        self.assertEqual(image_conversion.image_format, 'png')
+        self.assertEqual(image_conversion.aspect_ratio, 1.0)
+        self.assertEqual(image_conversion.height, 1)
+        self.assertEqual(image_conversion.width, 1)
+        self.assertDictEqual(image_conversion.gps_info, {'lat': None, 'lon': None})
