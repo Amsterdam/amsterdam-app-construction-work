@@ -52,6 +52,8 @@ class ImageConversion:
             elif self.image_format in ['jpeg', 'png']:
                 image = BytesIO(self.image_data)
                 self.raw_data = Image.open(image)
+                if self.raw_data.mode == 'RGBA':  # JPG Doesn't support alpha channel.
+                    self.raw_data = self.raw_data.convert('RGB')
             else:
                 raise UnsupportedFormat('Unsupported format')
             self.width = self.raw_data.width

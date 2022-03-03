@@ -58,13 +58,18 @@ def articles(request):
     def filtering(data, article_type):
         _articles = []
         for item in data:
-            _articles.append({
+            _article = {
                 'identifier': item['identifier'],
                 'title': item['title'],
                 'publication_date': item['publication_date'].split('T')[0],
-                'type': article_type,
-                'image': next(iter([x for x in item['images'] if x['type'] in ['banner', 'header']]), None)
-            })
+                'type': article_type
+            }
+            if article_type == 'news':
+                _article['image'] = next(iter([x for x in item['images'] if x['type'] in ['main', 'banner', 'header']]), None)
+            else:
+                _article['images'] = item['images']
+            _articles.append(_article)
+
         return _articles
 
     query_params = request.GET.get('project-ids', None)
