@@ -30,6 +30,12 @@ as_distance = {
                                             'address (street and number)',
                                             type=openapi.TYPE_STRING,
                                             format='string',
+                                            required=False),
+                          openapi.Parameter('fields',
+                                            openapi.IN_QUERY,
+                                            'Return given fields (model: projects)',
+                                            type=openapi.TYPE_STRING,
+                                            format='<field1,field2>',
                                             required=False)
                           ],
     'responses': {

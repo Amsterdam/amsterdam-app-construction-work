@@ -5,7 +5,8 @@ from amsterdam_app_api.GenericFunctions.StaticData import StaticData
 from amsterdam_app_api.GenericFunctions.Distance import Distance
 from amsterdam_app_api.GenericFunctions.Sort import Sort
 from amsterdam_app_api.api_messages import Messages
-from amsterdam_app_api.models import ProjectDetails
+from amsterdam_app_api.models import ProjectDetails, Projects
+from amsterdam_app_api.serializers import ProjectsSerializer
 from amsterdam_app_api.swagger.swagger_views_distance import as_distance
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -17,13 +18,27 @@ messages = Messages()
 @swagger_auto_schema(**as_distance)
 @api_view(['GET'])
 def distance(request):
+    """ Get distance 'in bird flight' from user to projects
     """
-    Get distance 'in bird flight' from user to projects
-    """
+    def get_projects_data(_identifier, _model_items, _distance):
+        projects_object = Projects.objects.filter(pk=_identifier).first()
+
+        if _model_items is not None:
+            fields = _model_items.split(',')
+            serializer = ProjectsSerializer(projects_object, context={'fields': fields}, many=False)
+        else:
+            serializer = ProjectsSerializer(projects_object, many=False)
+
+        result = serializer.data
+        result['meter'] = int(distance.meter)
+        result['strides'] = int(distance.strides)
+        return result
+
     lat = request.GET.get('lat', None)
     lon = request.GET.get('lon', None)
     radius = request.GET.get('radius', None)
     address = request.GET.get('address', None)  # akkerstraat%2014 -> akkerstraat 14
+    model_items = request.GET.get('fields', None)
 
     if address is not None:
         apis = StaticData.urls()
@@ -48,16 +63,11 @@ def distance(request):
         cords_2 = (project.coordinates['lat'], project.coordinates['lon'])
         distance = Distance(cords_1, cords_2)
 
-        result = {
-            'project_id': project.identifier,
-            'name': project.title,
-            'meter': int(distance.meter),
-            'strides': int(distance.strides)
-        }
-
         if radius is None:
+            result = get_projects_data(project.identifier, model_items, distance)
             results.append(result)
         elif distance.meter < float(radius):
+            result = get_projects_data(project.identifier, model_items, distance)
             results.append(result)
 
     sorted_results = Sort().list_of_dicts(results, key='meter', sort_order='asc')
