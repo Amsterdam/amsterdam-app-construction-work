@@ -4,6 +4,9 @@ trigger:
       - ccc-deploy-ontwikkel
       - develop
       - main
+  paths:
+    include:
+      - pipelines
 
 variables:
   src: 'pipelines'
