@@ -1,7 +1,9 @@
 trigger:
-- ccc-deploy-ontwikkel
-- develop
-- main
+  branches:
+    include:
+      - ccc-deploy-ontwikkel
+      - develop
+      - main
   paths:
     include:
       - pipelines
