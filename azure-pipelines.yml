@@ -2,197 +2,50 @@ trigger:
 - ccc-deploy-ontwikkel
 - develop
 - main
+  paths:
+    include:
+      - pipelines
 
 stages:
-- stage: Unittest
-  jobs:
-  - job: unittest
+  - template: unittest.yml
+    parameters:
+      source: $(src)
 
-    pool:
-      vmImage: ubuntu-latest
+  - template: build-backend.yml
+    parameters:
+      source: $(src)
 
-    variables:
-      - group: Python Django Variables
-      - name: lc.all
-        value: 'en_US.UTF-8'
-      - name: lang
-        value: 'en_US.UTF-8'
-
-    strategy:
-      matrix:
-        Python38:
-          PYTHON_VERSION: '3.8'
-      maxParallel: 1
-
-    steps:
-    - task: UsePythonVersion@0
-      inputs:
-        versionSpec: '$(PYTHON_VERSION)'
-        architecture: 'x64'
-
-    - task: DownloadSecureFile@1
-      displayName: 'Download fcm_credentials.json'
-      name: fcm_credentials
-      inputs:
-        secureFile: fcm_credentials.json
-
-    - task: PythonScript@0
-      displayName: 'Export project path'
-      inputs:
-        scriptSource: 'inline'
-        script: |
-          """Search all subdirectories for `manage.py`."""
-          from glob import iglob
-          from os import path
-          # Python >= 3.5
-          manage_py = next(iglob(path.join('**', 'manage.py'), recursive=True), None)
-          if not manage_py:
-              raise SystemExit('Could not find a Django project')
-          project_location = path.dirname(path.abspath(manage_py))
-          print('Found Django project in', project_location)
-          print('##vso[task.setvariable variable=projectRoot]{}'.format(project_location))
-
-    - script: |
-        sudo apt -y install docker-compose
-        python -m pip install --upgrade pip setuptools wheel
-        pip install -r requirements.txt
-        pip install unittest-xml-reporting
-      displayName: 'Install prerequisites'
-
-    - script: |
-        # Change cwd to project-root
-        pushd '$(projectRoot)'
-
-        # Copy fcm_credentials.json into source directory
-        echo 'cp $(fcm_credentials.secureFilePath) .'
-        cp $(fcm_credentials.secureFilePath) .
-
-        # Create PSQL user+pass and db for unittest and wait untill the DB is running (timeout after 90s)
-        docker-compose -f docker-compose-unittest.yml up -d db
-        DOCKER_CONTAINER_NAME="unittest-db"
-        timeout 90s bash -c "until docker exec $DOCKER_CONTAINER_NAME pg_isready ; do sleep 0.1 ; done"
-
-        # Run migrations and start unit-tests
-        touch env
-        export POSTGRES_HOST=localhost
-        export POSTGRES_USER=$(PSQL_UT_UNAME)
-        export POSTGRES_PASSWORD=$(PSQL_UT_UPASS)
-        export POSTGRES_DB=${PSQL_UT_DB}
-        python manage.py makemigrations
-        python manage.py makemigrations amsterdam_app_api
-        python manage.py migrate
-        python manage.py test --testrunner xmlrunner.extra.djangotestrunner.XMLTestRunner --no-input
-      displayName: 'Run tests'
-
-    - script: |
-        echo 'Clean-up: unittest db'
-        pushd '$(projectRoot)'
-        docker-compose stop
-        sudo rm -rf ./data
-      displayName: 'Cleanup: unittest db'
-
-    - script: |
-        echo 'Create code coverage xml file'
-        pushd '$(projectRoot)'
-        coverage xml
-      displayName: 'Create code coverage xml file'
-
-    - task: PublishCodeCoverageResults@1
-      inputs:
-        codeCoverageTool: 'Cobertura'
-        summaryFileLocation: $(projectRoot)/coverage.xml
-      displayName: 'Publish code-coverage results'
-
-    - task: PublishTestResults@2
-      inputs:
-        testResultsFiles: "**/TEST-*.xml"
-        testRunTitle: 'Python $(PYTHON_VERSION)'
-      condition: succeededOrFailed()
-      displayName: 'Publish unittest results'
-
-- stage: Build
-  jobs:
-  - job: Build
-
-    pool:
-      vmImage: ubuntu-latest
-
-    variables:
-      - group: Python Django Variables
-      - name: tag
-        value: backend-$(Build.SourceBranchName)
-      - name: branch
-        value: $(Build.SourceBranch)
-
-    steps:
-    - task: DownloadSecureFile@1
-      displayName: 'Download fcm_credentials.json'
-      name: fcm_credentials
-      inputs:
-        secureFile: fcm_credentials.json
-
-    - script: |
-        pushd '$(projectRoot)'
-
-        # Copy fcm_credentials.json into source directory
-        echo 'cp $(fcm_credentials.secureFilePath) .'
-        cp $(fcm_credentials.secureFilePath) .
-
-        # Create connection environment variable
-        echo "Create the Django enviroment file to connect with the database: ./env"
-        echo "POSTGRES_PASSWORD=$(PSQL_AZ_UPASS)\nPOSTGRES_USER=$(PSQL_AZ_UNAME)\nPOSTGRES_DB=$(PSQL_AZ_DB)\nWEB_USERNAME=$(WEB_USERNAME)\nWEB_PASSWORD=$(WEB_PASSWORD)" > ./env
-
-        # Build the docker container
-        echo 'Building docker container with tag: $(tag)'
-        docker build -f Dockerfile-Azure -t $(tag) .
-        docker tag $(tag) cccaappont01registry.azurecr.io/$(tag)
-        echo 'Artifact is tagged as: "$(tag)"'
-      displayName: 'Build docker-image'
-
-    - script: |
-        # Push to docker registry (Which one is based on branch)
-        if [ $(branch) == 'main' ]; then
-          docker login -u $(DOCKER_PR_UNAME) -p $(DOCKER_PR_UPASS) $(DOCKER_PR_URL)
-          echo 'Pushing artifact to: "cccaappprd01registry.azurecr.io"'
-          docker push cccaappprd01registry.azurecr.io/$(tag)
-        else
-          docker login -u $(DOCKER_UT_UNAME) -p $(DOCKER_UT_UPASS) $(DOCKER_UT_URL)
-          echo 'Pushing artifact to: "cccaappont01registry.azurecr.io"'
-          docker push cccaappont01registry.azurecr.io/$(tag)
-        fi
-      displayName: 'Push docker-image to registry'
-
-- stage: Deploy Ontwikkel-omgeving
-  displayName: "deploy: ontwikkel-omgeving"
-  condition: and(succeeded(), eq(variables.isMain, 'false'), eq(variables.isDevelop, 'false'))
-
-  resources:
-    repositories:
-      - repository: BB-PostgreSQL
-        type: git
-        name: CCC-Public/BB-PostgreSQL
-        ref: refs/tags/1.0.0
-
-  variables:
-    isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
-    isDevelop: $[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]
-
-  jobs:
-    - job: Checkout-Building-Block-PostgreSQL
-      displayName: "Checkout: BB-PostgreSQL"
-      steps:
-      - checkout: BB-PostgreSQL
-
-- template: pipelines/bb-steps.yaml@BB-PostgreSQL
-  parameters:
-    resourceGroupName: "$(resourceGroupName)"
-    serviceConnectionName: "${{ parameters.serviceConnectionName }}"
-    keyVaultResourceId: "$(keyVaultResourceId)"
-    adminSecretName: "workloadAdmin"
-    passwordSecretName: "psqlPassword"
-    serverParameterFilePath: "$(Build.SourcesDirectory)/$(Build.Repository.Name)/patterns/postgresql/parameters/postgreSQLServer.o.parameters.json"
-    databaseParameterFilePath: "$(Build.SourcesDirectory)/$(Build.Repository.Name)/patterns/postgresql/parameters/postgreSQLDatabase.o.parameters.json"
-    dtapName: "${{ parameters.dtapName }}"
-    logAnalyticsWorkspaceResourceId: "$(logAnalyticsWorkspaceResourceId)"
-    storageAccountResourceId: "$(storageAccountsResourceId)"
-    subnetResourceId: "/subscriptions/b6c7847a-1a69-49f8-b74e-30c469ffa844/resourceGroups/infr-weu-networking-rg/providers/Microsoft.Network/virtualNetworks/infr-weu-vnet-aapp-ont-01/subnets/AppFrontEnd"
+#- stage: Deploy Ontwikkel-omgeving
+#  displayName: "deploy: ontwikkel-omgeving"
+#  condition: and(succeeded(), eq(variables.isMain, 'false'), eq(variables.isDevelop, 'false'))
+#
+#  resources:
+#    repositories:
+#      - repository: BB-PostgreSQL
+#        type: git
+#        name: CCC-Public/BB-PostgreSQL
+#        ref: refs/tags/1.0.0
+#
+#  variables:
+#    isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/main')]
+#    isDevelop: $[eq(variables['Build.SourceBranch'], 'refs/heads/develop')]
+#
+#  jobs:
+#    - job: Checkout-Building-Block-PostgreSQL
+#      displayName: "Checkout: BB-PostgreSQL"
+#      steps:
+#      - checkout: BB-PostgreSQL
+#
+#- template: pipelines/bb-steps.yaml@BB-PostgreSQL
+#  parameters:
+#    resourceGroupName: "$(resourceGroupName)"
+#    serviceConnectionName: "${{ parameters.serviceConnectionName }}"
+#    keyVaultResourceId: "$(keyVaultResourceId)"
+#    adminSecretName: "workloadAdmin"
+#    passwordSecretName: "psqlPassword"
+#    serverParameterFilePath: "$(Build.SourcesDirectory)/$(Build.Repository.Name)/patterns/postgresql/parameters/postgreSQLServer.o.parameters.json"
+#    databaseParameterFilePath: "$(Build.SourcesDirectory)/$(Build.Repository.Name)/patterns/postgresql/parameters/postgreSQLDatabase.o.parameters.json"
+#    dtapName: "${{ parameters.dtapName }}"
+#    logAnalyticsWorkspaceResourceId: "$(logAnalyticsWorkspaceResourceId)"
+#    storageAccountResourceId: "$(storageAccountsResourceId)"
+#    subnetResourceId: "/subscriptions/b6c7847a-1a69-49f8-b74e-30c469ffa844/resourceGroups/infr-weu-networking-rg/providers/Microsoft.Network/virtualNetworks/infr-weu-vnet-aapp-ont-01/subnets/AppFrontEnd"

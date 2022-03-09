@@ -1,0 +1,106 @@
+stages:
+- stage: Unittest
+  jobs:
+  - job: unittest
+
+    pool:
+      vmImage: ubuntu-latest
+
+    variables:
+      - group: Python Django Variables
+      - name: lc.all
+        value: 'en_US.UTF-8'
+      - name: lang
+        value: 'en_US.UTF-8'
+
+    strategy:
+      matrix:
+        Python38:
+          PYTHON_VERSION: '3.8'
+      maxParallel: 1
+
+    steps:
+    - task: UsePythonVersion@0
+      inputs:
+        versionSpec: '$(PYTHON_VERSION)'
+        architecture: 'x64'
+
+    - task: DownloadSecureFile@1
+      displayName: 'Download fcm_credentials.json'
+      name: fcm_credentials
+      inputs:
+        secureFile: fcm_credentials.json
+
+    - task: PythonScript@0
+      displayName: 'Export project path'
+      inputs:
+        scriptSource: 'inline'
+        script: |
+          """Search all subdirectories for `manage.py`."""
+          from glob import iglob
+          from os import path
+          # Python >= 3.5
+          manage_py = next(iglob(path.join('**', 'manage.py'), recursive=True), None)
+          if not manage_py:
+              raise SystemExit('Could not find a Django project')
+          project_location = path.dirname(path.abspath(manage_py))
+          print('Found Django project in', project_location)
+          print('##vso[task.setvariable variable=projectRoot]{}'.format(project_location))
+
+    - script: |
+        sudo apt -y install docker-compose
+        python -m pip install --upgrade pip setuptools wheel
+        pip install -r requirements.txt
+        pip install unittest-xml-reporting
+      displayName: 'Install prerequisites'
+
+    - script: |
+        # Change cwd to project-root
+        pushd '$(projectRoot)'
+
+        # Copy fcm_credentials.json into source directory
+        echo 'cp $(fcm_credentials.secureFilePath) .'
+        cp $(fcm_credentials.secureFilePath) .
+
+        # Create PSQL user+pass and db for unittest and wait untill the DB is running (timeout after 90s)
+        docker-compose -f docker-compose-unittest.yml up -d db
+        DOCKER_CONTAINER_NAME="unittest-db"
+        timeout 90s bash -c "until docker exec $DOCKER_CONTAINER_NAME pg_isready ; do sleep 0.1 ; done"
+
+        # Run migrations and start unit-tests
+        touch env
+        export POSTGRES_HOST=localhost
+        export POSTGRES_USER=$(PSQL_UT_UNAME)
+        export POSTGRES_PASSWORD=$(PSQL_UT_UPASS)
+        export POSTGRES_DB=${PSQL_UT_DB}
+        python manage.py makemigrations
+        python manage.py makemigrations amsterdam_app_api
+        python manage.py migrate
+        python manage.py test --testrunner xmlrunner.extra.djangotestrunner.XMLTestRunner --no-input
+      displayName: 'Run tests'
+
+    - script: |
+        echo 'Clean-up: unittest db'
+        pushd '$(projectRoot)'
+        docker-compose stop
+        sudo rm -rf ./data
+      displayName: 'Cleanup: unittest db'
+
+    - script: |
+        echo 'Create code coverage xml file'
+        pushd '$(projectRoot)'
+        coverage xml
+      displayName: 'Create code coverage xml file'
+
+    - task: PublishCodeCoverageResults@1
+      inputs:
+        codeCoverageTool: 'Cobertura'
+        summaryFileLocation: $(projectRoot)/coverage.xml
+      displayName: 'Publish code-coverage results'
+
+    - task: PublishTestResults@2
+      inputs:
+        testResultsFiles: "**/TEST-*.xml"
+        testRunTitle: 'Python $(PYTHON_VERSION)'
+      condition: succeededOrFailed()
+      displayName: 'Publish unittest results'
