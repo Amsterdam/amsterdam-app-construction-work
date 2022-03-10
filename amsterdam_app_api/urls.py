@@ -15,6 +15,7 @@ from amsterdam_app_api.views import views_project_manager
 from amsterdam_app_api.views import views_mobile_devices
 from amsterdam_app_api.views import views_distance
 from amsterdam_app_api.views import views_city
+from amsterdam_app_api.views import views_search
 
 
 schema_view = get_schema_view(
@@ -78,5 +79,8 @@ urlpatterns = [
     # City information (contact, counters)
     path('city/contact', csrf_exempt(views_city.city_contact)),
     path('city/office', csrf_exempt(views_city.city_office)),
-    path('city/offices', csrf_exempt(views_city.city_offices))
+    path('city/offices', csrf_exempt(views_city.city_offices)),
+
+    # Search DB
+    path('search', csrf_exempt(views_search.string_in_model))
 ]
