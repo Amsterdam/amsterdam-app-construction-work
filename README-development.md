@@ -70,3 +70,14 @@ You can export the environment parameter like this:
 
     export DEBUG=true
 
+## Enable searching in psql database
+
+    ┌(robert@garthim.masikh.org)-(jobs:0)-(/Users/.3./Amsterdam-App-Backend)-(31 files,688b)
+    └> 502 ● docker exec -it b37c1b96cbe2 bash
+    root@b37c1b96cbe2:/# psql -h localhost -p 5432 -U backend -d amsterdam_app_backend -W
+    Password: 
+    psql (13.4 (Debian 13.4-1.pgdg100+1))
+    Type "help" for help.
+    
+    amsterdam_app_backend=# CREATE EXTENSION pg_trgm;
+    amsterdam_app_backend=# 

@@ -3,7 +3,7 @@ ENV PYTHONUNBUFFERED=1
 
 # Install CRON to the python container
 RUN apt-get update  \
- && apt-get -y install --no-install-recommends cron netcat npm \
+ && apt-get -y install --no-install-recommends cron netcat npm postgresql-client \
  && rm -rf /var/lib/apt/lists/*
 
 # Install python requirements
