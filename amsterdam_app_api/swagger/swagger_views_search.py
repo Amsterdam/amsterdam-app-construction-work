@@ -8,15 +8,9 @@ messages = Messages()
 """
 
 as_search = {
-    # /api/v1/search swagger_auto_schema
+    # /api/v1/XXX/search swagger_auto_schema
     'methods': ['get'],
-    'manual_parameters': [openapi.Parameter('model',
-                                            openapi.IN_QUERY,
-                                            'model name',
-                                            type=openapi.TYPE_STRING,
-                                            format='<string (default:ProjectDetails)>',
-                                            required=False),
-                          openapi.Parameter('text',
+    'manual_parameters': [openapi.Parameter('text',
                                             openapi.IN_QUERY,
                                             'text to search for',
                                             type=openapi.TYPE_STRING,
@@ -34,22 +28,22 @@ as_search = {
                                             type=openapi.TYPE_STRING,
                                             format='<string (default:title,subtitle)>',
                                             required=False),
-                          openapi.Parameter('min_similarity',
+                          openapi.Parameter('page_size',
                                             openapi.IN_QUERY,
-                                            'Omit results with a similarity less then (int)',
-                                            type=openapi.TYPE_NUMBER,
-                                            format='<int (default:0.07)>',
-                                            required=False),
-                          openapi.Parameter('limit',
-                                            openapi.IN_QUERY,
-                                            'Limit the result to <limit> items',
+                                            'Limit items per page for paginated result',
                                             type=openapi.TYPE_INTEGER,
-                                            format='<int (default:20)>',
+                                            format='<int (default:10)>',
+                                            required=False),
+                          openapi.Parameter('page',
+                                            openapi.IN_QUERY,
+                                            'Page from paginated result',
+                                            type=openapi.TYPE_INTEGER,
+                                            format='<int (default:0)>',
                                             required=False)
                           ],
     'responses': {
         200: openapi.Response('json data'),
-        404: openapi.Response('{a}|{b}'.format(a=messages.no_such_database_model, b=messages.no_such_field_in_model))
+        422: openapi.Response('{a}|{b}'.format(a=messages.invalid_query, b=messages.no_such_field_in_model))
     },
     'tags': ['Search']
 }
