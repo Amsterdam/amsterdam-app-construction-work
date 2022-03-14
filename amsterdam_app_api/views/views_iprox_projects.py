@@ -99,3 +99,29 @@ def project_details(request):
                 return Response({'status': True, 'result': project_data}, status=200)
             else:
                 return Response({'status': False, 'result': message.no_record_found}, status=404)
+
+
+@swagger_auto_schema(**as_search)
+@api_view(['GET'])
+def project_details_search(request):
+    model = ProjectDetails
+    text = request.GET.get('text', None)
+    query_fields = request.GET.get('query_fields', '')
+    fields = request.GET.get('fields', '')
+    page_size = int(request.GET.get('page_size'))
+    page = int(request.GET.get('page'))
+
+    # Get Model fields
+    model_fields = [x.name for x in model._meta.get_fields()]
+
+    if text is None:
+        return Response({'status': False, 'result': message.invalid_query}, status=422)
+
+    if len([x for x in query_fields.split(',') if x not in model_fields]) > 0:
+        return Response({'status': False, 'result': message.no_such_field_in_model}, status=422)
+    if len([x for x in fields.split(',') if x not in model_fields]) > 0:
+        return Response({'status': False, 'result': message.no_such_field_in_model}, status=422)
+
+    text_search = TextSearch(model, text, query_fields, return_fields=fields, page_size=page_size, page=page)
+    result = text_search.search()
+    return Response({'status': True, 'result': result['page'], 'pages': result['pages']}, status=200)

@@ -50,23 +50,20 @@ urlpatterns = [
 
     # Projec details(s)
     path('project/details', csrf_exempt(views_iprox_projects.project_details)),
-    ### path('project/details_search', csrf_exempt(views_iprox_projects.project_details_search)),
+    path('project/details/search', csrf_exempt(views_iprox_projects.project_details_search)),
 
     # News
     path('project/news_by_project_id', csrf_exempt(views_iprox_news.news_by_project_id)),
     path('project/news', csrf_exempt(views_iprox_news.news)),
-    ### path('project/news/search', csrf_exempt(views_iprox_news.news_search)),
 
     # Articles belonging to projects (news and warnings)
     path('articles', csrf_exempt(views_iprox_news.articles)),
-    ### path('articles/search', csrf_exempt(views_iprox_news.articles_search)),
 
     # Ingestion
     path('ingest', csrf_exempt(views_ingest.ingest_projects)),
 
     # Image & Assets
     path('image', csrf_exempt(views_generic.image)),
-    ### path('image/search', csrf_exempt(views_generic.image_search)),
     path('asset', csrf_exempt(views_generic.asset)),
     path('districts', csrf_exempt(views_generic.districts)),
 
@@ -79,17 +76,14 @@ urlpatterns = [
     # Warning message
     path('project/warning', csrf_exempt(views_messages.warning_message_crud)),
     path('project/warnings', csrf_exempt(views_messages.warning_messages_get)),
-    ### path('project/warnings/search', csrf_exempt(views_messages.warning_messages_get_search)),
     path('project/warning/image', csrf_exempt(views_messages.warning_messages_image_upload)),
 
     # Notification ('teaser' pointing to news- or warning article)
     path('notification', csrf_exempt(views_messages.notification_post)),
     path('notifications', csrf_exempt(views_messages.notification_get)),
-    ### path('notifications/search', csrf_exempt(views_messages.notification_get_search)),
 
     # City information (contact, counters)
     path('city/contact', csrf_exempt(views_city.city_contact)),
     path('city/office', csrf_exempt(views_city.city_office)),
     path('city/offices', csrf_exempt(views_city.city_offices)),
-    ### path('city/offices/search', csrf_exempt(views_city.city_offices_search)),
 ]
