@@ -3,12 +3,8 @@ from amsterdam_app_api.swagger.swagger_views_search import as_search
 from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import Projects
 from amsterdam_app_api.models import ProjectDetails
-from amsterdam_app_api.models import News
-from amsterdam_app_api.models import WarningMessages
 from amsterdam_app_api.serializers import ProjectsSerializer
 from amsterdam_app_api.serializers import ProjectDetailsSerializer
-from amsterdam_app_api.serializers import NewsSerializer
-from amsterdam_app_api.serializers import WarningMessagesExternalSerializer
 from amsterdam_app_api.GenericFunctions.SetFilter import SetFilter
 from amsterdam_app_api.GenericFunctions.Sort import Sort
 from amsterdam_app_api.GenericFunctions.TextSearch import TextSearch
@@ -17,6 +13,28 @@ from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 
 message = Messages()
+
+
+def search(model, request):
+    text = request.GET.get('text', None)
+    query_fields = request.GET.get('query_fields', '')
+    fields = request.GET.get('fields', '')
+    page_size = int(request.GET.get('page_size', 10))
+    page = int(request.GET.get('page', 1)) - 1
+
+    # Get Model fields
+    model_fields = [x.name for x in model._meta.get_fields()]
+
+    if text is None:
+        return Response({'status': False, 'result': message.invalid_query}, status=422)
+    if len([x for x in query_fields.split(',') if x not in model_fields]) > 0:
+        return Response({'status': False, 'result': message.no_such_field_in_model}, status=422)
+    if len([x for x in fields.split(',') if x not in model_fields]) > 0:
+        return Response({'status': False, 'result': message.no_such_field_in_model}, status=422)
+
+    text_search = TextSearch(model, text, query_fields, return_fields=fields, page_size=page_size, page=page)
+    result = text_search.search()
+    return Response({'status': True, 'result': result['page'], 'pages': result['pages']}, status=200)
 
 
 @swagger_auto_schema(**as_projects)
@@ -60,26 +78,8 @@ def projects(request):
 @api_view(['GET'])
 def projects_search(request):
     model = Projects
-    text = request.GET.get('text', None)
-    query_fields = request.GET.get('query_fields', '')
-    fields = request.GET.get('fields', '')
-    page_size = int(request.GET.get('page_size'))
-    page = int(request.GET.get('page'))
-
-    # Get Model fields
-    model_fields = [x.name for x in model._meta.get_fields()]
-
-    if text is None:
-        return Response({'status': False, 'result': message.invalid_query}, status=422)
-
-    if len([x for x in query_fields.split(',') if x not in model_fields]) > 0:
-        return Response({'status': False, 'result': message.no_such_field_in_model}, status=422)
-    if len([x for x in fields.split(',') if x not in model_fields]) > 0:
-        return Response({'status': False, 'result': message.no_such_field_in_model}, status=422)
-
-    text_search = TextSearch(model, text, query_fields, return_fields=fields, page_size=page_size, page=page)
-    result = text_search.search()
-    return Response({'status': True, 'result': result['page'], 'pages': result['pages']}, status=200)
+    result = search(model, request)
+    return result
 
 
 @swagger_auto_schema(**as_project_details)
@@ -105,23 +105,5 @@ def project_details(request):
 @api_view(['GET'])
 def project_details_search(request):
     model = ProjectDetails
-    text = request.GET.get('text', None)
-    query_fields = request.GET.get('query_fields', '')
-    fields = request.GET.get('fields', '')
-    page_size = int(request.GET.get('page_size'))
-    page = int(request.GET.get('page'))
-
-    # Get Model fields
-    model_fields = [x.name for x in model._meta.get_fields()]
-
-    if text is None:
-        return Response({'status': False, 'result': message.invalid_query}, status=422)
-
-    if len([x for x in query_fields.split(',') if x not in model_fields]) > 0:
-        return Response({'status': False, 'result': message.no_such_field_in_model}, status=422)
-    if len([x for x in fields.split(',') if x not in model_fields]) > 0:
-        return Response({'status': False, 'result': message.no_such_field_in_model}, status=422)
-
-    text_search = TextSearch(model, text, query_fields, return_fields=fields, page_size=page_size, page=page)
-    result = text_search.search()
-    return Response({'status': True, 'result': result['page'], 'pages': result['pages']}, status=200)
+    result = search(model, request)
+    return result

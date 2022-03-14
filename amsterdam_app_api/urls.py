@@ -15,7 +15,6 @@ from amsterdam_app_api.views import views_project_manager
 from amsterdam_app_api.views import views_mobile_devices
 from amsterdam_app_api.views import views_distance
 from amsterdam_app_api.views import views_city
-from amsterdam_app_api.views import views_search
 
 
 schema_view = get_schema_view(
