@@ -6,12 +6,12 @@ messages = Messages()
 
 
 class TextSearch:
-    def __init__(self, model, query, query_fields, return_fields=None, page_size=10, page=0):
+    def __init__(self, model, query, query_fields, threshold=0.07, return_fields=None, page_size=10, page=0):
         self.model = model
         self.query = query
         self.query_fields = query_fields.split(',')
         self.return_fields = None if return_fields is None else return_fields.split(',')
-        self.threshold = 0.03
+        self.threshold = threshold
         self.page_size = page_size
         self.page = page
 

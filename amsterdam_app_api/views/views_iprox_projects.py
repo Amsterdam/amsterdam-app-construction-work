@@ -19,6 +19,7 @@ def search(model, request):
     text = request.GET.get('text', None)
     query_fields = request.GET.get('query_fields', '')
     fields = request.GET.get('fields', '')
+    threshold = float(request.GET.get('threshold', 0.07))
     page_size = int(request.GET.get('page_size', 10))
     page = int(request.GET.get('page', 1)) - 1
 
@@ -32,7 +33,7 @@ def search(model, request):
     if len([x for x in fields.split(',') if x not in model_fields]) > 0:
         return Response({'status': False, 'result': message.no_such_field_in_model}, status=422)
 
-    text_search = TextSearch(model, text, query_fields, return_fields=fields, page_size=page_size, page=page)
+    text_search = TextSearch(model, text, query_fields, threshold=threshold, return_fields=fields, page_size=page_size, page=page)
     result = text_search.search()
     return Response({'status': True, 'result': result['page'], 'pages': result['pages']}, status=200)
 
