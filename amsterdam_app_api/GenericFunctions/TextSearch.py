@@ -1,8 +1,8 @@
 import re
 from math import ceil
+from django.db.models import Q
 from django.contrib.postgres.search import TrigramSimilarity, TrigramWordSimilarity, TrigramWordDistance, TrigramDistance
 from amsterdam_app_api.api_messages import Messages
-
 messages = Messages()
 
 
@@ -21,17 +21,16 @@ class TextSearch:
 
     def search(self):
         # Character Filter
-        pattern = r"^[A-Za-zÀ-ÖØ-öø-ÿ0-9 ]+$"
-        match = re.findall(pattern, self.query)
-        if len(match) == 0:
+        if len(self.query) < 3:
             return {'page': self.result, 'pages': self.pages}
 
-        # Get appropriate model and filter
+        # Get appropriate model fields
         model_fields = [x.name for x in self.model._meta.get_fields() if x.name != 'data'] + ['score']
 
         # Build filter and query
         score = 0
         weight = 1.0
+        condition = None
         for query_field in self.query_fields:
             if self.algorithm == 'TrigramSimilarity':
                 score += weight * TrigramSimilarity(query_field, self.query)
@@ -43,10 +42,17 @@ class TextSearch:
                 score += weight * TrigramWordDistance(self.query, query_field)
 
             weight = weight / 2  # Next item has half the weight of the previous item
+            q = Q(**{'{query_field}__unaccent__icontains'.format(query_field=query_field): self.query})
+            if condition:
+                condition = condition | q
+            else:
+                condition = q
 
         # Query and filter
-        objects = self.model.objects.annotate(score=score).filter(score__gte=self.threshold).order_by('-score')
+        objects = self.model.objects.annotate(score=score).filter(score__gte=self.threshold).filter(condition).order_by('-score')
         sorted_objects = list(objects)
+
+        # Create page (sorted_objects[start_index:stop_index]) and count pages
         page = sorted_objects[self.page * self.page_size:self.page * self.page_size + self.page_size]
         self.pages = int(ceil(len(sorted_objects) / float(self.page_size)))
 
@@ -54,7 +60,7 @@ class TextSearch:
         if self.return_fields is not None:
             model_fields = [x for x in model_fields if x in self.return_fields] + ['score']
 
-        # Filter field from search_results
+        # Filter field from search_results (functions as a serializer)
         for item in page:
             data = {}
             for model_field in model_fields:
@@ -63,14 +69,3 @@ class TextSearch:
 
         # Return result
         return {'page': self.result, 'pages': self.pages}
-
-
-if __name__ == '__main__':
-    import os
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "amsterdam_app_backend.settings")
-    import django
-    django.setup()
-
-    from amsterdam_app_api.models import ProjectDetails as Model
-    ts = TextSearch(Model, 'bullebak', 'title,subtitle', return_fields='title,identifier', page_size=7, page=0)
-    print(ts.search())

@@ -28,6 +28,7 @@ function is_db_alive {
 function enable_db_text_search {
   printf "\nEnable text search in database\n"
   PGPASSWORD=${POSTGRES_PASSWORD} psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h ${POSTGRES_HOST} -c "CREATE EXTENSION pg_trgm;"
+  PGPASSWORD=${POSTGRES_PASSWORD} psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h ${POSTGRES_HOST} -c "CREATE EXTENSION unaccent;"
 }
 
 function set_header {
