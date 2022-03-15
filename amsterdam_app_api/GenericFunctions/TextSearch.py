@@ -1,12 +1,12 @@
 from math import ceil
-from django.contrib.postgres.search import TrigramSimilarity
+from django.contrib.postgres.search import TrigramSimilarity, TrigramWordSimilarity, TrigramWordDistance, TrigramDistance
 from amsterdam_app_api.api_messages import Messages
 
 messages = Messages()
 
 
 class TextSearch:
-    def __init__(self, model, query, query_fields, threshold=0.07, return_fields=None, page_size=10, page=0):
+    def __init__(self, model, query, query_fields, threshold=0.07, algorithm='TrigramWordSimilarity', return_fields=None, page_size=10, page=0):
         self.model = model
         self.query = query
         self.query_fields = query_fields.split(',')
@@ -14,27 +14,36 @@ class TextSearch:
         self.threshold = threshold
         self.page_size = page_size
         self.page = page
+        self.algorithm = algorithm
 
     def search(self):
         # Get appropriate model and filter
-        model_fields = [x.name for x in self.model._meta.get_fields() if x.name != 'data'] + ['similarity']
+        model_fields = [x.name for x in self.model._meta.get_fields() if x.name != 'data'] + ['score']
 
         # Build filter and query
-        similarity = 0
+        score = 0
         weight = 1.0
         for query_field in self.query_fields:
-            similarity += weight * TrigramSimilarity(query_field, self.query)
+            if self.algorithm == 'TrigramSimilarity':
+                score += weight * TrigramSimilarity(query_field, self.query)
+            elif self.algorithm == 'TrigramWordSimilarity':
+                score += weight * TrigramWordSimilarity(self.query, query_field)
+            elif self.algorithm == 'TrigramDistance':
+                score += weight * TrigramDistance(query_field, self.query)
+            elif self.algorithm == 'TrigramWordDistance':
+                score += weight * TrigramWordDistance(self.query, query_field)
+
             weight = weight / 2  # Next item has half the weight of the previous item
 
         # Query and filter
-        objects = self.model.objects.annotate(similarity=similarity).filter(similarity__gte=self.threshold).order_by('-similarity')
+        objects = self.model.objects.annotate(score=score).filter(score__gte=self.threshold).order_by('-score')
         sorted_objects = list(objects)
         page = sorted_objects[self.page * self.page_size:self.page * self.page_size + self.page_size]
         pages = int(ceil(len(sorted_objects) / float(self.page_size)))
 
         # Build field list for given model
         if self.return_fields is not None:
-            model_fields = [x for x in model_fields if x in self.return_fields]
+            model_fields = [x for x in model_fields if x in self.return_fields] + ['score']
 
         # Filter field from search_results
         result = list()
