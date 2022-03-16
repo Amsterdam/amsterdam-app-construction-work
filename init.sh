@@ -22,7 +22,13 @@ function is_db_alive {
     [ "${state}" = "3" ] && state=0 || state=$((state+1))
     sleep 0.1
   done
-  printf '\rchecking for database -> db alive\n'
+  printf '\rChecking for database -> db alive\n'
+}
+
+function enable_db_text_search {
+  printf "\nEnable text search in database\n"
+  PGPASSWORD=${POSTGRES_PASSWORD} psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h ${POSTGRES_HOST} -c "CREATE EXTENSION pg_trgm;"
+  PGPASSWORD=${POSTGRES_PASSWORD} psql -U ${POSTGRES_USER} -d ${POSTGRES_DB} -h ${POSTGRES_HOST} -c "CREATE EXTENSION unaccent;"
 }
 
 function set_header {
@@ -82,6 +88,7 @@ function enter_infinity_loop {
 }
 
 is_db_alive
+enable_db_text_search
 set_header
 enable_python_venv
 make_migrations
