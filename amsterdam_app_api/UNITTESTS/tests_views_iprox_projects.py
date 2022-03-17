@@ -1,4 +1,5 @@
 import json
+from django.db import connections, DEFAULT_DB_ALIAS
 from django.test import Client
 from django.test import TestCase
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
@@ -11,6 +12,12 @@ messages = Messages()
 
 class SetUp:
     def __init__(self):
+        # Create needed database extensions
+        connection = connections[DEFAULT_DB_ALIAS]
+        cursor = connection.cursor()
+        cursor.execute('CREATE EXTENSION pg_trgm')
+        cursor.execute('CREATE EXTENSION unaccent')
+
         self.data = TestData()
         for project in self.data.projects:
             Projects.objects.create(**project)
@@ -121,6 +128,78 @@ class TestApiProjects(TestCase):
         self.assertDictEqual(results, expected_result)
 
 
+class TestApiProjectsSearch(TestCase):
+    def __init__(self, *args, **kwargs):
+        super(TestApiProjectsSearch, self).__init__(*args, **kwargs)
+
+    def setUp(self):
+        SetUp()
+
+    def test_search(self):
+        c = Client()
+        query = {
+            'text': 'title',
+            'query_fields': 'title,subtitle',
+            'fields': 'title,subtitle',
+            'page_size': 1,
+            'page': 1
+        }
+        response = c.get('/api/v1/projects/search', query)
+        result = json.loads(response.content)
+        expected_result = {
+            'status': True,
+            'result': [{'title': 'title', 'subtitle': 'subtitle', 'score': 1.3333333432674408}],
+            'pages': 2
+        }
+
+        self.assertEqual(response.status_code, 200)
+        self.assertDictEqual(result, expected_result)
+
+    def test_no_text(self):
+        c = Client()
+        query = {
+            'query_fields': 'title,subtitle',
+            'fields': 'title,subtitle',
+            'page_size': 1,
+            'page': 1
+        }
+        response = c.get('/api/v1/projects/search', query)
+        result = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 422)
+        self.assertDictEqual(result, {'status': False, 'result': messages.invalid_query})
+
+    def test_invalid_model_field(self):
+        c = Client()
+        query = {
+            'text': 'mock',
+            'query_fields': 'mock',
+            'fields': 'title,subtitle',
+            'page_size': 1,
+            'page': 1
+        }
+        response = c.get('/api/v1/projects/search', query)
+        result = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 422)
+        self.assertDictEqual(result, {'status': False, 'result': messages.no_such_field_in_model})
+
+    def test_invalid_model_return_field(self):
+        c = Client()
+        query = {
+            'text': 'mock',
+            'query_fields': 'title,subtitle',
+            'fields': 'mock',
+            'page_size': 1,
+            'page': 1
+        }
+        response = c.get('/api/v1/projects/search', query)
+        result = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 422)
+        self.assertDictEqual(result, {'status': False, 'result': messages.no_such_field_in_model})
+
+
 class TestApiProjectDetails(TestCase):
     def __init__(self, *args, **kwargs):
         super(TestApiProjectDetails, self).__init__(*args, **kwargs)
@@ -159,3 +238,76 @@ class TestApiProjectDetails(TestCase):
 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.data, {'status': False, 'result': messages.no_record_found})
+
+
+class TestApiProjectDetailsSearch(TestCase):
+    def __init__(self, *args, **kwargs):
+        super(TestApiProjectDetailsSearch, self).__init__(*args, **kwargs)
+
+    def setUp(self):
+        SetUp()
+
+    def test_search(self):
+        c = Client()
+        query = {
+            'text': 'test0',
+            'query_fields': 'title,subtitle',
+            'fields': 'title,subtitle',
+            'page_size': 1,
+            'page': 1
+        }
+        response = c.get('/api/v1/project/details/search', query)
+        result = json.loads(response.content)
+        expected_result = {
+            'status': True,
+            'result': [{'title': 'test0', 'subtitle': 'subtitle', 'score': 1.0}],
+            'pages': 2
+        }
+
+        self.assertEqual(response.status_code, 200)
+        self.assertDictEqual(result, expected_result)
+
+    def test_no_text(self):
+        c = Client()
+        query = {
+            'query_fields': 'title,subtitle',
+            'fields': 'title,subtitle',
+            'page_size': 1,
+            'page': 1
+        }
+        response = c.get('/api/v1/project/details/search', query)
+        result = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 422)
+        self.assertDictEqual(result, {'status': False, 'result': messages.invalid_query})
+
+    def test_invalid_model_field(self):
+        c = Client()
+        query = {
+            'text': 'mock',
+            'query_fields': 'mock',
+            'fields': 'title,subtitle',
+            'page_size': 1,
+            'page': 1
+        }
+        response = c.get('/api/v1/project/details/search', query)
+        result = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 422)
+        self.assertDictEqual(result, {'status': False, 'result': messages.no_such_field_in_model})
+
+    def test_invalid_model_return_field(self):
+        c = Client()
+        query = {
+            'text': 'mock',
+            'query_fields': 'title,subtitle',
+            'fields': 'mock',
+            'page_size': 1,
+            'page': 1
+        }
+        response = c.get('/api/v1/project/details/search', query)
+        result = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 422)
+        self.assertDictEqual(result, {'status': False, 'result': messages.no_such_field_in_model})
+

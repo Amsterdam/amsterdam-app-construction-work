@@ -18,13 +18,13 @@ from amsterdam_app_api.views import views_city
 
 
 schema_view = get_schema_view(
-   openapi.Info(
-      title="Amsterdam APP Backend API",
-      default_version='v1',
-      description="API backend server for Amsterdam App."
-   ),
-   public=True,
-   permission_classes=(permissions.AllowAny,),
+    openapi.Info(
+        title="Amsterdam APP Backend API",
+        default_version='v1',
+        description="API backend server for Amsterdam App."
+    ),
+    public=True,
+    permission_classes=(permissions.AllowAny,),
 )
 
 """ Base path: /api/v1
@@ -44,8 +44,14 @@ urlpatterns = [
 
     # Project(s)
     path('projects', csrf_exempt(views_iprox_projects.projects)),
+    path('projects/search', csrf_exempt(views_iprox_projects.projects_search)),
     path('projects/distance', csrf_exempt(views_distance.distance)),
+
+    # Projec details(s)
     path('project/details', csrf_exempt(views_iprox_projects.project_details)),
+    path('project/details/search', csrf_exempt(views_iprox_projects.project_details_search)),
+
+    # News
     path('project/news_by_project_id', csrf_exempt(views_iprox_news.news_by_project_id)),
     path('project/news', csrf_exempt(views_iprox_news.news)),
 
@@ -78,5 +84,5 @@ urlpatterns = [
     # City information (contact, counters)
     path('city/contact', csrf_exempt(views_city.city_contact)),
     path('city/office', csrf_exempt(views_city.city_office)),
-    path('city/offices', csrf_exempt(views_city.city_offices))
+    path('city/offices', csrf_exempt(views_city.city_offices)),
 ]
