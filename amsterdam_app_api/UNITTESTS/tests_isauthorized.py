@@ -1,3 +1,5 @@
+import os
+
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory
 from django.test import TestCase
@@ -35,7 +37,7 @@ class TestIsAuthorized(TestCase):
         def a_view(request):
             return 'success'
 
-        token = AESCipher('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '6886b31dfe27e9306c3d2b553345d9e5').encrypt()
+        token = AESCipher('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', os.getenv('AES_SECRET')).encrypt()
         headers = {'Accept': 'application/json', 'UserAuthorization': token}
         request = self.factory.post('/', headers=headers)
         resp = a_view(request)

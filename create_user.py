@@ -29,13 +29,13 @@ def source_environment():
 def create_user():
     source_environment()
 
-    UserModel = get_user_model()
+    model = get_user_model()
     username = os.getenv('WEB_USERNAME')
     password = os.getenv('WEB_PASSWORD')
     print(username, password)
 
-    if not UserModel.objects.filter(username=username).exists():
-        user = UserModel.objects.create_user(username, password=password)
+    if not model.objects.filter(username=username).exists():
+        user = model.objects.create_user(username, password=password)
         user.is_superuser = False
         user.is_staff = True
         user.save()

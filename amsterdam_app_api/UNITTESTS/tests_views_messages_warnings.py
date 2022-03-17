@@ -18,7 +18,7 @@ class TestApiProjectWarning(TestCase):
         self.data = TestData()
         self.url = '/api/v1/project/warning'
         self.url_warnings_get = '/api/v1/project/warnings'
-        self.token = AESCipher('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '6886b31dfe27e9306c3d2b553345d9e5').encrypt()
+        self.token = AESCipher('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', os.getenv('AES_SECRET')).encrypt()
         self.headers = {"UserAuthorization": self.token}
         self.content_type = "application/json"
         self.client = Client()

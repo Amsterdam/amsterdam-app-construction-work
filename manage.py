@@ -53,6 +53,9 @@ def main():
     print('API documentation: http://0.0.0.0:8000/api/v1/apidocs')
 
     if is_testing:
+        os.environ['AES_SECRET'] = 'aes_mock_secret'
+        os.environ['APP_TOKEN'] = 'app_mock_token'
+
         import coverage
         cov = coverage.coverage(source=['amsterdam_app_api'], omit=['*/tests/*'])
         cov.erase()

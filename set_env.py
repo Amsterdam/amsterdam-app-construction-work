@@ -38,13 +38,21 @@ class SetEnv:
 
             # get/set credentials
             while True:
-                random_password = self.create_password()
-
+                random_psql_password = self.create_password()
+                random_web_password = self.create_password()
                 postgres_database = input('Please enter your POSTGRES database (default: amsterdam_app_backend): ') or 'amsterdam_app_backend'
                 postgres_user = input('Please enter your POSTGRES username (default: backend): ') or 'backend'
-                postgres_password = input('Please enter your POSTGRES password (or use: {random_password}): '.format(random_password=random_password)) or random_password
+                postgres_password = input('Please enter your POSTGRES password (or use: {random_psql_password}): '.format(random_psql_password=random_psql_password)) or random_psql_password
+                web_username = input('Please enter your WEB username (default: redactie@amsterdam.nl): ') or 'redactie@amsterdam.nl'
+                web_password = input('Please enter your WEB password (or use: {random_web_password}): '.format(random_web_password=random_web_password)) or random_web_password
+                app_token = input('Please enter you Secret APP token')
+                aes_secret = input('Please enter you AES secret')
+
                 if self.weak(postgres_password) is True:
-                    print('Warning: You\'re using a weak password!')
+                    print('Warning: You\'re using a weak database password!')
+                if self.weak(web_password) is True:
+                    print('Warning: You\'re using a weak web user password!')
+
                 satisfied = input('Save values to environment? (Y/N/A(bort)): ') or 'n'
                 if satisfied.lower() in ['y', 'a']:
                     if satisfied.lower() == 'y':
@@ -52,6 +60,10 @@ class SetEnv:
                             f.write('POSTGRES_PASSWORD={postgres_password}\n'.format(postgres_password=postgres_password))
                             f.write('POSTGRES_USER={postgres_user}\n'.format(postgres_user=postgres_user))
                             f.write('POSTGRES_DB={postgres_database}\n'.format(postgres_database=postgres_database))
+                            f.write('WEB_USERNAME={web_username}\n'.format(web_username=web_username))
+                            f.write('WEB_PASSWORD={web_password}\n'.format(web_password=web_password))
+                            f.write('APP_TOKEN={app_token}\n'.format(app_token=app_token))
+                            f.write('AES_SECRET={aes_secret}\n'.format(aes_secret=aes_secret))
                         print('Environment written to: {path}'.format(path=path))
                         return
                     else:

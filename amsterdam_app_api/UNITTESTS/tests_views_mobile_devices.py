@@ -1,3 +1,4 @@
+import os
 from django.test import Client
 from django.test import TestCase
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
@@ -21,7 +22,7 @@ class TestApiDeviceRegistration(TestCase):
     def __init__(self, *args, **kwargs):
         super(TestApiDeviceRegistration, self).__init__(*args, **kwargs)
         self.url = '/api/v1/device_registration'
-        self.token = AESCipher('44755871-9ea6-4018-b1df-e4f00466c723', '6886b31dfe27e9306c3d2b553345d9e5').encrypt()
+        self.token = AESCipher(os.getenv('APP_TOKEN'), os.getenv('AES_SECRET')).encrypt()
 
     def setUp(self):
         SetUp()
