@@ -82,7 +82,7 @@ You can export the environment parameter like this:
     amsterdam_app_backend=# CREATE EXTENSION pg_trgm;
     amsterdam_app_backend=# CREATE EXTENSION unaccent;
 
-needs: 
+Once you have setup above extensions django needs an empty migration: 
 
     ./manage.py makemigrations --empty amsterdam_app_api
     ./manage.py migrate
