@@ -1,3 +1,4 @@
+import os
 import functools
 import jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError
@@ -48,7 +49,7 @@ class IsAuthorized:
 
     @staticmethod
     def is_valid_AES_token(encrypted_token=None):
-        token = AESCipher(encrypted_token, '6886b31dfe27e9306c3d2b553345d9e5').decrypt()
+        token = AESCipher(encrypted_token, os.getenv('AES_SECRET')).decrypt()
         project_manager = ProjectManager.objects.filter(pk=token).first()
         if project_manager is None:
             return False

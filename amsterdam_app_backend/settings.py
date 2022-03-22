@@ -3,6 +3,7 @@ Django settings for amsterdam_app_backend project.
 """
 import os
 from uuid import uuid4
+from base64 import b64encode
 from pathlib import Path
 from amsterdam_app_api.GenericFunctions.Hashing import Hashing
 
@@ -13,7 +14,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
 # Create random security string on startup
-SECRET_KEY = 'b7%xp-c$+1qxhih-xztuk5j@shbd5c-py*8emh2wly@@$c8r=0'
+SECRET_KEY = b64encode(str(uuid4()).encode('utf-8')).decode()
 
 # Whether to use a secure cookie for the CSRF cookie. If this is set to True, the cookie will be marked as “secure”,
 # which means browsers may ensure that the cookie is only sent with an HTTPS connection.
