@@ -1,4 +1,4 @@
-FROM python:3
+FROM amsterdam/python:3.9-buster AS builder
 ENV PYTHONUNBUFFERED=1
 
 # Install CRON to the python container
