@@ -1,4 +1,5 @@
 import json
+import os
 import uuid
 from django.test import Client
 from django.test import TestCase
@@ -17,7 +18,7 @@ class TestApiNotification(TestCase):
         super(TestApiNotification, self).__init__(*args, **kwargs)
         self.data = TestData()
         self.url = '/api/v1/notification'
-        self.token = AESCipher('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', '6886b31dfe27e9306c3d2b553345d9e5').encrypt()
+        self.token = AESCipher('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', os.getenv('AES_SECRET')).encrypt()
         self.headers = {"UserAuthorization": self.token}
         self.content_type = "application/json"
         self.client = Client()

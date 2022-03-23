@@ -1,8 +1,9 @@
+import os
 import functools
 from amsterdam_app_api.GenericFunctions.AESCipher import AESCipher
 from django.http.response import HttpResponseForbidden
 
-valid_app_token = "44755871-9ea6-4018-b1df-e4f00466c723"
+valid_app_token = os.getenv('APP_TOKEN')
 
 
 class RequestMustComeFromApp:
@@ -38,7 +39,7 @@ class RequestMustComeFromApp:
     def is_valid_token(encrypted_token=None):
         if encrypted_token is None:
             return False
-        token = AESCipher(encrypted_token, '6886b31dfe27e9306c3d2b553345d9e5').decrypt()
+        token = AESCipher(encrypted_token, os.getenv('AES_SECRET')).decrypt()
         if valid_app_token != token:
             return False
         return True
