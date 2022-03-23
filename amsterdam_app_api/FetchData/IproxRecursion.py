@@ -4,7 +4,7 @@ class IproxRecursion:
     """
 
     def filter(self, data, result, targets=None, veld=None):
-        # Iprox sub-trees are either lists or dictionaries
+        # Iprox subtrees are either lists or dictionaries
         if isinstance(data, dict):
             if data.get('Nam') in targets:
                 if data.get('veld', None) is not None:

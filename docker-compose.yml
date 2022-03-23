@@ -25,6 +25,8 @@ services:
       - POSTGRES_HOST=db
       - WEB_USERNAME=${WEB_USERNAME}
       - WEB_PASSWORD=${WEB_PASSWORD}
+      - APP_TOKEN=${APP_TOKEN}
+      - AES_SECRET=${AES_SECRET}
     ports:
       - "8000:8000"
     depends_on:
