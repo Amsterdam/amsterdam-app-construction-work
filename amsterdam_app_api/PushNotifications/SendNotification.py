@@ -45,7 +45,7 @@ class SendNotification:
                 self.article_type = 'NewsUpdatedByProjectManager'
                 self.link_source_id = notification.news_identifier
             elif notification.warning_identifier != '' and notification.warning_identifier is not None:
-                self.article_type = 'WarningCreatedByProjectManager'
+                self.article_type = 'ProjectWarningCreatedByProjectManager'
                 self.link_source_id = notification.warning_identifier
 
             return messaging.Notification(
