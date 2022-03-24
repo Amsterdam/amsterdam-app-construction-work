@@ -35,11 +35,6 @@ function set_header {
     printf "\nInitializing Amsterdam-App-Backend\n"
 }
 
-function enable_python_venv {
-   printf "\nEnabling python venv\n"
-   cd /code && source venv/bin/activate
-}
-
 function make_migrations {
     printf "\nRunning DB migrations scripts ... "
     cd /code && python manage.py makemigrations amsterdam_app_api
@@ -68,7 +63,7 @@ function create_user {
 
 function create_vue_code {
   printf "\nCompiling Vue\n"
-  cd /code/vue_web_code && npm install && npm run build
+  cd /code/vue_web_code && npm install && npm run build && npm cache clean --force
 }
 
 function start_backend {
@@ -90,7 +85,6 @@ function enter_infinity_loop {
 is_db_alive
 enable_db_text_search
 set_header
-enable_python_venv
 make_migrations
 create_user
 create_vue_code

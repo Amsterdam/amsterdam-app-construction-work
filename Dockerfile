@@ -1,24 +1,25 @@
-FROM amsterdam/python:3.9-buster AS builder
-ENV PYTHONUNBUFFERED=1
-
-# Install CRON to the python container
-RUN apt-get update  \
- && apt-get -y install --no-install-recommends cron netcat npm postgresql-client \
- && rm -rf /var/lib/apt/lists/*
+FROM python:3.9.0-slim-buster
+ENV PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=on
 
 # Install python requirements
 COPY requirements.txt /code/
-RUN cd /code \
- && python3 -m venv venv \
- && . venv/bin/activate \
- && venv/bin/pip install --upgrade pip wheel setuptools \
- && venv/bin/pip install -r requirements.txt
 
-# Setup run script
-COPY init.sh /code/
-RUN chmod +x /code/init.sh
+# Install CRON to the python container
+RUN apt-get update  \
+ && apt-get -y install --no-install-recommends \
+    cron \
+    netcat \
+    postgresql-client-11 \
+    npm \
+ && rm -rf /var/lib/apt/lists/* /var/cache/debconf/*-old \
+ && apt-get autoremove -y \
+ && cd /code \
+ && python3 -m pip install -r requirements.txt \
+ && rm -rf /tmp/*
 
 # Copy sources to container
+COPY init.sh /code/
 COPY env /code/
 COPY static /code/static
 COPY manage.py /code/
@@ -29,3 +30,6 @@ COPY vue_web_code /code/vue_web_code
 COPY fcm_credentials.json /code/
 COPY amsterdam_app_backend /code/amsterdam_app_backend
 COPY amsterdam_app_api /code/amsterdam_app_api
+
+# Setup run script
+RUN chmod +x /code/init.sh
