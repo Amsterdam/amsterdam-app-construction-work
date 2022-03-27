@@ -61,11 +61,6 @@ function create_user {
     cd /code && python create_user.py
 }
 
-function create_vue_code {
-  printf "\nCompiling Vue\n"
-  cd /code/vue_web_code && npm install && npm run build && npm cache clean --force
-}
-
 function start_backend {
     printf "\nStarting Django API server\n\n"
     cd /code && python manage.py runserver 0.0.0.0:8000
@@ -87,7 +82,6 @@ enable_db_text_search
 set_header
 make_migrations
 create_user
-# create_vue_code
 add_cron_jobs
 add_static_files
 enter_infinity_loop

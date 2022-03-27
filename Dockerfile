@@ -33,7 +33,7 @@ COPY vue_web_code /code/vue_web_code
 RUN cd /code/vue_web_code \
  && npm install --force \
  && npm run build \
- && rm -rf node_modules
+ && rm -rf /code/vue_web_code/node_modules
 
 # Copy sources to container
 COPY init.sh /code/
