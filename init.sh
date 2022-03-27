@@ -87,7 +87,7 @@ enable_db_text_search
 set_header
 make_migrations
 create_user
-create_vue_code
+# create_vue_code
 add_cron_jobs
 add_static_files
 enter_infinity_loop

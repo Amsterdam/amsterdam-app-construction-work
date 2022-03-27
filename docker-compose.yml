@@ -3,7 +3,7 @@ version: '3.7'
 services:
   # POSTGRES DATABASE SERVER
   db:
-    image: postgres
+    image: postgres:13
     volumes:
       - ./data/db:/var/lib/postgresql/data
     environment:
