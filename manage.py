@@ -13,9 +13,9 @@ def source_environment():
                 lines = f.readlines()
                 for line in lines:
                     line = line.replace('\n', '')
-                    pair = line.split('=')
-                    key = line.split('=')[0]
-                    value = "".join([pair[i] for i in range(1, len(pair))])
+                    pair = line.split('=', 1)
+                    key = pair[0]
+                    value = pair[1]
                     os.environ[key] = value
             except Exception as error:
                 print('Caught error in reading enviroment file: {error}'.format(error=error))

@@ -59,7 +59,15 @@ urlpatterns = [
     path('articles', csrf_exempt(views_iprox_news.articles)),
 
     # Ingestion
-    path('ingest', csrf_exempt(views_ingest.ingest_projects)),
+    path('ingest/garbagecollector', csrf_exempt(views_ingest.garbage_collector)),
+    path('ingest/image', csrf_exempt(views_ingest.image)),
+    path('ingest/asset', csrf_exempt(views_ingest.asset)),
+    path('ingest/cityoffice', csrf_exempt(views_ingest.city_office)),
+    path('ingest/cityoffices', csrf_exempt(views_ingest.city_offices)),
+    path('ingest/citycontact', csrf_exempt(views_ingest.city_contact)),
+    path('ingest/project', csrf_exempt(views_ingest.project)),
+    path('ingest/projects', csrf_exempt(views_ingest.projects)),
+    path('ingest/news', csrf_exempt(views_ingest.news)),
 
     # Image & Assets
     path('image', csrf_exempt(views_generic.image)),
