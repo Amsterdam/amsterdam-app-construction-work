@@ -6,7 +6,6 @@ ENV PYTHONUNBUFFERED=1 \
 COPY requirements.txt /code/
 RUN apt-get update  \
  && apt-get -y install --no-install-recommends \
-    cron \
     netcat \
     vim \
     procps \
