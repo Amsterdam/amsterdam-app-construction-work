@@ -390,7 +390,6 @@ class TestApiImage(TestCase):
         self.assertEqual(result.data, {'status': False, 'result': 'JSON parse error - Expecting value: line 1 column 1 (char 0)'})
         self.assertEqual(len(news_objects), 0)
 
-
     def test_garbage_collection(self):
         def mock(*args, **kwargs):
             pass
