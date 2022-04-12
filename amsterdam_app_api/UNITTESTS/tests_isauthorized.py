@@ -43,6 +43,27 @@ class TestIsAuthorized(TestCase):
         resp = a_view(request)
         self.assertEqual(resp, 'success')
 
+    def test_valid_token_ingest(self):
+        @IsAuthorized
+        def a_view(request):
+            return 'success'
+
+        token = AESCipher('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', os.getenv('AES_SECRET')).encrypt()
+        headers = {'Accept': 'application/json', 'HTTP_INGESTAUTHORIZATION': token}
+        request = self.factory.post('/', headers=headers)
+        resp = a_view(request)
+        self.assertEqual(resp, 'success')
+
+    def test_invalid_token_ingest(self):
+        @IsAuthorized
+        def a_view(request):  # pragma: no cover
+            return 'success'
+
+        headers = {'Accept': 'application/json', 'HTTP_INGESTAUTHORIZATION': 'bogus'}
+        request = self.factory.post('/', headers=headers)
+        result = a_view(request)
+        self.assertEqual(result.reason_phrase, 'Forbidden')
+
     def test_invalid_token(self):
         @IsAuthorized
         def a_view(request):  # pragma: no cover
