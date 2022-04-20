@@ -27,6 +27,7 @@ services:
       - WEB_PASSWORD=${WEB_PASSWORD}
       - APP_TOKEN=${APP_TOKEN}
       - AES_SECRET=${AES_SECRET}
+      - API_PORT=${API_PORT}
     ports:
       - "${API_PORT:-8000}:${API_PORT:-8000}"
     depends_on:
