@@ -54,7 +54,9 @@ function create_user {
 
 function start_backend {
     printf "\nStarting Django API server\n\n"
-    cd /code && python manage.py runserver 0.0.0.0:8000
+    DEFAULT_API_PORT=8000
+    API_PORT="${API_PORT:=${DEFAULT_API_PORT}}"
+    cd /code && python manage.py runserver 0.0.0.0:${API_PORT}
 }
 
 function enter_infinity_loop {

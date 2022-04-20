@@ -28,7 +28,7 @@ services:
       - APP_TOKEN=${APP_TOKEN}
       - AES_SECRET=${AES_SECRET}
     ports:
-      - "8000:8000"
+      - "${API_PORT:8000}:${API_PORT:8000}"
     depends_on:
       - db
     restart: always
