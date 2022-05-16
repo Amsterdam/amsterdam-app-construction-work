@@ -11,6 +11,9 @@ from amsterdam_app_api.models import Notification
 from amsterdam_app_api.models import CityContact
 from amsterdam_app_api.models import CityOffice
 from amsterdam_app_api.models import CityOffices
+from amsterdam_app_api.models import Modules
+from amsterdam_app_api.models import ModulesByApp
+from amsterdam_app_api.models import ModuleOrder
 
 
 class AssetsSerializer(serializers.ModelSerializer):
@@ -94,4 +97,22 @@ class CityOfficesSerializer(serializers.ModelSerializer):
 class CityOfficeSerializer(serializers.ModelSerializer):
     class Meta:
         model = CityOffice
+        fields = '__all__'
+
+
+class ModulesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Modules
+        fields = '__all__'
+
+
+class ModulesByAppSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ModulesByApp
+        fields = '__all__'
+
+
+class ModuleOrderSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ModuleOrder
         fields = '__all__'
