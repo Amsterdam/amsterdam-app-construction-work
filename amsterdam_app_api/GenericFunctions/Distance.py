@@ -31,11 +31,12 @@ class Distance:
         :param coords_2: (52.406374, 16.9251681)
         """
 
-        self.meter = 0.0
-        self.strides = 0.0
+        self.meter = None
+        self.strides = None
 
-        try:
-            self.meter = geopy.distance.geodesic(coords_1, coords_2).km * 1000
-            self.strides = self.meter / 0.74
-        except Exception as error:
-            print(error, flush=True)
+        if not any(elem is None for elem in [coords_1[0], coords_1[1], coords_2[0], coords_2[1]]):
+            try:
+                self.meter = geopy.distance.geodesic(coords_1, coords_2).km * 1000
+                self.strides = self.meter / 0.74
+            except Exception as error:
+                print(error, flush=True)

@@ -30,8 +30,8 @@ def distance(request):
             serializer = ProjectsSerializer(projects_object, many=False)
 
         result = serializer.data
-        result['meter'] = int(distance.meter)
-        result['strides'] = int(distance.strides)
+        result['meter'] = int(_distance.meter)
+        result['strides'] = int(_distance.strides)
         return result
 
     lat = request.GET.get('lat', None)
@@ -61,13 +61,15 @@ def distance(request):
     projects = list(ProjectDetails.objects.filter().all())
     for project in projects:
         cords_2 = (project.coordinates['lat'], project.coordinates['lon'])
-        distance = Distance(cords_1, cords_2)
+        if (0, 0) == (int(project.coordinates['lat']), int(project.coordinates['lon'])):
+            cords_2 = (None, None)
+        this_distance = Distance(cords_1, cords_2)
 
         if radius is None:
-            result = get_projects_data(project.identifier, model_items, distance)
+            result = get_projects_data(project.identifier, model_items, this_distance)
             results.append(result)
-        elif distance.meter < float(radius):
-            result = get_projects_data(project.identifier, model_items, distance)
+        elif this_distance.meter < float(radius):
+            result = get_projects_data(project.identifier, model_items, this_distance)
             results.append(result)
 
     sorted_results = Sort().list_of_dicts(results, key='meter', sort_order='asc')
