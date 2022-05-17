@@ -29,7 +29,7 @@ def city_contact(request):
 def city_offices(request):
     data = CityOffices.objects.first()
     serializer = CityOfficesSerializer(data, many=False)
-    return Response({'status': True, 'result': serializer.data})
+    return Response({'status': True, 'result': serializer.data}, 200)
 
 
 @swagger_auto_schema(**as_city_office)

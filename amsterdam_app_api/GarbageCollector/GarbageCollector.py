@@ -7,18 +7,18 @@ from amsterdam_app_api.models import WarningMessages
 from amsterdam_app_api.models import ProjectManager
 
 
-class IproxGarbageCollector:
+class GarbageCollector:
     def __init__(self, last_scrape_time=0):
         self.last_scrape_time = last_scrape_time
 
-    def run(self, project_type=None):
+    def collect_iprox(self, project_type=None):
         # If there's no path, projects might be de-activated un-rightfully
         if project_type is not None:
-            self.garbage_collect(Projects.objects.filter(project_type=project_type).all(), siblings=True)
-            self.garbage_collect(ProjectDetails.objects.filter(project_type=project_type).all())
-            self.garbage_collect(News.objects.filter(project_type=project_type).all())
+            self.garbage_collect_iprox(Projects.objects.filter(project_type=project_type).all(), siblings=True)
+            self.garbage_collect_iprox(ProjectDetails.objects.filter(project_type=project_type).all())
+            self.garbage_collect_iprox(News.objects.filter(project_type=project_type).all())
 
-    def garbage_collect(self, data_objects, siblings=False):
+    def garbage_collect_iprox(self, data_objects, siblings=False):
         for data_object in data_objects:
             # Check if we've seen this project anywhere in the last week, if not -> delete!
             if data_object.last_seen + datetime.timedelta(days=7) <= self.last_scrape_time:

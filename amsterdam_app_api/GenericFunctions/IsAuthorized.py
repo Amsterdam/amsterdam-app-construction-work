@@ -1,6 +1,7 @@
 import os
 import functools
 import jwt
+from uuid import UUID
 from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError
 from amsterdam_app_backend.settings import SECRET_KEY
 from amsterdam_app_api.GenericFunctions.AESCipher import AESCipher
@@ -28,18 +29,25 @@ class IsAuthorized:
         try:
             request = args[0]
             http_userauthorization = request.META.get('HTTP_USERAUTHORIZATION', None)
-            header_userauthorization = request.META.get('headers', {}).get('UserAuthorization', None)
+            http_ingestauthorization = request.META.get('HTTP_INGESTAUTHORIZATION', None)
             jwt_token = request.META.get('HTTP_AUTHORIZATION', None)
-            header_jwt_token = str(request.META.get('headers', {}).get('HTTP_AUTHORIZATION', None)).encode('utf-8')
 
-            encrypted_token = http_userauthorization if http_userauthorization is not None else header_userauthorization
-            jwt_encrypted_token = jwt_token if jwt_token is not None else header_jwt_token
+            header_userauthorization = request.META.get('headers', {}).get('UserAuthorization', None)
+            header_ingestauthorization = request.META.get('headers', {}).get('HTTP_INGESTAUTHORIZATION', None)
+            header_jwt_token = request.META.get('headers', {}).get('HTTP_AUTHORIZATION', None)
 
-            if encrypted_token is not None:
-                if self.is_valid_AES_token(encrypted_token=encrypted_token):
+            userauthorization = http_userauthorization if http_userauthorization is not None else header_userauthorization
+            ingestauthorization = http_ingestauthorization if http_ingestauthorization is not None else header_ingestauthorization
+            jwtauthorization = header_jwt_token.encode('utf-8') if header_jwt_token is not None else jwt_token
+
+            if userauthorization is not None:
+                if self.is_valid_AES_token(encrypted_token=userauthorization):
                     return self.func(*args, **kwargs)
-            elif jwt_encrypted_token is not None:
-                if self.is_valid_JWT_token(jwt_encrypted_token=jwt_encrypted_token):
+            elif jwtauthorization is not None:
+                if self.is_valid_JWT_token(jwt_encrypted_token=jwtauthorization):
+                    return self.func(*args, **kwargs)
+            elif ingestauthorization is not None:
+                if self.is_valid_INGEST_token(encrypted_token=ingestauthorization):
                     return self.func(*args, **kwargs)
         except Exception as error:  # pragma: no cover
             pass
@@ -60,5 +68,13 @@ class IsAuthorized:
         try:
             token_dict = jwt.decode(jwt_encrypted_token, SECRET_KEY, algorithms=["HS256"])
             return isinstance(token_dict, dict)
+        except (InvalidSignatureError, ExpiredSignatureError, Exception) as error:
+            return False
+
+    @staticmethod
+    def is_valid_INGEST_token(encrypted_token=None):
+        try:
+            token = UUID(AESCipher(encrypted_token, os.getenv('AES_SECRET')).decrypt(), version=4)
+            return isinstance(token, UUID)
         except (InvalidSignatureError, ExpiredSignatureError, Exception) as error:
             return False

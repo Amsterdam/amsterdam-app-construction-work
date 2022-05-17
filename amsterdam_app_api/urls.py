@@ -15,6 +15,7 @@ from amsterdam_app_api.views import views_project_manager
 from amsterdam_app_api.views import views_mobile_devices
 from amsterdam_app_api.views import views_distance
 from amsterdam_app_api.views import views_city
+from amsterdam_app_api.views import views_modules
 
 
 schema_view = get_schema_view(
@@ -40,7 +41,9 @@ urlpatterns = [
     path('user/password', csrf_exempt(views_user.change_password)),
 
     # Swagger (drf-yasg framework)
-    re_path(r'^apidocs$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
+    re_path(r'^apidocs/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    re_path(r'^redoc/$', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
 
     # Project(s)
     path('projects', csrf_exempt(views_iprox_projects.projects)),
@@ -59,7 +62,15 @@ urlpatterns = [
     path('articles', csrf_exempt(views_iprox_news.articles)),
 
     # Ingestion
-    path('ingest', csrf_exempt(views_ingest.ingest_projects)),
+    path('ingest/garbagecollector', csrf_exempt(views_ingest.garbage_collector)),
+    path('ingest/image', csrf_exempt(views_ingest.image)),
+    path('ingest/asset', csrf_exempt(views_ingest.asset)),
+    path('ingest/cityoffice', csrf_exempt(views_ingest.city_office)),
+    path('ingest/cityoffices', csrf_exempt(views_ingest.city_offices)),
+    path('ingest/citycontact', csrf_exempt(views_ingest.city_contact)),
+    path('ingest/project', csrf_exempt(views_ingest.project)),
+    path('ingest/projects', csrf_exempt(views_ingest.projects)),
+    path('ingest/news', csrf_exempt(views_ingest.news)),
 
     # Image & Assets
     path('image', csrf_exempt(views_generic.image)),
@@ -85,4 +96,10 @@ urlpatterns = [
     path('city/contact', csrf_exempt(views_city.city_contact)),
     path('city/office', csrf_exempt(views_city.city_office)),
     path('city/offices', csrf_exempt(views_city.city_offices)),
+
+    # Modules
+    path('modules_order', csrf_exempt(views_modules.module_order)),
+    path('modules', csrf_exempt(views_modules.modules)),
+    path('modules_by_app', csrf_exempt(views_modules.modules_by_app)),
+    path('modules_for_app', csrf_exempt(views_modules.modules_for_app_get))
 ]

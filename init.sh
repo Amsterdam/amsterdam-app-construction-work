@@ -42,15 +42,6 @@ function make_migrations {
     printf "Done.\n"
 }
 
-function add_cron_jobs {
-    printf "\nRemoving old cronjobs ... "
-    cd /code && python manage.py crontab remove
-    printf "Done.\n"
-    printf "\nSetting new cronjobs ... "
-    cd /code && python manage.py crontab add
-    printf "Done.\n"
-}
-
 function add_static_files {
     printf "\nCollecting static add_static_files\n"
     cd /code && python manage.py collectstatic --no-input
@@ -63,7 +54,9 @@ function create_user {
 
 function start_backend {
     printf "\nStarting Django API server\n\n"
-    cd /code && python manage.py runserver 0.0.0.0:8000
+    DEFAULT_API_PORT=8000
+    API_PORT="${API_PORT:=${DEFAULT_API_PORT}}"
+    cd /code && python manage.py runserver 0.0.0.0:${API_PORT}
 }
 
 function enter_infinity_loop {
@@ -82,6 +75,5 @@ enable_db_text_search
 set_header
 make_migrations
 create_user
-add_cron_jobs
 add_static_files
 enter_infinity_loop

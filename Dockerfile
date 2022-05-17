@@ -6,7 +6,6 @@ ENV PYTHONUNBUFFERED=1 \
 COPY requirements.txt /code/
 RUN apt-get update  \
  && apt-get -y install --no-install-recommends \
-    cron \
     netcat \
     vim \
     procps \
@@ -33,6 +32,7 @@ COPY vue_web_code /code/vue_web_code
 RUN cd /code/vue_web_code \
  && npm install --force \
  && npm run build \
+ && cp -r dist /code/static/ \
  && rm -rf /code/vue_web_code/node_modules
 
 # Copy sources to container

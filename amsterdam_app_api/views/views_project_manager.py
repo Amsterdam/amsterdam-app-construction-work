@@ -96,4 +96,3 @@ def delete(request):
         # remove project manager from database
         ProjectManager.objects.filter(pk=identifier).delete()
         return {'result': {'status': True, 'result': 'Project manager removed'}, 'status': 200}
-
