@@ -210,13 +210,14 @@ def modules_for_app_get(request):
     modules = list()
     for module_by_app in modules_by_app:
         module = Modules.objects.filter(slug=module_by_app.moduleSlug).first()
-        modules.append({
-            'description': module.description,
-            'icon': module.icon,
-            'slug': module.slug,
-            'status': module_by_app.moduleSlug,
-            'title': module.title
-        })
+        if module is not None:
+            modules.append({
+                'description': module.description,
+                'icon': module.icon,
+                'slug': module.slug,
+                'status': module_by_app.moduleSlug,
+                'title': module.title
+            })
 
     modules_ordered = list()
     if module_order is not None:

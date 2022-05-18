@@ -357,10 +357,10 @@ class CityOffice(models.Model):
 
 class Modules(models.Model):
     slug = models.CharField(max_length=100, blank=False)
-    title = models.CharField(max_length=100, blank=False)
+    title = models.CharField(max_length=500, blank=False)
     icon = models.CharField(max_length=100, blank=False)
     version = models.CharField(max_length=100, blank=False)
-    description = models.CharField(max_length=100, blank=False)
+    description = models.CharField(max_length=1000, blank=False)
 
     class Meta:
         unique_together = ('slug', 'version',)
@@ -379,7 +379,7 @@ class Modules(models.Model):
 
 class ModulesByApp(models.Model):
     appVersion = models.CharField(max_length=100, blank=False)
-    moduleSlug = models.CharField(max_length=100, blank=False)
+    moduleSlug = models.CharField(max_length=500, blank=False)
     moduleVersion = models.CharField(max_length=100, blank=False)
     status = models.IntegerField(default=1, blank=False)
 
@@ -406,4 +406,4 @@ class ModulesByApp(models.Model):
 
 class ModuleOrder(models.Model):
     appVersion = models.CharField(max_length=100, blank=False, unique=True, primary_key=True)
-    order = ArrayField(models.CharField(max_length=100, blank=False), blank=False)
+    order = ArrayField(models.CharField(max_length=500, blank=False), blank=False)
