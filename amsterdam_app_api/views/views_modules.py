@@ -215,8 +215,9 @@ def modules_for_app_get(request):
                 'description': module.description,
                 'icon': module.icon,
                 'slug': module.slug,
-                'status': module_by_app.moduleSlug,
-                'title': module.title
+                'status': module_by_app.status,
+                'title': module.title,
+                'version': module.version
             })
 
     modules_ordered = list()
