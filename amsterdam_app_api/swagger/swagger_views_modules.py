@@ -19,14 +19,17 @@ modules_for_app = {
     "slug": slug,
     "title": title,
     "icon": icon,
-    "status": status
+    "status": status,
+    "version": version
 }
+
 modules_by_app = {
     "appVersion": version,
     "moduleSlug": slug,
     "moduleVersion": version,
     "status": status
 }
+
 modules = {
     "slug": slug,
     "title": title,
@@ -34,6 +37,7 @@ modules = {
     "version": version,
     "description": description
 }
+
 module_order = {
     "appVersion": version,
     "order": openapi.Schema(type=openapi.TYPE_ARRAY,
