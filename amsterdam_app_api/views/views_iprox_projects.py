@@ -50,7 +50,7 @@ def projects(request):
         model_items = request.GET.get('fields', None)
 
         # Check query parameters
-        if project_type is not None and project_type not in ['brug', 'kade']:
+        if project_type is not None and project_type not in ['brug', 'kade', 'bouw-en-verkeer']:
             return Response({'status': False, 'result': message.invalid_query}, status=422)
 
         # Get list of projects by district
