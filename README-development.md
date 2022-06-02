@@ -5,8 +5,8 @@
 
 ### Create container on m1 arch for amd64
     
-    docker buildx build --platform=linux/amd64 . -t registry.example.com/amsterdam-app-backend-dev:latest
-
+    docker buildx build --platform=linux/amd64 . -t registry-ams.luscinia-solutions.com/backend-api:tst-latest
+    docker buildx build --platform=linux/amd64 . -t registry-ams.luscinia-solutions.com/backend-api:prd-latest
 
 ### Branches
 The _main_ branch is the current stable release where the _main_ branch (made from _main_) is the upcoming
