@@ -49,3 +49,4 @@ class AESCipher:
         except Exception as error:
             self.logger.error(error)
             return None
+
