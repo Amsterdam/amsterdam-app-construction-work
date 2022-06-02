@@ -3,6 +3,11 @@
 ### Pull sources from repository 
     git clone git@ssh.dev.azure.com:v3/CloudCompetenceCenter/Amsterdam-App/Amsterdam-App-Backend
 
+### Create container on m1 arch for amd64
+    
+    docker buildx build --platform=linux/amd64 . -t registry-ams.luscinia-solutions.com/backend-api:tst-latest
+    docker buildx build --platform=linux/amd64 . -t registry-ams.luscinia-solutions.com/backend-api:prd-latest
+
 ### Branches
 The _main_ branch is the current stable release where the _main_ branch (made from _main_) is the upcoming
 stable. From the _develop_ feature branches are derived and merged back on _develop_

@@ -99,7 +99,15 @@ class Image(models.Model):
         "title": string,
         "subtitle": string,
         "rel_url": string,
-        "url": string
+        "url": string,
+        "contacts": [{
+            'name': None, 
+            'position': None, 
+            'email': None, 
+            'phone': None, 
+            'address': None
+            }, ...
+        ]
       }
 """
 
@@ -140,6 +148,7 @@ class ProjectDetails(models.Model):
     url = models.CharField(max_length=1000, blank=True, default='')
     last_seen = models.DateTimeField(auto_now=True, blank=True)
     active = models.BooleanField(default=True, blank=True)
+    contacts = models.JSONField(null=True, default=list)
 
     class Meta:
         ordering = ['district_id', 'title']

@@ -14,7 +14,7 @@ as_projects = {
                                             openapi.IN_QUERY,
                                             'Query by projects type',
                                             type=openapi.TYPE_STRING,
-                                            format='<brug, kade>',
+                                            format='<brug, kade, bouw-en-verkeer>',
                                             required=False),
                           openapi.Parameter('district-id',
                                             openapi.IN_QUERY,
