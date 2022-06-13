@@ -13,7 +13,7 @@ class Sort:
                 reverse = sort_order == 'desc'
 
                 if reverse is True:
-                    result = sorted(items, key=lambda x: (x[key] is not None, x[key]))
+                    result = sorted(items, key=lambda x: (x[key] is not None, x[key]), reverse=True)
                 else:
                     result = sorted(items, key=lambda x: (x[key] is None, x[key]))
                 return result
