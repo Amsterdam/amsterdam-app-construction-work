@@ -1,0 +1,132 @@
+{
+  "consumer": {
+    "name": "Consumer_iprox_scraper"
+  },
+  "provider": {
+    "name": "Provider_api_v1_ingest_city_contact"
+  },
+  "interactions": [
+    {
+      "description": "A valid office json blob",
+      "providerState": "Consumer calls City Contact ingest route on backend",
+      "request": {
+        "method": "POST",
+        "path": "/api/v1/ingest/citycontact",
+        "headers": {
+          "Accept": "application/json",
+          "IngestAuthorization": "a/secret/token"
+        },
+        "body": [
+          {
+            "html": "",
+            "text": "",
+            "title": "Melden"
+          },
+          {
+            "html": "",
+            "text": "",
+            "title": "Mailen"
+          },
+          {
+            "html": "",
+            "text": "",
+            "title": "Bellen"
+          },
+          {
+            "html": "",
+            "text": "",
+            "title": "Directe telefoonnummers"
+          },
+          {
+            "html": "",
+            "text": "",
+            "title": "WhatsApp"
+          },
+          {
+            "html": "",
+            "text": "",
+            "title": "Adressengids"
+          },
+          {
+            "html": "",
+            "text": "",
+            "title": "Mijn Amsterdam"
+          }
+        ],
+        "matchingRules": {
+          "$.headers.IngestAuthorization": {
+            "match": "type"
+          },
+          "$.body[0]": {
+            "match": "type"
+          },
+          "$.body[1]": {
+            "match": "type"
+          },
+          "$.body[2]": {
+            "match": "type"
+          },
+          "$.body[3]": {
+            "match": "type"
+          },
+          "$.body[4]": {
+            "match": "type"
+          },
+          "$.body[5]": {
+            "match": "type"
+          },
+          "$.body[6]": {
+            "match": "type"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "status": true,
+          "result": true
+        }
+      }
+    },
+    {
+      "description": "An empty body",
+      "providerState": "Consumer calls City Contact ingest route on backend",
+      "request": {
+        "method": "POST",
+        "path": "/api/v1/ingest/cityoffice",
+        "headers": {
+          "Accept": "application/json",
+          "IngestAuthorization": "a/secret/token"
+        },
+        "body": {
+        },
+        "matchingRules": {
+          "$.headers.IngestAuthorization": {
+            "match": "type"
+          },
+          "$.body": {
+            "match": "type"
+          }
+        }
+      },
+      "response": {
+        "status": 500,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "status": true,
+          "result": ""
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}

@@ -1,0 +1,283 @@
+{
+  "consumer": {
+    "name": "Consumer_iprox_scraper"
+  },
+  "provider": {
+    "name": "Provider_api_v1_ingest_news"
+  },
+  "interactions": [
+    {
+      "description": "A valid news json blob",
+      "providerState": "Consumer calls News ingest route on backend",
+      "request": {
+        "method": "POST",
+        "path": "/api/v1/ingest/news",
+        "headers": {
+          "Accept": "application/json",
+          "IngestAuthorization": "a/secret/token"
+        },
+        "body": {
+          "identifier": "",
+          "project_identifier": "",
+          "project_type": "",
+          "url": "",
+          "title": "",
+          "publication_date": "",
+          "body": {
+            "content": {
+              "html": "",
+              "text": ""
+            },
+            "preface": {
+              "html": "",
+              "text": ""
+            },
+            "summary": {
+              "html": "",
+              "text": ""
+            }
+          },
+          "images": [
+            {
+              "type": "banner",
+              "sources": {
+                "80px": {
+                  "url": "",
+                  "filename": "",
+                  "image_id": "",
+                  "description": ""
+                },
+                "orig": {
+                  "url": "",
+                  "filename": "",
+                  "image_id": "",
+                  "description": ""
+                },
+                "220px": {
+                  "url": "",
+                  "filename": "",
+                  "image_id": "",
+                  "description": ""
+                },
+                "460px": {
+                  "url": "",
+                  "filename": "",
+                  "image_id": "",
+                  "description": ""
+                },
+                "700px": {
+                  "url": "",
+                  "filename": "",
+                  "image_id": "",
+                  "description": ""
+                }
+              }
+            }
+          ],
+          "assets": [
+            {
+              "identifier": "",
+              "mime_type": "",
+              "url": "",
+              "title": "",
+              "filename": "",
+              "data": ""
+            }
+          ],
+          "last_seen": "",
+          "active": true
+        },
+        "matchingRules": {
+          "$.headers.IngestAuthorization": {
+            "match": "type"
+          },
+          "$.body.identifier": {
+            "match": "type"
+          },
+          "$.body.project_identifier": {
+            "match": "type"
+          },
+          "$.body.project_type": {
+            "match": "type"
+          },
+          "$.body.url": {
+            "match": "type"
+          },
+          "$.body.title": {
+            "match": "type"
+          },
+          "$.body.publication_date": {
+            "match": "type"
+          },
+          "$.body.body": {
+            "match": "type"
+          },
+          "$.body.body.content.html": {
+            "match": "type"
+          },
+          "$.body.body.content.text": {
+            "match": "type"
+          },
+          "$.body.body.preface.html": {
+            "match": "type"
+          },
+          "$.body.body.preface.text": {
+            "match": "type"
+          },
+          "$.body.body.summary.html": {
+            "match": "type"
+          },
+          "$.body.body.summary.text": {
+            "match": "type"
+          },
+          "$.body.images": {
+            "min": 1
+          },
+          "$.body.images[*].*": {
+            "match": "type"
+          },
+          "$.body.images[*].sources": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.80px.url": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.80px.filename": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.80px.image_id": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.80px.description": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.orig.url": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.orig.filename": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.orig.image_id": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.orig.description": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.220px.url": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.220px.filename": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.220px.image_id": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.220px.description": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.460px.url": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.460px.filename": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.460px.image_id": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.460px.description": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.700px.url": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.700px.filename": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.700px.image_id": {
+            "match": "type"
+          },
+          "$.body.images[*].sources.700px.description": {
+            "match": "type"
+          },
+          "$.body.assets": {
+            "min": 1
+          },
+          "$.body.assets[*].*": {
+            "match": "type"
+          },
+          "$.body.assets[*].identifier": {
+            "match": "type"
+          },
+          "$.body.assets[*].mime_type": {
+            "match": "type"
+          },
+          "$.body.assets[*].url": {
+            "match": "type"
+          },
+          "$.body.assets[*].title": {
+            "match": "type"
+          },
+          "$.body.assets[*].filename": {
+            "match": "type"
+          },
+          "$.body.assets[*].data": {
+            "match": "type"
+          },
+          "$.body.last_seen": {
+            "match": "type"
+          },
+          "$.body.active": {
+            "match": "type"
+          }
+        }
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "status": true,
+          "result": true
+        }
+      }
+    },
+    {
+      "description": "Invalid body",
+      "providerState": "Consumer calls News ingest route on backend",
+      "request": {
+        "method": "POST",
+        "path": "/api/v1/ingest/news",
+        "headers": {
+          "Accept": "application/json",
+          "IngestAuthorization": "a/secret/token"
+        },
+        "body": {
+        },
+        "matchingRules": {
+          "$.headers.IngestAuthorization": {
+            "match": "type"
+          },
+          "$.body": {
+            "match": "type"
+          }
+        }
+      },
+      "response": {
+        "status": 500,
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "body": {
+          "status": true,
+          "result": ""
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}

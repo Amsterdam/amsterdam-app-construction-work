@@ -113,6 +113,7 @@ class TestData:
                     "timeline": {},
                     "more-info": [{"html": "html content", "text": "text content", "title": "title"}]
                 },
+                "contacts": [],
                 "coordinates": {"lat": 0.0, "lon": 0.0},
                 "district_id": 0,
                 "district_name": "West",
@@ -137,6 +138,7 @@ class TestData:
                     "timeline": {},
                     "more-info": [{"html": "html content", "text": "text content", "title": "title"}]
                 },
+                "contacts": [],
                 "coordinates": {"lat": 1.0, "lon": 1.0},
                 "district_id": 0,
                 "district_name": "West",

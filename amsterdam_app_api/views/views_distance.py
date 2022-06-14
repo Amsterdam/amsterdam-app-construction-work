@@ -70,7 +70,7 @@ def distance(request):
         if radius is None:
             result = get_projects_data(project.identifier, model_items, this_distance)
             results.append(result)
-        elif this_distance.meter < float(radius):
+        elif this_distance.meter is not None and this_distance.meter < float(radius):
             result = get_projects_data(project.identifier, model_items, this_distance)
             results.append(result)
 

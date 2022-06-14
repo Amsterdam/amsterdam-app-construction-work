@@ -52,8 +52,8 @@ class TestApiProjectDistance(TestCase):
         expected_result = {
             'status': True,
             'result': [
-                {'identifier': '0000000000', 'title': 'title', 'meter': 110574, 'strides': 149424},
-                {'identifier': '0000000001', 'title': 'title', 'meter': 111302, 'strides': 150408}
+                {'identifier': '0000000001', 'title': 'title', 'meter': 111302, 'strides': 150408},
+                {'identifier': '0000000000', 'title': 'title', 'meter': None, 'strides': None}
             ]
         }
         self.assertEqual(response.status_code, 200)
@@ -61,11 +61,11 @@ class TestApiProjectDistance(TestCase):
 
     def test_valid_lon_lat_radius(self):
         c = Client()
-        response = c.get('/api/v1/projects/distance', {'lat': '1.0', 'lon': '0.0', 'radius': 111000, 'fields': 'identifier,title'})
+        response = c.get('/api/v1/projects/distance', {'lat': '1.0', 'lon': '0.1', 'radius': 111000, 'fields': 'identifier,title'})
         result = json.loads(response.content)
         expected_result = {
             'status': True,
-            'result': [{'identifier': '0000000000', 'title': 'title', 'meter': 110574, 'strides': 149424}]
+            'result': [{'identifier': '0000000001', 'title': 'title', 'meter': 100172, 'strides': 135368}]
         }
 
         self.assertEqual(response.status_code, 200)
@@ -79,8 +79,8 @@ class TestApiProjectDistance(TestCase):
         expected_result = {
             'status': True,
             'result': [
-                {'identifier': '0000000000', 'title': 'title', 'meter': 10001965, 'strides': 13516169},
-                {'identifier': '0000000001', 'title': 'title', 'meter': 10112540, 'strides': 13665594}
+                {'identifier': '0000000001', 'title': 'title', 'meter': 10112540, 'strides': 13665594},
+                {'identifier': '0000000000', 'title': 'title', 'meter': None, 'strides': None}
             ]
         }
 
