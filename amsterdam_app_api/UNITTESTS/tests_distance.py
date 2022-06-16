@@ -10,5 +10,5 @@ class TestDistance(TestCase):
 
     def test_distance_in_valid(self):
         distance = Distance(('a', 'b'), ('c', 'd'))
-        self.assertEqual(distance.meter, 0.0)
-        self.assertEqual(distance.strides, 0.0)
+        self.assertEqual(distance.meter, None)
+        self.assertEqual(distance.strides, None)

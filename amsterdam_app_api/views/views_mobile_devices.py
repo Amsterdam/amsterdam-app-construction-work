@@ -81,15 +81,17 @@ def post_patch(request):
                                                                  os_type=os_type,
                                                                  projects=active)
 
-        return {'result':
-                    {
-                        'status': True,
-                        'result': {
-                            'active': active,  # array of identifiers
-                            'inactive': inactive,  # array of identifiers
-                            'deleted': deleted  # array of identifiers
-                        }
-                    }, 'status': 200}
+        return {
+            'result': {
+                'status': True,
+                'result': {
+                    'active': active,  # array of identifiers
+                    'inactive': inactive,  # array of identifiers
+                    'deleted': deleted  # array of identifiers
+                }
+            },
+            'status': 200
+        }
 
 
 def delete(request):
