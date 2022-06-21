@@ -14,6 +14,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from django.db import IntegrityError
+from django.db.models import Count
 
 message = Messages()
 
@@ -47,10 +48,20 @@ def projects(request):
     Get a list of all projects. Narrow down by query param: project-type
     """
     if request.method == 'GET':
+        deviceid = request.META.get('HTTP_DEVICEID', None)
+        if deviceid is None:
+            return Response({'status': False, 'result': message.invalid_headers}, status=422)
+
         project_type = request.GET.get('project-type', None)
         sort_by = request.GET.get('sort-by', None)
         sort_order = request.GET.get('sort-order', None)
         model_items = request.GET.get('fields', None)
+        fields = [] if model_items is None else model_items.split(',')
+        followed = False
+        if 'followed' in fields:
+            fields.remove('followed')
+            if 'identifier' in fields:
+                followed = True
 
         # Check query parameters
         if project_type is not None and project_type not in ['brug', 'kade', 'bouw-en-verkeer']:
@@ -68,11 +79,23 @@ def projects(request):
         # Return filtered result or all projects
         projects_object = Projects.objects.filter(**query_filter).all()
 
-        if model_items is not None:
-            fields = model_items.split(',')
+        # Get followers for projects
+        following = [x['projectid'] for x in FollowedProjects.objects.filter(deviceid__iexact=deviceid).values('projectid')]
+
+        if len(fields) != 0:
             serializer = ProjectsSerializer(projects_object, context={'fields': fields}, many=True)
+            if followed is True:
+                for i in range(len(serializer.data)):
+                    serializer.data[i]['followed'] = False
+                    if serializer.data[i]['identifier'] in following:
+                        serializer.data[i]['followed'] = True
         else:
             serializer = ProjectsSerializer(projects_object, many=True)
+            for i in range(len(serializer.data)):
+                serializer.data[i]['followed'] = False
+                if serializer.data[i]['identifier'] in following:
+                    serializer.data[i]['followed'] = True
+
         result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
         return Response({'status': True, 'result': result}, status=200)
 
@@ -92,16 +115,24 @@ def project_details(request):
     Get details for a project by identifier
     """
     if request.method == 'GET':
+        deviceid = request.META.get('HTTP_DEVICEID', None)
+        if deviceid is None:
+            return Response({'status': False, 'result': message.invalid_headers}, status=422)
+
         identifier = request.GET.get('id', None)
         if identifier is None:
             return Response({'status': False, 'result': message.invalid_query}, status=422)
+
+        project_object = ProjectDetails.objects.filter(pk=identifier, active=True).first()
+        if project_object is not None:
+            count = FollowedProjects.objects.filter(projectid=identifier).count()
+            followed = FollowedProjects.objects.filter(deviceid=deviceid, projectid=identifier).first()
+            project_data = dict(ProjectDetailsSerializer(project_object, many=False).data)
+            project_data['followers'] = count
+            project_data['followed'] = False if followed is None else True
+            return Response({'status': True, 'result': project_data}, status=200)
         else:
-            project_object = ProjectDetails.objects.filter(pk=identifier, active=True).first()
-            if project_object is not None:
-                project_data = ProjectDetailsSerializer(project_object, many=False).data
-                return Response({'status': True, 'result': project_data}, status=200)
-            else:
-                return Response({'status': False, 'result': message.no_record_found}, status=404)
+            return Response({'status': False, 'result': message.no_record_found}, status=404)
 
 
 @swagger_auto_schema(**as_search)
@@ -117,7 +148,7 @@ def project_details_search(request):
 @api_view(['POST', 'DELETE'])
 @RequestMustComeFromApp
 def projects_follow(request):
-    deviceid = request.META.get('headers', {}).get('deviceId', None)
+    deviceid = request.META.get('HTTP_DEVICEID', None)
     if deviceid is None:
         return Response({'status': False, 'result': message.invalid_headers}, status=422)
 

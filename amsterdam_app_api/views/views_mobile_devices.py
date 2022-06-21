@@ -112,7 +112,7 @@ def delete(request):
 @api_view(['POST', 'DELETE'])
 @RequestMustComeFromApp
 def device_register(request):
-    deviceid = request.META.get('headers', {}).get('deviceId', None)
+    deviceid = request.META.get('HTTP_DEVICEID', None)
     if deviceid is None:
         return Response({'status': False, 'result': message.invalid_headers}, status=422)
 

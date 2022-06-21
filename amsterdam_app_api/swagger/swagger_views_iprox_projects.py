@@ -12,7 +12,11 @@ message = Messages()
 as_projects = {
     # /api/v1/projects swagger_auto_schema
     'methods': ['GET'],
-    'manual_parameters': [openapi.Parameter('project-type',
+    'manual_parameters': [openapi.Parameter('deviceId',
+                                            openapi.IN_HEADER,
+                                            description="device identifier",
+                                            type=openapi.TYPE_STRING),
+                          openapi.Parameter('project-type',
                                             openapi.IN_QUERY,
                                             'Query by projects type',
                                             type=openapi.TYPE_STRING,
@@ -61,7 +65,12 @@ as_project_details = {
                                             'Project identifier',
                                             type=openapi.TYPE_STRING,
                                             format='<identifier>',
-                                            required=True)],
+                                            required=True),
+                          openapi.Parameter('deviceId',
+                                            openapi.IN_HEADER,
+                                            description="device identifier",
+                                            type=openapi.TYPE_STRING),
+                          ],
     'responses': {
         200: openapi.Response('application/json',
                               openapi.Schema(type=openapi.TYPE_OBJECT, properties={
