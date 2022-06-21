@@ -1,5 +1,7 @@
 from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import MobileDevices, Projects
+from amsterdam_app_api.models import FirebaseTokens
+from amsterdam_app_api.swagger.swagger_views_devices import as_device_register_post, as_device_register_delete
 from amsterdam_app_api.swagger.swagger_views_mobile_devices import as_push_notifications_registration_device_post
 from amsterdam_app_api.swagger.swagger_views_mobile_devices import as_push_notifications_registration_device_patch
 from amsterdam_app_api.swagger.swagger_views_mobile_devices import as_push_notifications_registration_device_delete
@@ -7,8 +9,9 @@ from amsterdam_app_api.GenericFunctions.RequestMustComeFromApp import RequestMus
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
+from django.db import IntegrityError
 
-messages = Messages()
+message = Messages()
 
 """ Views for CRUD a mobile-device and assign subscriptions for push-notifications
 """
@@ -60,9 +63,9 @@ def post_patch(request):
                                 'deleted': deleted  # array of identifiers
                             }
                         }, 'status': 200}
-        return {'result': {'status': False, 'result': messages.no_record_found}, 'status': 404}
+        return {'result': {'status': False, 'result': message.no_record_found}, 'status': 404}
     elif device_token is None or os_type is None:
-        return {'result': {'status': False, 'result': messages.invalid_query}, 'status': 422}
+        return {'result': {'status': False, 'result': message.invalid_query}, 'status': 422}
     elif projects == [] or projects is None:
         # remove mobile device because it has no push-notification subscriptions
         MobileDevices.objects.filter(pk=device_token).delete()
@@ -97,8 +100,38 @@ def post_patch(request):
 def delete(request):
     identifier = request.GET.get('id', None)
     if identifier is None:
-        return {'result': {'status': False, 'result': messages.invalid_query}, 'status': 422}
+        return {'result': {'status': False, 'result': message.invalid_query}, 'status': 422}
     else:
         # remove mobile device from database
         MobileDevices.objects.filter(pk=identifier).delete()
         return {'result': {'status': True, 'result': 'Device removed from database'}, 'status': 204}
+
+
+@swagger_auto_schema(**as_device_register_post)
+@swagger_auto_schema(**as_device_register_delete)
+@api_view(['POST', 'DELETE'])
+@RequestMustComeFromApp
+def device_register(request):
+    deviceid = request.META.get('headers', {}).get('deviceId', None)
+    if deviceid is None:
+        return Response({'status': False, 'result': message.invalid_headers}, status=422)
+
+    if request.method == 'POST':
+        firebase_token = request.data.get('firebasetoken', None)
+        if firebase_token is None:
+            return Response({'status': False, 'result': message.invalid_query}, status=422)
+
+        os = request.data.get('os', None)
+        if os is None:
+            return Response({'status': False, 'result': message.invalid_query}, status=422)
+
+        try:
+            device_registration = FirebaseTokens(deviceid=deviceid, os=os, firebasetoken=firebase_token)
+            device_registration.save()
+        except IntegrityError:  # Double request with same data, discard...
+            pass
+        return Response({'status': False, 'result': 'Registration added'}, status=200)
+
+    if request.method == 'DELETE':
+        FirebaseTokens(deviceid=deviceid).delete()
+        return Response({'status': False, 'result': 'Registration removed'}, status=200)

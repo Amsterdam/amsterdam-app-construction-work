@@ -1,16 +1,19 @@
-from amsterdam_app_api.swagger.swagger_views_iprox_projects import as_projects, as_project_details
+from amsterdam_app_api.swagger.swagger_views_iprox_projects import as_projects, as_project_details, as_projects_follow_post, as_projects_follow_delete
 from amsterdam_app_api.swagger.swagger_views_search import as_search
 from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import Projects
 from amsterdam_app_api.models import ProjectDetails
+from amsterdam_app_api.models import FollowedProjects
 from amsterdam_app_api.serializers import ProjectsSerializer
 from amsterdam_app_api.serializers import ProjectDetailsSerializer
 from amsterdam_app_api.GenericFunctions.SetFilter import SetFilter
 from amsterdam_app_api.GenericFunctions.Sort import Sort
 from amsterdam_app_api.GenericFunctions.TextSearch import TextSearch
+from amsterdam_app_api.GenericFunctions.RequestMustComeFromApp import RequestMustComeFromApp
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
+from django.db import IntegrityError
 
 message = Messages()
 
@@ -107,3 +110,31 @@ def project_details_search(request):
     model = ProjectDetails
     result = search(model, request)
     return result
+
+
+@swagger_auto_schema(**as_projects_follow_post)
+@swagger_auto_schema(**as_projects_follow_delete)
+@api_view(['POST', 'DELETE'])
+@RequestMustComeFromApp
+def projects_follow(request):
+    deviceid = request.META.get('headers', {}).get('deviceId', None)
+    if deviceid is None:
+        return Response({'status': False, 'result': message.invalid_headers}, status=422)
+
+    project_id = request.data.get('projectId', None)
+    if project_id is not None:
+        project = ProjectDetails.objects.filter(identifier=project_id).first()
+        if project is None:
+            return Response({'status': False, 'result': message.no_record_found}, status=404)
+
+    if request.method == 'POST':
+        try:
+            follow_project = FollowedProjects(projectid=project_id, deviceid=deviceid)
+            follow_project.save()
+        except IntegrityError:  # Double request with same data, discard...
+            pass
+        return Response({'status': False, 'result': 'Subscription added'}, status=200)
+
+    if request.method == 'DELETE':
+        FollowedProjects(projectid=project_id, deviceid=deviceid).delete()
+        return Response({'status': False, 'result': 'Subscription removed'}, status=200)

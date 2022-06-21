@@ -1,6 +1,8 @@
 from drf_yasg import openapi
 from amsterdam_app_api.serializers import ProjectsSerializer, ProjectDetailsSerializer
+from amsterdam_app_api.api_messages import Messages
 
+message = Messages()
 
 """ Swagger definitions used in the views_*_.py decorators '@swagger_auto_schema(**object)'. Each parameter is given the
     name of the methods in views_*_.py prepended with 'as_' (auto_schema)
@@ -79,5 +81,90 @@ as_project_details = {
         404: openapi.Response('Error: No record found'),
         405: openapi.Response('Error: Method not allowed'),
         422: openapi.Response('Error: Unprocessable Entity')},
+    'tags': ['Projects']
+}
+
+
+as_projects_follow_post = {
+    # /api/v1/image swagger_auto_schema
+    'methods': ['POST'],
+    'manual_parameters': [openapi.Parameter('DeviceAuthorization',
+                                            openapi.IN_HEADER,
+                                            description="Device authorization token",
+                                            type=openapi.TYPE_STRING),
+                          openapi.Parameter('deviceId',
+                                            openapi.IN_HEADER,
+                                            description="device identifier",
+                                            type=openapi.TYPE_STRING),
+                          ],
+    'request_body': openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'projectId': openapi.Schema(type=openapi.TYPE_STRING, description='device_token')
+        }
+    ),
+    'responses': {
+        200: openapi.Response('application/json',
+                              examples={
+                                  'application/json': {
+                                      'status': True,
+                                      'result': 'Subscription added'}
+                              }),
+        403: openapi.Response('application/json',
+                              examples={
+                              'application/json': {
+                                  'status': False,
+                                  'result': message.access_denied}}),
+        404: openapi.Response('application/json',
+                              examples={
+                                  'application/json': {
+                                      'status': False,
+                                      'result': message.no_record_found}}),
+        422: openapi.Response('application/json',
+                              examples={
+                                  'application/json': {
+                                      'status': False,
+                                      'result': message.invalid_headers}})
+    },
+    'tags': ['Projects']
+}
+
+
+as_projects_follow_delete = {
+    # /api/v1/image swagger_auto_schema
+    'methods': ['DELETE'],
+    'manual_parameters': [openapi.Parameter('DeviceAuthorization',
+                                            openapi.IN_HEADER,
+                                            description="Device authorization token",
+                                            type=openapi.TYPE_STRING),
+                          openapi.Parameter('deviceId',
+                                            openapi.IN_HEADER,
+                                            description="device identifier",
+                                            type=openapi.TYPE_STRING),
+                          ],
+    'request_body': openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'projectId': openapi.Schema(type=openapi.TYPE_STRING, description='device_token')
+        }
+    ),
+    'responses': {
+        200: openapi.Response('application/json',
+                              examples={
+                                  'application/json': {
+                                      'status': True,
+                                      'result': 'Subscription removed'}
+                              }),
+        403: openapi.Response('application/json',
+                              examples={
+                              'application/json': {
+                                  'status': False,
+                                  'result': message.access_denied}}),
+        422: openapi.Response('application/json',
+                              examples={
+                                  'application/json': {
+                                      'status': False,
+                                      'result': message.invalid_headers}})
+    },
     'tags': ['Projects']
 }
