@@ -11,7 +11,7 @@ as_device_register_post = {
                                             openapi.IN_HEADER,
                                             description="Device authorization token",
                                             type=openapi.TYPE_STRING),
-                          openapi.Parameter('deviceId',
+                          openapi.Parameter('device_id',
                                             openapi.IN_HEADER,
                                             description="device identifier",
                                             type=openapi.TYPE_STRING),
@@ -19,7 +19,7 @@ as_device_register_post = {
     'request_body': openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            'firebasetoken': openapi.Schema(type=openapi.TYPE_STRING, description='firebase_token'),
+            'firebase_token': openapi.Schema(type=openapi.TYPE_STRING, description='firebase_token'),
             'os': openapi.Schema(type=openapi.TYPE_STRING, description='os [ios|android]')
         }
     ),
@@ -52,7 +52,7 @@ as_device_register_delete = {
                                             openapi.IN_HEADER,
                                             description="Device authorization token",
                                             type=openapi.TYPE_STRING),
-                          openapi.Parameter('deviceId',
+                          openapi.Parameter('device_id',
                                             openapi.IN_HEADER,
                                             description="device identifier",
                                             type=openapi.TYPE_STRING),

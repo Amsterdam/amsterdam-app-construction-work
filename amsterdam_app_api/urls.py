@@ -79,8 +79,8 @@ urlpatterns = [
     path('districts', csrf_exempt(views_generic.districts)),
 
     # Mobile devices (used for CRUD devices for push-notifications)
-    path('device_registration', csrf_exempt(views_mobile_devices.crud)),
-    path('device_register', csrf_exempt(views_mobile_devices.device_register)),
+    # path('device_registration', csrf_exempt(views_mobile_devices.crud)),
+    path('device/register', csrf_exempt(views_mobile_devices.device_register)),
 
     # Project Manager (used to CRUD a project manager for notifications)
     path('project/manager', csrf_exempt(views_project_manager.crud)),

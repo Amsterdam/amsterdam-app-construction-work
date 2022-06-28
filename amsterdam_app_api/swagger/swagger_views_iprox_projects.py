@@ -101,7 +101,7 @@ as_projects_follow_post = {
                                             openapi.IN_HEADER,
                                             description="Device authorization token",
                                             type=openapi.TYPE_STRING),
-                          openapi.Parameter('deviceId',
+                          openapi.Parameter('device_id',
                                             openapi.IN_HEADER,
                                             description="device identifier",
                                             type=openapi.TYPE_STRING),
@@ -109,7 +109,7 @@ as_projects_follow_post = {
     'request_body': openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            'projectId': openapi.Schema(type=openapi.TYPE_STRING, description='device_token')
+            'project_id': openapi.Schema(type=openapi.TYPE_STRING, description='project identifier')
         }
     ),
     'responses': {
@@ -146,7 +146,7 @@ as_projects_follow_delete = {
                                             openapi.IN_HEADER,
                                             description="Device authorization token",
                                             type=openapi.TYPE_STRING),
-                          openapi.Parameter('deviceId',
+                          openapi.Parameter('device_id',
                                             openapi.IN_HEADER,
                                             description="device identifier",
                                             type=openapi.TYPE_STRING),
@@ -154,7 +154,7 @@ as_projects_follow_delete = {
     'request_body': openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            'projectId': openapi.Schema(type=openapi.TYPE_STRING, description='device_token')
+            'project_id': openapi.Schema(type=openapi.TYPE_STRING, description='project identifier')
         }
     ),
     'responses': {

@@ -117,7 +117,7 @@ def device_register(request):
         return Response({'status': False, 'result': message.invalid_headers}, status=422)
 
     if request.method == 'POST':
-        firebase_token = request.data.get('firebasetoken', None)
+        firebase_token = request.data.get('firebase_token', None)
         if firebase_token is None:
             return Response({'status': False, 'result': message.invalid_query}, status=422)
 

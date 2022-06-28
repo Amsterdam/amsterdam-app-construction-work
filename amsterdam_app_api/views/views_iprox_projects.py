@@ -152,7 +152,7 @@ def projects_follow(request):
     if deviceid is None:
         return Response({'status': False, 'result': message.invalid_headers}, status=422)
 
-    project_id = request.data.get('projectId', None)
+    project_id = request.data.get('project_id', None)
     if project_id is not None:
         project = ProjectDetails.objects.filter(identifier=project_id).first()
         if project is None:
