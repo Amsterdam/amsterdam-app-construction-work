@@ -2,7 +2,6 @@ import firebase_admin
 from firebase_admin import messaging
 from firebase_admin import credentials
 from amsterdam_app_api.GenericFunctions.Logger import Logger
-from amsterdam_app_api.models import MobileDevices
 from amsterdam_app_api.models import Notification
 from amsterdam_app_api.models import FollowedProjects
 from amsterdam_app_api.models import FirebaseTokens

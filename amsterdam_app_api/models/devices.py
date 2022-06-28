@@ -1,7 +1,6 @@
 import datetime
 from datetime import timedelta
 from django.db import models
-from django.contrib.postgres.fields import ArrayField
 from .followed_projects import FollowedProjects
 
 """ Model for Device registration
@@ -9,12 +8,6 @@ from .followed_projects import FollowedProjects
     The MobileDevices model is used for sending a push-notification towards a mobile device. It holds a device
     identifier (unique token for sending push-notifications via a push-notification-broker (e.g. APN)
 """
-
-
-class MobileDevices(models.Model):
-    device_token = models.CharField(max_length=1000, unique=True, primary_key=True)
-    os_type = models.CharField(max_length=7, unique=False, null=False)
-    projects = ArrayField(models.CharField(max_length=40, blank=False), blank=False)
 
 
 class FirebaseTokens(models.Model):
