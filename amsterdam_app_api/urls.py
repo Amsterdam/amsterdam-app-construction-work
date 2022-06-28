@@ -49,6 +49,7 @@ urlpatterns = [
     path('projects', csrf_exempt(views_iprox_projects.projects)),
     path('projects/search', csrf_exempt(views_iprox_projects.projects_search)),
     path('projects/distance', csrf_exempt(views_distance.distance)),
+    path('projects/follow', csrf_exempt(views_iprox_projects.projects_follow)),
 
     # Projec details(s)
     path('project/details', csrf_exempt(views_iprox_projects.project_details)),
@@ -77,8 +78,8 @@ urlpatterns = [
     path('asset', csrf_exempt(views_generic.asset)),
     path('districts', csrf_exempt(views_generic.districts)),
 
-    # Mobile devices (used for CRUD devices for push-notifications)
-    path('device_registration', csrf_exempt(views_mobile_devices.crud)),
+    # Mobile devices (used for C..D devices for push-notifications)
+    path('device/register', csrf_exempt(views_mobile_devices.device_register)),
 
     # Project Manager (used to CRUD a project manager for notifications)
     path('project/manager', csrf_exempt(views_project_manager.crud)),

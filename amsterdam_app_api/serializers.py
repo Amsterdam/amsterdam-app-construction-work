@@ -5,7 +5,6 @@ from amsterdam_app_api.models import Projects
 from amsterdam_app_api.models import ProjectDetails
 from amsterdam_app_api.models import News
 from amsterdam_app_api.models import ProjectManager
-from amsterdam_app_api.models import MobileDevices
 from amsterdam_app_api.models import WarningMessages
 from amsterdam_app_api.models import Notification
 from amsterdam_app_api.models import CityContact
@@ -55,12 +54,6 @@ class NewsSerializer(serializers.ModelSerializer):
 class ProjectManagerSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProjectManager
-        fields = '__all__'
-
-
-class MobileDevicesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MobileDevices
         fields = '__all__'
 
 
