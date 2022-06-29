@@ -4,8 +4,12 @@ from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import Projects
 from amsterdam_app_api.models import ProjectDetails
 from amsterdam_app_api.models import FollowedProjects
+from amsterdam_app_api.models import News
+from amsterdam_app_api.models import WarningMessages
 from amsterdam_app_api.serializers import ProjectsSerializer
 from amsterdam_app_api.serializers import ProjectDetailsSerializer
+from amsterdam_app_api.serializers import NewsSerializer
+from amsterdam_app_api.serializers import WarningMessagesExternalSerializer
 from amsterdam_app_api.GenericFunctions.SetFilter import SetFilter
 from amsterdam_app_api.GenericFunctions.Sort import Sort
 from amsterdam_app_api.GenericFunctions.TextSearch import TextSearch
@@ -15,6 +19,7 @@ from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from django.db import IntegrityError
 from django.db.models import Count
+from datetime import datetime, timedelta
 
 message = Messages()
 
@@ -56,7 +61,12 @@ def projects(request):
         sort_by = request.GET.get('sort-by', None)
         sort_order = request.GET.get('sort-order', None)
         model_items = request.GET.get('fields', None)
+        articles_max_age = request.GET.get('articles_max_age', None)
+
         fields = [] if model_items is None else model_items.split(',')
+        if 'identifier' not in fields:
+            fields.append('identifier')
+
         followed = False
         if 'followed' in fields:
             fields.remove('followed')
@@ -96,6 +106,30 @@ def projects(request):
                 if serializer.data[i]['identifier'] in following:
                     serializer.data[i]['followed'] = True
 
+        if articles_max_age is not None:
+            articles_max_age = int(articles_max_age)
+            articles_max_age = int(articles_max_age)
+            start_date = datetime.now() - timedelta(days=articles_max_age)
+            end_date = datetime.now()
+            start_date_str = start_date.strftime('%Y-%m-%d')
+
+            news_articles_all = list(News.objects.all())
+            serializer_news = NewsSerializer(news_articles_all, many=True)
+            news_articles = [x for x in serializer_news.data if x['publication_date'] >= start_date_str]
+            warning_articles = list(WarningMessages.objects.filter(publication_date__range=[start_date, end_date]).all())
+            all_articles = news_articles + warning_articles
+            articles = dict()
+            for article in all_articles:
+                if article['project_identifier'] in articles:
+                    articles[article['project_identifier']].append(article['identifier'])
+                else:
+                    articles[article['project_identifier']] = [article['identifier']]
+
+            for i in range(len(serializer.data)):
+                serializer.data[i]['recent_articles'] = []
+                if serializer.data[i]['identifier'] in articles:
+                    serializer.data[i]['recent_articles'] = articles[serializer.data[i]['identifier']]
+
         result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
         return Response({'status': True, 'result': result}, status=200)
 
@@ -123,13 +157,29 @@ def project_details(request):
         if identifier is None:
             return Response({'status': False, 'result': message.invalid_query}, status=422)
 
+        articles_max_age = request.GET.get('articles_max_age', None)
+
         project_object = ProjectDetails.objects.filter(pk=identifier, active=True).first()
         if project_object is not None:
+            # Get followers
             count = FollowedProjects.objects.filter(projectid=identifier).count()
             followed = FollowedProjects.objects.filter(deviceid=deviceid, projectid=identifier).first()
             project_data = dict(ProjectDetailsSerializer(project_object, many=False).data)
             project_data['followers'] = count
             project_data['followed'] = False if followed is None else True
+
+            # Get recent articles
+            if articles_max_age is not None:
+                articles_max_age = int(articles_max_age)
+                start_date = datetime.now() - timedelta(days=articles_max_age)
+                end_date = datetime.now()
+                start_date_str = start_date.strftime('%Y-%m-%d')
+                news_articles_all = list(News.objects.filter(project_identifier=identifier).all())
+                serializer_news = NewsSerializer(news_articles_all, many=True)
+                news_articles = [x['identifier'] for x in serializer_news.data if x['publication_date'] >= start_date_str]
+                warning_articles = list(WarningMessages.objects.filter(project_identifier=identifier, publication_date__range=[start_date, end_date]).all())
+                serializer_warning = WarningMessagesExternalSerializer(warning_articles, many=True)
+                project_data['recent_articles'] = news_articles + [x['identifier'] for x in serializer_warning.data]
             return Response({'status': True, 'result': project_data}, status=200)
         else:
             return Response({'status': False, 'result': message.no_record_found}, status=404)
