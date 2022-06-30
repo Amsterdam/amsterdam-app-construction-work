@@ -32,7 +32,7 @@ class RequestMustComeFromApp:
         if self.is_valid_token(encrypted_token=encrypted_token):
             return self.func(*args, **kwargs)
 
-        # Access is not allowed, abort with 401
+        # Access is not allowed, abort with 403
         return HttpResponseForbidden()
 
     @staticmethod

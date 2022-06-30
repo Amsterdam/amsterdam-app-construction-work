@@ -64,7 +64,7 @@ def projects(request):
         articles_max_age = request.GET.get('articles_max_age', None)
 
         fields = [] if model_items is None else model_items.split(',')
-        if 'identifier' not in fields:
+        if articles_max_age is not None and 'identifier' not in fields:
             fields.append('identifier')
 
         followed = False
@@ -202,13 +202,12 @@ def projects_follow(request):
     if deviceid is None:
         return Response({'status': False, 'result': message.invalid_headers}, status=422)
 
-    project_id = request.data.get('project_id', None)
-    if project_id is not None:
-        project = ProjectDetails.objects.filter(identifier=project_id).first()
-        if project is None:
-            return Response({'status': False, 'result': message.no_record_found}, status=404)
-
     if request.method == 'POST':
+        project_id = request.data.get('project_id', None)
+        if project_id is not None:
+            project = ProjectDetails.objects.filter(identifier=project_id).first()
+            if project is None:
+                return Response({'status': False, 'result': message.no_record_found}, status=404)
         try:
             follow_project = FollowedProjects(projectid=project_id, deviceid=deviceid)
             follow_project.save()
@@ -217,5 +216,8 @@ def projects_follow(request):
         return Response({'status': False, 'result': 'Subscription added'}, status=200)
 
     if request.method == 'DELETE':
-        FollowedProjects(projectid=project_id, deviceid=deviceid).delete()
+        project_id = request.data.get('project_id', None)
+        follow_project = FollowedProjects.objects.filter(projectid=project_id, deviceid=deviceid).first()
+        if follow_project is not None:
+            follow_project.delete()
         return Response({'status': False, 'result': 'Subscription removed'}, status=200)
