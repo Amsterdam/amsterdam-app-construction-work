@@ -10,16 +10,20 @@ from amsterdam_app_api.serializers import ProjectsSerializer
 from amsterdam_app_api.serializers import ProjectDetailsSerializer
 from amsterdam_app_api.serializers import NewsSerializer
 from amsterdam_app_api.serializers import WarningMessagesExternalSerializer
+from amsterdam_app_api.GenericFunctions.Distance import Distance
 from amsterdam_app_api.GenericFunctions.SetFilter import SetFilter
 from amsterdam_app_api.GenericFunctions.Sort import Sort
+from amsterdam_app_api.GenericFunctions.StaticData import StaticData
 from amsterdam_app_api.GenericFunctions.TextSearch import TextSearch
 from amsterdam_app_api.GenericFunctions.RequestMustComeFromApp import RequestMustComeFromApp
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from django.db import IntegrityError
-from django.db.models import Count
 from datetime import datetime, timedelta
+import json
+import requests
+import urllib.parse
 
 message = Messages()
 
@@ -159,6 +163,18 @@ def project_details(request):
 
         articles_max_age = request.GET.get('articles_max_age', None)
 
+        lat = request.GET.get('lat', None)
+        lon = request.GET.get('lon', None)
+        address = request.GET.get('address', None)  # akkerstraat%2014 -> akkerstraat 14
+        if address is not None:
+            apis = StaticData.urls()
+            url = '{api}{address}'.format(api=apis['address_to_gps'], address=urllib.parse.quote_plus(address))
+            result = requests.get(url=url, timeout=1)
+            data = json.loads(result.content)
+            if len(data['results']) == 1:
+                lon = data['results'][0]['centroid'][0]
+                lat = data['results'][0]['centroid'][1]
+
         project_object = ProjectDetails.objects.filter(pk=identifier, active=True).first()
         if project_object is not None:
             # Get followers
@@ -167,6 +183,21 @@ def project_details(request):
             project_data = dict(ProjectDetailsSerializer(project_object, many=False).data)
             project_data['followers'] = count
             project_data['followed'] = False if followed is None else True
+
+            # Get distance
+            project_data['distance'] = {'meter': None, 'strides': None}
+            if lat is not None and lon is not None:
+                cords_1 = (float(lat), float(lon))
+                cords_2 = (project_object.coordinates['lat'], project_object.coordinates['lon'])
+                if None in cords_2:
+                    cords_2 = (None, None)
+                elif (0, 0) == cords_2:
+                    cords_2 = (None, None)
+                distance = Distance(cords_1, cords_2)
+                project_data['distance'] = {
+                    'meter': int(distance.meter) if distance.meter is not None else None,
+                    'strides': int(distance.strides) if distance.strides is not None else None
+                }
 
             # Get recent articles
             if articles_max_age is not None:
