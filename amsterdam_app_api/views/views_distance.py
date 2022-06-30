@@ -73,7 +73,7 @@ def distance(request):
         elif this_distance.meter is not None and this_distance.meter < float(radius):
             result = get_projects_data(project.identifier, model_items, this_distance)
 
-        # Append the results...
+        # Append the results
         if result is not None and result['identifier'] != "":
             results.append(result)
 
