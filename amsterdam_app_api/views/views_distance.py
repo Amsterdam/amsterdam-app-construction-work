@@ -67,11 +67,14 @@ def distance(request):
             cords_2 = (None, None)
         this_distance = Distance(cords_1, cords_2)
 
+        result = None
         if radius is None:
             result = get_projects_data(project.identifier, model_items, this_distance)
-            results.append(result)
         elif this_distance.meter is not None and this_distance.meter < float(radius):
             result = get_projects_data(project.identifier, model_items, this_distance)
+
+        # Append the results...
+        if result is not None and result['identifier'] != "":
             results.append(result)
 
     sorted_results = Sort().list_of_dicts(results, key='meter', sort_order='asc')
