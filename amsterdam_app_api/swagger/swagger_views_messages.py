@@ -12,7 +12,8 @@ as_warning_message_post = {
     'manual_parameters': [openapi.Parameter('UserAuthorization',
                                             openapi.IN_HEADER,
                                             description="authorization token",
-                                            type=openapi.TYPE_STRING)],
+                                            type=openapi.TYPE_STRING,
+                                            required=True)],
     'request_body': openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
@@ -59,7 +60,8 @@ as_warning_message_patch = {
     'manual_parameters': [openapi.Parameter('UserAuthorization',
                                             openapi.IN_HEADER,
                                             description="authorization token",
-                                            type=openapi.TYPE_STRING)],
+                                            type=openapi.TYPE_STRING,
+                                            required=True)],
     'request_body': openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
@@ -101,16 +103,18 @@ as_warning_message_patch = {
 as_warning_message_delete = {
     # /api/v1/asset swagger_auto_schema
     'methods': ['DELETE'],
-    'manual_parameters': [openapi.Parameter('id',
+    'manual_parameters': [openapi.Parameter('UserAuthorization',
+                                            openapi.IN_HEADER,
+                                            description="authorization token",
+                                            type=openapi.TYPE_STRING,
+                                            required=True),
+                          openapi.Parameter('id',
                                             openapi.IN_QUERY,
                                             'Warning message identifier',
                                             type=openapi.TYPE_STRING,
                                             format='<identifier>',
-                                            required=True),
-                          openapi.Parameter('UserAuthorization',
-                                            openapi.IN_HEADER,
-                                            description="authorization token",
-                                            type=openapi.TYPE_STRING)],
+                                            required=True)
+                          ],
     'responses': {
         200: openapi.Response('application/json',
                               examples={
@@ -183,7 +187,8 @@ as_notification_post = {
     'manual_parameters': [openapi.Parameter('UserAuthorization',
                                             openapi.IN_HEADER,
                                             description="authorization token",
-                                            type=openapi.TYPE_STRING)],
+                                            type=openapi.TYPE_STRING,
+                                            required=True)],
     'request_body': NotificationSerializer,
     'responses': {
         200: openapi.Response('application/json', examples={
@@ -244,7 +249,8 @@ as_warning_message_image_post = {
     'manual_parameters': [openapi.Parameter('UserAuthorization',
                                             openapi.IN_HEADER,
                                             description="authorization token",
-                                            type=openapi.TYPE_STRING)],
+                                            type=openapi.TYPE_STRING,
+                                            required=True)],
     'request_body': openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
