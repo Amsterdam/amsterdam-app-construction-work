@@ -66,6 +66,18 @@ def projects(request):
         sort_order = request.GET.get('sort-order', None)
         model_items = request.GET.get('fields', None)
         articles_max_age = request.GET.get('articles_max_age', None)
+        lat = request.GET.get('lat', None)
+        lon = request.GET.get('lon', None)
+        radius = request.GET.get('radius', None)
+        address = request.GET.get('address', None)
+        if address is not None:
+            apis = StaticData.urls()
+            url = '{api}{address}'.format(api=apis['address_to_gps'], address=urllib.parse.quote_plus(address))
+            result = requests.get(url=url, timeout=1)
+            data = json.loads(result.content)
+            if len(data['results']) == 1:
+                lon = data['results'][0]['centroid'][0]
+                lat = data['results'][0]['centroid'][1]
 
         fields = [] if model_items is None else model_items.split(',')
         if articles_max_age is not None and 'identifier' not in fields:
@@ -110,6 +122,28 @@ def projects(request):
                 if serializer.data[i]['identifier'] in following:
                     serializer.data[i]['followed'] = True
 
+        # Get results from serializer
+        results = serializer.data
+
+        # Get distance
+        if lat is not None and lon is not None:
+            project_details = ProjectDetails.objects.values('identifier', 'coordinates').all()
+            coordinates = {x['identifier']: (x['coordinates']['lat'], x['coordinates']['lon']) for x in project_details}
+            for i in range(len(serializer.data) - 1, -1, -1):
+                identifier = results[i]['identifier']
+                cords_1 = (float(lat), float(lon))
+                cords_2 = coordinates.get(identifier, (None, None))
+                if None in cords_2:
+                    cords_2 = (None, None)
+                elif (0, 0) == cords_2:
+                    cords_2 = (None, None)
+                distance = Distance(cords_1, cords_2)
+                results[i]['meter'] = distance.meter
+                results[i]['strides'] = distance.strides
+
+                if distance.meter is not None and distance.meter > float(radius):
+                    del results[i]
+
         if articles_max_age is not None:
             articles_max_age = int(articles_max_age)
             articles_max_age = int(articles_max_age)
@@ -129,12 +163,12 @@ def projects(request):
                 else:
                     articles[article['project_identifier']] = [article['identifier']]
 
-            for i in range(len(serializer.data)):
-                serializer.data[i]['recent_articles'] = []
-                if serializer.data[i]['identifier'] in articles:
-                    serializer.data[i]['recent_articles'] = articles[serializer.data[i]['identifier']]
+            for i in range(len(results)):
+                results[i]['recent_articles'] = []
+                if results[i]['identifier'] in articles:
+                    results[i]['recent_articles'] = articles[results[i]['identifier']]
 
-        result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
+        result = Sort().list_of_dicts(results, key=sort_by, sort_order=sort_order)
         return Response({'status': True, 'result': result}, status=200)
 
 
@@ -185,7 +219,8 @@ def project_details(request):
             project_data['followed'] = False if followed is None else True
 
             # Get distance
-            project_data['distance'] = {'meter': None, 'strides': None}
+            project_data['meter'] = None
+            project_data['strides'] = None
             if lat is not None and lon is not None:
                 cords_1 = (float(lat), float(lon))
                 cords_2 = (project_object.coordinates['lat'], project_object.coordinates['lon'])
@@ -194,10 +229,8 @@ def project_details(request):
                 elif (0, 0) == cords_2:
                     cords_2 = (None, None)
                 distance = Distance(cords_1, cords_2)
-                project_data['distance'] = {
-                    'meter': int(distance.meter) if distance.meter is not None else None,
-                    'strides': int(distance.strides) if distance.strides is not None else None
-                }
+                project_data['meter'] = distance.meter
+                project_data['strides'] = distance.strides
 
             # Get recent articles
             if articles_max_age is not None:
