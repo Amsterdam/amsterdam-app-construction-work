@@ -141,8 +141,9 @@ def projects(request):
                 results[i]['meter'] = distance.meter
                 results[i]['strides'] = distance.strides
 
-                if distance.meter is not None and distance.meter > float(radius):
-                    del results[i]
+                if radius is not None and distance.meter is not None:
+                    if distance.meter > float(radius):
+                        del results[i]
 
         if articles_max_age is not None:
             articles_max_age = int(articles_max_age)
