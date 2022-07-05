@@ -109,7 +109,9 @@ def projects(request):
         following = [x['projectid'] for x in FollowedProjects.objects.filter(deviceid__iexact=deviceid).values('projectid')]
 
         if len(fields) != 0:
-            serializer = ProjectsSerializer(projects_object, context={'fields': fields}, many=True)
+            model_fields = [x.name for x in Projects._meta.fields]
+            serializer_fields = [x for x in fields if x in model_fields]
+            serializer = ProjectsSerializer(projects_object, context={'fields': serializer_fields}, many=True)
             if followed is True:
                 for i in range(len(serializer.data)):
                     serializer.data[i]['followed'] = False
