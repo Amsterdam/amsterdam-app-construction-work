@@ -9,6 +9,7 @@ from amsterdam_app_api.models import News
 from amsterdam_app_api.models import ProjectManager
 from amsterdam_app_api.models import WarningMessages
 from amsterdam_app_api.models import FirebaseTokens
+from amsterdam_app_api.models import Modules, ModuleOrder, ModulesByApp
 from amsterdam_app_api.serializers import ImageSerializer
 from amsterdam_app_api.serializers import AssetsSerializer
 from amsterdam_app_api.serializers import ProjectsSerializer
@@ -18,6 +19,91 @@ from amsterdam_app_api.serializers import ProjectManagerSerializer
 from amsterdam_app_api.serializers import WarningMessagesInternalSerializer
 from amsterdam_app_api.serializers import WarningMessagesExternalSerializer
 from amsterdam_app_api.serializers import Notification
+from amsterdam_app_api.serializers import ModuleOrderSerializer
+
+
+class AllModulesModels(TestCase):
+    def __init__(self, *args, **kwargs):
+        super(AllModulesModels, self).__init__(*args, **kwargs)
+        self.modules = [
+            {'slug': 'slug0', 'title': 'title', 'icon': 'icon', 'version': '0.0.0', 'description': 'description'},
+            {'slug': 'slug0', 'title': 'title', 'icon': 'icon', 'version': '0.0.1', 'description': 'description'},
+            {'slug': 'slug1', 'title': 'title', 'icon': 'icon', 'version': '0.0.1', 'description': 'description'},
+            {'slug': 'slug2', 'title': 'title', 'icon': 'icon', 'version': '0.0.1', 'description': 'description'}
+
+        ]
+        self.modules_by_app = [
+            {'appVersion': '0.0.0', 'moduleSlug': 'slug0', 'moduleVersion': '0.0.0', 'status': 1},
+            {'appVersion': '0.0.1', 'moduleSlug': 'slug0', 'moduleVersion': '0.0.0', 'status': 1},
+            {'appVersion': '0.0.1', 'moduleSlug': 'slug1', 'moduleVersion': '0.0.0', 'status': 1},
+            {'appVersion': '0.0.1', 'moduleSlug': 'slug2', 'moduleVersion': '0.0.0', 'status': 1}
+        ]
+        self.module_order = [
+            {'appVersion': '0.0.0', 'order': ['slug0']},
+            {'appVersion': '0.0.1', 'order': ['slug0', 'slug1', 'slug2']}
+        ]
+
+    def setUp(self):
+        Modules.objects.all().delete()
+        ModuleOrder.objects.all().delete()
+        ModulesByApp.objects.all().delete()
+
+    def init_modules(self):
+        for module in self.modules:
+            Modules.objects.create(**module)
+        for module_by_app in self.modules_by_app:
+            ModulesByApp.objects.create(**module_by_app)
+        for order in self.module_order:
+            ModuleOrder.objects.create(**order)
+
+    def test_modules_save(self):
+        for module in self.modules:
+            Modules.objects.create(**module)
+
+        modules = list(Modules.objects.all())
+        self.assertEqual(len(modules), 4)
+
+    def test_modules_constraint_violation(self):
+        Modules.objects.create(**self.modules[0])
+        self.assertRaises(Exception, Modules.objects.create, **self.modules[0])
+
+        modules = list(Modules.objects.all())
+        self.assertEqual(len(modules), 1)
+
+    def test_modules_update_partial(self):
+        Modules.objects.create(**self.modules[0])
+        module = Modules.objects.filter(slug='slug0', version='0.0.0').first()
+        module.partial_update(icon='test')
+        data = Modules.objects.filter(slug='slug0', version='0.0.0').first()
+        self.assertEqual(data.icon, 'test')
+
+    def test_modules_by_app_save(self):
+        ModulesByApp.objects.create(**self.modules_by_app[0])
+        data = list(ModulesByApp.objects.all())
+        self.assertEqual(len(data), 1)
+
+    def test_modules_by_app_constraint_violation(self):
+        ModulesByApp.objects.create(**self.modules_by_app[0])
+        self.assertRaises(Exception, ModulesByApp.objects.create, **self.modules_by_app[0])
+        data = list(ModulesByApp.objects.all())
+        self.assertEqual(len(data), 1)
+
+    def test_modules_by_app_delete(self):
+        self.init_modules()
+
+        module = ModulesByApp.objects.filter(appVersion='0.0.1', moduleSlug='slug1').first()
+        module.delete()
+        order = ModuleOrderSerializer(ModuleOrder.objects.filter(appVersion='0.0.1').first(), many=False).data
+        modules_by_app = list(ModulesByApp.objects.all())
+        self.assertEqual(len(modules_by_app), 3)
+        self.assertDictEqual(order, {'appVersion': '0.0.1', 'order': ['slug0', 'slug2']})
+
+    def test_modules_by_app_partial_update(self):
+        ModulesByApp.objects.create(**self.modules_by_app[0])
+        module = ModulesByApp.objects.filter(moduleSlug='slug0', appVersion='0.0.0').first()
+        module.partial_update(status=0)
+        data = ModulesByApp.objects.filter(moduleSlug='slug0', appVersion='0.0.0').first()
+        self.assertEqual(data.status, 0)
 
 
 class TestAssetsModel(TestCase):

@@ -4,7 +4,7 @@ from django.test import Client
 from django.test import TestCase
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
 from amsterdam_app_api.GenericFunctions.AESCipher import AESCipher
-from amsterdam_app_api.models import FirebaseTokens
+from amsterdam_app_api.models import FirebaseTokens, DeviceAccessLog
 from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import Projects
 
@@ -16,6 +16,32 @@ class SetUp:
         self.data = TestData()
         for project in self.data.projects:
             Projects.objects.create(**project)
+
+
+class TestDeviceAccessLog(TestCase):
+    def __init__(self, *args, **kwargs):
+        super(TestDeviceAccessLog, self).__init__(*args, **kwargs)
+        self.url = '/api/v1/device/register'
+        app_token = os.getenv('APP_TOKEN')
+        aes_secret = os.getenv('AES_SECRET')
+        self.token = AESCipher(app_token, aes_secret).encrypt()
+
+    def setUp(self):
+        SetUp()
+        FirebaseTokens.objects.all().delete()
+
+    def test_registration_ok(self):
+        c = Client()
+        data = {'firebase_token': '0', 'os': 'ios'}
+        headers = {"HTTP_DEVICEAUTHORIZATION": self.token, 'HTTP_DEVICEID': '0'}
+        result = c.post(self.url, data, **headers)
+
+        self.assertEqual(result.status_code, 200)
+        self.assertDictEqual(result.data, {'status': False, 'result': 'Registration added'})
+
+        DeviceAccessLog.prune()
+        devices = list(FirebaseTokens.objects.all())
+        self.assertEqual(len(devices), 1)
 
 
 class TestApiDeviceRegistration(TestCase):

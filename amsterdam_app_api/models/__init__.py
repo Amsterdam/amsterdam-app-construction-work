@@ -1,6 +1,6 @@
 from .assets_and_images import Assets, Image
 from .city_office_and_contact import CityOffice, CityContact, CityOffices
-from .devices import FirebaseTokens
+from .devices import FirebaseTokens, DeviceAccessLog
 from .followed_projects import FollowedProjects
 from .modules import Modules, ModuleOrder, ModulesByApp
 from .news import News

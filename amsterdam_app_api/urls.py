@@ -51,7 +51,7 @@ urlpatterns = [
     path('projects/distance', csrf_exempt(views_distance.distance)),
     path('projects/follow', csrf_exempt(views_iprox_projects.projects_follow)),
 
-    # Projec details(s)
+    # Project details(s)
     path('project/details', csrf_exempt(views_iprox_projects.project_details)),
     path('project/details/search', csrf_exempt(views_iprox_projects.project_details_search)),
 
