@@ -36,7 +36,8 @@ class TestApiProjects(TestCase):
 
     def test_method_not_allowed(self):
         c = Client()
-        response = c.post('/api/v1/projects')
+        headers = {'HTTP_DEVICEID': '0'}
+        response = c.post('/api/v1/projects', **headers)
         result = json.loads(response.content)
 
         self.assertEqual(response.status_code, 405)
@@ -44,80 +45,94 @@ class TestApiProjects(TestCase):
 
     def test_invalid_query(self):
         c = Client()
-        response = c.get('/api/v1/projects', {'project-type': 'does not exist'})
+        headers = {'HTTP_DEVICEID': '0'}
+        response = c.get('/api/v1/projects', {'project-type': 'does not exist'}, **headers)
 
         self.assertEqual(response.status_code, 422)
         self.assertEqual(response.data, {'status': False, 'result': messages.invalid_query})
 
     def test_projects_by_district_id(self):
         c = Client()
-        response = c.get('/api/v1/projects', {'district-id': 0})
+        headers = {'HTTP_DEVICEID': '0'}
+        response = c.get('/api/v1/projects', {'district-id': 0}, **headers)
         result = json.loads(response.content)
         self.data.projects[0]['last_seen'] = result['result'][0]['last_seen']
+        self.data.projects[0]['followed'] = False
 
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(result, {'status': True, 'result': [self.data.projects[0]]})
 
     def test_projects_by_district_id_erroneous(self):
         c = Client()
-        response = c.get('/api/v1/projects', {'district-id': 'a'})
+        headers = {'HTTP_DEVICEID': '0'}
+        response = c.get('/api/v1/projects', {'district-id': 'a'}, **headers)
         results = json.loads(response.content)
         for result in results['result']:
             for i in range(0, len(self.data.projects), 1):
                 if result['identifier'] == self.data.projects[i]['identifier']:
                     self.data.projects[i]['last_seen'] = result['last_seen']
+                    self.data.projects[i]['followed'] = False
 
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(results, {'status': True, 'result': self.data.projects})
 
     def test_projects_by_project_type(self):
         c = Client()
-        response = c.get('/api/v1/projects', {'project-type': 'kade'})
+        headers = {'HTTP_DEVICEID': '0'}
+        response = c.get('/api/v1/projects', {'project-type': 'kade'}, **headers)
         result = json.loads(response.content)
         self.data.projects[0]['last_seen'] = result['result'][0]['last_seen']
+        self.data.projects[0]['followed'] = False
 
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(result, {'status': True, 'result': [self.data.projects[0]]})
 
     def test_projects_sort_by_district_id_desc(self):
         c = Client()
-        response = c.get('/api/v1/projects', {'sort-by': 'district_id', 'sort-order': 'desc'})
+        headers = {'HTTP_DEVICEID': '0'}
+        response = c.get('/api/v1/projects', {'sort-by': 'district_id', 'sort-order': 'desc'}, **headers)
         results = json.loads(response.content)
         for result in results['result']:
             for i in range(0, len(self.data.projects), 1):
                 if result['identifier'] == self.data.projects[i]['identifier']:
                     self.data.projects[i]['last_seen'] = result['last_seen']
+                    self.data.projects[i]['followed'] = False
 
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(results, {'status': True, 'result': self.data.projects[::-1]})
 
     def test_projects_sort_by_district_id_asc(self):
         c = Client()
-        response = c.get('/api/v1/projects', {'sort-by': 'district_id', 'sort-order': 'asc'})
+        headers = {'HTTP_DEVICEID': '0'}
+        response = c.get('/api/v1/projects', {'sort-by': 'district_id', 'sort-order': 'asc'}, **headers)
         results = json.loads(response.content)
         for result in results['result']:
             for i in range(0, len(self.data.projects), 1):
                 if result['identifier'] == self.data.projects[i]['identifier']:
                     self.data.projects[i]['last_seen'] = result['last_seen']
+                    self.data.projects[i]['followed'] = False
 
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(results, {'status': True, 'result': self.data.projects})
 
     def test_projects_all(self):
         c = Client()
-        response = c.get('/api/v1/projects')
+        headers = {'HTTP_DEVICEID': '0'}
+        response = c.get('/api/v1/projects', **headers)
         results = json.loads(response.content)
         for result in results['result']:
             for i in range(0, len(self.data.projects), 1):
                 if result['identifier'] == self.data.projects[i]['identifier']:
                     self.data.projects[i]['last_seen'] = result['last_seen']
+                    self.data.projects[i]['followed'] = False
 
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(results, {'status': True, 'result': self.data.projects})
 
     def test_projects_filter_by_title_and_identifier(self):
         c = Client()
-        response = c.get('/api/v1/projects', {'fields': 'title,identifier'})
+        headers = {'HTTP_DEVICEID': '0'}
+        response = c.get('/api/v1/projects', {'fields': 'title,identifier'}, **headers)
         results = json.loads(response.content)
         expected_result = {
             'status': True,
@@ -218,23 +233,27 @@ class TestApiProjectDetails(TestCase):
 
     def test_invalid_query(self):
         c = Client()
-        response = c.get('/api/v1/project/details')
+        headers = {'HTTP_DEVICEID': '0'}
+        response = c.get('/api/v1/project/details', **headers)
 
         self.assertEqual(response.status_code, 422)
         self.assertEqual(response.data, {'status': False, 'result': messages.invalid_query})
 
     def test_identifier_does_exist(self):
         c = Client()
-        response = c.get('/api/v1/project/details', {'id': '0000000000'})
+        headers = {'HTTP_DEVICEID': '0'}
+        response = c.get('/api/v1/project/details', {'id': '0000000000'}, **headers)
         result = json.loads(response.content)
-        self.data.project_details[0]['last_seen'] = result['result']['last_seen']
+        expected_result = {'status': True, 'result': {'identifier': '0000000000', 'project_type': 'brug', 'body': {'what': [{'html': 'html content', 'text': 'text content', 'title': 'title'}], 'when': [{'html': 'html content', 'text': 'text content', 'title': 'title'}], 'work': [{'html': 'html content', 'text': 'text content', 'title': 'title'}], 'where': [{'html': 'html content', 'text': 'text content', 'title': 'title'}], 'contact': [{'html': 'html content', 'text': 'text content', 'title': 'title'}], 'timeline': {}, 'more-info': [{'html': 'html content', 'text': 'text content', 'title': 'title'}]}, 'coordinates': {'lat': 0.0, 'lon': 0.0}, 'district_id': 0, 'district_name': 'West', 'images': [{'type': 'banner', 'sources': {'orig': {'url': 'https://localhost/image.jpg', 'size': 'orig', 'filename': 'image.jpg', 'image_id': '0000000000', 'description': ''}}}, {'type': 'additional', 'sources': {'orig': {'url': 'https://localhost/image.jpg', 'size': 'orig', 'filename': 'image.jpg', 'image_id': '0000000001', 'description': ''}}}], 'news': [{'url': 'https://localhost/news/0', 'identifier': '00000000000', 'project_identifier': '00000000000'}], 'page_id': 0, 'title': 'test0', 'subtitle': 'subtitle', 'rel_url': 'project/0', 'url': 'https://localhost/project/0', 'last_seen': '2022-07-05T13:02:29.030663', 'active': True, 'contacts': [], 'followers': 0, 'followed': False, 'meter': None, 'strides': None}}
+        expected_result['result']['last_seen'] = result['result']['last_seen']
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(result, {'status': True, 'result': self.data.project_details[0]})
+        self.assertEqual(result, expected_result)
 
     def test_identifier_does_not_exist(self):
         c = Client()
-        response = c.get('/api/v1/project/details', {'id': 'does not exist'})
+        headers = {'HTTP_DEVICEID': '0'}
+        response = c.get('/api/v1/project/details', {'id': 'does not exist'}, **headers)
 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.data, {'status': False, 'result': messages.no_record_found})

@@ -65,7 +65,7 @@ class TestApiProjectDistance(TestCase):
         result = json.loads(response.content)
         expected_result = {
             'status': True,
-            'result': [{'identifier': '0000000001', 'title': 'title', 'meter': 100172, 'strides': 135368}]
+            'result': [{'identifier': '0000000001', 'title': 'title', 'meter': 100172, 'strides': 135367}]
         }
 
         self.assertEqual(response.status_code, 200)

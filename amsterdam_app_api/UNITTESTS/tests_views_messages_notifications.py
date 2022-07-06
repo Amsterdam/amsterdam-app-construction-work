@@ -7,7 +7,7 @@ from unittest.mock import patch
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
 from amsterdam_app_api.UNITTESTS.mock_functions import firebase_admin_messaging_send_multicast
 from amsterdam_app_api.GenericFunctions.AESCipher import AESCipher
-from amsterdam_app_api.models import Projects, ProjectManager, WarningMessages, MobileDevices
+from amsterdam_app_api.models import Projects, ProjectManager, WarningMessages, FirebaseTokens, FollowedProjects
 from amsterdam_app_api.api_messages import Messages
 
 messages = Messages()
@@ -45,9 +45,13 @@ class TestApiNotification(TestCase):
 
     @patch('firebase_admin.messaging.send_multicast', side_effect=firebase_admin_messaging_send_multicast)
     def test_post_notification(self, firebase_admin_messaging_send_multicast):
-        MobileDevices.objects.all().delete()
-        for mobile_device in self.data.mobile_devices:
-            MobileDevices.objects.create(**mobile_device)
+        FirebaseTokens.objects.all().delete()
+        for device in self.data.mobile_devices:
+            FirebaseTokens.objects.create(**device)
+
+        FollowedProjects.objects.all().delete()
+        for project in self.data.followed_projects:
+            FollowedProjects.objects.create(**project)
 
         data = {'title': 'title', 'body': 'text', 'warning_identifier': self.warning_identifier}
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -93,9 +97,14 @@ class TestApiNotification(TestCase):
 
     @patch('firebase_admin.messaging.send_multicast', side_effect=firebase_admin_messaging_send_multicast)
     def test_get_notification(self, firebase_admin_messaging_send_multicast):
-        MobileDevices.objects.all().delete()
-        for mobile_device in self.data.mobile_devices:
-            MobileDevices.objects.create(**mobile_device)
+        FirebaseTokens.objects.all().delete()
+        for device in self.data.mobile_devices:
+            FirebaseTokens.objects.create(**device)
+
+        FollowedProjects.objects.all().delete()
+        for project in self.data.followed_projects:
+            FollowedProjects.objects.create(**project)
+
         data = {'title': 'title', 'body': 'text', 'warning_identifier': self.warning_identifier}
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
@@ -123,9 +132,14 @@ class TestApiNotification(TestCase):
 
     @patch('firebase_admin.messaging.send_multicast', side_effect=firebase_admin_messaging_send_multicast)
     def test_get_notification_inactive_project(self, firebase_admin_messaging_send_multicast):
-        MobileDevices.objects.all().delete()
-        for mobile_device in self.data.mobile_devices:
-            MobileDevices.objects.create(**mobile_device)
+        FirebaseTokens.objects.all().delete()
+        for device in self.data.mobile_devices:
+            FirebaseTokens.objects.create(**device)
+
+        FollowedProjects.objects.all().delete()
+        for project in self.data.followed_projects:
+            FollowedProjects.objects.create(**project)
+
         data = {'title': 'title', 'body': 'text', 'warning_identifier': self.warning_identifier}
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
@@ -140,7 +154,6 @@ class TestApiNotification(TestCase):
 
         self.assertEqual(result.status_code, 404)
         self.assertDictEqual(result.data, {'status': False, 'result': 'No record found'})
-
 
     def test_get_notification_invalid_query(self):
         result = self.client.get('{url}s'.format(url=self.url))
