@@ -7,15 +7,14 @@ from amsterdam_app_api.models import Projects
 from amsterdam_app_api.models import ProjectDetails
 from amsterdam_app_api.models import News
 from amsterdam_app_api.models import ProjectManager
-from amsterdam_app_api.models import MobileDevices
 from amsterdam_app_api.models import WarningMessages
+from amsterdam_app_api.models import FirebaseTokens
 from amsterdam_app_api.serializers import ImageSerializer
 from amsterdam_app_api.serializers import AssetsSerializer
 from amsterdam_app_api.serializers import ProjectsSerializer
 from amsterdam_app_api.serializers import ProjectDetailsSerializer
 from amsterdam_app_api.serializers import NewsSerializer
 from amsterdam_app_api.serializers import ProjectManagerSerializer
-from amsterdam_app_api.serializers import MobileDevicesSerializer
 from amsterdam_app_api.serializers import WarningMessagesInternalSerializer
 from amsterdam_app_api.serializers import WarningMessagesExternalSerializer
 from amsterdam_app_api.serializers import Notification
@@ -249,39 +248,38 @@ class TestProjectManagerModel(TestCase):
         self.assertEqual(context.exception.args, ('Invalid email, should be <username>@amsterdam.nl',))
 
 
-class TestMobileDevicesModel(TestCase):
+class TestFirebaseTokenModel(TestCase):
     def __init__(self, *args, **kwargs):
-        super(TestMobileDevicesModel, self).__init__(*args, **kwargs)
-        self.data = TestData()
+        super(TestFirebaseTokenModel, self).__init__(*args, **kwargs)
+        self.data = [{'deviceid': '0', 'firebasetoken': '0', 'os': 'ios'}, {'deviceid': '1', 'firebasetoken': '1', 'os': 'ios'}]
 
     def setUp(self):
-        MobileDevices.objects.all().delete()
-        for mobile_device in self.data.mobile_devices:
-            MobileDevices.objects.create(**mobile_device)
+        FirebaseTokens.objects.all().delete()
+        for token in self.data:
+            FirebaseTokens.objects.create(**token)
 
-    def test_md_delete(self):
-        MobileDevices.objects.get(pk=uuid.UUID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')).delete()
-        md_objects = MobileDevices.objects.all()
-        serializer = MobileDevicesSerializer(md_objects, many=True)
+    def test_fb_delete(self):
+        FirebaseTokens.objects.get(pk='0').delete()
+        fb_objects = FirebaseTokens.objects.all()
 
-        self.assertEqual(len(serializer.data), 1)
+        self.assertEqual(len(fb_objects), 1)
 
-    def test_md_get_all(self):
-        md_objects = MobileDevices.objects.all()
+    def test_fb_get_all(self):
+        fb_objects = FirebaseTokens.objects.all()
 
-        self.assertEqual(len(md_objects), 2)
+        self.assertEqual(len(fb_objects), 2)
 
-    def test_md_exists(self):
-        md_objects = MobileDevices.objects.get(pk='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+    def test_fb_exists(self):
+        fb_objects = FirebaseTokens.objects.get(pk='0')
 
-        self.assertEqual(md_objects.device_token, 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
-        self.assertEqual(md_objects.os_type, 'android')
-        self.assertEqual(md_objects.projects, ["0000000000", "0000000001"])
+        self.assertEqual(fb_objects.firebasetoken, '0')
+        self.assertEqual(fb_objects.os, 'ios')
+        self.assertEqual(fb_objects.deviceid, '0')
 
-    def test_md_does_not_exist(self):
-        md_object = MobileDevices.objects.filter(pk='00000000-0000-0000-0000-000000000000').first()
+    def test_fb_does_not_exist(self):
+        fb_object = FirebaseTokens.objects.filter(pk='00000000-0000-0000-0000-000000000000').first()
 
-        self.assertEqual(md_object, None)
+        self.assertEqual(fb_object, None)
 
 
 class TestWarningMessagesModel(TestCase):

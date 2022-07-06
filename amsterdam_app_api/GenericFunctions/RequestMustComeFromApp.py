@@ -39,7 +39,8 @@ class RequestMustComeFromApp:
     def is_valid_token(encrypted_token=None):
         if encrypted_token is None:
             return False
-        token = AESCipher(encrypted_token, os.getenv('AES_SECRET')).decrypt()
+        aes_secret = os.getenv('AES_SECRET')
+        token = AESCipher(encrypted_token, aes_secret).decrypt()
         if valid_app_token != token:
             return False
         return True

@@ -58,7 +58,7 @@ class SendNotification:
             return None
 
     def create_subscribed_device_batches(self):
-        followers = [x.deviceid for x in list(FollowedProjects.objects.filter(projectid=self.identifier).all())]
+        followers = [x.deviceid for x in list(FollowedProjects.objects.filter(projectid=self.project_identifier).all())]
         filtered_devices = [x.firebasetoken for x in list(FirebaseTokens.objects.filter(deviceid__in=followers).all())]
         return [filtered_devices[x:x + self.batch_size] for x in range(0, len(filtered_devices), self.batch_size)]
 
