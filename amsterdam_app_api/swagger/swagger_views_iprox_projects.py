@@ -147,6 +147,9 @@ as_projects = {
                                       'followed': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='is following this project'),
                                       'meter': openapi.Schema(type=openapi.TYPE_INTEGER, description='meter'),
                                       'strides': openapi.Schema(type=openapi.TYPE_INTEGER, description='strides'),
+                                      'recent_articles': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                                          'identifier': openapi.Schema(type=openapi.TYPE_STRING, description='identifier')
+                                      }))
                                   }))
                               }),
                               examples={'application/json': {'status': True, 'result': []}}),
