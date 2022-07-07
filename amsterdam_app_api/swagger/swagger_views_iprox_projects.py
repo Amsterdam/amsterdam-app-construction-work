@@ -148,7 +148,8 @@ as_projects = {
                                       'meter': openapi.Schema(type=openapi.TYPE_INTEGER, description='meter'),
                                       'strides': openapi.Schema(type=openapi.TYPE_INTEGER, description='strides'),
                                       'recent_articles': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
-                                          'identifier': openapi.Schema(type=openapi.TYPE_STRING, description='identifier')
+                                          'identifier': openapi.Schema(type=openapi.TYPE_STRING, description='identifier'),
+                                          'publication_date': openapi.Schema(type=openapi.TYPE_STRING, description='publication date')
                                       }))
                                   }))
                               }),

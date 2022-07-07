@@ -161,10 +161,11 @@ def projects(request):
             all_articles = news_articles + warning_articles
             articles = dict()
             for article in all_articles:
+                payload = {'identifier': article['identifier'], 'publication_date': article['publication_date']}
                 if article['project_identifier'] in articles:
-                    articles[article['project_identifier']].append(article['identifier'])
+                    articles[article['project_identifier']].append(payload)
                 else:
-                    articles[article['project_identifier']] = [article['identifier']]
+                    articles[article['project_identifier']] = [payload]
 
             for i in range(len(results)):
                 results[i]['recent_articles'] = []
