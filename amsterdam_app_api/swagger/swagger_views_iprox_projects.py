@@ -43,16 +43,16 @@ timeline = openapi.Schema(type=openapi.TYPE_OBJECT, properties={
         'text': openapi.Schema(type=openapi.TYPE_STRING, description='text')
     }),
     'items': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
-        'title': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
-            'html': openapi.Schema(type=openapi.TYPE_STRING, description='html'),
-            'text': openapi.Schema(type=openapi.TYPE_STRING, description='text')
-        }),
-        'content': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
-            'html': openapi.Schema(type=openapi.TYPE_STRING, description='html'),
-            'text': openapi.Schema(type=openapi.TYPE_STRING, description='text')
-        }),
+        'title': openapi.Schema(type=openapi.TYPE_STRING, description='text'),
         'collapsed': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='collapsed'),
         'progress': openapi.Schema(type=openapi.TYPE_STRING, description='current progress'),
+        'content': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+            'title': openapi.Schema(type=openapi.TYPE_STRING, description='text'),
+            'body': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                'html': openapi.Schema(type=openapi.TYPE_STRING, description='html'),
+                'text': openapi.Schema(type=openapi.TYPE_STRING, description='text')
+            })
+        }))
     }))
 })
 

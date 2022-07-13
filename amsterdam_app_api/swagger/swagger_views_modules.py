@@ -44,6 +44,25 @@ module_order = {
                             items=slug)
 }
 
+# type=openapi.TYPE_ARRAY,
+#                                                                items=openapi.Schema(
+as_module_all ={
+    'methods': ['get'],
+    'responses': {
+        200: openapi.Response(
+            'application/json',
+            schema=openapi.Schema(type=openapi.TYPE_OBJECT,
+                                  properties={
+                                      'status': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='result status'),
+                                      'result': openapi.Schema(type=openapi.TYPE_OBJECT,
+                                                               properties={
+                                                                   'modules': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties=modules)),
+                                                                   'modules_by_app': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties=modules_by_app))
+                                                               })}))
+    },
+    'tags': ['Modules']
+}
+
 
 as_modules_get = {
     'methods': ['get'],
