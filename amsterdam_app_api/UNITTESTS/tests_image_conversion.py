@@ -19,7 +19,7 @@ class TestImageConversion(TestCase):
 
         self.assertEqual(len(image_conversion.images), 6)
 
-        self.assertDictEqual(image_conversion.gps_info, {'lon': 6.182547222222222, 'lat': 52.14440555555556})
+        self.assertDictEqual(image_conversion.gps_info, {'lon': None, 'lat': None})
         self.assertEqual(image_conversion.landscape, True)
 
         self.assertEqual(image_conversion.images['original']['width'], 4032)

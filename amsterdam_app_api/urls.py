@@ -49,8 +49,9 @@ urlpatterns = [
     path('projects', csrf_exempt(views_iprox_projects.projects)),
     path('projects/search', csrf_exempt(views_iprox_projects.projects_search)),
     path('projects/distance', csrf_exempt(views_distance.distance)),
+    path('projects/follow', csrf_exempt(views_iprox_projects.projects_follow)),
 
-    # Projec details(s)
+    # Project details(s)
     path('project/details', csrf_exempt(views_iprox_projects.project_details)),
     path('project/details/search', csrf_exempt(views_iprox_projects.project_details_search)),
 
@@ -77,8 +78,8 @@ urlpatterns = [
     path('asset', csrf_exempt(views_generic.asset)),
     path('districts', csrf_exempt(views_generic.districts)),
 
-    # Mobile devices (used for CRUD devices for push-notifications)
-    path('device_registration', csrf_exempt(views_mobile_devices.crud)),
+    # Mobile devices (used for C..D devices for push-notifications)
+    path('device/register', csrf_exempt(views_mobile_devices.device_register)),
 
     # Project Manager (used to CRUD a project manager for notifications)
     path('project/manager', csrf_exempt(views_project_manager.crud)),
@@ -98,6 +99,7 @@ urlpatterns = [
     path('city/offices', csrf_exempt(views_city.city_offices)),
 
     # Modules
+    path('modules_all', csrf_exempt(views_modules.modules_all)),
     path('modules_order', csrf_exempt(views_modules.module_order)),
     path('modules', csrf_exempt(views_modules.modules)),
     path('modules_by_app', csrf_exempt(views_modules.modules_by_app)),

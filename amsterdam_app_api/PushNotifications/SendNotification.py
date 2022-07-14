@@ -2,8 +2,9 @@ import firebase_admin
 from firebase_admin import messaging
 from firebase_admin import credentials
 from amsterdam_app_api.GenericFunctions.Logger import Logger
-from amsterdam_app_api.models import MobileDevices
 from amsterdam_app_api.models import Notification
+from amsterdam_app_api.models import FollowedProjects
+from amsterdam_app_api.models import FirebaseTokens
 from amsterdam_app_backend.settings import BASE_DIR
 
 
@@ -57,7 +58,8 @@ class SendNotification:
             return None
 
     def create_subscribed_device_batches(self):
-        filtered_devices = list(MobileDevices.objects.filter(projects__contains=[self.project_identifier]))
+        followers = [x.deviceid for x in list(FollowedProjects.objects.filter(projectid=self.project_identifier).all())]
+        filtered_devices = [x.firebasetoken for x in list(FirebaseTokens.objects.filter(deviceid__in=followers).all())]
         return [filtered_devices[x:x + self.batch_size] for x in range(0, len(filtered_devices), self.batch_size)]
 
     def send_multicast_and_handle_errors(self):
@@ -66,8 +68,7 @@ class SendNotification:
             return
 
         failed_tokens = []
-        for batch in self.subscribed_device_batches:
-            registration_tokens = [x.device_token for x in batch]
+        for registration_tokens in self.subscribed_device_batches:
             message = messaging.MulticastMessage(
                 data={'linkSourceid': str(self.link_source_id), 'type': self.article_type},
                 notification=self.notification,

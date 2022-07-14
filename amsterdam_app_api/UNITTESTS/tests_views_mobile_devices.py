@@ -1,10 +1,10 @@
+import json
 import os
 from django.test import Client
 from django.test import TestCase
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
 from amsterdam_app_api.GenericFunctions.AESCipher import AESCipher
-from amsterdam_app_api.models import MobileDevices
-from amsterdam_app_api.serializers import MobileDevicesSerializer
+from amsterdam_app_api.models import FirebaseTokens, DeviceAccessLog
 from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import Projects
 
@@ -18,137 +18,118 @@ class SetUp:
             Projects.objects.create(**project)
 
 
-class TestApiDeviceRegistration(TestCase):
+class TestDeviceAccessLog(TestCase):
     def __init__(self, *args, **kwargs):
-        super(TestApiDeviceRegistration, self).__init__(*args, **kwargs)
-        self.url = '/api/v1/device_registration'
-        self.token = AESCipher(os.getenv('APP_TOKEN'), os.getenv('AES_SECRET')).encrypt()
+        super(TestDeviceAccessLog, self).__init__(*args, **kwargs)
+        self.url = '/api/v1/device/register'
+        app_token = os.getenv('APP_TOKEN')
+        aes_secret = os.getenv('AES_SECRET')
+        self.token = AESCipher(app_token, aes_secret).encrypt()
 
     def setUp(self):
         SetUp()
-        MobileDevices.objects.all().delete()
+        FirebaseTokens.objects.all().delete()
 
-    def test_register_device_valid(self):
-        json_data = '{"device_token": "0000000000", "os_type": "ios", "projects": ["0000000000"]}'
-
+    def test_registration_ok(self):
         c = Client()
-        result = c.post(self.url, json_data, headers={"DeviceAuthorization": self.token}, content_type="application/json")
+        data = {'firebase_token': '0', 'os': 'ios'}
+        headers = {"HTTP_DEVICEAUTHORIZATION": self.token, 'HTTP_DEVICEID': '0'}
+        result = c.post(self.url, data, **headers)
 
         self.assertEqual(result.status_code, 200)
-        self.assertDictEqual(result.data, {'status': True, 'result': {'active': ['0000000000'], 'inactive': [], 'deleted': []}})
+        self.assertDictEqual(result.data, {'status': False, 'result': 'Registration added'})
 
-    def test_register_device_update(self):
+        DeviceAccessLog.prune()
+        devices = list(FirebaseTokens.objects.all())
+        self.assertEqual(len(devices), 1)
+
+
+class TestApiDeviceRegistration(TestCase):
+    def __init__(self, *args, **kwargs):
+        super(TestApiDeviceRegistration, self).__init__(*args, **kwargs)
+        self.url = '/api/v1/device/register'
+        app_token = os.getenv('APP_TOKEN')
+        aes_secret = os.getenv('AES_SECRET')
+        self.token = AESCipher(app_token, aes_secret).encrypt()
+
+    def setUp(self):
+        SetUp()
+        FirebaseTokens.objects.all().delete()
+
+    def test_delete_registration(self):
         c = Client()
-
-        json_data0 = '{"device_token": "0000000000", "os_type": "ios", "projects": ["0000000000"]}'
-        result = c.post(self.url, json_data0, headers={"DeviceAuthorization": self.token}, content_type="application/json")
+        data = {'firebase_token': '0', 'os': 'ios'}
+        headers = {"HTTP_DEVICEAUTHORIZATION": self.token, 'HTTP_DEVICEID': '0'}
+        result = c.post(self.url, data, **headers)
 
         self.assertEqual(result.status_code, 200)
-        self.assertDictEqual(result.data, {'status': True, 'result': {'active': ['0000000000'], 'inactive': [], 'deleted': []}})
+        self.assertDictEqual(result.data, {'status': False, 'result': 'Registration added'})
 
-        json_data1 = '{"device_token": "0000000000", "os_type": "ios", "projects": ["0000000000", "1111111111"]}'
-        result = c.post(self.url, json_data1, headers={"DeviceAuthorization": self.token}, content_type="application/json")
-
-        self.assertEqual(result.status_code, 200)
-        self.assertDictEqual(result.data, {'status': True, 'result': {'active': ['0000000000'], 'inactive': [], 'deleted': ['1111111111']}})
-
-        mobile_devices = MobileDevices.objects.all()
-        serializer = MobileDevicesSerializer(mobile_devices, many=True)
-        self.assertEqual(len(serializer.data), 1)
-
-    def test_register_device_update_refresh_token(self):
-        c = Client()
-
-        json_data0 = '{"device_token": "0000000000", "os_type": "ios", "projects": ["0000000000"]}'
-        result = c.post(self.url, json_data0, headers={"DeviceAuthorization": self.token}, content_type="application/json")
+        # Delete registration
+        result = c.delete(self.url, **headers)
 
         self.assertEqual(result.status_code, 200)
-        self.assertDictEqual(result.data, {"status": True, "result": {"active": ["0000000000"], "inactive": [], "deleted": []}})
+        self.assertDictEqual(result.data, {'status': False, 'result': 'Registration removed'})
 
-        json_data1 = '{"device_token": "0000000000", "device_refresh_token": "0000000001"}'
-        result = c.post(self.url, json_data1, headers={"DeviceAuthorization": self.token}, content_type="application/json")
+        # Assert only one record in db
+        devices = list(FirebaseTokens.objects.all())
+        self.assertEqual(len(devices), 0)
 
-        self.assertEqual(result.status_code, 200)
-        self.assertDictEqual(result.data, {'status': True, 'result': {'active': ['0000000000'], 'inactive': [], 'deleted': []}})
-
-        mobile_devices = MobileDevices.objects.filter(pk="0000000001").first()
-        self.assertEqual(mobile_devices.device_token, "0000000001")
-        self.assertEqual(mobile_devices.os_type, "ios")
-        self.assertEqual(mobile_devices.projects, ["0000000000"])
-
-    def test_unknown_device(self):
-        c = Client()
-
-        json_data = '{"device_token": "0000000000", "device_refresh_token": "0000000001"}'
-        result = c.post(self.url, json_data, headers={"DeviceAuthorization": self.token}, content_type="application/json")
-
-        self.assertEqual(result.status_code, 404)
-        self.assertDictEqual(result.data, {'status': False, 'result': messages.no_record_found})
-
-    def test_register_device_auto_removal(self):
-        c = Client()
-
-        json_data0 = '{"device_token": "0000000000", "os_type": "ios", "projects": ["0000000000"]}'
-        result = c.post(self.url, json_data0, headers={"DeviceAuthorization": self.token}, content_type="application/json")
+        # Silently discard not existing registration delete
+        result = c.delete(self.url, **headers)
 
         self.assertEqual(result.status_code, 200)
-        self.assertDictEqual(result.data, {'status': True, 'result': {'active': ['0000000000'], 'inactive': [], 'deleted': []}})
+        self.assertDictEqual(result.data, {'status': False, 'result': 'Registration removed'})
 
-        json_data1 = '{"device_token": "0000000000", "os_type": "ios", "projects": []}'
-        result = c.post(self.url, json_data1, headers={"DeviceAuthorization": self.token}, content_type="application/json")
-
-        self.assertEqual(result.status_code, 204)
-        self.assertDictEqual(result.data, {'status': True, 'result': 'Device removed from database'})
-
-        mobile_devices = MobileDevices.objects.all()
-        serializer = MobileDevicesSerializer(mobile_devices, many=True)
-        self.assertEqual(len(serializer.data), 0)
-
-    def test_register_device_invalid_request(self):
+    def test_registration_ok(self):
         c = Client()
+        data = {'firebase_token': '0', 'os': 'ios'}
+        headers = {"HTTP_DEVICEAUTHORIZATION": self.token, 'HTTP_DEVICEID': '0'}
+        result = c.post(self.url, data, **headers)
 
-        json_data0 = '{"device_token": "0000000000", "projects": ["0000000000"]}'
-        result = c.post(self.url, json_data0, headers={"DeviceAuthorization": self.token}, content_type="application/json")
+        self.assertEqual(result.status_code, 200)
+        self.assertDictEqual(result.data, {'status': False, 'result': 'Registration added'})
+
+        # Silent discard second call
+        result = c.post(self.url, data, **headers)
+
+        self.assertEqual(result.status_code, 200)
+        self.assertDictEqual(result.data, {'status': False, 'result': 'Registration added'})
+
+        # Assert only one record in db
+        devices = list(FirebaseTokens.objects.all())
+        self.assertEqual(len(devices), 1)
+
+    def test_missing_os_missing(self):
+        c = Client()
+        data = {'firebase_token': '0'}
+        headers = {"HTTP_DEVICEAUTHORIZATION": self.token, 'HTTP_DEVICEID': '0'}
+        result = c.post(self.url, data, **headers)
 
         self.assertEqual(result.status_code, 422)
         self.assertDictEqual(result.data, {'status': False, 'result': messages.invalid_query})
 
-        json_data1 = '{"os_type": "ios", "projects": ["0000000000"]}'
-        result = c.post(self.url, json_data1, headers={"DeviceAuthorization": self.token}, content_type="application/json")
+    def test_missing_firebase_token(self):
+        c = Client()
+        data = {'os': 'ios'}
+        headers = {"HTTP_DEVICEAUTHORIZATION": self.token, 'HTTP_DEVICEID': '0'}
+        result = c.post(self.url, data, **headers)
 
         self.assertEqual(result.status_code, 422)
         self.assertDictEqual(result.data, {'status': False, 'result': messages.invalid_query})
 
-    def test_register_device_delete(self):
+    def test_missing_identifier(self):
         c = Client()
-
-        json_data0 = '{"device_token": "0000000000", "os_type": "ios", "projects": ["0000000000"]}'
-        result = c.post(self.url, json_data0, headers={"DeviceAuthorization": self.token}, content_type="application/json")
-
-        self.assertEqual(result.status_code, 200)
-        self.assertDictEqual(result.data, {'status': True, 'result': {'active': ['0000000000'], 'inactive': [], 'deleted': []}})
-
-        result = c.delete('{url}?id=0000000000'.format(url=self.url), headers={"DeviceAuthorization": self.token})
-
-        self.assertEqual(result.status_code, 204)
-        self.assertDictEqual(result.data, {'status': True, 'result': 'Device removed from database'})
-
-        mobile_devices = MobileDevices.objects.all()
-        serializer = MobileDevicesSerializer(mobile_devices, many=True)
-        self.assertEqual(len(serializer.data), 0)
-
-    def test_register_device_delete_no_identifier(self):
-        c = Client()
-
-        result = c.delete(self.url, headers={"DeviceAuthorization": self.token})
+        headers = {"HTTP_DEVICEAUTHORIZATION": self.token}
+        result = c.post(self.url, **headers)
 
         self.assertEqual(result.status_code, 422)
-        self.assertDictEqual(result.data, {'status': False, 'result': messages.invalid_query})
+        self.assertDictEqual(result.data, {'status': False, 'result': messages.invalid_headers})
 
-    def test_invalid_token(self):
+    def test_invalid_authorization(self):
         c = Client()
-
-        result = c.post(self.url, headers={"DeviceAuthorization": 'invalid'})
+        headers = {"HTTP_DEVICEAUTHORIZATION": 'invalid', 'HTTP_DEVICEID': '0'}
+        result = c.post(self.url, **headers)
 
         self.assertEqual(result.status_code, 403)
         self.assertEqual(result.reason_phrase, 'Forbidden')

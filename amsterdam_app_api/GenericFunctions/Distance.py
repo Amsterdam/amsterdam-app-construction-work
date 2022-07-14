@@ -36,7 +36,7 @@ class Distance:
 
         if not any(elem is None for elem in [coords_1[0], coords_1[1], coords_2[0], coords_2[1]]):
             try:
-                self.meter = geopy.distance.geodesic(coords_1, coords_2).km * 1000
-                self.strides = self.meter / 0.74
+                self.meter = int(geopy.distance.geodesic(coords_1, coords_2).km * 1000)
+                self.strides = int(self.meter / 0.74)
             except Exception as error:
                 print(error, flush=True)

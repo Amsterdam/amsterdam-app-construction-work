@@ -7,18 +7,103 @@ from amsterdam_app_api.models import Projects
 from amsterdam_app_api.models import ProjectDetails
 from amsterdam_app_api.models import News
 from amsterdam_app_api.models import ProjectManager
-from amsterdam_app_api.models import MobileDevices
 from amsterdam_app_api.models import WarningMessages
+from amsterdam_app_api.models import FirebaseTokens
+from amsterdam_app_api.models import Modules, ModuleOrder, ModulesByApp
 from amsterdam_app_api.serializers import ImageSerializer
 from amsterdam_app_api.serializers import AssetsSerializer
 from amsterdam_app_api.serializers import ProjectsSerializer
 from amsterdam_app_api.serializers import ProjectDetailsSerializer
 from amsterdam_app_api.serializers import NewsSerializer
 from amsterdam_app_api.serializers import ProjectManagerSerializer
-from amsterdam_app_api.serializers import MobileDevicesSerializer
 from amsterdam_app_api.serializers import WarningMessagesInternalSerializer
 from amsterdam_app_api.serializers import WarningMessagesExternalSerializer
 from amsterdam_app_api.serializers import Notification
+from amsterdam_app_api.serializers import ModuleOrderSerializer
+
+
+class AllModulesModels(TestCase):
+    def __init__(self, *args, **kwargs):
+        super(AllModulesModels, self).__init__(*args, **kwargs)
+        self.modules = [
+            {'slug': 'slug0', 'title': 'title', 'icon': 'icon', 'version': '0.0.0', 'description': 'description'},
+            {'slug': 'slug0', 'title': 'title', 'icon': 'icon', 'version': '0.0.1', 'description': 'description'},
+            {'slug': 'slug1', 'title': 'title', 'icon': 'icon', 'version': '0.0.1', 'description': 'description'},
+            {'slug': 'slug2', 'title': 'title', 'icon': 'icon', 'version': '0.0.1', 'description': 'description'}
+
+        ]
+        self.modules_by_app = [
+            {'appVersion': '0.0.0', 'moduleSlug': 'slug0', 'moduleVersion': '0.0.0', 'status': 1},
+            {'appVersion': '0.0.1', 'moduleSlug': 'slug0', 'moduleVersion': '0.0.0', 'status': 1},
+            {'appVersion': '0.0.1', 'moduleSlug': 'slug1', 'moduleVersion': '0.0.0', 'status': 1},
+            {'appVersion': '0.0.1', 'moduleSlug': 'slug2', 'moduleVersion': '0.0.0', 'status': 1}
+        ]
+        self.module_order = [
+            {'appVersion': '0.0.0', 'order': ['slug0']},
+            {'appVersion': '0.0.1', 'order': ['slug0', 'slug1', 'slug2']}
+        ]
+
+    def setUp(self):
+        Modules.objects.all().delete()
+        ModuleOrder.objects.all().delete()
+        ModulesByApp.objects.all().delete()
+
+    def init_modules(self):
+        for module in self.modules:
+            Modules.objects.create(**module)
+        for module_by_app in self.modules_by_app:
+            ModulesByApp.objects.create(**module_by_app)
+        for order in self.module_order:
+            ModuleOrder.objects.create(**order)
+
+    def test_modules_save(self):
+        for module in self.modules:
+            Modules.objects.create(**module)
+
+        modules = list(Modules.objects.all())
+        self.assertEqual(len(modules), 4)
+
+    def test_modules_constraint_violation(self):
+        Modules.objects.create(**self.modules[0])
+        self.assertRaises(Exception, Modules.objects.create, **self.modules[0])
+
+        modules = list(Modules.objects.all())
+        self.assertEqual(len(modules), 1)
+
+    def test_modules_update_partial(self):
+        Modules.objects.create(**self.modules[0])
+        module = Modules.objects.filter(slug='slug0', version='0.0.0').first()
+        module.partial_update(icon='test')
+        data = Modules.objects.filter(slug='slug0', version='0.0.0').first()
+        self.assertEqual(data.icon, 'test')
+
+    def test_modules_by_app_save(self):
+        ModulesByApp.objects.create(**self.modules_by_app[0])
+        data = list(ModulesByApp.objects.all())
+        self.assertEqual(len(data), 1)
+
+    def test_modules_by_app_constraint_violation(self):
+        ModulesByApp.objects.create(**self.modules_by_app[0])
+        self.assertRaises(Exception, ModulesByApp.objects.create, **self.modules_by_app[0])
+        data = list(ModulesByApp.objects.all())
+        self.assertEqual(len(data), 1)
+
+    def test_modules_by_app_delete(self):
+        self.init_modules()
+
+        module = ModulesByApp.objects.filter(appVersion='0.0.1', moduleSlug='slug1').first()
+        module.delete()
+        order = ModuleOrderSerializer(ModuleOrder.objects.filter(appVersion='0.0.1').first(), many=False).data
+        modules_by_app = list(ModulesByApp.objects.all())
+        self.assertEqual(len(modules_by_app), 3)
+        self.assertDictEqual(order, {'appVersion': '0.0.1', 'order': ['slug0', 'slug2']})
+
+    def test_modules_by_app_partial_update(self):
+        ModulesByApp.objects.create(**self.modules_by_app[0])
+        module = ModulesByApp.objects.filter(moduleSlug='slug0', appVersion='0.0.0').first()
+        module.partial_update(status=0)
+        data = ModulesByApp.objects.filter(moduleSlug='slug0', appVersion='0.0.0').first()
+        self.assertEqual(data.status, 0)
 
 
 class TestAssetsModel(TestCase):
@@ -249,39 +334,38 @@ class TestProjectManagerModel(TestCase):
         self.assertEqual(context.exception.args, ('Invalid email, should be <username>@amsterdam.nl',))
 
 
-class TestMobileDevicesModel(TestCase):
+class TestFirebaseTokenModel(TestCase):
     def __init__(self, *args, **kwargs):
-        super(TestMobileDevicesModel, self).__init__(*args, **kwargs)
-        self.data = TestData()
+        super(TestFirebaseTokenModel, self).__init__(*args, **kwargs)
+        self.data = [{'deviceid': '0', 'firebasetoken': '0', 'os': 'ios'}, {'deviceid': '1', 'firebasetoken': '1', 'os': 'ios'}]
 
     def setUp(self):
-        MobileDevices.objects.all().delete()
-        for mobile_device in self.data.mobile_devices:
-            MobileDevices.objects.create(**mobile_device)
+        FirebaseTokens.objects.all().delete()
+        for token in self.data:
+            FirebaseTokens.objects.create(**token)
 
-    def test_md_delete(self):
-        MobileDevices.objects.get(pk=uuid.UUID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')).delete()
-        md_objects = MobileDevices.objects.all()
-        serializer = MobileDevicesSerializer(md_objects, many=True)
+    def test_fb_delete(self):
+        FirebaseTokens.objects.get(pk='0').delete()
+        fb_objects = FirebaseTokens.objects.all()
 
-        self.assertEqual(len(serializer.data), 1)
+        self.assertEqual(len(fb_objects), 1)
 
-    def test_md_get_all(self):
-        md_objects = MobileDevices.objects.all()
+    def test_fb_get_all(self):
+        fb_objects = FirebaseTokens.objects.all()
 
-        self.assertEqual(len(md_objects), 2)
+        self.assertEqual(len(fb_objects), 2)
 
-    def test_md_exists(self):
-        md_objects = MobileDevices.objects.get(pk='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
+    def test_fb_exists(self):
+        fb_objects = FirebaseTokens.objects.get(pk='0')
 
-        self.assertEqual(md_objects.device_token, 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')
-        self.assertEqual(md_objects.os_type, 'android')
-        self.assertEqual(md_objects.projects, ["0000000000", "0000000001"])
+        self.assertEqual(fb_objects.firebasetoken, '0')
+        self.assertEqual(fb_objects.os, 'ios')
+        self.assertEqual(fb_objects.deviceid, '0')
 
-    def test_md_does_not_exist(self):
-        md_object = MobileDevices.objects.filter(pk='00000000-0000-0000-0000-000000000000').first()
+    def test_fb_does_not_exist(self):
+        fb_object = FirebaseTokens.objects.filter(pk='00000000-0000-0000-0000-000000000000').first()
 
-        self.assertEqual(md_object, None)
+        self.assertEqual(fb_object, None)
 
 
 class TestWarningMessagesModel(TestCase):

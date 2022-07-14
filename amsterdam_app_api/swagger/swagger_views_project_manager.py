@@ -13,16 +13,18 @@ as_project_manager_get = {
     # /api/v1/project/news swagger_auto_schema
     'methods': ['GET'],
     'Description': 'test',
-    'manual_parameters': [openapi.Parameter('id',
+    'manual_parameters': [openapi.Parameter('UserAuthorization',
+                                            openapi.IN_HEADER,
+                                            description="authorization token",
+                                            type=openapi.TYPE_STRING,
+                                            required=True),
+                          openapi.Parameter('id',
                                             openapi.IN_QUERY,
                                             'Query project manager (optionally by identifier)',
                                             type=openapi.TYPE_STRING,
                                             format='<id>',
-                                            required=False),
-                          openapi.Parameter('UserAuthorization',
-                                            openapi.IN_HEADER,
-                                            description="authorization token",
-                                            type=openapi.TYPE_STRING)],
+                                            required=False)
+                        ],
     'responses': {
         200: openapi.Response('application/json',
                               ProjectManagerSerializer,
@@ -35,16 +37,18 @@ as_project_manager_get = {
 as_project_manager_delete = {
     # /api/v1/asset swagger_auto_schema
     'methods': ['DELETE'],
-    'manual_parameters': [openapi.Parameter('id',
+    'manual_parameters': [openapi.Parameter('UserAuthorization',
+                                            openapi.IN_HEADER,
+                                            description="authorization token",
+                                            type=openapi.TYPE_STRING,
+                                            required=True),
+                          openapi.Parameter('id',
                                             openapi.IN_QUERY,
                                             'Remove project manager by identifier',
                                             type=openapi.TYPE_STRING,
                                             format='<identifier>',
-                                            required=True),
-                          openapi.Parameter('UserAuthorization',
-                                            openapi.IN_HEADER,
-                                            description="authorization token",
-                                            type=openapi.TYPE_STRING)],
+                                            required=True)
+                          ],
     'responses': {
         200: openapi.Response('application/json',
                               examples={
@@ -67,7 +71,8 @@ as_project_manager_post_patch = {
     'manual_parameters': [openapi.Parameter('UserAuthorization',
                                             openapi.IN_HEADER,
                                             description="authorization token",
-                                            type=openapi.TYPE_STRING)],
+                                            type=openapi.TYPE_STRING,
+                                            required=True)],
     'request_body': ProjectManagerSerializer,
     'responses': {
         200: openapi.Response('application/json', examples={

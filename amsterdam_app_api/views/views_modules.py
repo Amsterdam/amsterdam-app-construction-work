@@ -22,10 +22,19 @@ from amsterdam_app_api.swagger.swagger_views_modules import as_modules_by_app_po
 from amsterdam_app_api.swagger.swagger_views_modules import as_modules_by_app_patch
 from amsterdam_app_api.swagger.swagger_views_modules import as_modules_by_app_delete
 from amsterdam_app_api.swagger.swagger_views_modules import as_modules_for_app_get
+from amsterdam_app_api.swagger.swagger_views_modules import as_module_all
 from amsterdam_app_api.api_messages import Messages
 
 
 message = Messages()
+
+
+@swagger_auto_schema(**as_module_all)
+@api_view(['GET'])
+def modules_all(request):
+    modules_by_app = ModulesByAppSerializer(list(ModulesByApp.objects.all()), many=True).data
+    modules = ModulesSerializer(list(Modules.objects.all()), many=True).data
+    return Response({'status': True, 'result': {'modules': modules, 'modules_by_app': modules_by_app}})
 
 
 @swagger_auto_schema(**as_module_order_get)

@@ -113,6 +113,7 @@ class TestData:
                     "timeline": {},
                     "more-info": [{"html": "html content", "text": "text content", "title": "title"}]
                 },
+                "contacts": [],
                 "coordinates": {"lat": 0.0, "lon": 0.0},
                 "district_id": 0,
                 "district_name": "West",
@@ -137,6 +138,7 @@ class TestData:
                     "timeline": {},
                     "more-info": [{"html": "html content", "text": "text content", "title": "title"}]
                 },
+                "contacts": [],
                 "coordinates": {"lat": 1.0, "lon": 1.0},
                 "district_id": 0,
                 "district_name": "West",
@@ -2025,14 +2027,29 @@ class TestData:
 
         self.mobile_devices = [
             {
-                "device_token": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-                "os_type": "android",
-                "projects": ["0000000000", "0000000001"]
+                "deviceid": "0",
+                "firebasetoken": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                "os": "android"
             },
             {
-                "device_token": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
-                "os_type": "ios",
-                "projects": ["0000000000"]
+                "deviceid": "1",
+                "firebasetoken": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+                "os": "ios"
+            }
+        ]
+
+        self.followed_projects = [
+            {
+                "deviceid": '0',
+                "projectid": '0000000000'
+            },
+            {
+                "deviceid": '0',
+                "projectid": '0000000001'
+            },
+            {
+                "deviceid": '1',
+                "projectid": '0000000000'
             }
         ]
 

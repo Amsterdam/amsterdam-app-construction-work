@@ -44,6 +44,25 @@ module_order = {
                             items=slug)
 }
 
+# type=openapi.TYPE_ARRAY,
+#                                                                items=openapi.Schema(
+as_module_all ={
+    'methods': ['get'],
+    'responses': {
+        200: openapi.Response(
+            'application/json',
+            schema=openapi.Schema(type=openapi.TYPE_OBJECT,
+                                  properties={
+                                      'status': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='result status'),
+                                      'result': openapi.Schema(type=openapi.TYPE_OBJECT,
+                                                               properties={
+                                                                   'modules': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties=modules)),
+                                                                   'modules_by_app': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties=modules_by_app))
+                                                               })}))
+    },
+    'tags': ['Modules']
+}
+
 
 as_modules_get = {
     'methods': ['get'],
@@ -70,7 +89,8 @@ as_modules_post = {
     'manual_parameters': [openapi.Parameter('Authorization',
                                             openapi.IN_HEADER,
                                             description="Authorization token",
-                                            type=openapi.TYPE_STRING)],
+                                            type=openapi.TYPE_STRING,
+                                            required=True)],
     'request_body': openapi.Schema(
         type=openapi.TYPE_OBJECT,
         required=["slug", "title", "icon", "version", "description"],
@@ -94,7 +114,8 @@ as_modules_patch = {
     'manual_parameters': [openapi.Parameter('Authorization',
                                             openapi.IN_HEADER,
                                             description="Authorization token",
-                                            type=openapi.TYPE_STRING)],
+                                            type=openapi.TYPE_STRING,
+                                            required=True)],
     'request_body': openapi.Schema(
         type=openapi.TYPE_OBJECT,
         required=["slug", "version"],
@@ -118,7 +139,8 @@ as_modules_delete = {
     'manual_parameters': [openapi.Parameter('Authorization',
                                             openapi.IN_HEADER,
                                             description="Authorization token",
-                                            type=openapi.TYPE_STRING)],
+                                            type=openapi.TYPE_STRING,
+                                            required=True)],
     'request_body': openapi.Schema(
         type=openapi.TYPE_OBJECT,
         required=['version', 'slug'],
@@ -172,7 +194,8 @@ as_modules_by_app_post = {
     'manual_parameters': [openapi.Parameter('Authorization',
                                             openapi.IN_HEADER,
                                             description="Authorization token",
-                                            type=openapi.TYPE_STRING)],
+                                            type=openapi.TYPE_STRING,
+                                            required=True)],
     'request_body': openapi.Schema(
         type=openapi.TYPE_OBJECT,
         required=["appVersion", "moduleSlug", "moduleVersion", "status"],
@@ -196,7 +219,8 @@ as_modules_by_app_patch = {
     'manual_parameters': [openapi.Parameter('Authorization',
                                             openapi.IN_HEADER,
                                             description="Authorization token",
-                                            type=openapi.TYPE_STRING)],
+                                            type=openapi.TYPE_STRING,
+                                            required=True)],
     'request_body': openapi.Schema(
         type=openapi.TYPE_OBJECT,
         required=["appVersion", "moduleSlug"],
@@ -220,7 +244,8 @@ as_modules_by_app_delete = {
     'manual_parameters': [openapi.Parameter('Authorization',
                                             openapi.IN_HEADER,
                                             description="Authorization token",
-                                            type=openapi.TYPE_STRING)],
+                                            type=openapi.TYPE_STRING,
+                                            required=True)],
     'request_body': openapi.Schema(
         type=openapi.TYPE_OBJECT,
         required=["appVersion", "moduleSlug"],
@@ -273,7 +298,8 @@ as_module_order_post = {
     'manual_parameters': [openapi.Parameter('Authorization',
                                             openapi.IN_HEADER,
                                             description="Authorization token",
-                                            type=openapi.TYPE_STRING)],
+                                            type=openapi.TYPE_STRING,
+                                            required=True)],
     'request_body': openapi.Schema(
         type=openapi.TYPE_OBJECT,
         required=["appVersion", "order"],
@@ -297,7 +323,8 @@ as_module_order_patch = {
     'manual_parameters': [openapi.Parameter('Authorization',
                                             openapi.IN_HEADER,
                                             description="Authorization token",
-                                            type=openapi.TYPE_STRING)],
+                                            type=openapi.TYPE_STRING,
+                                            required=True)],
     'request_body': openapi.Schema(
         type=openapi.TYPE_OBJECT,
         required=["appVersion", "order"],
@@ -321,7 +348,8 @@ as_module_order_delete = {
     'manual_parameters': [openapi.Parameter('Authorization',
                                             openapi.IN_HEADER,
                                             description="Authorization token",
-                                            type=openapi.TYPE_STRING)],
+                                            type=openapi.TYPE_STRING,
+                                            required=True)],
     'request_body': openapi.Schema(
         type=openapi.TYPE_OBJECT,
         required=["appVersion"],
