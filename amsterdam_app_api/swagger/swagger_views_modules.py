@@ -44,9 +44,8 @@ module_order = {
                             items=slug)
 }
 
-# type=openapi.TYPE_ARRAY,
-#                                                                items=openapi.Schema(
-as_module_all ={
+
+as_module_app_versions ={
     'methods': ['get'],
     'responses': {
         200: openapi.Response(
@@ -54,13 +53,11 @@ as_module_all ={
             schema=openapi.Schema(type=openapi.TYPE_OBJECT,
                                   properties={
                                       'status': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='result status'),
-                                      'result': openapi.Schema(type=openapi.TYPE_OBJECT,
-                                                               properties={
-                                                                   'modules': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties=modules)),
-                                                                   'modules_by_app': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties=modules_by_app))
-                                                               })}))
+                                      'result': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                               items=openapi.Schema(type=openapi.TYPE_STRING, description='app versions'))
+                                  }))
     },
-    'tags': ['Modules']
+    'tags': ['App Versions']
 }
 
 

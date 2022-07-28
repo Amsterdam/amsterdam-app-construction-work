@@ -22,19 +22,19 @@ from amsterdam_app_api.swagger.swagger_views_modules import as_modules_by_app_po
 from amsterdam_app_api.swagger.swagger_views_modules import as_modules_by_app_patch
 from amsterdam_app_api.swagger.swagger_views_modules import as_modules_by_app_delete
 from amsterdam_app_api.swagger.swagger_views_modules import as_modules_for_app_get
-from amsterdam_app_api.swagger.swagger_views_modules import as_module_all
+from amsterdam_app_api.swagger.swagger_views_modules import as_module_app_versions
 from amsterdam_app_api.api_messages import Messages
 
 
 message = Messages()
 
 
-@swagger_auto_schema(**as_module_all)
+@swagger_auto_schema(**as_module_app_versions)
 @api_view(['GET'])
-def modules_all(request):
-    modules_by_app = ModulesByAppSerializer(list(ModulesByApp.objects.all()), many=True).data
-    modules = ModulesSerializer(list(Modules.objects.all()), many=True).data
-    return Response({'status': True, 'result': {'modules': modules, 'modules_by_app': modules_by_app}})
+def modules_app_versions(request):
+    app_versions = [x['appVersion'] for x in list((ModulesByApp.objects.all().values('appVersion').distinct()))]
+    app_versions.sort(reverse=True)
+    return Response({'status': True, 'result': app_versions})
 
 
 @swagger_auto_schema(**as_module_order_get)
@@ -44,11 +44,11 @@ def modules_all(request):
 @api_view(['GET', 'POST', 'PATCH', 'DELETE'])
 def module_order(request):
     if request.method in ['GET']:
-        result, status_code = module_order_get(request)
-        return Response(result, status=status_code)
+        data = module_order_get(request)
+        return data
     elif request.method in ['POST', 'PATCH', 'DELETE']:
-        result, status_code = module_order_ppd(request)
-        return Response(result, status=status_code)
+        data = module_order_ppd(request)
+        return data
 
 
 def module_order_get(request):
@@ -56,9 +56,9 @@ def module_order_get(request):
     module_order = ModuleOrder.objects.filter(appVersion=app_version).first()
     if module_order is not None:
         serializer = ModuleOrderSerializer(module_order, many=False)
-        return {'status': True, 'result': serializer.data}, 200
+        return Response({'status': True, 'result': serializer.data}, status=200)
     else:
-        return {'status': False, 'result': message.no_record_found}, 404
+        return Response({'status': False, 'result': message.no_record_found}, status=404)
 
 
 @IsAuthorized
@@ -69,27 +69,29 @@ def module_order_ppd(request):
         if module_order is None:
             module_order_object = ModuleOrder(**data)
             module_order_object.save()
-            return {'status': True, 'result': 'Module order updated or created'}, 200
+            return Response({'status': True, 'result': 'Module order updated or created'}, status=200)
         else:
-            return {'status': False, 'result': 'Object already exists'}, 422
+            return Response({'status': False, 'result': 'Object already exists'}, status=422)
+
     if request.method in ['PATCH']:
         if module_order is not None:
             ModuleOrder.objects.filter(appVersion=data.get('appVersion')).delete()
             module_order_object = ModuleOrder(**data)
             module_order_object.save()
-            return {'status': True, 'result': 'Module order updated or created'}, 200
+            return Response({'status': True, 'result': 'Module order updated or created'}, status=200)
         else:
-            return {'status': False, 'result': message.no_record_found}, 404
+            return Response({'status': False, 'result': message.no_record_found}, status=404)
+
     else:
         # Delete record
         try:
             data = dict(request.data)
             ModuleOrder.objects.filter(appVersion=data.get('appVersion')).delete()
-            return {'status': True, 'result': 'Module order deleted'}, 200
+            return Response({'status': True, 'result': 'Module order deleted'}, status=200)
         except Exception as error:
             logger = Logger()
             logger.error('Module (DELETE): {error}'.format(error=error))
-            return {'status': False, 'result': str(error)}, 500
+            return Response({'status': False, 'result': str(error)}, status=500)
 
 
 @swagger_auto_schema(**as_modules_get)
@@ -99,28 +101,27 @@ def module_order_ppd(request):
 @api_view(['GET', 'POST', 'PATCH', 'DELETE'])
 def modules(request):
     if request.method in ['GET']:
-        result, status_code = modules_get(request)
-        return Response(result, status=status_code)
+        data = modules_get(request)
+        return data
     elif request.method in ['POST']:
-        result, status_code = modules_post(request)
-        return Response(result, status=status_code)
+        data = modules_post(request)
+        return data
     elif request.method in ['PATCH']:
-        result, status_code = modules_patch(request)
-        return Response(result, status=status_code)
+        data = modules_patch(request)
+        return data
     elif request.method in ['DELETE']:
-        result, status_code = modules_delete(request)
-        return Response(result, status=status_code)
+        data = modules_delete(request)
+        return data
 
 
 @IsAuthorized
 def modules_post(request):
     try:
         data = dict(request.data)
-        modules = Modules(**data)
-        modules.save()
-        return {'status': True, 'result': 'Module created'}, 200
+        Modules.objects.create(**data)
+        return Response({'status': True, 'result': 'Module created'}, status=200)
     except Exception as error:
-        return {'status': False, 'result': str(error)}, 422
+        return Response({'status': False, 'result': str(error)}, status=422)
 
 
 @IsAuthorized
@@ -129,9 +130,9 @@ def modules_patch(request):
     modules = Modules.objects.filter(slug=data.get('slug'), version=data.get('version')).first()
     if modules is not None:
         modules.partial_update(**data)
-        return {'status': True, 'result': 'Module patched'}, 200
+        return Response({'status': True, 'result': 'Module patched'}, status=200)
     else:
-        return {'status': True, 'result': message.no_record_found}, 404
+        return Response({'status': True, 'result': message.no_record_found}, status=404)
 
 
 @IsAuthorized
@@ -140,16 +141,16 @@ def modules_delete(request):
     modules = Modules.objects.filter(slug=data.get('slug'), version=data.get('version')).first()
     if modules is not None:
         modules.delete()
-        return {'status': True, 'result': 'Module deleted'}, 200
+        return Response({'status': True, 'result': 'Module deleted'}, status=200)
     else:
-        return {'status': True, 'result': message.no_record_found}, 404
+        return Response({'status': True, 'result': message.no_record_found}, status=404)
 
 
 def modules_get(request):
     slug = request.GET.get('slug')
     modules = list(Modules.objects.filter(slug=slug).all())
     serializer = ModulesSerializer(modules, many=True)
-    return {'status': True, 'result': serializer.data}, 200
+    return Response({'status': True, 'result': serializer.data}, status=200)
 
 
 @swagger_auto_schema(**as_modules_by_app_get)
@@ -159,17 +160,17 @@ def modules_get(request):
 @api_view(['GET', 'POST', 'PATCH', 'DELETE'])
 def modules_by_app(request):
     if request.method in ['GET']:
-        result, status_code = modules_by_app_get(request)
-        return Response(result, status=status_code)
+        data = modules_by_app_get(request)
+        return data
     elif request.method in ['POST']:
-        result, status_code = modules_by_app_post(request)
-        return Response(result, status=status_code)
+        data = modules_by_app_post(request)
+        return data
     elif request.method in ['PATCH']:
-        result, status_code = modules_by_app_patch(request)
-        return Response(result, status=status_code)
+        data = modules_by_app_patch(request)
+        return data
     elif request.method in ['DELETE']:
-        result, status_code = modules_by_app_delete(request)
-        return Response(result, status=status_code)
+        data = modules_by_app_delete(request)
+        return data
 
 
 @IsAuthorized
@@ -177,7 +178,7 @@ def modules_by_app_post(request):
     data = dict(request.data)
     modules = ModulesByApp(**data)
     modules.save()
-    return {'status': True, 'result': 'ModuleByApp created'}, 200
+    return Response({'status': True, 'result': 'ModuleByApp created'}, status=200)
 
 
 @IsAuthorized
@@ -186,9 +187,9 @@ def modules_by_app_patch(request):
     modules = ModulesByApp.objects.filter(moduleSlug=data.get('moduleSlug'), appVersion=data.get('appVersion')).first()
     if modules is not None:
         modules.partial_update(**data)
-        return {'status': True, 'result': 'ModuleByApp patched'}, 200
+        return Response({'status': True, 'result': 'ModuleByApp patched'}, status=200)
     else:
-        return {'status': True, 'result': message.no_record_found}, 404
+        return Response({'status': True, 'result': message.no_record_found}, status=404)
 
 
 @IsAuthorized
@@ -197,16 +198,16 @@ def modules_by_app_delete(request):
     modules = ModulesByApp.objects.filter(moduleSlug=data.get('moduleSlug'), appVersion=data.get('appVersion')).first()
     if modules is not None:
         modules.delete()
-        return {'status': True, 'result': 'ModuleByApp deleted'}, 200
+        return Response({'status': True, 'result': 'ModuleByApp deleted'}, status=200)
     else:
-        return {'status': True, 'result': message.no_record_found}, 404
+        return Response({'status': True, 'result': message.no_record_found}, status=404)
 
 
 def modules_by_app_get(request):
     app_version = request.GET.get('appVersion')
     modules = list(ModulesByApp.objects.filter(appVersion=app_version).all())
     serializer = ModulesByAppSerializer(modules, many=True)
-    return {'status': True, 'result': serializer.data}, 200
+    return Response({'status': True, 'result': serializer.data}, status=200)
 
 
 @swagger_auto_schema(**as_modules_for_app_get)

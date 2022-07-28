@@ -99,7 +99,7 @@ urlpatterns = [
     path('city/offices', csrf_exempt(views_city.city_offices)),
 
     # Modules
-    path('modules_all', csrf_exempt(views_modules.modules_all)),
+    path('modules_app_versions', csrf_exempt(views_modules.modules_app_versions)),
     path('modules_order', csrf_exempt(views_modules.module_order)),
     path('modules', csrf_exempt(views_modules.modules)),
     path('modules_by_app', csrf_exempt(views_modules.modules_by_app)),
