@@ -18,10 +18,7 @@ as_warning_message_post = {
         type=openapi.TYPE_OBJECT,
         properties={
             'title': openapi.Schema(type=openapi.TYPE_STRING, description='title'),
-            'body': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
-                'preface': openapi.Schema(type=openapi.TYPE_STRING, description='short text'),
-                'content': openapi.Schema(type=openapi.TYPE_STRING, description='full text')
-            }),
+            'body': openapi.Schema(type=openapi.TYPE_STRING, description='full text'),
             'project_identifier': openapi.Schema(type=openapi.TYPE_STRING, description='identifier'),
             'project_manager_id': openapi.Schema(type=openapi.TYPE_STRING, description='identifier'),
             'author_email': openapi.Schema(type=openapi.TYPE_STRING, description='author@amsterdam.nl'),
@@ -66,10 +63,7 @@ as_warning_message_patch = {
         type=openapi.TYPE_OBJECT,
         properties={
             'title': openapi.Schema(type=openapi.TYPE_STRING, description='title'),
-            'body': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
-                'preface': openapi.Schema(type=openapi.TYPE_STRING, description='short text'),
-                'content': openapi.Schema(type=openapi.TYPE_STRING, description='full text')
-            }),
+            'body': openapi.Schema(type=openapi.TYPE_STRING, description='full text'),
             'project_identifier': openapi.Schema(type=openapi.TYPE_STRING, description='identifier')
         }
     ),

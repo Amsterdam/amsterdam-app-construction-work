@@ -56,6 +56,8 @@ def projects(request):
     """
     Get a list of all projects. Narrow down by query param: project-type
     """
+    import time
+    now = time.time()
     if request.method == 'GET':
         deviceid = request.META.get('HTTP_DEVICEID', None)
         if deviceid is None:
@@ -103,11 +105,11 @@ def projects(request):
         query_filter = SetFilter(district_id=district_id, project_type=project_type, active=True).get()
 
         # Return filtered result or all projects
+
         projects_object = Projects.objects.filter(**query_filter).all()
 
         # Get followers for projects
         following = [x['projectid'] for x in FollowedProjects.objects.filter(deviceid__iexact=deviceid).values('projectid')]
-
         if len(fields) != 0:
             model_fields = [x.name for x in Projects._meta.fields]
             serializer_fields = [x for x in fields if x in model_fields]
@@ -149,7 +151,6 @@ def projects(request):
 
         if articles_max_age is not None:
             articles_max_age = int(articles_max_age)
-            articles_max_age = int(articles_max_age)
             start_date = datetime.now() - timedelta(days=articles_max_age)
             end_date = datetime.now()
             start_date_str = start_date.strftime('%Y-%m-%d')
@@ -157,15 +158,19 @@ def projects(request):
             news_articles_all = list(News.objects.all())
             serializer_news = NewsSerializer(news_articles_all, many=True)
             news_articles = [x for x in serializer_news.data if x['publication_date'] >= start_date_str]
-            warning_articles = list(WarningMessages.objects.filter(publication_date__range=[start_date, end_date]).all())
-            all_articles = news_articles + warning_articles
+            warning_articles_all = list(WarningMessages.objects.filter(publication_date__range=[start_date, end_date]).all())
+            serializer_warnings = WarningMessagesExternalSerializer(warning_articles_all, many=True)
+            all_articles = news_articles + serializer_warnings.data
             articles = dict()
             for article in all_articles:
                 payload = {'identifier': article['identifier'], 'publication_date': article['publication_date']}
-                if article['project_identifier'] in articles:
-                    articles[article['project_identifier']].append(payload)
-                else:
-                    articles[article['project_identifier']] = [payload]
+                try:
+                    if article['project_identifier'] in articles:
+                        articles[article['project_identifier']].append(payload)
+                    else:
+                        articles[article['project_identifier']] = [payload]
+                except Exception as error:
+                    print(error)
 
             for i in range(len(results)):
                 results[i]['recent_articles'] = []
