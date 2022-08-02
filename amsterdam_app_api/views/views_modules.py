@@ -13,6 +13,7 @@ from amsterdam_app_api.swagger.swagger_views_modules import as_module_order_get
 from amsterdam_app_api.swagger.swagger_views_modules import as_module_order_post
 from amsterdam_app_api.swagger.swagger_views_modules import as_module_order_patch
 from amsterdam_app_api.swagger.swagger_views_modules import as_module_order_delete
+from amsterdam_app_api.swagger.swagger_views_modules import as_module_get
 from amsterdam_app_api.swagger.swagger_views_modules import as_modules_get
 from amsterdam_app_api.swagger.swagger_views_modules import as_modules_post
 from amsterdam_app_api.swagger.swagger_views_modules import as_modules_patch
@@ -92,6 +93,19 @@ def module_order_ppd(request):
             logger = Logger()
             logger.error('Module (DELETE): {error}'.format(error=error))
             return Response({'status': False, 'result': str(error)}, status=500)
+
+
+@swagger_auto_schema(**as_module_get)
+@api_view(['GET'])
+def module(request):
+    slug = request.GET.get('slug')
+    version = request.GET.get('version')
+    module = Modules.objects.filter(slug=slug, version=version).first()
+    if module is not None:
+        serializer = ModulesSerializer(module, many=False)
+        return Response({'status': True, 'result': serializer.data}, status=200)
+    else:
+        return Response({'status': True, 'result': 'No such module'}, status=404)
 
 
 @swagger_auto_schema(**as_modules_get)
@@ -176,8 +190,7 @@ def modules_by_app(request):
 @IsAuthorized
 def modules_by_app_post(request):
     data = dict(request.data)
-    modules = ModulesByApp(**data)
-    modules.save()
+    ModulesByApp.objects.create(**data)
     return Response({'status': True, 'result': 'ModuleByApp created'}, status=200)
 
 

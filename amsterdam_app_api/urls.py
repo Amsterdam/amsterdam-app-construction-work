@@ -101,6 +101,7 @@ urlpatterns = [
     # Modules
     path('modules_app_versions', csrf_exempt(views_modules.modules_app_versions)),
     path('modules_order', csrf_exempt(views_modules.module_order)),
+    path('module', csrf_exempt(views_modules.module)),
     path('modules', csrf_exempt(views_modules.modules)),
     path('modules_by_app', csrf_exempt(views_modules.modules_by_app)),
     path('modules_for_app', csrf_exempt(views_modules.modules_for_app_get))

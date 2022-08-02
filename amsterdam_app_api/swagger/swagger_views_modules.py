@@ -61,6 +61,33 @@ as_module_app_versions ={
 }
 
 
+as_module_get = {
+    'methods': ['get'],
+    'manual_parameters': [
+        openapi.Parameter('slug',
+                          openapi.IN_QUERY,
+                          required=True,
+                          description="Slug for requesting modules",
+                          type=openapi.TYPE_STRING),
+        openapi.Parameter('version',
+                          openapi.IN_QUERY,
+                          required=True,
+                          description="Version for requesting modules",
+                          type=openapi.TYPE_STRING)
+    ],
+    'responses': {
+        200: openapi.Response(
+            'application/json',
+            schema=openapi.Schema(type=openapi.TYPE_OBJECT,
+                                  properties={
+                                      'status': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='result status'),
+                                      'result': openapi.Schema(type=openapi.TYPE_OBJECT, properties=modules)
+                                  }))
+    },
+    'tags': ['Module']
+}
+
+
 as_modules_get = {
     'methods': ['get'],
     'manual_parameters': [openapi.Parameter('slug',
