@@ -66,22 +66,12 @@ def module_order_get(request):
 def module_order_ppd(request):
     data = dict(request.data)
     module_order = ModuleOrder.objects.filter(appVersion=data.get('appVersion')).first()
-    if request.method in ['POST']:
-        if module_order is None:
-            module_order_object = ModuleOrder(**data)
-            module_order_object.save()
-            return Response({'status': True, 'result': 'Module order updated or created'}, status=200)
-        else:
-            return Response({'status': False, 'result': 'Object already exists'}, status=422)
-
-    if request.method in ['PATCH']:
+    if request.method in ['POST', 'PATCH']:
         if module_order is not None:
             ModuleOrder.objects.filter(appVersion=data.get('appVersion')).delete()
-            module_order_object = ModuleOrder(**data)
-            module_order_object.save()
-            return Response({'status': True, 'result': 'Module order updated or created'}, status=200)
-        else:
-            return Response({'status': False, 'result': message.no_record_found}, status=404)
+        module_order_object = ModuleOrder(**data)
+        module_order_object.save()
+        return Response({'status': True, 'result': 'Module order updated or created'}, status=200)
 
     else:
         # Delete record
