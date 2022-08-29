@@ -48,7 +48,7 @@ function add_static_files {
 }
 
 function create_user {
-    printf "\nCreating web-user\n"
+    printf "\nCreating web-users\n"
     cd /code && python create_user.py
 }
 

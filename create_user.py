@@ -26,20 +26,24 @@ def source_environment():
         exit(False)
 
 
-def create_user():
+def create_users():
     source_environment()
 
     model = get_user_model()
-    username = os.getenv('WEB_USERNAME')
-    password = os.getenv('WEB_PASSWORD')
-    print(username, password)
+    webuser = os.getenv('WEB_USERNAME')
+    webpass = os.getenv('WEB_PASSWORD')
+    teamuser = os.getenv('TEAM_USERNAME')
+    teampass = os.getenv('TEAM_PASSWORD')
 
-    if not model.objects.filter(username=username).exists():
-        user = model.objects.create_user(username, password=password)
-        user.is_superuser = False
-        user.is_staff = True
-        user.save()
+    users = [[webuser, webpass], [teamuser, teampass]]
+
+    for user in users:
+        if not model.objects.filter(username=user[0]).exists():
+            account = model.objects.create_user(user[0], password=user[1])
+            account.is_superuser = False
+            account.is_staff = True
+            account.save()
 
 
 if __name__ == '__main__':
-    create_user()
+    create_users()
