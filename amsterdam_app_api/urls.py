@@ -66,9 +66,9 @@ urlpatterns = [
     path('ingest/garbagecollector', csrf_exempt(views_ingest.garbage_collector)),
     path('ingest/image', csrf_exempt(views_ingest.image)),
     path('ingest/asset', csrf_exempt(views_ingest.asset)),
-    path('ingest/cityoffice', csrf_exempt(views_ingest.city_office)),
-    path('ingest/cityoffices', csrf_exempt(views_ingest.city_offices)),
-    path('ingest/citycontact', csrf_exempt(views_ingest.city_contact)),
+    # path('ingest/cityoffice', csrf_exempt(views_ingest.city_office)),
+    # path('ingest/cityoffices', csrf_exempt(views_ingest.city_offices)),
+    # path('ingest/citycontact', csrf_exempt(views_ingest.city_contact)),
     path('ingest/project', csrf_exempt(views_ingest.project)),
     path('ingest/projects', csrf_exempt(views_ingest.projects)),
     path('ingest/news', csrf_exempt(views_ingest.news)),
@@ -94,8 +94,8 @@ urlpatterns = [
     path('notifications', csrf_exempt(views_messages.notification_get)),
 
     # City information (contact, counters)
-    path('city/contact', csrf_exempt(views_city.city_contact)),
-    path('city/office', csrf_exempt(views_city.city_office)),
+    # path('city/contact', csrf_exempt(views_city.city_contact)),
+    # path('city/office', csrf_exempt(views_city.city_office)),
     path('city/offices', csrf_exempt(views_city.city_offices)),
 
     # Modules
