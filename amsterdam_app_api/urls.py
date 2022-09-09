@@ -97,6 +97,7 @@ urlpatterns = [
     # path('city/contact', csrf_exempt(views_city.city_contact)),
     # path('city/office', csrf_exempt(views_city.city_office)),
     path('city/offices', csrf_exempt(views_city.city_offices)),
+    path('waiting_times', csrf_exempt(views_city.waiting_times)),
 
     # Modules
     path('modules_app_versions', csrf_exempt(views_modules.modules_app_versions)),

@@ -12,7 +12,20 @@ class StaticData:
         ]
 
     @staticmethod
+    def city_office_waiting_times_lookup_table():
+        return {
+            '9': 'Stadsloket Centrum',
+            '1': 'Stadsloket Nieuw-West',
+            '10': 'Stadsloket Noord',
+            '11': 'Stadsloket Oost',
+            '12': 'Stadsloket West',
+            '8': 'Stadsloket Zuid',
+            '2': 'Stadsloket Zuidoost'
+        }
+
+    @staticmethod
     def urls():
         return {
-            'address_to_gps': 'https://api.data.amsterdam.nl/atlas/search/adres/?q='
+            'address_to_gps': 'https://api.data.amsterdam.nl/atlas/search/adres/?q=',
+            'waiting_times': 'https://wachttijdenamsterdam.nl/data'
         }

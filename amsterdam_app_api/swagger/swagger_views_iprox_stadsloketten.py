@@ -62,7 +62,7 @@ as_city_offices = {
                                       'text': openapi.Schema(type=openapi.TYPE_STRING, description='text')
                                   }),
                                   'visitingHoursContent': openapi.Schema(type=openapi.TYPE_STRING, description='html'),
-                                  'openingHours': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                                  'visitingHours': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
                                       'regular': opening_hours_regular,
                                       'exceptions': opening_hours_exceptions
                                   }))

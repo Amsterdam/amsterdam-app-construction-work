@@ -35,17 +35,17 @@ class CityOffices(models.Model):
 
 class CityOfficesOpeningHoursRegular(models.Model):
     city_office_id = models.ForeignKey('CityOffices', on_delete=models.CASCADE)
-    day_of_week = models.CharField(max_length=1, choices=DAYS, blank=False, unique=False)
-    opens_hours = models.CharField(max_length=2, choices=HOURS, blank=False, unique=False)
-    opens_minutes = models.CharField(max_length=2, choices=MINUTES, blank=False, unique=False)
-    closes_hours = models.CharField(max_length=2, choices=HOURS, blank=False, unique=False)
-    closes_minutes = models.CharField(max_length=2, choices=MINUTES, blank=False, unique=False)
+    day_of_week = models.IntegerField(choices=DAYS, blank=False, unique=False)
+    opens_hours = models.IntegerField(choices=HOURS, blank=False, unique=False)
+    opens_minutes = models.IntegerField(choices=MINUTES, blank=False, unique=False)
+    closes_hours = models.IntegerField(choices=HOURS, blank=False, unique=False)
+    closes_minutes = models.IntegerField(choices=MINUTES, blank=False, unique=False)
 
 
 class CityOfficesOpeningHoursExceptions(models.Model):
     city_office_id = models.ForeignKey('CityOffices', on_delete=models.CASCADE)
     date = models.DateField(null=False)  # YYYY-MM-DD format
-    opens_hours = models.CharField(max_length=2, choices=HOURS, null=True, blank=True, unique=False)
-    opens_minutes = models.CharField(max_length=2, choices=MINUTES, null=True, blank=True, unique=False)
-    closes_hours = models.CharField(max_length=2, choices=HOURS, null=True, blank=True, unique=False)
-    closes_minutes = models.CharField(max_length=2, choices=MINUTES, null=True, blank=True, unique=False)
+    opens_hours = models.IntegerField(choices=HOURS, null=True, blank=True, unique=False)
+    opens_minutes = models.IntegerField(choices=MINUTES, null=True, blank=True, unique=False)
+    closes_hours = models.IntegerField(choices=HOURS, null=True, blank=True, unique=False)
+    closes_minutes = models.IntegerField(choices=MINUTES, null=True, blank=True, unique=False)
