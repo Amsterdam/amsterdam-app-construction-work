@@ -73,8 +73,8 @@ def waiting_times(request):
     city_offices_waiting_times = requests.get(url).json()
     result = []
     for i in range(0, len(city_offices_waiting_times)):
-        city_office = lookup_table[str(city_offices_waiting_times[i]['id'])]
-        data = CityOffices.objects.filter(title=city_office).values('identifier').first()
+        identifier = lookup_table[str(city_offices_waiting_times[i]['id'])]
+        data = CityOffices.objects.filter(identifier=identifier).values('identifier').first()
         waiting_time = city_offices_waiting_times[i]['waittime']
         waiting_time = 0 if waiting_time == 'Geen' else int(waiting_time.split(' ')[0])
         result.append({
