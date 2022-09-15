@@ -1,5 +1,4 @@
 from .assets_and_images import Assets, Image
-from .city_office_and_contact import CityOffices, CityOfficesOpeningHoursRegular, CityOfficesOpeningHoursExceptions
 from .devices import FirebaseTokens, DeviceAccessLog
 from .followed_projects import FollowedProjects
 from .modules import Modules, ModuleOrder, ModulesByApp

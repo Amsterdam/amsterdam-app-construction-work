@@ -72,6 +72,7 @@ def projects(request):
         lon = request.GET.get('lon', None)
         radius = request.GET.get('radius', None)
         address = request.GET.get('address', None)
+
         if address is not None:
             apis = StaticData.urls()
             url = '{api}{address}'.format(api=apis['address_to_gps'], address=urllib.parse.quote_plus(address))
