@@ -8,6 +8,8 @@ message = Messages()
     name of the methods in views_*_.py prepended with 'as_' (auto_schema)
 """
 
+article_identifiers = openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_STRING, description='article identifier'))
+
 images = openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
     'type': openapi.Schema(type=openapi.TYPE_STRING, description='image type'),
     'sources': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
@@ -320,6 +322,36 @@ as_projects_follow_delete = {
                                   'application/json': {
                                       'status': False,
                                       'result': message.invalid_headers}})
+    },
+    'tags': ['Projects']
+}
+
+
+as_projects_followed_articles = {
+    # /api/v1/project/followed/articles swagger_auto_schema
+    'methods': ['get'],
+    'manual_parameters': [openapi.Parameter('deviceId',
+                                            openapi.IN_HEADER,
+                                            description="device identifier",
+                                            type=openapi.TYPE_STRING,
+                                            required=True),
+                          openapi.Parameter('articles-max-age',
+                                            openapi.IN_QUERY,
+                                            'Number of days (default: 3)',
+                                            type=openapi.TYPE_INTEGER,
+                                            format='<int>',
+                                            required=False)],
+    'responses': {
+        200: openapi.Response('application/json',
+                              openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                                  'status': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='status'),
+                                  'result': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                                      'projects': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                                          '<identifier>': article_identifiers
+                                      })
+                                  })
+                              }),
+                              examples={'application/json': {'status': True, 'result': {}}})
     },
     'tags': ['Projects']
 }
