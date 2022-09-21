@@ -14,7 +14,6 @@ from amsterdam_app_api.views import views_user
 from amsterdam_app_api.views import views_project_manager
 from amsterdam_app_api.views import views_mobile_devices
 from amsterdam_app_api.views import views_distance
-from amsterdam_app_api.views import views_city
 from amsterdam_app_api.views import views_modules
 
 
@@ -50,6 +49,7 @@ urlpatterns = [
     path('projects/search', csrf_exempt(views_iprox_projects.projects_search)),
     path('projects/distance', csrf_exempt(views_distance.distance)),
     path('projects/follow', csrf_exempt(views_iprox_projects.projects_follow)),
+    path('projects/followed/articles', csrf_exempt(views_iprox_projects.projects_followed_articles)),
 
     # Project details(s)
     path('project/details', csrf_exempt(views_iprox_projects.project_details)),
@@ -66,9 +66,9 @@ urlpatterns = [
     path('ingest/garbagecollector', csrf_exempt(views_ingest.garbage_collector)),
     path('ingest/image', csrf_exempt(views_ingest.image)),
     path('ingest/asset', csrf_exempt(views_ingest.asset)),
-    path('ingest/cityoffice', csrf_exempt(views_ingest.city_office)),
-    path('ingest/cityoffices', csrf_exempt(views_ingest.city_offices)),
-    path('ingest/citycontact', csrf_exempt(views_ingest.city_contact)),
+    # path('ingest/cityoffice', csrf_exempt(views_ingest.city_office)),
+    # path('ingest/cityoffices', csrf_exempt(views_ingest.city_offices)),
+    # path('ingest/citycontact', csrf_exempt(views_ingest.city_contact)),
     path('ingest/project', csrf_exempt(views_ingest.project)),
     path('ingest/projects', csrf_exempt(views_ingest.projects)),
     path('ingest/news', csrf_exempt(views_ingest.news)),
@@ -92,11 +92,6 @@ urlpatterns = [
     # Notification ('teaser' pointing to news- or warning article)
     path('notification', csrf_exempt(views_messages.notification_post)),
     path('notifications', csrf_exempt(views_messages.notification_get)),
-
-    # City information (contact, counters)
-    path('city/contact', csrf_exempt(views_city.city_contact)),
-    path('city/office', csrf_exempt(views_city.city_office)),
-    path('city/offices', csrf_exempt(views_city.city_offices)),
 
     # Modules
     path('modules_app_versions', csrf_exempt(views_modules.modules_app_versions)),

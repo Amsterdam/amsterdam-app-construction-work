@@ -1,14 +1,12 @@
 import base64
 import datetime
-import json
-import threading
 
 from amsterdam_app_api.GenericFunctions.IsAuthorized import IsAuthorized
 from amsterdam_app_api.GenericFunctions.Logger import Logger
 from amsterdam_app_api.GarbageCollector.GarbageCollector import GarbageCollector
 from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import Image, Assets
-from amsterdam_app_api.models import CityOffice, CityOffices, CityContact
+# from amsterdam_app_api.models import CityOffices
 from amsterdam_app_api.models import ProjectDetails, Projects, News
 from amsterdam_app_api.serializers import ProjectsSerializer
 from rest_framework.decorators import api_view
@@ -24,7 +22,6 @@ message = Messages()
 @IsAuthorized
 @api_view(['GET', 'POST'])
 def image(request):
-    # TODO: Pact
     if request.method == 'GET':
         identifier = request.GET.get('identifier', '')
         image_data = Image.objects.filter(pk=identifier).values('identifier').first()
@@ -52,7 +49,6 @@ def image(request):
 @IsAuthorized
 @api_view(['GET', 'POST'])
 def asset(request):
-    # TODO: Pact
     if request.method == 'GET':
         identifier = request.GET.get('identifier', '')
         asset_data = Assets.objects.filter(pk=identifier).values('identifier').first()
@@ -77,60 +73,19 @@ def asset(request):
 """
 
 
-@IsAuthorized
-@api_view(['POST'])
-def city_office(request):
-    try:
-        # TODO: Pact
-        data = dict(request.data)
-        identifier = data.get('identifier')
-        project_details_object, created = CityOffice.objects.update_or_create(identifier=identifier)
-        # New record
-        if created is True:
-            project_details_object = CityOffice(**data)  # Update last scrape time is done implicitly
-            project_details_object.save()
-
-        # Update existing record
-        else:
-            data['last_seen'] = datetime.datetime.now()  # Update last scrape time
-            CityOffice.objects.filter(pk=identifier).update(**data)
-        return Response({'status': True, 'result': True}, status=200)
-    except Exception as error:
-        logger = Logger()
-        logger.error('ingest/cityoffice: {error}'.format(error=error))
-        return Response({'status': False, 'result': str(error)}, status=500)
-
-
-@IsAuthorized
-@api_view(['POST'])
-def city_offices(request):
-    try:
-        # TODO: Pact
-        # save method is overridden to allow only 1 single record
-        data = request.data
-        city_offices = CityOffices(offices=data)
-        city_offices.save()
-        return Response({'status': True, 'result': True}, status=200)
-    except Exception as error:
-        logger = Logger()
-        logger.error('ingest/cityoffices: {error}'.format(error=error))
-        return Response({'status': False, 'result': 'Caught error ingesting city offices'}, status=500)
-
-
-@IsAuthorized
-@api_view(['POST'])
-def city_contact(request):
-    try:
-        # TODO: Pact
-        # save method is overridden to allow only 1 single record
-        data = request.data
-        city_contact_object = CityContact(sections=data)
-        city_contact_object.save()
-        return Response({'status': True, 'result': True}, status=200)
-    except Exception as error:
-        logger = Logger()
-        logger.error('ingest/citycontact: {error}'.format(error=error))
-        return Response({'status': False, 'result': 'Caught error ingesting city contacts'}, status=500)
+# @IsAuthorized
+# @api_view(['POST'])
+# def city_offices(request):
+#     try:
+#         # save method is overridden to allow only 1 single record
+#         data = request.data
+#         city_offices = CityOffices(offices=data)
+#         city_offices.save()
+#         return Response({'status': True, 'result': True}, status=200)
+#     except Exception as error:
+#         logger = Logger()
+#         logger.error('ingest/cityoffices: {error}'.format(error=error))
+#         return Response({'status': False, 'result': 'Caught error ingesting city offices'}, status=500)
 
 
 """ Project(s) and News

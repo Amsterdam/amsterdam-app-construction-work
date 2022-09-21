@@ -1,4 +1,8 @@
-from amsterdam_app_api.swagger.swagger_views_iprox_projects import as_projects, as_project_details, as_projects_follow_post, as_projects_follow_delete
+from amsterdam_app_api.swagger.swagger_views_iprox_projects import as_projects
+from amsterdam_app_api.swagger.swagger_views_iprox_projects import as_project_details
+from amsterdam_app_api.swagger.swagger_views_iprox_projects import as_projects_follow_post
+from amsterdam_app_api.swagger.swagger_views_iprox_projects import as_projects_follow_delete
+from amsterdam_app_api.swagger.swagger_views_iprox_projects import as_projects_followed_articles
 from amsterdam_app_api.swagger.swagger_views_search import as_search
 from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import Projects
@@ -72,6 +76,7 @@ def projects(request):
         lon = request.GET.get('lon', None)
         radius = request.GET.get('radius', None)
         address = request.GET.get('address', None)
+
         if address is not None:
             apis = StaticData.urls()
             url = '{api}{address}'.format(api=apis['address_to_gps'], address=urllib.parse.quote_plus(address))
@@ -294,3 +299,31 @@ def projects_follow(request):
         if follow_project is not None:
             follow_project.delete()
         return Response({'status': False, 'result': 'Subscription removed'}, status=200)
+
+
+@swagger_auto_schema(**as_projects_followed_articles)
+@api_view(['GET'])
+@RequestMustComeFromApp
+def projects_followed_articles(request):
+    deviceid = request.META.get('HTTP_DEVICEID', None)
+    article_max_age = int(request.GET.get('article-max-age', 3))
+    if deviceid is None:
+        return Response({'status': False, 'result': message.invalid_headers}, status=422)
+
+    followed_projects = list(FollowedProjects.objects.filter(deviceid=deviceid).values('projectid').all())
+    project_identifiers = [x['projectid'] for x in followed_projects]
+
+    result = {}
+    # Get recent articles
+    for identifier in project_identifiers:
+        start_date = datetime.now() - timedelta(days=article_max_age)
+        end_date = datetime.now()
+        start_date_str = start_date.strftime('%Y-%m-%d')
+        news_articles_all = list(News.objects.filter(project_identifier=identifier).all())
+        serializer_news = NewsSerializer(news_articles_all, many=True)
+        news_articles = [x['identifier'] for x in serializer_news.data if x['publication_date'] >= start_date_str]
+        warning_articles = list(WarningMessages.objects.filter(project_identifier=identifier,
+                                                               publication_date__range=[start_date, end_date]).all())
+        result[identifier] = news_articles + [x.identifier for x in warning_articles]
+
+    return Response({'status': True, 'result': {'projects': result}})
