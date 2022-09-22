@@ -22,7 +22,7 @@ class SendNotification:
         self.subscribed_device_batches = None
         self.notification = None
         self.project_identifier = None
-        self.article_type = None  # news, warning
+        self.article_type = None
         self.link_source_id = None
         self.setup_result = self.setup()
         self.valid_notification = self.setup_result['status']

@@ -303,7 +303,6 @@ def projects_follow(request):
 
 @swagger_auto_schema(**as_projects_followed_articles)
 @api_view(['GET'])
-@RequestMustComeFromApp
 def projects_followed_articles(request):
     deviceid = request.META.get('HTTP_DEVICEID', None)
     article_max_age = int(request.GET.get('article-max-age', 3))

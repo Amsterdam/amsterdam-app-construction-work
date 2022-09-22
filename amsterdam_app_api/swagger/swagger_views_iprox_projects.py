@@ -335,7 +335,7 @@ as_projects_followed_articles = {
                                             description="device identifier",
                                             type=openapi.TYPE_STRING,
                                             required=True),
-                          openapi.Parameter('articles-max-age',
+                          openapi.Parameter('article-max-age',
                                             openapi.IN_QUERY,
                                             'Number of days (default: 3)',
                                             type=openapi.TYPE_INTEGER,
