@@ -57,6 +57,7 @@ stages:
         python -m pip install --upgrade pip setuptools wheel
         pip install -r requirements.txt
         pip install unittest-xml-reporting
+        pip install drf-yasg2
       displayName: 'Install prerequisites'
 
     - script: |
