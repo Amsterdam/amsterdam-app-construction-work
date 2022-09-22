@@ -67,7 +67,7 @@ stages:
         echo 'cp $(fcm_credentials.secureFilePath) .'
         cp $(fcm_credentials.secureFilePath) .
 
-        # Create PSQL user+pass and db for unittest and wait untill the DB is running (timeout after 90s)
+        # Create PSQL user+pass and db for unittest and wait until the DB is running (timeout after 90s)
         docker-compose -f docker-compose-unittest.yml up -d db
         DOCKER_CONTAINER_NAME="unittest-db"
         timeout 90s bash -c "until docker exec $DOCKER_CONTAINER_NAME pg_isready ; do sleep 0.1 ; done"
@@ -88,7 +88,6 @@ stages:
         echo 'Clean-up: unittest db'
         pushd '$(projectRoot)'
         docker-compose stop
-        sudo rm -rf ./data
       displayName: 'Cleanup: unittest db'
 
     - script: |
