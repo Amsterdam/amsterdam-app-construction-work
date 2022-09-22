@@ -5,7 +5,7 @@ django_crontab
 django-nose
 djangorestframework
 djangorestframework-simplejwt
-drf-yasg
+drf-yasg2
 ExifRead
 firebase-admin
 geopy
