@@ -60,8 +60,6 @@ def projects(request):
     """
     Get a list of all projects. Narrow down by query param: project-type
     """
-    import time
-    now = time.time()
     if request.method == 'GET':
         deviceid = request.META.get('HTTP_DEVICEID', None)
         if deviceid is None:
