@@ -13,7 +13,7 @@ class Modules(models.Model):
     description = models.CharField(max_length=1000, blank=False)
 
     class Meta:
-        unique_together = ('slug', 'version',)
+        unique_together = (('slug', 'version'),)
 
     def save(self, *args, **kwargs):
         module = Modules.objects.filter(slug=self.slug, version=self.version).first()
