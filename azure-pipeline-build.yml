@@ -4,6 +4,7 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
+- group: Python Django Variables
 - group: container-registry
 - name: imageName
   value: amsterdam-app-backend
@@ -13,6 +14,12 @@ variables:
   value: false
 
 steps:
+- task: DownloadSecureFile@1
+      displayName: 'Download fcm_credentials.json'
+      name: fcm_credentials
+      inputs:
+        secureFile: fcm_credentials.json
+
 - script: |   
     echo 'Building docker container with tag: $(tag)'
     docker build -f $(Build.SourcesDirectory)/Dockerfile -t $(tag) .

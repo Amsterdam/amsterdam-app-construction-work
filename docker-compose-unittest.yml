@@ -29,6 +29,8 @@ services:
       - AES_SECRET=${AES_SECRET}
       - API_PORT=${API_PORT}
       - UNITTEST=true
+    volumes:
+      - ${fcm_credentials.secureFilePath}:/code/fcm_credentials.json
     ports:
       - "${API_PORT:-8000}:${API_PORT:-8000}"
     depends_on:
