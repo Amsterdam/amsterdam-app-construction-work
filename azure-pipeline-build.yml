@@ -27,6 +27,7 @@ steps:
 
 - script: |
     mkdir $(Agent.BuildDirectory)/database
+    export fcm_credential_path=$(fcm_credentials.secureFilePath)
     docker-compose -f docker-compose-unittest.yml --env-file $(Build.SourcesDirectory)/.env-unittest up --remove-orphans
   displayName: 'Docker compose'
 
