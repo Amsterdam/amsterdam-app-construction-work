@@ -31,6 +31,7 @@ services:
       - UNITTEST=true
     volumes:
       - ${fcm_credential_path}:/code/fcm_credentials.json
+      - ${env_path}:/code/env
     ports:
       - "${API_PORT:-8000}:${API_PORT:-8000}"
     depends_on:
