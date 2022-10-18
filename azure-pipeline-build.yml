@@ -20,7 +20,7 @@ steps:
 
 - script: |
     mkdir $(Agent.BuildDirectory)/database
-    docker-compose -f docker-compose-unittest.yml --env-file $(Build.SourcesDirectory)/env-unittest up --remove-orphans
+    docker-compose -f docker-compose-unittest.yml --env-file $(Build.SourcesDirectory)/.env-unittest up --remove-orphans
   displayName: 'Docker compose'
 
 # - script: | 
