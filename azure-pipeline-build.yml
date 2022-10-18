@@ -15,10 +15,8 @@ variables:
 steps:
 - script: |   
     echo 'Building docker container with tag: $(tag)'
-    docker build -f $(Build.SourcesDirectory)/build-docker-image/Dockerfile -t $(tag) .
+    docker build -f $(Build.SourcesDirectory)/Dockerfile -t $(tag) .
   displayName: 'Build docker image'
-
-
 
 - script: |
     mkdir $(Agent.BuildDirectory)/database
