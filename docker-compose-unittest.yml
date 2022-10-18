@@ -16,7 +16,7 @@ services:
 
   # BACKEND_API (api/web)
   api-server:
-    image: ${TAG}
+    image: ${tag}
     command: bash /code/init.sh
     environment:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
