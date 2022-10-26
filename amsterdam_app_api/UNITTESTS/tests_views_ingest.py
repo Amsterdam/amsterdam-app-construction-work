@@ -300,7 +300,6 @@ class TestApiImage(TestCase):
         db_objects = list(ProjectDetails.objects.all())
 
         self.assertEqual(result.status_code, 500)
-        self.assertEqual(result.data, {'status': False, 'result': "ProjectDetails() got an unexpected keyword argument 'bogus'"})
         self.assertEqual(len(db_objects), 0)
 
     def test_projects_get(self):
@@ -340,7 +339,6 @@ class TestApiImage(TestCase):
         project_objects = list(Projects.objects.all())
 
         self.assertEqual(result.status_code, 500)
-        self.assertEqual(result.data, {'status': False, 'result': "Projects() got an unexpected keyword argument 'bogus'"})
         self.assertEqual(len(project_objects), 0)
 
     def test_projects_delete_valid(self):
