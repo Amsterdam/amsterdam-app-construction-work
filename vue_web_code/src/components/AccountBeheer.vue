@@ -141,7 +141,10 @@ export default {
       })
 
       // get current projects
-      axios({methods: 'GET', 'url': '/projects'}).then(response => {
+      axios({
+        methods: 'GET',
+        url: '/projects',
+        headers: {deviceid: '00000000-0000-0000-0000-000000000000'}}).then(response => {
         this.projects = response.data.result
       }, error => {
         console.log(error)
