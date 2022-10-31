@@ -1,0 +1,42 @@
+trigger: none
+    
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+- group: Python Django Variables
+- group: container-registry
+- name: imageName
+  value: amsterdam-app-backend
+- name: tag
+  value: $(imageName)-unittest
+- name: unittestPassed
+  value: false
+
+steps:
+- task: DownloadSecureFile@1
+  displayName: 'Download fcm_credentials.json'
+  name: fcm_credentials
+  inputs:
+    secureFile: fcm_credentials.json
+
+- script: |   
+    echo 'Building docker container with tag: $(tag)'
+    docker build -f $(Build.SourcesDirectory)/Dockerfile -t $(tag) .
+  displayName: 'Build docker image'
+
+- script: |
+    mkdir $(Agent.BuildDirectory)/database
+    export fcm_credential_path=$(fcm_credentials.secureFilePath)
+    export env_path=$(Build.SourcesDirectory)/.env-unittest
+    export database_path=$(Agent.BuildDirectory)/database
+    docker-compose -f docker-compose-unittest.yml --env-file $(Build.SourcesDirectory)/.env-unittest run --rm api-server && echo "##vso[task.setvariable variable=unittestPassed;]true"
+  displayName: 'Docker compose'
+
+# Handling the  result needs to be in a different step because only then variable wil be expanded
+# See: https://learn.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#macro-syntax-variables
+- script: |    
+    if [ $(unittestPassed) == 'false' ]; then
+      exit 1
+    fi    
+  displayName: 'Fail pipeline if unittest result is false'

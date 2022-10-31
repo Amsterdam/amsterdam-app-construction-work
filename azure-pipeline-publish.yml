@@ -1,0 +1,37 @@
+trigger:
+  batch: true
+  branches:
+    include:
+    - main
+    
+variables:
+- group: container-registry
+- name: imageName
+  value: amsterdam-app-backend
+- name: tag
+  value: $(imageName):$(Build.BuildNumber)
+
+stages:
+- stage: Build
+  jobs:
+  - job: Build
+
+    pool:
+      vmImage: ubuntu-latest
+
+    steps:
+    - script: |   
+        echo 'Building docker container with tag: $(tag)'
+        docker build -f $(Build.SourcesDirectory)/build-docker-image/Dockerfile -t $(tag) .
+      displayName: 'Build docker image'
+
+    - script: |
+        docker tag $(tag) $(acr_url)/$(tag)
+        echo 'Artifact is tagged as: "$(tag)"'
+      displayName: 'Tag docker image'
+
+    - script: |
+        docker login -u $(acr_username) -p $(acr_password) $(acr_url)
+        echo 'Pushing artifact to: "$(acr_url)"'
+        docker push $(acr_url)/$(tag)
+      displayName: 'Push docker image to registry'

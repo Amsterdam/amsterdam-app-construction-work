@@ -60,14 +60,19 @@ function start_backend {
 }
 
 function enter_infinity_loop {
-  while true; do
-    # Touch /code/DEBUG, kill python process and run python manage.py [...] manually for debugging...
-    if [[ ! -f "/code/DEBUG" ]]
-    then
-	    start_backend;
-    fi
-    sleep 1
-  done
+  if [ -z ${UNITTEST} ]; then
+    while true; do
+      # Touch /code/DEBUG, kill python process and run python manage.py [...] manually for debugging...
+      if [[ ! -f "/code/DEBUG" ]]
+      then
+        start_backend;
+      fi
+      sleep 1
+    done
+  else
+    printf "Starting unittests\n\n"
+    cd /code && python manage.py test
+  fi      
 }
 
 is_db_alive
