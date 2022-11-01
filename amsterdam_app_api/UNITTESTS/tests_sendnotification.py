@@ -1,3 +1,4 @@
+import json
 import uuid
 import logging
 import os
@@ -13,6 +14,7 @@ from amsterdam_app_api.models import ProjectManager
 from amsterdam_app_api.models import FirebaseTokens
 from amsterdam_app_api.models import FollowedProjects
 from amsterdam_app_api.api_messages import Messages
+from amsterdam_app_backend.settings import BASE_DIR
 
 messages = Messages()
 
@@ -21,6 +23,9 @@ class TestSendNotification(TestCase):
     def __init__(self, *args, **kwargs):
         super(TestSendNotification, self).__init__(*args, **kwargs)
         self.data = TestData()
+
+    def tearDown(self):
+        pass
 
     def setUp(self):
         ProjectManager.objects.all().delete()

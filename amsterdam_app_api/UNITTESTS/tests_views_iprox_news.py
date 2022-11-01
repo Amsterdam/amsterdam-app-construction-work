@@ -40,7 +40,7 @@ class SetUp:
                 'title': title,
                 'project_identifier': '0000000000',
                 'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-                'body': {'preface': 'short text', 'content': 'long text'}
+                'body': 'Body text'
             }
         self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
