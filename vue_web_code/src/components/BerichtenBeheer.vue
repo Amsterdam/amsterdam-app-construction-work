@@ -228,7 +228,10 @@ export default {
       axios({methods: 'GET', 'url': '/project/warnings'}).then(response => {
         let warningResponse = response.data.result
 
-        axios({methods: 'GET', 'url': '/projects'}).then(response => {
+        axios({
+          methods: 'GET',
+          url: '/projects',
+          headers: {deviceid: '00000000-0000-0000-0000-000000000000'}}).then(response => {
           let titles = {}
           for (let i = 0; i < response.data.result.length; i++) {
             titles[response.data.result[i].identifier] = response.data.result[i].title

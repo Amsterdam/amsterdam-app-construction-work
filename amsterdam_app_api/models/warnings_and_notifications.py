@@ -31,10 +31,7 @@ from .news import News
     {
         "identifier": "UUIDv4",
         "title": "Title",
-        "body": {
-            "preface": "short text",
-            "content": "longer text"
-        },
+        "body": "text",
         "project_identifier": "8ac7ed07fc76a0812b3afbd5f0182aeb",
         "project_manager_id": "UUIDv4",
         "publication_date": DateTimefield,
@@ -58,7 +55,7 @@ from .news import News
 class WarningMessages(models.Model):
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=1000, unique=False)
-    body = models.JSONField(null=False, blank=False, default=dict)
+    body = models.CharField(max_length=1000, unique=False)
     project_identifier = models.CharField(max_length=100, blank=False, unique=False)
     project_manager_id = models.CharField(max_length=100, blank=False, unique=False)
     images = ArrayField(models.JSONField(null=True, default=dict), blank=False)

@@ -114,13 +114,11 @@ def warning_message_patch(request):
     """
     title = request.data.get('title', None)
     identifier = request.data.get('identifier', None)
-    body = request.data.get('body', {})
+    body = request.data.get('body', None)
 
     if None in [title, identifier]:
         return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
-    elif not isinstance(body.get('preface', None), str):
-        return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
-    elif not isinstance(body.get('content', None), str):
+    elif not isinstance(body, str):
         return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
     elif WarningMessages.objects.filter(identifier=identifier).first() is None:
         return {'result': {'status': False, 'result': messages.no_record_found}, 'status_code': 404}
@@ -139,13 +137,11 @@ def warning_message_post(request):
     title = request.data.get('title', None)
     project_identifier = request.data.get('project_identifier', None)
     project_manager_id = request.data.get('project_manager_id', None)
-    body = request.data.get('body', {})
+    body = request.data.get('body', None)
 
     if None in [title, project_identifier, project_manager_id]:
         return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
-    elif not isinstance(body.get('preface', None), str):
-        return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
-    elif not isinstance(body.get('content', None), str):
+    elif not isinstance(body, str):
         return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
     elif Projects.objects.filter(pk=project_identifier).first() is None:
         return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}

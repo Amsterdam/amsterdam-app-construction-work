@@ -25,7 +25,8 @@ class TextSearch:
         self.query = query
         self.query_fields = query_fields.split(',')
         self.return_fields = None if return_fields is None else return_fields.split(',')
-        self.threshold = 0.1  # only scores above this threshold are considered
+        # self.threshold = 0.1  # only scores above this threshold are considered
+        self.threshold = 0.0  # only scores above this threshold are considered
         self.page_size = page_size
         self.page = page
         self.pages = 0
@@ -45,7 +46,7 @@ class TextSearch:
         # Build a 'TrigramWordSimilarity' and 'accents agnostic adjacent characters' filter
         score = 0
         weight = 1.0
-        condition = None
+        all_objects = list()
         for query_field in self.query_fields:
             # Set half the weight for each next search field
             score += weight * TrigramWordSimilarity(self.query, query_field)
@@ -53,17 +54,20 @@ class TextSearch:
 
             # Build accents agnostic filter for adjacent characters in TrigramWordSimilarity search results
             q = Q(**{'{query_field}__unaccent__icontains'.format(query_field=query_field): self.query})
-            condition = q if condition is None else condition | q
 
-        # Query and filter
-        objects = self.model.objects.annotate(score=score).filter(score__gte=self.threshold).filter(condition).order_by('-score')
-        sorted_objects = list(objects)
+            # Query and filter
+            objects = self.model.objects.annotate(score=score).filter(score__gte=self.threshold).filter(q).order_by('-score')
+            all_objects = all_objects + [x for x in objects if x != []]
+        sorted_objects = sorted(all_objects, key=lambda x: x.score, reverse=True)
+
+        seen = set()
+        set_sorted_objects = [seen.add(x.pk) or x for x in sorted_objects if x.pk not in seen]
 
         # Set paginated result and calculate number of pages
         start_index = self.page * self.page_size
         stop_index = self.page * self.page_size + self.page_size
-        page = sorted_objects[start_index:stop_index]
-        self.pages = int(ceil(len(sorted_objects) / float(self.page_size)))
+        page = set_sorted_objects[start_index:stop_index]
+        self.pages = int(ceil(len(set_sorted_objects) / float(self.page_size)))
 
         # Filter the requested return fields (note: It functions as a serializer)
         for item in page:

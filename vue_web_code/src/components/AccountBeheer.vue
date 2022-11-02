@@ -141,7 +141,10 @@ export default {
       })
 
       // get current projects
-      axios({methods: 'GET', 'url': '/projects'}).then(response => {
+      axios({
+        methods: 'GET',
+        url: '/projects',
+        headers: {deviceid: '00000000-0000-0000-0000-000000000000'}}).then(response => {
         this.projects = response.data.result
       }, error => {
         console.log(error)
@@ -197,7 +200,7 @@ export default {
       let lineHeight = doc.getLineHeight(text) / doc.internal.scaleFactor
       let textY = lines * lineHeight
 
-      doc.text('https://api.backend.luscinia-solutions.com/omgevingsmanager/' + identifier, 10, textY)
+      doc.text('https://api-backend.luscinia-solutions.com/omgevingsmanager/' + identifier, 10, textY)
       doc.save(name + '.pdf')
     },
     save () {

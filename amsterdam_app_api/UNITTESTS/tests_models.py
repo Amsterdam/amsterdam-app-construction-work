@@ -410,7 +410,7 @@ class TestWarningMessagesModel(TestCase):
         expected_result = {
             'identifier': data['identifier'],
             'title': 'title',
-            'body': {'preface': 'short text', 'content': 'long text'},
+            'body': 'Body text',
             'project_identifier': '0000000000',
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'images': [],
@@ -430,7 +430,7 @@ class TestWarningMessagesModel(TestCase):
         expected_result = {
             'identifier': data['identifier'],
             'title': 'title',
-            'body': {'preface': 'short text', 'content': 'long text'},
+            'body': 'Body text',
             'project_identifier': '0000000000',
             'images': [],
             'publication_date': data['publication_date'],

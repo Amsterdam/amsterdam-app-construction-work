@@ -45,7 +45,7 @@ class TestApiProjectWarning(TestCase):
             'title': 'title',
             'project_identifier': '0000000000',
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'body': {'preface': 'short text', 'content': 'long text'}
+            'body': 'Body text'
         }
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -60,7 +60,7 @@ class TestApiProjectWarning(TestCase):
             'title': 'title',
             'project_identifier': '0000000001',
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'body': {'preface': 'short text', 'content': 'long text'}
+            'body': 'Body text'
         }
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -73,7 +73,7 @@ class TestApiProjectWarning(TestCase):
             'title': 'title',
             'project_identifier': '0000000001',
             'project_manager_id': str(uuid.uuid4()),
-            'body': {'preface': 'short text', 'content': 'long text'}
+            'body': 'Body text'
         }
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -86,7 +86,7 @@ class TestApiProjectWarning(TestCase):
             'title': 'title',
             'project_identifier': 'AAAAAAAAAA',
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'body': {'preface': 'short text', 'content': 'long text'}
+            'body': 'Body text'
         }
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -99,7 +99,7 @@ class TestApiProjectWarning(TestCase):
             'title': 'title',
             'project_identifier': '0000000000',
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'body': {'preface': 'short text'}
+            'body': None
         }
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -112,7 +112,7 @@ class TestApiProjectWarning(TestCase):
             'title': 'title',
             'project_identifier': '0000000000',
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'body': {'content': 'long text'}
+            'body': None
         }
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -121,7 +121,7 @@ class TestApiProjectWarning(TestCase):
         self.assertDictEqual(result.data, {'status': False, 'result': messages.invalid_query})
 
     def test_post_warning_message_missing_items(self):
-        data = {'body': {'content': 'long text'}}
+        data = {'body': 'Body text'}
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
@@ -129,20 +129,19 @@ class TestApiProjectWarning(TestCase):
         self.assertDictEqual(result.data, {'status': False, 'result': messages.invalid_query})
 
     def test_post_unauthorized(self):
-        data = {'body': {'content': 'long text'}}
+        data = {'body': 'Body text'}
 
         result = self.client.post(self.url, json.dumps(data), content_type=self.content_type)
 
         self.assertEqual(result.status_code, 403)
         self.assertEqual(result.reason_phrase, 'Forbidden')
 
-
     def test_get_warning_message(self):
         data = {
             'title': 'title',
             'project_identifier': '0000000000',
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'body': {'preface': 'short text', 'content': 'long text'}
+            'body': 'Body text'
         }
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -162,7 +161,7 @@ class TestApiProjectWarning(TestCase):
             "result": {
                 "identifier": str(warning_message.identifier),
                 "title": "title",
-                "body": {"content": "long text", "preface": "short text"},
+                "body": 'Body text',
                 "project_identifier":"0000000000",
                 "images":[],
                 "publication_date": str(warning_message.publication_date),
@@ -178,7 +177,7 @@ class TestApiProjectWarning(TestCase):
             'title': 'title',
             'project_identifier': '0000000000',
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'body': {'preface': 'short text', 'content': 'long text'}
+            'body': 'Body text'
         }
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -213,7 +212,7 @@ class TestApiProjectWarning(TestCase):
             'title': 'title',
             'project_identifier': '0000000000',
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'body': {'preface': 'short text', 'content': 'long text'}
+            'body': 'Body text'
         }
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -233,7 +232,7 @@ class TestApiProjectWarning(TestCase):
             "result": [{
                 "identifier": str(warning_message.identifier),
                 "title": "title",
-                "body": {"content": "long text", "preface": "short text"},
+                "body": 'Body text',
                 "project_identifier":"0000000000",
                 "images":[],
                 "publication_date": str(warning_message.publication_date),
@@ -255,7 +254,7 @@ class TestApiProjectWarning(TestCase):
             'title': 'title',
             'project_identifier': '0000000000',
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'body': {'preface': 'short text', 'content': 'long text'}
+            'body': 'Body text'
         }
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -275,7 +274,7 @@ class TestApiProjectWarning(TestCase):
             'title': 'title',
             'project_identifier': '0000000000',
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'body': {'preface': 'short text', 'content': 'long text'}
+            'body': 'Body text'
         }
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -320,7 +319,7 @@ class TestApiProjectWarning(TestCase):
             'title': 'title',
             'project_identifier': '0000000000',
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'body': {'preface': 'short text', 'content': 'long text'}
+            'body': 'Body text'
         }
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -357,7 +356,7 @@ class TestApiProjectWarning(TestCase):
             'title': 'title',
             'project_identifier': '0000000000',
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'body': {'preface': 'short text', 'content': 'long text'}
+            'body': 'Body text'
         }
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -386,7 +385,7 @@ class TestApiProjectWarning(TestCase):
             'title': 'title',
             'project_identifier': '0000000000',
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'body': {'preface': 'short text', 'content': 'long text'}
+            'body': 'Body text'
         }
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -442,7 +441,7 @@ class TestApiProjectWarning(TestCase):
             'title': 'title',
             'project_identifier': '0000000000',
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'body': {'preface': 'short text', 'content': 'long text'}
+            'body': 'Body text'
         }
 
         self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -451,7 +450,7 @@ class TestApiProjectWarning(TestCase):
 
         patch_data = {
             'title': 'new title',
-            'body': {'preface': 'new short text', 'content': 'new long text'},
+            'body': 'New body text',
             'identifier': str(warning_message.identifier)
         }
 
@@ -460,7 +459,7 @@ class TestApiProjectWarning(TestCase):
 
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(result.data, {'status': True, 'result': 'Message patched'})
-        self.assertDictEqual(patched_warning_message.body, patch_data['body'])
+        self.assertEqual(patched_warning_message.body, 'New body text')
         self.assertEqual(patched_warning_message.title, patch_data['title'])
 
     def test_patch_warning_message_missing_title(self):
@@ -468,7 +467,7 @@ class TestApiProjectWarning(TestCase):
             'title': 'title',
             'project_identifier': '0000000000',
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'body': {'preface': 'short text', 'content': 'long text'}
+            'body': 'Body text'
         }
 
         self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -476,7 +475,7 @@ class TestApiProjectWarning(TestCase):
         warning_message = WarningMessages.objects.filter(project_identifier='0000000000').first()
 
         patch_data = {
-            'body': {'preface': 'new short text', 'content': 'new long text'},
+            'body': 'New body text',
             'identifier': str(warning_message.identifier)
         }
 
@@ -485,33 +484,7 @@ class TestApiProjectWarning(TestCase):
 
         self.assertEqual(result.status_code, 422)
         self.assertDictEqual(result.data, {'status': False, 'result': messages.invalid_query})
-        self.assertDictEqual(patched_warning_message.body, data['body'])
-        self.assertEqual(patched_warning_message.title, data['title'])
-
-    def test_patch_warning_message_missing_preface(self):
-        data = {
-            'title': 'title',
-            'project_identifier': '0000000000',
-            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'body': {'preface': 'short text', 'content': 'long text'}
-        }
-
-        self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
-
-        warning_message = WarningMessages.objects.filter(project_identifier='0000000000').first()
-
-        patch_data = {
-            'title': 'new title',
-            'body': {'content': 'new long text'},
-            'identifier': str(warning_message.identifier)
-        }
-
-        result = self.client.patch(self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type)
-        patched_warning_message = WarningMessages.objects.filter(identifier=warning_message.identifier).first()
-
-        self.assertEqual(result.status_code, 422)
-        self.assertDictEqual(result.data, {'status': False, 'result': messages.invalid_query})
-        self.assertDictEqual(patched_warning_message.body, data['body'])
+        self.assertEqual(patched_warning_message.body, data['body'])
         self.assertEqual(patched_warning_message.title, data['title'])
 
     def test_patch_warning_message_missing_content(self):
@@ -519,7 +492,7 @@ class TestApiProjectWarning(TestCase):
             'title': 'title',
             'project_identifier': '0000000000',
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'body': {'preface': 'short text', 'content': 'long text'}
+            'body': 'Body text'
         }
 
         self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -528,7 +501,6 @@ class TestApiProjectWarning(TestCase):
 
         patch_data = {
             'title': 'new title',
-            'body': {'preface': 'short text'},
             'identifier': str(warning_message.identifier)
         }
 
@@ -537,13 +509,13 @@ class TestApiProjectWarning(TestCase):
 
         self.assertEqual(result.status_code, 422)
         self.assertDictEqual(result.data, {'status': False, 'result': messages.invalid_query})
-        self.assertDictEqual(patched_warning_message.body, data['body'])
+        self.assertEqual(patched_warning_message.body, data['body'])
         self.assertEqual(patched_warning_message.title, data['title'])
 
     def test_patch_warning_message_missing_message(self):
         patch_data = {
             'title': 'new title',
-            'body': {'preface': 'short text', 'content': 'long text'},
+            'body': 'Body text',
             'identifier': str(uuid.uuid4())
         }
 
@@ -569,7 +541,7 @@ class TestApiProjectWarning(TestCase):
             'title': 'title',
             'project_identifier': '0000000000',
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'body': {'preface': 'short text', 'content': 'long text'}
+            'body': 'Body text'
         }
 
         self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)

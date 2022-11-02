@@ -2055,7 +2055,7 @@ class TestData:
 
         self.warning_message = {
             'title': 'title',
-            'body': {'preface': 'short text', 'content': 'long text'},
+            'body': 'Body text',
             'project_identifier': '0000000000',
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'images': []
