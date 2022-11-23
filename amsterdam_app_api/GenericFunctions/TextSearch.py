@@ -4,7 +4,7 @@ from django.contrib.postgres.search import TrigramWordSimilarity
 
 
 class TextSearch:
-    """ Free-text search within TEXT or CHAR fields of any given model. At least three characters are required for this
+    ''' Free-text search within TEXT or CHAR fields of any given model. At least three characters are required for this
         class to start searching. Each next query field counts for half the weight in the result score. Only results
         where the search query is found as-is (adjacent) are returned. The results are returned in descending score as
         a paginated result.
@@ -18,7 +18,7 @@ class TextSearch:
         return_fields: comma separated string of model fields
         page_size: maximum number items in paginated result
         page: the result page
-    """
+    '''
 
     def __init__(self, model, query, query_fields, return_fields=None, page_size=10, page=0):
         self.model = model
@@ -77,4 +77,14 @@ class TextSearch:
             self.result.append(data)
 
         # Return result and page count
-        return {'page': self.result, 'pages': self.pages}
+        # return {'result': self.result, 'pages': self.pages, 'totalElements': len(set_sorted_objects)}
+        return {
+            'result': self.result, 
+            'page': {
+                'number': self.page + 1,  # Pages are counted from one not zero
+                'size': self.page_size,
+                'totalElements': len(set_sorted_objects),
+                'totalPages': self.pages
+            }
+        }
+    

@@ -25,11 +25,27 @@ from rest_framework.response import Response
 from drf_yasg.utils import swagger_auto_schema
 from django.db import IntegrityError
 from datetime import datetime, timedelta
+from math import ceil
 import json
 import requests
 import urllib.parse
 
 message = Messages()
+
+
+def set_next_previous_links(request, result):
+    path_info = request.META.get('PATH_INFO')
+    http_prefix = request.is_secure() and 'https://' or 'http://'
+    http_host = request.META.get('HTTP_HOST', 'localhost')
+    host = http_prefix + http_host + path_info
+    links = {"self": {"href": host}}
+    if result['number'] < result['totalPages']:
+        next = str(result['number'] + 1)
+        links['next'] = {"href": host + '?page=' + next}
+    if result['number'] > 1:
+        previous = str(result['number'] - 1)
+        links['previous'] = {"href": host + '?page=' + previous}
+    return links
 
 
 def search(model, request):
@@ -42,7 +58,7 @@ def search(model, request):
     # Get Model fields
     model_fields = [x.name for x in model._meta.get_fields()]
 
-    if text is None:
+    if text is None or len(text) < 3:
         return Response({'status': False, 'result': message.invalid_query}, status=422)
     if len([x for x in query_fields.split(',') if x not in model_fields]) > 0:
         return Response({'status': False, 'result': message.no_such_field_in_model}, status=422)
@@ -51,7 +67,8 @@ def search(model, request):
 
     text_search = TextSearch(model, text, query_fields, return_fields=fields, page_size=page_size, page=page)
     result = text_search.search()
-    return Response({'status': True, 'result': result['page'], 'pages': result['pages']}, status=200)
+    links = set_next_previous_links(request, result['page'])
+    return Response({'status': True, 'result': result['result'], 'page': result['page'], "_links": links}, status=200)
 
 
 @swagger_auto_schema(**as_projects)
@@ -60,136 +77,140 @@ def projects(request):
     """
     Get a list of all projects. Narrow down by query param: project-type
     """
-    if request.method == 'GET':
-        deviceid = request.META.get('HTTP_DEVICEID', None)
-        if deviceid is None:
-            return Response({'status': False, 'result': message.invalid_headers}, status=422)
+    deviceid = request.META.get('HTTP_DEVICEID', None)
+    if deviceid is None:
+        return Response({'status': False, 'result': message.invalid_headers}, status=422)
 
-        project_type = request.GET.get('project-type', None)
-        sort_by = request.GET.get('sort-by', None)
-        sort_order = request.GET.get('sort-order', None)
-        model_items = request.GET.get('fields', None)
-        articles_max_age = request.GET.get('articles_max_age', None)
-        lat = request.GET.get('lat', None)
-        lon = request.GET.get('lon', None)
-        radius = request.GET.get('radius', None)
-        address = request.GET.get('address', None)
+    sort_by = request.GET.get('sort-by', None)
+    sort_order = request.GET.get('sort-order', None)
+    model_items = request.GET.get('fields', None)
+    articles_max_age = request.GET.get('articles_max_age', None)
+    lat = request.GET.get('lat', None)
+    lon = request.GET.get('lon', None)
+    radius = request.GET.get('radius', None)
+    address = request.GET.get('address', None)
+    page_size = int(request.GET.get('page_size', 10))
+    page = int(request.GET.get('page', 1)) - 1
 
-        if address is not None:
-            apis = StaticData.urls()
-            url = '{api}{address}'.format(api=apis['address_to_gps'], address=urllib.parse.quote_plus(address))
-            result = requests.get(url=url, timeout=1)
-            data = json.loads(result.content)
-            if len(data['results']) == 1:
-                lon = data['results'][0]['centroid'][0]
-                lat = data['results'][0]['centroid'][1]
+    if address is not None:
+        apis = StaticData.urls()
+        url = '{api}{address}'.format(api=apis['address_to_gps'], address=urllib.parse.quote_plus(address))
+        result = requests.get(url=url, timeout=1)
+        data = json.loads(result.content)
+        if len(data['results']) == 1:
+            lon = data['results'][0]['centroid'][0]
+            lat = data['results'][0]['centroid'][1]
 
-        fields = [] if model_items is None else model_items.split(',')
-        if articles_max_age is not None and 'identifier' not in fields:
-            fields.append('identifier')
+    fields = [] if model_items is None else model_items.split(',')
+    if articles_max_age is not None and 'identifier' not in fields:
+        fields.append('identifier')
 
-        followed = False
-        if 'followed' in fields:
-            fields.remove('followed')
-            if 'identifier' in fields:
-                followed = True
+    followed = False
+    if 'followed' in fields:
+        fields.remove('followed')
+        if 'identifier' in fields:
+            followed = True
 
-        # Check query parameters
-        if project_type is not None and project_type not in ['brug', 'kade', 'bouw-en-verkeer']:
-            return Response({'status': False, 'result': message.invalid_query}, status=422)
+    # Get list of projects by district
+    try:
+        district_id = int(request.GET.get('district-id', None))
+    except Exception as error:
+        district_id = None
 
-        # Get list of projects by district
-        try:
-            district_id = int(request.GET.get('district-id', None))
-        except Exception as error:
-            district_id = None
+    # Set filter
+    query_filter = SetFilter(district_id=district_id, active=True).get()
 
-        # Set filter
-        query_filter = SetFilter(district_id=district_id, project_type=project_type, active=True).get()
+    # Return filtered result or all projects
 
-        # Return filtered result or all projects
+    projects_object = Projects.objects.filter(**query_filter).all()
 
-        projects_object = Projects.objects.filter(**query_filter).all()
-
-        # Get followers for projects
-        following = [x['projectid'] for x in FollowedProjects.objects.filter(deviceid__iexact=deviceid).values('projectid')]
-        if len(fields) != 0:
-            model_fields = [x.name for x in Projects._meta.fields]
-            serializer_fields = [x for x in fields if x in model_fields]
-            serializer = ProjectsSerializer(projects_object, context={'fields': serializer_fields}, many=True)
-            if followed is True:
-                for i in range(len(serializer.data)):
-                    serializer.data[i]['followed'] = False
-                    if serializer.data[i]['identifier'] in following:
-                        serializer.data[i]['followed'] = True
-        else:
-            serializer = ProjectsSerializer(projects_object, many=True)
+    # Get followers for projects
+    following = [x['projectid'] for x in FollowedProjects.objects.filter(deviceid__iexact=deviceid).values('projectid')]
+    if len(fields) != 0:
+        model_fields = [x.name for x in Projects._meta.fields]
+        serializer_fields = [x for x in fields if x in model_fields]
+        serializer = ProjectsSerializer(projects_object, context={'fields': serializer_fields}, many=True)
+        if followed is True:
             for i in range(len(serializer.data)):
                 serializer.data[i]['followed'] = False
                 if serializer.data[i]['identifier'] in following:
                     serializer.data[i]['followed'] = True
+    else:
+        serializer = ProjectsSerializer(projects_object, many=True)
+        for i in range(len(serializer.data)):
+            serializer.data[i]['followed'] = False
+            if serializer.data[i]['identifier'] in following:
+                serializer.data[i]['followed'] = True
 
-        # Get results from serializer
-        results = serializer.data
+    # Get results from serializer
+    results = serializer.data
 
-        # Get distance
-        if lat is not None and lon is not None:
-            project_details = ProjectDetails.objects.values('identifier', 'coordinates').all()
-            coordinates = {x['identifier']: (x['coordinates']['lat'], x['coordinates']['lon']) for x in project_details}
-            for i in range(len(serializer.data) - 1, -1, -1):
-                identifier = results[i]['identifier']
-                cords_1 = (float(lat), float(lon))
-                cords_2 = coordinates.get(identifier, (None, None))
-                if None in cords_2:
-                    cords_2 = (None, None)
-                elif (0, 0) == cords_2:
-                    cords_2 = (None, None)
-                distance = Distance(cords_1, cords_2)
-                results[i]['meter'] = distance.meter
-                results[i]['strides'] = distance.strides
+    # Get distance
+    if lat is not None and lon is not None:
+        project_details = ProjectDetails.objects.values('identifier', 'coordinates').all()
+        coordinates = {x['identifier']: (x['coordinates']['lat'], x['coordinates']['lon']) for x in project_details}
+        for i in range(len(serializer.data) - 1, -1, -1):
+            identifier = results[i]['identifier']
+            cords_1 = (float(lat), float(lon))
+            cords_2 = coordinates.get(identifier, (None, None))
+            if None in cords_2:
+                cords_2 = (None, None)
+            elif (0, 0) == cords_2:
+                cords_2 = (None, None)
+            distance = Distance(cords_1, cords_2)
+            results[i]['meter'] = distance.meter
+            results[i]['strides'] = distance.strides
 
-                if radius is not None and distance.meter is not None:
-                    if distance.meter > float(radius):
-                        del results[i]
+            if radius is not None and distance.meter is not None:
+                if distance.meter > float(radius):
+                    del results[i]
 
-        if articles_max_age is not None:
-            articles_max_age = int(articles_max_age)
-            start_date = datetime.now() - timedelta(days=articles_max_age)
-            end_date = datetime.now()
-            start_date_str = start_date.strftime('%Y-%m-%d')
+    if articles_max_age is not None:
+        articles_max_age = int(articles_max_age)
+        start_date = datetime.now() - timedelta(days=articles_max_age)
+        end_date = datetime.now()
+        start_date_str = start_date.strftime('%Y-%m-%d')
 
-            news_articles_all = list(News.objects.all())
-            serializer_news = NewsSerializer(news_articles_all, many=True)
-            news_articles = [x for x in serializer_news.data if x['publication_date'] >= start_date_str]
-            warning_articles_all = list(WarningMessages.objects.filter(publication_date__range=[start_date, end_date]).all())
-            serializer_warnings = WarningMessagesExternalSerializer(warning_articles_all, many=True)
-            all_articles = news_articles + serializer_warnings.data
-            articles = dict()
-            for article in all_articles:
-                payload = {'identifier': article['identifier'], 'publication_date': article['publication_date']}
-                try:
-                    if article['project_identifier'] in articles:
-                        articles[article['project_identifier']].append(payload)
-                    else:
-                        articles[article['project_identifier']] = [payload]
-                except Exception as error:
-                    print(error)
+        news_articles_all = list(News.objects.all())
+        serializer_news = NewsSerializer(news_articles_all, many=True)
+        news_articles = [x for x in serializer_news.data if x['publication_date'] >= start_date_str]
+        warning_articles_all = list(WarningMessages.objects.filter(publication_date__range=[start_date, end_date]).all())
+        serializer_warnings = WarningMessagesExternalSerializer(warning_articles_all, many=True)
+        all_articles = news_articles + serializer_warnings.data
+        articles = dict()
+        for article in all_articles:
+            payload = {'identifier': article['identifier'], 'publication_date': article['publication_date']}
+            try:
+                if article['project_identifier'] in articles:
+                    articles[article['project_identifier']].append(payload)
+                else:
+                    articles[article['project_identifier']] = [payload]
+            except Exception as error:
+                print(error)
 
-            for i in range(len(results)):
-                results[i]['recent_articles'] = []
-                if results[i]['identifier'] in articles:
-                    results[i]['recent_articles'] = articles[results[i]['identifier']]
+        for i in range(len(results)):
+            results[i]['recent_articles'] = []
+            if results[i]['identifier'] in articles:
+                results[i]['recent_articles'] = articles[results[i]['identifier']]
 
-        result = Sort().list_of_dicts(results, key=sort_by, sort_order=sort_order)
-        return Response({'status': True, 'result': result}, status=200)
+    result = Sort().list_of_dicts(results, key=sort_by, sort_order=sort_order)
+
+    # Set paginated result and calculate number of pages
+    start_index = page * page_size
+    stop_index = page * page_size + page_size
+    paginated_result = result[start_index:stop_index]
+    pages = int(ceil(len(result) / float(page_size)))
+    pagination = {'number': page + 1, 'size': page_size, 'totalElements': len(result), 'totalPages': pages}
+    links = set_next_previous_links(request, pagination)
+
+    return Response({'status': True, 'result': paginated_result, 'page': pagination, '_links': links}, status=200)
 
 
 @swagger_auto_schema(**as_search)
 @api_view(['GET'])
 def projects_search(request):
     model = Projects
-    result = search(model, request)
-    return result
+    return search(model, request)
 
 
 @swagger_auto_schema(**as_project_details)
@@ -265,8 +286,7 @@ def project_details(request):
 @api_view(['GET'])
 def project_details_search(request):
     model = ProjectDetails
-    result = search(model, request)
-    return result
+    return search(model, request)
 
 
 @swagger_auto_schema(**as_projects_follow_post)

@@ -34,13 +34,10 @@ class TestTextSearch(TestCase):
         text_search = TextSearch(ProjectDetails, 'test0', 'title,subtitle', return_fields='title,subtitle', page_size=2, page=0)
         result = text_search.search()
         expected_result = {
-            'page':
-                [
-                    {'title': 'test0', 'subtitle': 'subtitle', 'score': 1.0},
-                    {'title': 'test0', 'subtitle': 'subtitle', 'score': 1.0}
-                ],
-            'pages': 1
-        }
+            'result':
+                [{'title': 'test0', 'subtitle': 'subtitle', 'score': 1.0},
+                 {'title': 'test0', 'subtitle': 'subtitle', 'score': 1.0}],
+            'page': {'number': 1, 'size': 2, 'totalElements': 2, 'totalPages': 1}}
 
         self.assertDictEqual(result, expected_result)
 
@@ -48,9 +45,8 @@ class TestTextSearch(TestCase):
         text_search = TextSearch(ProjectDetails, 'test0', 'title,subtitle', return_fields='title,subtitle', page_size=1, page=1)
         result = text_search.search()
         expected_result = {
-            'page': [{'title': 'test0', 'subtitle': 'subtitle', 'score': 1.0}],
-            'pages': 2
-        }
+            'result': [{'title': 'test0', 'subtitle': 'subtitle', 'score': 1.0}],
+            'page': {'number': 2, 'size': 1, 'totalElements': 2, 'totalPages': 2}}
 
         self.assertDictEqual(result, expected_result)
 

@@ -42,7 +42,24 @@ as_search = {
                                             required=False)
                           ],
     'responses': {
-        200: openapi.Response('json data'),
+        200: openapi.Response(
+            'application/json',
+            schema=openapi.Schema(type=openapi.TYPE_OBJECT,
+                                  properties={
+                                      'status': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='result status'),
+                                      'result': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT)),
+                                      'page': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                                          "number": openapi.Schema(type=openapi.TYPE_INTEGER),
+                                          "size": openapi.Schema(type=openapi.TYPE_INTEGER),
+                                          "totalElements": openapi.Schema(type=openapi.TYPE_INTEGER),
+                                          "totalPages":openapi.Schema(type=openapi.TYPE_INTEGER)
+                                      }),
+                                      '_links': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                                          "self": openapi.Schema(type=openapi.TYPE_STRING, description='Link to main api'),
+                                          "next": openapi.Schema(type=openapi.TYPE_STRING, description='Link to next page'),
+                                          "previous": openapi.Schema(type=openapi.TYPE_STRING, description='Link to previous page')
+                                      })
+                                  })),
         422: openapi.Response('{a}|{b}'.format(a=messages.invalid_query, b=messages.no_such_field_in_model))
     },
     'tags': ['Search']

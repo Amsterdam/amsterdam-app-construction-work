@@ -43,14 +43,6 @@ class TestApiProjects(TestCase):
         self.assertEqual(response.status_code, 405)
         self.assertDictEqual(result, {'detail': 'Method "POST" not allowed.'})
 
-    def test_invalid_query(self):
-        c = Client()
-        headers = {'HTTP_DEVICEID': '0'}
-        response = c.get('/api/v1/projects', {'project-type': 'does not exist'}, **headers)
-
-        self.assertEqual(response.status_code, 422)
-        self.assertEqual(response.data, {'status': False, 'result': messages.invalid_query})
-
     def test_projects_by_district_id(self):
         c = Client()
         headers = {'HTTP_DEVICEID': '0'}
@@ -59,8 +51,15 @@ class TestApiProjects(TestCase):
         self.data.projects[0]['last_seen'] = result['result'][0]['last_seen']
         self.data.projects[0]['followed'] = False
 
+        expected_result = {
+            'status': True,
+            'result': [self.data.projects[0]],
+            'page': {'number': 1, 'size': 10, 'totalElements': 1, 'totalPages': 1},
+            '_links': {'self': {'href': 'http://localhost/api/v1/projects'}}
+        }
+
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(result, {'status': True, 'result': [self.data.projects[0]]})
+        self.assertDictEqual(result, expected_result)
 
     def test_projects_by_district_id_erroneous(self):
         c = Client()
@@ -73,19 +72,14 @@ class TestApiProjects(TestCase):
                     self.data.projects[i]['last_seen'] = result['last_seen']
                     self.data.projects[i]['followed'] = False
 
-        self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(results, {'status': True, 'result': self.data.projects})
-
-    def test_projects_by_project_type(self):
-        c = Client()
-        headers = {'HTTP_DEVICEID': '0'}
-        response = c.get('/api/v1/projects', {'project-type': 'kade'}, **headers)
-        result = json.loads(response.content)
-        self.data.projects[0]['last_seen'] = result['result'][0]['last_seen']
-        self.data.projects[0]['followed'] = False
+        expected_result = {
+            'status': True,
+            'result': self.data.projects,
+            'page': {'number': 1, 'size': 10, 'totalElements': 2, 'totalPages': 1},
+            '_links': {'self': {'href': 'http://localhost/api/v1/projects'}}}
 
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(result, {'status': True, 'result': [self.data.projects[0]]})
+        self.assertDictEqual(results, expected_result)
 
     def test_projects_sort_by_district_id_desc(self):
         c = Client()
@@ -98,8 +92,15 @@ class TestApiProjects(TestCase):
                     self.data.projects[i]['last_seen'] = result['last_seen']
                     self.data.projects[i]['followed'] = False
 
+        expected_results = {
+            'status': True,
+            'result': self.data.projects[::-1],
+            'page': {'number': 1, 'size': 10, 'totalElements': 2, 'totalPages': 1},
+            '_links': {'self': {'href': 'http://localhost/api/v1/projects'}}
+        }
+
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(results, {'status': True, 'result': self.data.projects[::-1]})
+        self.assertDictEqual(results, expected_results)
 
     def test_projects_sort_by_district_id_asc(self):
         c = Client()
@@ -112,8 +113,15 @@ class TestApiProjects(TestCase):
                     self.data.projects[i]['last_seen'] = result['last_seen']
                     self.data.projects[i]['followed'] = False
 
+        expected_results = {
+            'status': True,
+            'result': self.data.projects,
+            'page': {'number': 1, 'size': 10, 'totalElements': 2, 'totalPages': 1},
+            '_links': {'self': {'href': 'http://localhost/api/v1/projects'}}
+        }
+
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(results, {'status': True, 'result': self.data.projects})
+        self.assertDictEqual(results, expected_results)
 
     def test_projects_all(self):
         c = Client()
@@ -126,8 +134,15 @@ class TestApiProjects(TestCase):
                     self.data.projects[i]['last_seen'] = result['last_seen']
                     self.data.projects[i]['followed'] = False
 
+        expected_result = {
+            'status': True,
+            'result': self.data.projects,
+            'page': {'number': 1, 'size': 10, 'totalElements': 2, 'totalPages': 1},
+            '_links': {'self': {'href': 'http://localhost/api/v1/projects'}}
+        }
+
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(results, {'status': True, 'result': self.data.projects})
+        self.assertDictEqual(results, expected_result)
 
     def test_projects_filter_by_title_and_identifier(self):
         c = Client()
@@ -136,7 +151,10 @@ class TestApiProjects(TestCase):
         results = json.loads(response.content)
         expected_result = {
             'status': True,
-            'result': [{'title': 'title', 'identifier': '0000000000'}, {'title': 'title', 'identifier': '0000000001'}]
+            'result': [{'title': 'title', 'identifier': '0000000000'},
+                       {'title': 'title', 'identifier': '0000000001'}],
+            'page': {'number': 1, 'size': 10, 'totalElements': 2, 'totalPages': 1},
+            '_links': {'self': {'href': 'http://localhost/api/v1/projects'}}
         }
 
         self.assertEqual(response.status_code, 200)
@@ -164,7 +182,11 @@ class TestApiProjectsSearch(TestCase):
         expected_result = {
             'status': True,
             'result': [{'title': 'title', 'subtitle': 'subtitle', 'score': 1.3333333432674408}],
-            'pages': 2
+            'page': {'number': 1, 'size': 1, 'totalElements': 2, 'totalPages': 2},
+            '_links': {
+                'self': {'href': 'http://localhost/api/v1/projects/search'},
+                'next': {'href': 'http://localhost/api/v1/projects/search?page=2'}
+            }
         }
 
         self.assertEqual(response.status_code, 200)
@@ -280,7 +302,11 @@ class TestApiProjectDetailsSearch(TestCase):
         expected_result = {
             'status': True,
             'result': [{'title': 'test0', 'subtitle': 'subtitle', 'score': 1.0}],
-            'pages': 2
+            'page': {'number': 1, 'size': 1, 'totalElements': 2, 'totalPages': 2},
+            '_links': {
+                'self': {'href': 'http://localhost/api/v1/project/details/search'},
+                'next': {'href': 'http://localhost/api/v1/project/details/search?page=2'}
+            }
         }
 
         self.assertEqual(response.status_code, 200)

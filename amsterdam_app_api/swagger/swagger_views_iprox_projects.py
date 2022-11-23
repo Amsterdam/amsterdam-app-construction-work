@@ -67,12 +67,6 @@ as_projects = {
                                             description="device identifier",
                                             type=openapi.TYPE_STRING,
                                             required=True),
-                          openapi.Parameter('project-type',
-                                            openapi.IN_QUERY,
-                                            'Query by projects type',
-                                            type=openapi.TYPE_STRING,
-                                            format='<brug, kade, bouw-en-verkeer>',
-                                            required=False),
                           openapi.Parameter('district-id',
                                             openapi.IN_QUERY,
                                             'Query by district id',
@@ -126,7 +120,20 @@ as_projects = {
                                             'address (street and number)',
                                             type=openapi.TYPE_STRING,
                                             format='string',
-                                            required=False)],
+                                            required=False),
+                          openapi.Parameter('page_size',
+                                            openapi.IN_QUERY,
+                                            'Number of results per page (default 10)',
+                                            type=openapi.TYPE_INTEGER,
+                                            format='<int>',
+                                            required=False),
+                          openapi.Parameter('page',
+                                            openapi.IN_QUERY,
+                                            'Page number',
+                                            type=openapi.TYPE_INTEGER,
+                                            format='<int>',
+                                            required=False),
+                          ],
     'responses': {
         200: openapi.Response('application/json',
                               openapi.Schema(type=openapi.TYPE_OBJECT, properties={
@@ -153,7 +160,18 @@ as_projects = {
                                           'identifier': openapi.Schema(type=openapi.TYPE_STRING, description='identifier'),
                                           'publication_date': openapi.Schema(type=openapi.TYPE_STRING, description='publication date')
                                       }))
-                                  }))
+                                  })),
+                                  'page': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                                          "number": openapi.Schema(type=openapi.TYPE_INTEGER),
+                                          "size": openapi.Schema(type=openapi.TYPE_INTEGER),
+                                          "totalElements": openapi.Schema(type=openapi.TYPE_INTEGER),
+                                          "totalPages":openapi.Schema(type=openapi.TYPE_INTEGER)
+                                      }),
+                                  '_links': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                                      "self": openapi.Schema(type=openapi.TYPE_STRING, description='Link to main api'),
+                                      "next": openapi.Schema(type=openapi.TYPE_STRING, description='Link to next page'),
+                                      "previous": openapi.Schema(type=openapi.TYPE_STRING, description='Link to previous page')
+                                  })
                               }),
                               examples={'application/json': {'status': True, 'result': []}}),
         405: openapi.Response('Error: Method not allowed'),
