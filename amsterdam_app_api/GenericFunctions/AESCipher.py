@@ -1,20 +1,26 @@
-from Crypto import Random
-from amsterdam_app_api.GenericFunctions.Logger import Logger
-from Crypto.Cipher import AES
+""" AESCipher: Encrypts and de-crypts data
+"""
 from hashlib import md5
+from Crypto import Random
+from Crypto.Cipher import AES
 from pybase64 import b64encode, b64decode
+from amsterdam_app_api.GenericFunctions.Logger import Logger
 
 
 class AESCipher:
+    """ AESCipher class implementation
+    """
     def __init__(self, data, secret):
         self.logger = Logger()
         self.data = data
         self.secret = secret.encode()
-        self.block_size = 16
-        self.pad = lambda s: s + (self.block_size - len(s) % self.block_size) * chr(self.block_size - len(s) % self.block_size)
+        self.blk_size = 16
+        self.pad = lambda s: s + (self.blk_size - len(s) % self.blk_size) * chr(self.blk_size - len(s) % self.blk_size)
         self.unpad = lambda s: s[:-ord(s[len(s) - 1:])]
 
     def bytes_to_key(self, data, salt, output=48):
+        """ Convert byte to key
+        """
         assert len(salt) == 8, len(salt)
         data += salt
         key = md5(data).digest()
@@ -25,6 +31,8 @@ class AESCipher:
         return final_key[:output]
 
     def encrypt(self):
+        """ Encrypt string
+        """
         try:
             salt = Random.new().read(8)
             key_iv = self.bytes_to_key(self.secret, salt, 32+16)
@@ -37,6 +45,8 @@ class AESCipher:
             return None
 
     def decrypt(self):
+        """ Decrypt string
+        """
         try:
             encrypted = b64decode(self.data)
             assert encrypted[0:8] == b"Salted__"
@@ -49,4 +59,3 @@ class AESCipher:
         except Exception as error:
             self.logger.error(error)
             return None
-

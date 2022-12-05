@@ -222,7 +222,7 @@ def modules_for_app_get(request):
 
     modules = list()
     for module_by_app in modules_by_app:
-        module = Modules.objects.filter(slug=module_by_app.moduleSlug).first()
+        module = Modules.objects.filter(slug=module_by_app.moduleSlug, version=module_by_app.moduleVersion).first()
         if module is not None:
             modules.append({
                 'description': module.description,
