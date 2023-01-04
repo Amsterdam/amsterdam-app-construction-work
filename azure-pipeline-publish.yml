@@ -3,35 +3,42 @@ trigger:
   branches:
     include:
     - main
-    
+
+resources:
+- repo: self
+
 variables:
-- group: container-registry
-- name: imageName
-  value: amsterdam-app-backend
-- name: tag
-  value: $(imageName):$(Build.BuildNumber)
+  - group: acr-ontwikkel 
+  # Container registry service connection established during pipeline creation
+  - name: dockerRegistryServiceConnection
+    value: $(docker-registry-service-connection)
+  - name: imageRepository
+    value: 'amsterdam-app-backend'
+  - name: containerRegistry
+    value: $(container-registry)
+  - name: dockerfilePath
+    value: '$(Build.SourcesDirectory)/Dockerfile'
+  - name: tag
+    value: '$(Build.BuildNumber)'
+  # Agent VM image name
+  - name: vmImageName
+    value: 'ubuntu-latest'
 
 stages:
 - stage: Build
-  jobs:
+  displayName: Build and push stage
+  jobs:  
   - job: Build
-
+    displayName: Build
     pool:
-      vmImage: ubuntu-latest
-
+      vmImage: $(vmImageName)
     steps:
-    - script: |   
-        echo 'Building docker container with tag: $(tag)'
-        docker build -f $(Build.SourcesDirectory)/build-docker-image/Dockerfile -t $(tag) .
-      displayName: 'Build docker image'
-
-    - script: |
-        docker tag $(tag) $(acr_url)/$(tag)
-        echo 'Artifact is tagged as: "$(tag)"'
-      displayName: 'Tag docker image'
-
-    - script: |
-        docker login -u $(acr_username) -p $(acr_password) $(acr_url)
-        echo 'Pushing artifact to: "$(acr_url)"'
-        docker push $(acr_url)/$(tag)
-      displayName: 'Push docker image to registry'
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tag)
