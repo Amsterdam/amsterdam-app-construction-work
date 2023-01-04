@@ -5,7 +5,6 @@ pool:
 
 variables:
 - group: Python Django Variables
-- group: container-registry
 - name: imageName
   value: amsterdam-app-backend
 - name: tag
