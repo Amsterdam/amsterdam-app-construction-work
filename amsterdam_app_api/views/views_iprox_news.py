@@ -101,7 +101,7 @@ def articles(request):
 
     result = Sort().list_of_dicts(result, key=sort_by, sort_order=sort_order)
     for i in range(0, len(result), 1):
-        result[i]['publication_date'] = result[i]['publication_date'].split('T')[0]
+        result[i]['publication_date'] = result[i]['publication_date']
 
     if limit != 0:
         result = result[:limit]
