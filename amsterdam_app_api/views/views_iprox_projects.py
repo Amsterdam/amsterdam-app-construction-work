@@ -1,3 +1,13 @@
+""" Views for iprox project pages """
+import json
+from math import ceil
+from datetime import datetime, timedelta
+import urllib.parse
+import requests
+from django.db import IntegrityError
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from amsterdam_app_api.swagger.swagger_views_iprox_projects import as_projects
 from amsterdam_app_api.swagger.swagger_views_iprox_projects import as_project_details
 from amsterdam_app_api.swagger.swagger_views_iprox_projects import as_projects_follow_post
@@ -20,28 +30,20 @@ from amsterdam_app_api.GenericFunctions.Sort import Sort
 from amsterdam_app_api.GenericFunctions.StaticData import StaticData
 from amsterdam_app_api.GenericFunctions.TextSearch import TextSearch
 from amsterdam_app_api.GenericFunctions.RequestMustComeFromApp import RequestMustComeFromApp
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from drf_yasg.utils import swagger_auto_schema
-from django.db import IntegrityError
-from datetime import datetime, timedelta
-from math import ceil
-import json
-import requests
-import urllib.parse
 
 message = Messages()
 
 
 def set_next_previous_links(request, result):
+    """ Pagination defaults """
     path_info = request.META.get('PATH_INFO')
-    http_prefix = request.is_secure() and 'https://' or 'http://'
+    http_prefix = 'https://' if request.is_secure() else 'http://'
     http_host = request.META.get('HTTP_HOST', 'localhost')
     host = http_prefix + http_host + path_info
     links = {"self": {"href": host}}
     if result['number'] < result['totalPages']:
-        next = str(result['number'] + 1)
-        links['next'] = {"href": host + '?page=' + next}
+        _next = str(result['number'] + 1)
+        links['next'] = {"href": host + '?page=' + _next}
     if result['number'] > 1:
         previous = str(result['number'] - 1)
         links['previous'] = {"href": host + '?page=' + previous}
@@ -49,6 +51,7 @@ def set_next_previous_links(request, result):
 
 
 def search(model, request):
+    """ Pagination defaults """
     text = request.GET.get('text', None)
     query_fields = request.GET.get('query_fields', '')
     fields = request.GET.get('fields', None)
@@ -114,7 +117,7 @@ def projects(request):
     # Get list of projects by district
     try:
         district_id = int(request.GET.get('district-id', None))
-    except Exception as error:
+    except Exception:
         district_id = None
 
     # Set filter
@@ -147,8 +150,8 @@ def projects(request):
 
     # Get distance
     if lat is not None and lon is not None:
-        project_details = ProjectDetails.objects.values('identifier', 'coordinates').all()
-        coordinates = {x['identifier']: (x['coordinates']['lat'], x['coordinates']['lon']) for x in project_details}
+        _project_details = ProjectDetails.objects.values('identifier', 'coordinates').all()
+        coordinates = {x['identifier']: (x['coordinates']['lat'], x['coordinates']['lon']) for x in _project_details}
         for i in range(len(serializer.data) - 1, -1, -1):
             identifier = results[i]['identifier']
             cords_1 = (float(lat), float(lon))
@@ -174,10 +177,11 @@ def projects(request):
         news_articles_all = list(News.objects.all())
         serializer_news = NewsSerializer(news_articles_all, many=True)
         news_articles = [x for x in serializer_news.data if x['publication_date'] >= start_date_str]
-        warning_articles_all = list(WarningMessages.objects.filter(publication_date__range=[start_date, end_date]).all())
+        warning_articles_all = list(WarningMessages.objects.filter(publication_date__range=[start_date,
+                                                                                            end_date]).all())
         serializer_warnings = WarningMessagesExternalSerializer(warning_articles_all, many=True)
         all_articles = news_articles + serializer_warnings.data
-        articles = dict()
+        articles = {}
         for article in all_articles:
             payload = {'identifier': article['identifier'], 'publication_date': article['publication_date']}
             try:
@@ -209,6 +213,7 @@ def projects(request):
 @swagger_auto_schema(**as_search)
 @api_view(['GET'])
 def projects_search(request):
+    """ Search project """
     model = Projects
     return search(model, request)
 
@@ -219,72 +224,75 @@ def project_details(request):
     """
     Get details for a project by identifier
     """
-    if request.method == 'GET':
-        deviceid = request.META.get('HTTP_DEVICEID', None)
-        if deviceid is None:
-            return Response({'status': False, 'result': message.invalid_headers}, status=422)
+    deviceid = request.META.get('HTTP_DEVICEID', None)
+    if deviceid is None:
+        return Response({'status': False, 'result': message.invalid_headers}, status=422)
 
-        identifier = request.GET.get('id', None)
-        if identifier is None:
-            return Response({'status': False, 'result': message.invalid_query}, status=422)
+    identifier = request.GET.get('id', None)
+    if identifier is None:
+        return Response({'status': False, 'result': message.invalid_query}, status=422)
 
-        articles_max_age = request.GET.get('articles_max_age', None)
+    articles_max_age = request.GET.get('articles_max_age', None)
 
-        lat = request.GET.get('lat', None)
-        lon = request.GET.get('lon', None)
-        address = request.GET.get('address', None)  # akkerstraat%2014 -> akkerstraat 14
-        if address is not None:
-            apis = StaticData.urls()
-            url = '{api}{address}'.format(api=apis['address_to_gps'], address=urllib.parse.quote_plus(address))
-            result = requests.get(url=url, timeout=1)
-            data = json.loads(result.content)
-            if len(data['results']) == 1:
-                lon = data['results'][0]['centroid'][0]
-                lat = data['results'][0]['centroid'][1]
+    lat = request.GET.get('lat', None)
+    lon = request.GET.get('lon', None)
+    address = request.GET.get('address', None)  # akkerstraat%2014 -> akkerstraat 14
+    if address is not None:
+        apis = StaticData.urls()
+        url = '{api}{address}'.format(api=apis['address_to_gps'], address=urllib.parse.quote_plus(address))
+        result = requests.get(url=url, timeout=1)
+        data = json.loads(result.content)
+        if len(data['results']) == 1:
+            lon = data['results'][0]['centroid'][0]
+            lat = data['results'][0]['centroid'][1]
 
-        project_object = ProjectDetails.objects.filter(pk=identifier, active=True).first()
-        if project_object is not None:
-            # Get followers
-            count = FollowedProjects.objects.filter(projectid=identifier).count()
-            followed = FollowedProjects.objects.filter(deviceid=deviceid, projectid=identifier).first()
-            project_data = dict(ProjectDetailsSerializer(project_object, many=False).data)
-            project_data['followers'] = count
-            project_data['followed'] = False if followed is None else True
+    project_object = ProjectDetails.objects.filter(pk=identifier, active=True).first()
+    if project_object is None:
+        return Response({'status': False, 'result': message.no_record_found}, status=404)
 
-            # Get distance
-            project_data['meter'] = None
-            project_data['strides'] = None
-            if lat is not None and lon is not None:
-                cords_1 = (float(lat), float(lon))
-                cords_2 = (project_object.coordinates['lat'], project_object.coordinates['lon'])
-                if None in cords_2:
-                    cords_2 = (None, None)
-                elif (0, 0) == cords_2:
-                    cords_2 = (None, None)
-                distance = Distance(cords_1, cords_2)
-                project_data['meter'] = distance.meter
-                project_data['strides'] = distance.strides
+    # Get followers
+    count = FollowedProjects.objects.filter(projectid=identifier).count()
+    followed = FollowedProjects.objects.filter(deviceid=deviceid, projectid=identifier).first()
+    project_data = dict(ProjectDetailsSerializer(project_object, many=False).data)
+    project_data['followers'] = count
+    project_data['followed'] = bool(followed is not None)
 
-            # Get recent articles
-            if articles_max_age is not None:
-                articles_max_age = int(articles_max_age)
-                start_date = datetime.now() - timedelta(days=articles_max_age)
-                end_date = datetime.now()
-                start_date_str = start_date.strftime('%Y-%m-%d')
-                news_articles_all = list(News.objects.filter(project_identifier=identifier).all())
-                serializer_news = NewsSerializer(news_articles_all, many=True)
-                news_articles = [x['identifier'] for x in serializer_news.data if x['publication_date'] >= start_date_str]
-                warning_articles = list(WarningMessages.objects.filter(project_identifier=identifier, publication_date__range=[start_date, end_date]).all())
-                serializer_warning = WarningMessagesExternalSerializer(warning_articles, many=True)
-                project_data['recent_articles'] = news_articles + [x['identifier'] for x in serializer_warning.data]
-            return Response({'status': True, 'result': project_data}, status=200)
-        else:
-            return Response({'status': False, 'result': message.no_record_found}, status=404)
+    # Get distance
+    project_data['meter'] = None
+    project_data['strides'] = None
+    if lat is not None and lon is not None:
+        cords_1 = (float(lat), float(lon))
+        cords_2 = (project_object.coordinates['lat'], project_object.coordinates['lon'])
+        if None in cords_2:
+            cords_2 = (None, None)
+        elif (0, 0) == cords_2:
+            cords_2 = (None, None)
+        distance = Distance(cords_1, cords_2)
+        project_data['meter'] = distance.meter
+        project_data['strides'] = distance.strides
+
+    # Get recent articles
+    if articles_max_age is not None:
+        articles_max_age = int(articles_max_age)
+        start_date = datetime.now() - timedelta(days=articles_max_age)
+        end_date = datetime.now()
+        start_date_str = start_date.strftime('%Y-%m-%d')
+        news_articles_all = list(News.objects.filter(project_identifier=identifier).all())
+        serializer_news = NewsSerializer(news_articles_all, many=True)
+        news_articles = [x['identifier'] for x in serializer_news.data
+                         if x['publication_date'] >= start_date_str]
+        warning_articles = list(WarningMessages.objects.filter(project_identifier=identifier,
+                                                               publication_date__range=[start_date,
+                                                                                        end_date]).all())
+        serializer_warning = WarningMessagesExternalSerializer(warning_articles, many=True)
+        project_data['recent_articles'] = news_articles + [x['identifier'] for x in serializer_warning.data]
+    return Response({'status': True, 'result': project_data}, status=200)
 
 
 @swagger_auto_schema(**as_search)
 @api_view(['GET'])
 def project_details_search(request):
+    """ Search in project details """
     model = ProjectDetails
     return search(model, request)
 
@@ -294,6 +302,7 @@ def project_details_search(request):
 @api_view(['POST', 'DELETE'])
 @RequestMustComeFromApp
 def projects_follow(request):
+    """ Subscribe or un-subscribe from project """
     deviceid = request.META.get('HTTP_DEVICEID', None)
     if deviceid is None:
         return Response({'status': False, 'result': message.invalid_headers}, status=422)
@@ -311,17 +320,18 @@ def projects_follow(request):
             pass
         return Response({'status': False, 'result': 'Subscription added'}, status=200)
 
-    if request.method == 'DELETE':
-        project_id = request.data.get('project_id', None)
-        follow_project = FollowedProjects.objects.filter(projectid=project_id, deviceid=deviceid).first()
-        if follow_project is not None:
-            follow_project.delete()
-        return Response({'status': False, 'result': 'Subscription removed'}, status=200)
+    # request.method == 'DELETE'
+    project_id = request.data.get('project_id', None)
+    follow_project = FollowedProjects.objects.filter(projectid=project_id, deviceid=deviceid).first()
+    if follow_project is not None:
+        follow_project.delete()
+    return Response({'status': False, 'result': 'Subscription removed'}, status=200)
 
 
 @swagger_auto_schema(**as_projects_followed_articles)
 @api_view(['GET'])
 def projects_followed_articles(request):
+    """ Get articles for followed projects """
     deviceid = request.META.get('HTTP_DEVICEID', None)
     article_max_age = int(request.GET.get('article-max-age', 3))
     if deviceid is None:

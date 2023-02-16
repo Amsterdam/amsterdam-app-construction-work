@@ -1,11 +1,13 @@
+""" Create user script, used during docker init """
 import os
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "amsterdam_app_backend.settings")
-from django.contrib.auth import get_user_model
 import django
+from django.contrib.auth import get_user_model
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "amsterdam_app_backend.settings")
 django.setup()
 
 
 def create_users():
+    """ Create web and team account in  django app """
     model = get_user_model()
     webuser = os.getenv('WEB_USERNAME')
     webpass = os.getenv('WEB_PASSWORD')

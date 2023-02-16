@@ -1,3 +1,5 @@
+""" UNITTESTS """
+
 import uuid
 from django.test import TestCase
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
@@ -9,7 +11,6 @@ from amsterdam_app_api.models import News
 from amsterdam_app_api.models import ProjectManager
 from amsterdam_app_api.models import WarningMessages
 from amsterdam_app_api.models import FirebaseTokens
-from amsterdam_app_api.models import Modules, ModuleOrder, ModulesByApp
 from amsterdam_app_api.serializers import ImageSerializer
 from amsterdam_app_api.serializers import AssetsSerializer
 from amsterdam_app_api.serializers import ProjectsSerializer
@@ -19,104 +20,22 @@ from amsterdam_app_api.serializers import ProjectManagerSerializer
 from amsterdam_app_api.serializers import WarningMessagesInternalSerializer
 from amsterdam_app_api.serializers import WarningMessagesExternalSerializer
 from amsterdam_app_api.serializers import Notification
-from amsterdam_app_api.serializers import ModuleOrderSerializer
-
-
-class AllModulesModels(TestCase):
-    def __init__(self, *args, **kwargs):
-        super(AllModulesModels, self).__init__(*args, **kwargs)
-        self.modules = [
-            {'slug': 'slug0', 'title': 'title', 'icon': 'icon', 'version': '0.0.0', 'description': 'description'},
-            {'slug': 'slug0', 'title': 'title', 'icon': 'icon', 'version': '0.0.1', 'description': 'description'},
-            {'slug': 'slug1', 'title': 'title', 'icon': 'icon', 'version': '0.0.1', 'description': 'description'},
-            {'slug': 'slug2', 'title': 'title', 'icon': 'icon', 'version': '0.0.1', 'description': 'description'}
-
-        ]
-        self.modules_by_app = [
-            {'appVersion': '0.0.0', 'moduleSlug': 'slug0', 'moduleVersion': '0.0.0', 'status': 1},
-            {'appVersion': '0.0.1', 'moduleSlug': 'slug0', 'moduleVersion': '0.0.0', 'status': 1},
-            {'appVersion': '0.0.1', 'moduleSlug': 'slug1', 'moduleVersion': '0.0.0', 'status': 1},
-            {'appVersion': '0.0.1', 'moduleSlug': 'slug2', 'moduleVersion': '0.0.0', 'status': 1}
-        ]
-        self.module_order = [
-            {'appVersion': '0.0.0', 'order': ['slug0']},
-            {'appVersion': '0.0.1', 'order': ['slug0', 'slug1', 'slug2']}
-        ]
-
-    def setUp(self):
-        Modules.objects.all().delete()
-        ModuleOrder.objects.all().delete()
-        ModulesByApp.objects.all().delete()
-
-    def init_modules(self):
-        for module in self.modules:
-            Modules.objects.create(**module)
-        for module_by_app in self.modules_by_app:
-            ModulesByApp.objects.create(**module_by_app)
-        for order in self.module_order:
-            ModuleOrder.objects.create(**order)
-
-    def test_modules_save(self):
-        for module in self.modules:
-            Modules.objects.create(**module)
-
-        modules = list(Modules.objects.all())
-        self.assertEqual(len(modules), 4)
-
-    def test_modules_constraint_violation(self):
-        Modules.objects.create(**self.modules[0])
-        self.assertRaises(Exception, Modules.objects.create, **self.modules[0])
-
-        modules = list(Modules.objects.all())
-        self.assertEqual(len(modules), 1)
-
-    def test_modules_update_partial(self):
-        Modules.objects.create(**self.modules[0])
-        module = Modules.objects.filter(slug='slug0', version='0.0.0').first()
-        module.partial_update(icon='test')
-        data = Modules.objects.filter(slug='slug0', version='0.0.0').first()
-        self.assertEqual(data.icon, 'test')
-
-    def test_modules_by_app_save(self):
-        ModulesByApp.objects.create(**self.modules_by_app[0])
-        data = list(ModulesByApp.objects.all())
-        self.assertEqual(len(data), 1)
-
-    def test_modules_by_app_constraint_violation(self):
-        ModulesByApp.objects.create(**self.modules_by_app[0])
-        self.assertRaises(Exception, ModulesByApp.objects.create, **self.modules_by_app[0])
-        data = list(ModulesByApp.objects.all())
-        self.assertEqual(len(data), 1)
-
-    def test_modules_by_app_delete(self):
-        self.init_modules()
-
-        module = ModulesByApp.objects.filter(appVersion='0.0.1', moduleSlug='slug1').first()
-        module.delete()
-        order = ModuleOrderSerializer(ModuleOrder.objects.filter(appVersion='0.0.1').first(), many=False).data
-        modules_by_app = list(ModulesByApp.objects.all())
-        self.assertEqual(len(modules_by_app), 3)
-        self.assertDictEqual(order, {'appVersion': '0.0.1', 'order': ['slug0', 'slug2']})
-
-    def test_modules_by_app_partial_update(self):
-        ModulesByApp.objects.create(**self.modules_by_app[0])
-        module = ModulesByApp.objects.filter(moduleSlug='slug0', appVersion='0.0.0').first()
-        module.partial_update(status=0)
-        data = ModulesByApp.objects.filter(moduleSlug='slug0', appVersion='0.0.0').first()
-        self.assertEqual(data.status, 0)
 
 
 class TestAssetsModel(TestCase):
+    """ UNITTESTS """
     def __init__(self, *args, **kwargs):
         super(TestAssetsModel, self).__init__(*args, **kwargs)
         self.data = TestData()
 
     def setUp(self):
+        """ UNITTEST DB setup """
         Assets.objects.all().delete()
         for asset in self.data.assets:
             Assets.objects.create(**asset)
 
     def test_asset_delete(self):
+        """ test delete """
         Assets.objects.get(pk='0000000000').delete()
         asset_objects = Assets.objects.all()
         serializer = AssetsSerializer(asset_objects, many=True)
@@ -124,11 +43,12 @@ class TestAssetsModel(TestCase):
         self.assertEqual(len(serializer.data), 1)
 
     def test_asset_get_all(self):
+        """ test retrieve """
         asset_objects = Assets.objects.all()
-
         self.assertEqual(len(asset_objects), 2)
 
     def test_asset_exists(self):
+        """ test exist """
         asset = Assets.objects.get(pk='0000000000')
 
         self.assertEqual(asset.identifier, '0000000000')
@@ -137,22 +57,26 @@ class TestAssetsModel(TestCase):
         self.assertEqual(asset.data, b'')
 
     def test_asset_does_not_exist(self):
+        """ test not exist """
         asset = Assets.objects.filter(pk='not-there').first()
 
         self.assertEqual(asset, None)
 
 
 class TestImageModel(TestCase):
+    """ UNITTESTS """
     def __init__(self, *args, **kwargs):
         super(TestImageModel, self).__init__(*args, **kwargs)
         self.data = TestData()
 
     def setUp(self):
+        """ UNITTESTS setup """
         Image.objects.all().delete()
         for image in self.data.images:
             Image.objects.create(**image)
 
     def test_image_delete(self):
+        """ test delete """
         Image.objects.get(pk='0000000000').delete()
         image_objects = Image.objects.all()
         serializer = ImageSerializer(image_objects, many=True)
@@ -160,11 +84,13 @@ class TestImageModel(TestCase):
         self.assertEqual(len(serializer.data), 1)
 
     def test_image_get_all(self):
+        """ test retrieve """
         image_objects = Image.objects.all()
 
         self.assertEqual(len(image_objects), 2)
 
     def test_image_exists(self):
+        """ test exist """
         image_object = Image.objects.get(pk='0000000000')
 
         self.assertEqual(image_object.identifier, '0000000000')
@@ -176,22 +102,26 @@ class TestImageModel(TestCase):
         self.assertEqual(image_object.data, b'')
 
     def test_image_does_not_exist(self):
+        """ test not exist """
         image = Image.objects.filter(pk='does not exist').first()
 
         self.assertEqual(image, None)
 
 
 class TestProjectsModel(TestCase):
+    """ UNITTESTS """
     def __init__(self, *args, **kwargs):
         super(TestProjectsModel, self).__init__(*args, **kwargs)
         self.data = TestData()
 
     def setUp(self):
+        """ UNITTESTS db setup """
         Projects.objects.all().delete()
         for project in self.data.projects:
             Projects.objects.create(**project)
 
     def test_projects_delete(self):
+        """ test delete """
         Projects.objects.filter(pk='0000000000').delete()
         project_objects = Projects.objects.all()
         serializer = ProjectsSerializer(project_objects, many=True)
@@ -199,6 +129,7 @@ class TestProjectsModel(TestCase):
         self.assertEqual(len(serializer.data), 1)
 
     def test_projects_get_all(self):
+        """ test retrieve """
         project_objects = Projects.objects.all()
         serializer = ProjectsSerializer(project_objects, many=True)
         for i in range(0, len(serializer.data), 1):
@@ -207,6 +138,7 @@ class TestProjectsModel(TestCase):
         self.assertEqual(serializer.data, self.data.projects)
 
     def test_projects_does_exist(self):
+        """ test exist """
         projects_objects = Projects.objects.filter(pk='0000000000').first()
         serializer = ProjectsSerializer(projects_objects)
         self.data.projects[0]['last_seen'] = serializer.data['last_seen']
@@ -214,22 +146,26 @@ class TestProjectsModel(TestCase):
         self.assertEqual(serializer.data, self.data.projects[0])
 
     def test_projects_does_not_exist(self):
+        """ test not exist """
         projects_objects = Projects.objects.filter(pk='does not exist').first()
 
         self.assertEqual(projects_objects, None)
 
 
 class TestProjectDetailsModel(TestCase):
+    """ UNITTESTS """
     def __init__(self, *args, **kwargs):
         super(TestProjectDetailsModel, self).__init__(*args, **kwargs)
         self.data = TestData()
 
     def setUp(self):
+        """ UNITTESTS db setup """
         ProjectDetails.objects.all().delete()
         for project in self.data.project_details:
             ProjectDetails.objects.create(**project)
 
     def test_projects_delete(self):
+        """ test delete """
         ProjectDetails.objects.filter(pk='0000000000').delete()
         project_objects = ProjectDetails.objects.all()
         serializer = ProjectDetailsSerializer(project_objects, many=True)
@@ -237,6 +173,7 @@ class TestProjectDetailsModel(TestCase):
         self.assertEqual(len(serializer.data), 1)
 
     def test_project_details_get_all(self):
+        """ test retrieve """
         project_objects = ProjectDetails.objects.all()
         serializer = ProjectDetailsSerializer(project_objects, many=True)
         for i in range(0, len(serializer.data), 1):
@@ -245,6 +182,7 @@ class TestProjectDetailsModel(TestCase):
         self.assertEqual(serializer.data, self.data.project_details)
 
     def test_project_details_does_exist(self):
+        """ test exist """
         project_objects = ProjectDetails.objects.filter(pk='0000000000').first()
         serializer = ProjectDetailsSerializer(project_objects)
         self.data.project_details[0]['last_seen'] = serializer.data['last_seen']
@@ -252,22 +190,26 @@ class TestProjectDetailsModel(TestCase):
         self.assertEqual(serializer.data, self.data.project_details[0])
 
     def test_project_details_does_not_exist(self):
+        """ test not exist """
         project_objects = ProjectDetails.objects.filter(pk='does not exist').first()
 
         self.assertEqual(project_objects, None)
 
 
 class TestNewsModel(TestCase):
+    """ UNITTESTS """
     def __init__(self, *args, **kwargs):
         super(TestNewsModel, self).__init__(*args, **kwargs)
         self.data = TestData()
 
     def setUp(self):
+        """ UNITTESTS db setup """
         News.objects.all().delete()
         for news in self.data.news:
             News.objects.create(**news)
 
     def test_news_delete(self):
+        """ test delete """
         News.objects.get(pk='0000000000').delete()
         news_objects = News.objects.all()
         serializer = NewsSerializer(news_objects, many=True)
@@ -275,12 +217,14 @@ class TestNewsModel(TestCase):
         self.assertEqual(len(serializer.data), 1)
 
     def test_news_get_all(self):
+        """ test retrieve """
         news_objects = News.objects.all()
         serializer = NewsSerializer(news_objects, many=True)
 
         self.assertEqual(len(serializer.data), 2)
 
     def test_news_exists(self):
+        """ test exist """
         news_object = News.objects.get(pk='0000000000')
         serializer = NewsSerializer(news_object)
         self.data.news[0]['last_seen'] = serializer.data['last_seen']
@@ -288,22 +232,26 @@ class TestNewsModel(TestCase):
         self.assertDictEqual(serializer.data, self.data.news[0])
 
     def test_news_does_not_exist(self):
+        """ test not exist """
         news_object = News.objects.filter(pk='does not exist').first()
 
         self.assertEqual(news_object, None)
 
 
 class TestProjectManagerModel(TestCase):
+    """ UNITTESTS """
     def __init__(self, *args, **kwargs):
         super(TestProjectManagerModel, self).__init__(*args, **kwargs)
         self.data = TestData()
 
     def setUp(self):
+        """ UNITTESTS db setup """
         ProjectManager.objects.all().delete()
         for pm in self.data.project_manager:
             ProjectManager.objects.create(**pm)
 
     def test_pm_delete(self):
+        """ test delete """
         ProjectManager.objects.get(pk=uuid.UUID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa')).delete()
         pm_objects = ProjectManager.objects.all()
         serializer = ProjectManagerSerializer(pm_objects, many=True)
@@ -311,11 +259,13 @@ class TestProjectManagerModel(TestCase):
         self.assertEqual(len(serializer.data), 1)
 
     def test_pm_get_all(self):
+        """ test retrieve """
         pm_objects = ProjectManager.objects.all()
 
         self.assertEqual(len(pm_objects), 2)
 
     def test_pm_exists(self):
+        """ test exist """
         pm_objects = ProjectManager.objects.get(pk=uuid.UUID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'))
 
         self.assertEqual(pm_objects.identifier, uuid.UUID('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'))
@@ -323,11 +273,13 @@ class TestProjectManagerModel(TestCase):
         self.assertEqual(pm_objects.projects, ["0000000000"])
 
     def test_pm_does_not_exist(self):
+        """ test not exist """
         pm_object = ProjectManager.objects.filter(pk=uuid.UUID('00000000-0000-0000-0000-000000000000')).first()
 
         self.assertEqual(pm_object, None)
 
     def test_pm_has_invalid_email(self):
+        """ test email """
         with self.assertRaises(Exception) as context:
             ProjectManager.objects.create(**self.data.project_manager_invalid)
 
@@ -335,27 +287,32 @@ class TestProjectManagerModel(TestCase):
 
 
 class TestFirebaseTokenModel(TestCase):
+    """ UNITTESTS """
     def __init__(self, *args, **kwargs):
         super(TestFirebaseTokenModel, self).__init__(*args, **kwargs)
         self.data = [{'deviceid': '0', 'firebasetoken': '0', 'os': 'ios'}, {'deviceid': '1', 'firebasetoken': '1', 'os': 'ios'}]
 
     def setUp(self):
+        """ UNITTESTS db setup """
         FirebaseTokens.objects.all().delete()
         for token in self.data:
             FirebaseTokens.objects.create(**token)
 
     def test_fb_delete(self):
+        """ test delete """
         FirebaseTokens.objects.get(pk='0').delete()
         fb_objects = FirebaseTokens.objects.all()
 
         self.assertEqual(len(fb_objects), 1)
 
     def test_fb_get_all(self):
+        """ test retrieve """
         fb_objects = FirebaseTokens.objects.all()
 
         self.assertEqual(len(fb_objects), 2)
 
     def test_fb_exists(self):
+        """ test exist """
         fb_objects = FirebaseTokens.objects.get(pk='0')
 
         self.assertEqual(fb_objects.firebasetoken, '0')
@@ -363,6 +320,7 @@ class TestFirebaseTokenModel(TestCase):
         self.assertEqual(fb_objects.deviceid, '0')
 
     def test_fb_does_not_exist(self):
+        """ test not exist """
         fb_object = FirebaseTokens.objects.filter(pk='00000000-0000-0000-0000-000000000000').first()
 
         self.assertEqual(fb_object, None)

@@ -1,6 +1,9 @@
+""" Views for ingestion routes """
 import base64
 import datetime
 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from amsterdam_app_api.GenericFunctions.IsAuthorized import IsAuthorized
 from amsterdam_app_api.GenericFunctions.Logger import Logger
 from amsterdam_app_api.GarbageCollector.GarbageCollector import GarbageCollector
@@ -9,73 +12,65 @@ from amsterdam_app_api.models import Image, Assets
 # from amsterdam_app_api.models import CityOffices
 from amsterdam_app_api.models import ProjectDetails, Projects, News
 from amsterdam_app_api.serializers import ProjectsSerializer
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
 
 message = Messages()
-
-
-""" Image ingestion route
-"""
 
 
 @IsAuthorized
 @api_view(['GET', 'POST'])
 def image(request):
+    """ Image ingestion route
+    """
     if request.method == 'GET':
         identifier = request.GET.get('identifier', '')
         image_data = Image.objects.filter(pk=identifier).values('identifier').first()
         if image_data is not None:
             return Response({'status': True, 'result': image_data}, status=200)
-        else:
-            return Response({'status': False, 'result': image_data}, status=200)
-    elif request.method == 'POST':
-        try:
-            image_data = dict(request.data)
-            image_data['data'] = base64.b64decode(image_data['data'])
-            image_object = Image(**image_data)
-            image_object.save()
-            return Response({'status': True, 'result': True}, status=200)
-        except Exception as error:
-            logger = Logger()
-            logger.error('ingest/image: {error}'.format(error=error))
-            return Response({'status': False, 'result': str(error)}, status=500)
+        return Response({'status': False, 'result': image_data}, status=200)
 
-
-""" Assets ingestion route
-"""
+    # request.method == 'POST':
+    try:
+        image_data = dict(request.data)
+        image_data['data'] = base64.b64decode(image_data['data'])
+        image_object = Image(**image_data)
+        image_object.save()
+        return Response({'status': True, 'result': True}, status=200)
+    except Exception as error:
+        logger = Logger()
+        logger.error('ingest/image: {error}'.format(error=error))
+        return Response({'status': False, 'result': str(error)}, status=500)
 
 
 @IsAuthorized
 @api_view(['GET', 'POST'])
 def asset(request):
+    """ Assets ingestion route
+    """
     if request.method == 'GET':
         identifier = request.GET.get('identifier', '')
         asset_data = Assets.objects.filter(pk=identifier).values('identifier').first()
         if asset_data is not None:
             return Response({'status': True, 'result': asset_data}, status=200)
-        else:
-            return Response({'status': False, 'result': asset_data}, status=200)
-    elif request.method == 'POST':
-        try:
-            asset_data = dict(request.data)
-            asset_data['data'] = base64.b64decode(asset_data['data'])
-            asset_data = Assets(**asset_data)
-            asset_data.save()
-            return Response({'status': True, 'result': True}, status=200)
-        except Exception as error:
-            logger = Logger()
-            logger.error('ingest/assets: {error}'.format(error=error))
-            return Response({'status': False, 'result': str(error)}, status=500)
+        return Response({'status': False, 'result': asset_data}, status=200)
 
-
-""" City office(s) and contact 
-"""
+    # request.method == 'POST':
+    try:
+        asset_data = dict(request.data)
+        asset_data['data'] = base64.b64decode(asset_data['data'])
+        asset_data = Assets(**asset_data)
+        asset_data.save()
+        return Response({'status': True, 'result': True}, status=200)
+    except Exception as error:
+        logger = Logger()
+        logger.error('ingest/assets: {error}'.format(error=error))
+        return Response({'status': False, 'result': str(error)}, status=500)
 
 
 # @IsAuthorized
 # @api_view(['POST'])
 # def city_offices(request):
+#     """ City office(s) and contact
+#     """
 #     try:
 #         # save method is overridden to allow only 1 single record
 #         data = request.data
@@ -88,17 +83,14 @@ def asset(request):
 #         return Response({'status': False, 'result': 'Caught error ingesting city offices'}, status=500)
 
 
-""" Project(s) and News
-"""
-
-
 @IsAuthorized
 @api_view(['POST'])
 def project(request):
+    """ Project(s) and News
+    """
     created = False
     try:
         data = dict(request.data)
-
         # New record or update existing
         project_details_object, created = ProjectDetails.objects.update_or_create(identifier=data.get('identifier'))
         if created is True:
@@ -119,6 +111,7 @@ def project(request):
 @IsAuthorized
 @api_view(['GET', 'POST', 'DELETE'])
 def projects(request):
+    """ Projects """
     if request.method == 'GET':
         identifier = request.GET.get('identifier', None)
         projects_object = Projects.objects.filter(pk=identifier).first()
@@ -127,14 +120,14 @@ def projects(request):
         serializer = ProjectsSerializer(projects_object, many=False)
         return Response({'status': True, 'result': serializer.data}, status=200)
 
-    elif request.method == 'POST':
+    if request.method == 'POST':
         created = False
         try:
             # Get POST data
             data = dict(request.data)
 
             # New record or update existing
-            project_details_object, created = Projects.objects.update_or_create(identifier=data.get('identifier'))
+            _, created = Projects.objects.update_or_create(identifier=data.get('identifier'))
             if created is True:
                 project_object = Projects(**data)
                 project_object.save()  # Update last scrape time is done implicitly
@@ -149,21 +142,23 @@ def projects(request):
             logger.error('ingest/projects (POST): {error}'.format(error=error))
             return Response({'status': False, 'result': str(error)}, status=500)
 
-    elif request.method == 'DELETE':
-        try:
-            # Delete record
-            data = dict(request.data)
-            Projects.objects.filter(pk=data.get('identifier')).delete()
-            return Response({'status': True, 'result': True}, status=200)
-        except Exception as error:
-            logger = Logger()
-            logger.error('ingest/projects (DELETE): {error}'.format(error=error))
-            return Response({'status': False, 'result': str(error)}, status=500)
+    # request.method == 'DELETE':
+    try:
+        # Delete record
+        data = dict(request.data)
+        Projects.objects.filter(pk=data.get('identifier')).delete()
+        return Response({'status': True, 'result': True}, status=200)
+    except Exception as error:
+        logger = Logger()
+        logger.error('ingest/projects (DELETE): {error}'.format(error=error))
+        return Response({'status': False, 'result': str(error)}, status=500)
 
 
 @IsAuthorized
 @api_view(['GET', 'POST', 'DELETE'])
 def news(request):
+    """ News
+    """
     try:
         data = dict(request.data)
         news_item_object, created = News.objects.update_or_create(identifier=data.get('identifier'))
@@ -180,13 +175,11 @@ def news(request):
         return Response({'status': False, 'result': str(error)}, status=500)
 
 
-""" Garbage collector
-"""
-
-
 @IsAuthorized
 @api_view(['GET'])
 def garbage_collector(request):
+    """ Garbage collector
+    """
     project_type = request.GET.get('project_type')
     collector = GarbageCollector(last_scrape_time=(datetime.datetime.now() - datetime.timedelta(hours=1)))
     collector.collect_iprox(project_type=project_type)

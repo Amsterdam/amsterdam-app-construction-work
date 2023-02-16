@@ -1,6 +1,5 @@
-import json
+""" UNITTESTS """
 from django.contrib.auth import get_user_model
-from django.contrib.auth import authenticate
 from django.test import TestCase
 from amsterdam_app_api.api_messages import Messages
 
@@ -13,7 +12,9 @@ messages = Messages()
 
 
 class SignInTest(TestCase):
+    """ Test django jwt signin """
     def setUp(self):
+        """ Setup test db """
         self.user = get_user_model().objects.create_user(username=username,
                                                          password=password,
                                                          email=email)
@@ -22,10 +23,12 @@ class SignInTest(TestCase):
         self.headers = {'Accept': 'application/json', 'HTTP_AUTHORIZATION': response.data['access']}
 
     def tearDown(self):
+        """ Run teardown setup """
         self.user = get_user_model().objects.filter(username=username).first()
         self.user.delete()
 
     def test_change_password_valid(self):
+        """ Test valid password """
         payload = {
             'username': username,
             'old_password': password,
@@ -38,6 +41,7 @@ class SignInTest(TestCase):
         self.assertEqual(response.status_code, 200)
 
     def test_missing_parameter(self):
+        """ test missing parameter """
         payload = {
             'old_password': password,
             'password': '012345678',
@@ -49,6 +53,7 @@ class SignInTest(TestCase):
         self.assertEqual(response.status_code, 422)
 
     def test_password_do_not_match(self):
+        """ Test non-matching passwords """
         payload = {
             'username': username,
             'old_password': password,
@@ -61,6 +66,7 @@ class SignInTest(TestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_password_invalid_username(self):
+        """ test invalid username """
         payload = {
             'username': 'does_not_exist',
             'old_password': password,
@@ -73,6 +79,7 @@ class SignInTest(TestCase):
         self.assertEqual(response.status_code, 401)
 
     def test_password_invalid_password(self):
+        """ test invalid password """
         payload = {
             'username': username,
             'old_password': 'invalid_password',

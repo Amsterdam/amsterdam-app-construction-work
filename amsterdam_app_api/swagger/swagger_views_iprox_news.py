@@ -1,12 +1,13 @@
+""" Swagger definitions used in the views_*_.py decorators '@swagger_auto_schema(**object)'. Each parameter is given the
+    name of the methods in views_*_.py prepended with 'as_' (auto_schema)
+"""
+
 from drf_yasg import openapi
 from amsterdam_app_api.serializers import NewsSerializer
 from amsterdam_app_api.views.views_messages import Messages
 
 messages = Messages()
 
-""" Swagger definitions used in the views_*_.py decorators '@swagger_auto_schema(**object)'. Each parameter is given the
-    name of the methods in views_*_.py prepended with 'as_' (auto_schema)
-"""
 
 
 as_news_by_project_id = {

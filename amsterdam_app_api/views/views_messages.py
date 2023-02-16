@@ -1,3 +1,4 @@
+""" Views for news, articles and warning messages """
 import base64
 import uuid
 from rest_framework.decorators import api_view
@@ -31,11 +32,12 @@ messages = Messages()
 @swagger_auto_schema(**as_warning_messages_get)
 @api_view(['GET'])
 def warning_messages_get(request):
+    """ Warning messages """
     project_identifier = request.GET.get('id', None)
     sort_by = request.GET.get('sort-by', 'modification_date')
     sort_order = request.GET.get('sort-order', None)
 
-    warning_messages_objects = list()
+    warning_messages_objects = []
     if project_identifier is None:
         projects = Projects.objects.all()
         for project in projects:
@@ -45,16 +47,17 @@ def warning_messages_get(request):
         serializer = WarningMessagesExternalSerializer(warning_messages_objects, many=True)
         result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
         return Response({'status': True, 'result': result}, 200)
-    elif Projects.objects.filter(pk=project_identifier).first() is None:
+
+    project = Projects.objects.filter(pk=project_identifier).first()
+    if project is None:
         return Response({'status': False, 'result': messages.no_record_found}, 404)
-    else:
-        project = Projects.objects.filter(pk=project_identifier).first()
-        result = []
-        if project.active is True:
-            warning_messages_objects = WarningMessages.objects.filter(project_identifier=project_identifier).all()
-            serializer = WarningMessagesExternalSerializer(warning_messages_objects, many=True)
-            result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
-        return Response({'status': True, 'result': result}, 200)
+
+    result = []
+    if project.active is True:
+        warning_messages_objects = WarningMessages.objects.filter(project_identifier=project_identifier).all()
+        serializer = WarningMessagesExternalSerializer(warning_messages_objects, many=True)
+        result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
+    return Response({'status': True, 'result': result}, 200)
 
 
 @swagger_auto_schema(**as_warning_message_get)
@@ -63,49 +66,51 @@ def warning_messages_get(request):
 @swagger_auto_schema(**as_warning_message_delete)
 @api_view(['GET', 'POST', 'PATCH', 'DELETE'])
 def warning_message_crud(request):
+    """ Warning message CRUD """
     if request.method == 'GET':
         data = warning_message_get(request)
         return Response(data['result'], status=data['status_code'])
 
-    elif request.method == 'POST':
+    if request.method == 'POST':
         data = None
         try:
             data = warning_message_post(request)
             return Response(data['result'], status=data['status_code'])
-        except:
+        except Exception:
             return data
 
-    elif request.method == 'PATCH':
+    if request.method == 'PATCH':
         data = None
         try:
             data = warning_message_patch(request)
             return Response(data['result'], status=data['status_code'])
-        except:
+        except Exception:
             return data
 
-    elif request.method == 'DELETE':
-        data = None
-        try:
-            data = warning_message_delete(request)
-            return Response(data['result'], status=data['status_code'])
-        except:
-            return data
+    # request.method == 'DELETE'
+    data = None
+    try:
+        data = warning_message_delete(request)
+        return Response(data['result'], status=data['status_code'])
+    except Exception:
+        return data
 
 
 def warning_message_get(request):
+    """ Warning message get """
     identifier = request.GET.get('id', None)
     if identifier is None:
         return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
-    elif WarningMessages.objects.filter(pk=identifier).first() is None:
+
+    warning_messages_object = WarningMessages.objects.filter(pk=identifier).first()
+    if warning_messages_object is None:
         return {'result': {'status': False, 'result': messages.no_record_found}, 'status_code': 404}
-    else:
-        warning_messages_object = WarningMessages.objects.filter(pk=identifier).first()
-        project = Projects.objects.filter(pk=warning_messages_object.project_identifier).first()
-        if project.active is True:
-            serializer = WarningMessagesExternalSerializer(warning_messages_object, many=False)
-            return {'result': {'status': True, 'result': serializer.data}, 'status_code': 200}
-        else:
-            return {'result': {'status': False, 'result': messages.no_record_found}, 'status_code': 404}
+
+    project = Projects.objects.filter(pk=warning_messages_object.project_identifier).first()
+    if project.active is True:
+        serializer = WarningMessagesExternalSerializer(warning_messages_object, many=False)
+        return {'result': {'status': True, 'result': serializer.data}, 'status_code': 200}
+    return {'result': {'status': False, 'result': messages.no_record_found}, 'status_code': 404}
 
 
 @IsAuthorized
@@ -118,9 +123,11 @@ def warning_message_patch(request):
 
     if None in [title, identifier]:
         return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
-    elif not isinstance(body, str):
+
+    if not isinstance(body, str):
         return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
-    elif WarningMessages.objects.filter(identifier=identifier).first() is None:
+
+    if WarningMessages.objects.filter(identifier=identifier).first() is None:
         return {'result': {'status': False, 'result': messages.no_record_found}, 'status_code': 404}
 
     message_object = WarningMessages.objects.filter(identifier=identifier).first()
@@ -141,16 +148,19 @@ def warning_message_post(request):
 
     if None in [title, project_identifier, project_manager_id]:
         return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
-    elif not isinstance(body, str):
+
+    if not isinstance(body, str):
         return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
-    elif Projects.objects.filter(pk=project_identifier).first() is None:
+
+    if Projects.objects.filter(pk=project_identifier).first() is None:
         return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
 
     # Check if the project manager exists and is entitled for sending a message for this project
     project_manager = ProjectManager.objects.filter(pk=project_manager_id).first()
     if project_manager is None:
         return {'result': {'status': False, 'result': messages.no_record_found}, 'status_code': 404}
-    elif project_identifier not in project_manager.projects:
+
+    if project_identifier not in project_manager.projects:
         return {'result': {'status': False, 'result': messages.no_record_found}, 'status_code': 404}
 
     message_object = WarningMessages(title=title,
@@ -159,23 +169,31 @@ def warning_message_post(request):
                                      project_manager_id=project_manager_id,
                                      images=[])
     message_object.save()
-    return {'result': {'status': True, 'result': {'warning_identifier': str(message_object.identifier)}}, 'status_code': 200}
+    return {
+        'result': {
+            'status': True,
+            'result': {'warning_identifier': str(message_object.identifier)}
+        },
+        'status_code': 200
+    }
 
 
 @IsAuthorized
 def warning_message_delete(request):
+    """ Delete warning message """
     identifier = request.GET.get('id', None)
     if identifier is None:
         return {'result': {'status': False, 'result': messages.invalid_query}, 'status_code': 422}
-    else:
-        WarningMessages.objects.filter(identifier=identifier).delete()
-        return {'result': {'status': False, 'result': 'Message deleted'}, 'status_code': 200}
+
+    WarningMessages.objects.filter(identifier=identifier).delete()
+    return {'result': {'status': False, 'result': 'Message deleted'}, 'status_code': 200}
 
 
 @swagger_auto_schema(**as_notification_post)
 @IsAuthorized
 @api_view(['POST'])
 def notification_post(request):
+    """ Post Notification message """
     title = request.data.get('title', None)
     body = request.data.get('body', None)
     news_identifier = request.data.get('news_identifier', None)
@@ -183,11 +201,14 @@ def notification_post(request):
 
     if None in [title, body]:
         return Response({'status': False, 'result': messages.invalid_query}, status=422)
-    elif news_identifier is None and warning_identifier is None:
+
+    if news_identifier is None and warning_identifier is None:
         return Response({'status': False, 'result': messages.invalid_query}, status=422)
-    elif news_identifier is not None and News.objects.filter(pk=news_identifier).first() is None:
+
+    if news_identifier is not None and News.objects.filter(pk=news_identifier).first() is None:
         return Response({'status': False, 'result': messages.no_record_found}, status=404)
-    elif warning_identifier is not None and WarningMessages.objects.filter(pk=warning_identifier).first() is None:
+
+    if warning_identifier is not None and WarningMessages.objects.filter(pk=warning_identifier).first() is None:
         return Response({'status': False, 'result': messages.no_record_found}, status=404)
 
     notification = Notification(title=title,
@@ -209,6 +230,7 @@ def notification_post(request):
 @swagger_auto_schema(**as_notification_get)
 @api_view(['GET'])
 def notification_get(request):
+    """ Get notification  """
     query_params = request.GET.get('project-ids', None)
     sort_by = request.GET.get('sort-by', 'publication_date')
     sort_order = request.GET.get('sort-order', 'desc')
@@ -216,7 +238,7 @@ def notification_get(request):
     if query_params is None:
         return Response({'status': False, 'result': messages.invalid_query}, status=422)
     project_identifiers = query_params.split(',')
-    notifications = list()
+    notifications = []
     for project_identifier in project_identifiers:
         project = Projects.objects.filter(pk=project_identifier).first()
         if project is not None and project.active is True:
@@ -226,8 +248,7 @@ def notification_get(request):
     if len(serializer.data) != 0:
         result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
         return Response({'status': True, 'result': result}, status=200)
-    else:
-        return Response({'status': False, 'result': messages.no_record_found}, status=404)
+    return Response({'status': False, 'result': messages.no_record_found}, status=404)
 
 
 @swagger_auto_schema(**as_warning_message_image_post)
@@ -240,15 +261,18 @@ def warning_messages_image_upload(request):
     project_warning_id = request.data.get('project_warning_id', None)
     if None in [image_data, project_warning_id]:
         return Response({'status': False, 'result': messages.invalid_query}, status=422)
-    elif WarningMessages.objects.filter(pk=project_warning_id).first() is None:
+
+    if WarningMessages.objects.filter(pk=project_warning_id).first() is None:
         return Response({'status': False, 'result': messages.no_record_found}, status=404)
-    elif 'main' not in image_data:
+
+    if 'main' not in image_data:
         return Response({'status': False, 'result': messages.invalid_query}, status=422)
-    elif image_data.get('data', None) is None:
+
+    if image_data.get('data', None) is None:
         return Response({'status': False, 'result': messages.invalid_query}, status=422)
 
     # Make sure we've got a boolean not a string
-    image_data['main'] = True if image_data['main'] in ['True', 'true', True] else False
+    image_data['main'] = bool(image_data['main'] in ['True', 'true', True])
 
     # Get description
     description = image_data.get('description', 'Warning Message')
@@ -261,8 +285,8 @@ def warning_messages_image_upload(request):
         return Response({'status': False, 'result': messages.unsupported_image_format}, status=422)
 
     # Store images into DB and build warning-messages images list
-    sources = list()
-    for key in image_conversion.images:
+    sources = []
+    for key in image_conversion.images:  # pylint: disable=consider-using-dict-items
         # Build image object and save to database
         image = image_conversion.images[key]
         identifier = uuid.uuid4().hex

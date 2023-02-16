@@ -5,7 +5,6 @@ import os
 from uuid import uuid4
 from base64 import b64encode
 from pathlib import Path
-from amsterdam_app_api.GenericFunctions.Hashing import Hashing
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent

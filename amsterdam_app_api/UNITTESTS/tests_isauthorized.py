@@ -1,5 +1,6 @@
-import os
+""" UNITTESTS """
 
+import os
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory
 from django.test import TestCase

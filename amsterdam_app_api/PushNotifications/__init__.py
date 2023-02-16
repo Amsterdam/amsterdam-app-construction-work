@@ -1,1 +1,2 @@
-from  .SendNotification import SendNotification
+""" init as python module """
+from .SendNotification import SendNotification

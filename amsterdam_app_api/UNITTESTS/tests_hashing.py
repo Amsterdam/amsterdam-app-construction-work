@@ -1,3 +1,5 @@
+""" UNITTESTS """
+
 from django.test import TestCase
 from amsterdam_app_api.GenericFunctions.Hashing import Hashing
 

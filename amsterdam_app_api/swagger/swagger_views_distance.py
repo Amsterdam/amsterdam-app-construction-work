@@ -1,8 +1,9 @@
-from drf_yasg import openapi
-
 """ Swagger definitions used in the views_*_.py decorators '@swagger_auto_schema(**object)'. Each parameter is given the
     name of the methods in views_*_.py prepended with 'as_' (auto_schema)
 """
+
+from drf_yasg import openapi
+
 
 as_distance = {
     # /api/v1/projects/distance swagger_auto_schema

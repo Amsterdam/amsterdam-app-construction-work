@@ -1,6 +1,7 @@
+""" Views for VUE website """
 import io
-import markdown
 import mimetypes
+import markdown
 from PIL import Image as PILImage
 from django.http import HttpResponse
 from amsterdam_app_backend.settings import BASE_DIR
@@ -22,16 +23,18 @@ def readme(request):
 
 
 def favicon(request):
+    """ Favicon """
     try:
         with open('{base_dir}/static/favicon.ico'.format(base_dir=BASE_DIR), 'rb') as f:
             content = f.read()
         return HttpResponse(content, content_type='image/x-icon', status=200)
-    except Exception as error:
+    except Exception:
         pass
     return HttpResponse(status=404)
 
 
 def static(request):
+    """ Static data """
     path = request.path
     save_path = path.replace('..', '')
     filepath = '{base_dir}{save_path}'.format(base_dir=BASE_DIR, save_path=save_path)
@@ -40,23 +43,20 @@ def static(request):
         with open(filepath, 'r') as f:
             content = f.read()
         return HttpResponse(content, content_type=mimetype, status=200)
-    except Exception as error:
+    except Exception:
         pass
 
     try:
         with open(filepath, 'rb') as f:
             content = f.read()
         return HttpResponse(content, content_type=mimetype, status=200)
-    except Exception as error:
+    except Exception:
         pass
     return HttpResponse(status=404)
 
 
-""" Below end-points are for the VUEjs website
-"""
-
-
 def index(request):
+    """ Index.html """
     path = '{base_dir}/static/dist'.format(base_dir=BASE_DIR)
     with open('{path}/index.html'.format(path=path), 'r') as f:
         content = f.read()
@@ -64,6 +64,7 @@ def index(request):
 
 
 def css_files(request):
+    """ css route """
     path = '{base_dir}/static/dist'.format(base_dir=BASE_DIR)
     with open('{path}/{filename}'.format(path=path, filename=request.path), 'r') as f:
         content = f.read()
@@ -71,6 +72,7 @@ def css_files(request):
 
 
 def js_files(request):
+    """ js route """
     path = '{base_dir}/static/dist'.format(base_dir=BASE_DIR)
     with open('{path}/{filename}'.format(path=path, filename=request.path), 'r') as f:
         content = f.read()
@@ -78,6 +80,7 @@ def js_files(request):
 
 
 def img_files(request):
+    """ images route """
     path = '{base_dir}/static/dist'.format(base_dir=BASE_DIR)
     with open('{path}/{filename}'.format(path=path, filename=request.path), 'rb') as f:
         data = f.read()
@@ -88,11 +91,8 @@ def img_files(request):
         return HttpResponse(data, content_type=pil_image.get_format_mimetype())
 
 
-""" Appstore end-point
-"""
-
-
 def appstore(request):
+    """ route for amsterdam app Appstore """
     content = '''<!DOCTYPE html>
                  <html lang="en">
                  <head>

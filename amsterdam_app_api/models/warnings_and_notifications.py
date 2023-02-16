@@ -1,13 +1,6 @@
-import datetime
-import uuid
-from django.db import models
-from django.contrib.postgres.fields import ArrayField
-from .project_managers import ProjectManager
-from .news import News
-
 """ Model for Warning messages
 
-    Notes: 
+    Notes:
     The project manager writes and article. We’re only sending the text content to start
     with, to not burden the request with lots of image data. We expect a warning identifier in the
     response, with which we can relate the notification content and the images we’re sending next.
@@ -51,8 +44,16 @@ from .news import News
     }
 """
 
+import datetime
+import uuid
+from django.db import models
+from django.contrib.postgres.fields import ArrayField
+from .project_managers import ProjectManager
+from .news import News
+
 
 class WarningMessages(models.Model):
+    """ Warning messages db model """
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=1000, unique=False)
     body = models.CharField(max_length=1000, unique=False)
@@ -71,6 +72,7 @@ class WarningMessages(models.Model):
 
 
 class Notification(models.Model):
+    """ Notifications db model """
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=1000, unique=False)
     body = models.CharField(max_length=1000, unique=False)
