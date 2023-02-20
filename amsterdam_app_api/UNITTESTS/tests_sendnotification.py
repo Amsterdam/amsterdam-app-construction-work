@@ -1,9 +1,9 @@
-import json
+""" UNITTESTS """
 import uuid
 import logging
 import os
-from django.test import TestCase
 from unittest.mock import patch, call
+from django.test import TestCase
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
 from amsterdam_app_api.UNITTESTS.mock_functions import firebase_admin_messaging_send_multicast
 from amsterdam_app_api.PushNotifications.SendNotification import SendNotification
@@ -14,20 +14,22 @@ from amsterdam_app_api.models import ProjectManager
 from amsterdam_app_api.models import FirebaseTokens
 from amsterdam_app_api.models import FollowedProjects
 from amsterdam_app_api.api_messages import Messages
-from amsterdam_app_backend.settings import BASE_DIR
 
 messages = Messages()
 
 
 class TestSendNotification(TestCase):
+    """ UNITTESTS """
     def __init__(self, *args, **kwargs):
         super(TestSendNotification, self).__init__(*args, **kwargs)
         self.data = TestData()
 
     def tearDown(self):
-        pass
+        """ Remove test db items """
+        pass  # pylint: disable=unnecessary-pass
 
     def setUp(self):
+        """ Setup test db """
         ProjectManager.objects.all().delete()
         for project_manager in self.data.project_manager:
             ProjectManager.objects.create(**project_manager)
@@ -89,8 +91,9 @@ class TestSendNotification(TestCase):
             FollowedProjects.objects.create(**project)
 
     @patch('firebase_admin.messaging.send_multicast', side_effect=firebase_admin_messaging_send_multicast)
-    def test_send_warning(self, firebase_admin_messaging_send_multicast):
+    def test_send_warning(self, _firebase_admin_messaging_send_multicast):
         """ First message should always fail in the mocked send_multicast mock!!!
+            Send warning message
         """
         debug = os.environ.get('DEBUG', '')
         os.environ['DEBUG'] = 'false'
@@ -108,8 +111,9 @@ class TestSendNotification(TestCase):
         os.environ['DEBUG'] = debug
 
     @patch('firebase_admin.messaging.send_multicast', side_effect=firebase_admin_messaging_send_multicast)
-    def test_send_unknow_notification(self, firebase_admin_messaging_send_multicast):
+    def test_send_unknown_notification(self, _firebase_admin_messaging_send_multicast):
         """ First message should always fail in the mocked send_multicast mock!!!
+            Send non-existing notification
         """
         debug = os.environ.get('DEBUG', '')
         os.environ['DEBUG'] = 'false'
@@ -123,14 +127,17 @@ class TestSendNotification(TestCase):
             self.assertEqual(send_notification.project_identifier, None)
             self.assertEqual(send_notification.subscribed_device_batches, None)
             self.assertEqual(send_notification.valid_notification, False)
-            assert mocked_log.call_args_list == [call("Caught error in SendNotification.set_notification(): 'NoneType' object has no attribute 'project_identifier'")]
+            expected_result = [call("Caught error in SendNotification.set_notification(): "
+                                    "'NoneType' object has no attribute 'project_identifier'")]
+            assert mocked_log.call_args_list == expected_result
 
         # reset environment
         os.environ['DEBUG'] = debug
 
     @patch('firebase_admin.messaging.send_multicast', side_effect=firebase_admin_messaging_send_multicast)
-    def test_send_news(self, firebase_admin_messaging_send_multicast):
+    def test_send_news(self, _firebase_admin_messaging_send_multicast):
         """ First message should always fail in the mocked send_multicast mock!!!
+            Send news item as notification
         """
         debug = os.environ.get('DEBUG', '')
         os.environ['DEBUG'] = 'false'

@@ -290,7 +290,8 @@ class TestFirebaseTokenModel(TestCase):
     """ UNITTESTS """
     def __init__(self, *args, **kwargs):
         super(TestFirebaseTokenModel, self).__init__(*args, **kwargs)
-        self.data = [{'deviceid': '0', 'firebasetoken': '0', 'os': 'ios'}, {'deviceid': '1', 'firebasetoken': '1', 'os': 'ios'}]
+        self.data = [{'deviceid': '0', 'firebasetoken': '0', 'os': 'ios'},
+                     {'deviceid': '1', 'firebasetoken': '1', 'os': 'ios'}]
 
     def setUp(self):
         """ UNITTESTS db setup """
@@ -327,17 +328,20 @@ class TestFirebaseTokenModel(TestCase):
 
 
 class TestWarningMessagesModel(TestCase):
+    """ UNITTESTS """
     def __init__(self, *args, **kwargs):
         super(TestWarningMessagesModel, self).__init__(*args, **kwargs)
         self.data = TestData()
 
     def setUp(self):
+        """ Setup test db """
         WarningMessages.objects.all().delete()
         ProjectManager.objects.all().delete()
         for project_manager in self.data.project_manager:
             ProjectManager.objects.create(**project_manager)
 
     def test_create_message(self):
+        """ Test create warning message """
         warning_message = WarningMessages.objects.create(**self.data.warning_message)
 
         self.assertEqual(type(warning_message.identifier), type(uuid.uuid4()))
@@ -346,6 +350,7 @@ class TestWarningMessagesModel(TestCase):
         self.assertNotEqual(warning_message.modification_date, None)
 
     def test_default_email(self):
+        """ Test default email on creation """
         data = dict(self.data.warning_message)
         data['project_manager_id'] = uuid.uuid4()
         warning_message = WarningMessages.objects.create(**data)
@@ -353,6 +358,7 @@ class TestWarningMessagesModel(TestCase):
         self.assertEqual(warning_message.author_email, 'redactieprojecten@amsterdam.nl')
 
     def test_modification_date(self):
+        """ test modification date on changing a message """
         warning_message = WarningMessages.objects.create(**self.data.warning_message)
         date = warning_message.modification_date
         warning_message.save()
@@ -400,17 +406,20 @@ class TestWarningMessagesModel(TestCase):
 
 
 class TestNotificationModel(TestCase):
+    """ UNITTESTS """
     def __init__(self, *args, **kwargs):
         super(TestNotificationModel, self).__init__(*args, **kwargs)
         self.data = TestData()
         self.warning_identifier = None
 
     def setUp(self):
+        """ Setup test db """
         WarningMessages.objects.all().delete()
         warning_message = WarningMessages.objects.create(**self.data.warning_message)
         self.warning_identifier = warning_message.identifier
 
     def test_create_notification(self):
+        """ Create a notification """
         data = {'title': 'test', 'body': 'test', 'warning_identifier': self.warning_identifier}
         notification = Notification.objects.create(**data)
         notification.save()
@@ -418,6 +427,7 @@ class TestNotificationModel(TestCase):
         self.assertEqual(notification.project_identifier, '0000000000')
 
     def test_serializer(self):
+        """ Test the serializer for notification messages """
         data = {'title': 'test', 'body': 'test', 'warning_identifier': self.warning_identifier}
         notification = Notification.objects.create(**data)
         serializer = NewsSerializer(notification, many=False)

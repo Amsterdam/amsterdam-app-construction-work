@@ -15,11 +15,13 @@ email = 'mock@localhost'
 
 
 class TestIsAuthorized(TestCase):
+    """ Unittest for IsAuthorized decorator """
     def __init__(self, *args, **kwargs):
         super(TestIsAuthorized, self).__init__(*args, **kwargs)
         self.data = TestData()
 
     def setUp(self):
+        """ Setup test db """
         # Create user for token
         self.user = get_user_model().objects.create_user(username=username,
                                                          password=password,
@@ -34,6 +36,7 @@ class TestIsAuthorized(TestCase):
             ProjectManager.objects.create(**project_manager)
 
     def test_valid_token(self):
+        """ Test with valid app token """
         @IsAuthorized
         def a_view(request):
             return 'success'
@@ -45,6 +48,7 @@ class TestIsAuthorized(TestCase):
         self.assertEqual(resp, 'success')
 
     def test_valid_token_ingest(self):
+        """ Test with valid ingestion token """
         @IsAuthorized
         def a_view(request):
             return 'success'
@@ -56,6 +60,7 @@ class TestIsAuthorized(TestCase):
         self.assertEqual(resp, 'success')
 
     def test_invalid_token_ingest(self):
+        """ Test with invalid ingestion token """
         @IsAuthorized
         def a_view(request):  # pragma: no cover
             return 'success'
@@ -66,6 +71,7 @@ class TestIsAuthorized(TestCase):
         self.assertEqual(result.reason_phrase, 'Forbidden')
 
     def test_invalid_token(self):
+        """ Test with a invalid JWT token """
         @IsAuthorized
         def a_view(request):  # pragma: no cover
             return 'success'
@@ -76,6 +82,7 @@ class TestIsAuthorized(TestCase):
         self.assertEqual(result.reason_phrase, 'Forbidden')
 
     def test_no_token(self):
+        """ Test missing JWT token """
         @IsAuthorized
         def a_view(request):  # pragma: no cover
             return 'success'
@@ -86,6 +93,7 @@ class TestIsAuthorized(TestCase):
         self.assertEqual(result.reason_phrase, 'Forbidden')
 
     def test_jwt_token_valid(self):
+        """ Test if JWT token is valid """
         @IsAuthorized
         def a_view(request):  # pragma: no cover
             return 'success'
@@ -96,6 +104,7 @@ class TestIsAuthorized(TestCase):
         self.assertEqual(result, 'success')
 
     def test_jwt_token_invalid(self):
+        """ Test if JWT token is in-valid """
         @IsAuthorized
         def a_view(request):  # pragma: no cover
             return 'success'

@@ -1,3 +1,4 @@
+""" UNITTESTS """
 import os
 import base64
 from django.test import TestCase
@@ -5,13 +6,16 @@ from amsterdam_app_api.GenericFunctions.ImageConversion import ImageConversion
 
 
 class TestImageConversion(TestCase):
+    """ UNITTESTS """
     @staticmethod
     def read_file(filename):
+        """ Read file data """
         with open(filename, 'rb') as f:
             data = f.read()
         return data
 
     def test_heic_gps_landscape(self):
+        """ test conversion of a heic image in landscape format """
         path = '{cwd}/amsterdam_app_api/UNITTESTS/image_data/landscape.HEIC'.format(cwd=os.getcwd())
         image_data = self.read_file(path)
         image_conversion = ImageConversion(image_data, 'landscape.HEIC')
@@ -53,6 +57,7 @@ class TestImageConversion(TestCase):
         self.assertEqual(image_conversion.images['1920x1440']['mime_type'], 'image/jpeg')
 
     def test_jpg_gps_portrait(self):
+        """ Test conversion of a jpg image in portrait format with embedded coordinates """
         path = '{cwd}/amsterdam_app_api/UNITTESTS/image_data/portrait.jpg'.format(cwd=os.getcwd())
         image_data = self.read_file(path)
         image_conversion = ImageConversion(image_data, 'portrait.jpg')
@@ -89,6 +94,7 @@ class TestImageConversion(TestCase):
         self.assertEqual(image_conversion.images['810x1080']['mime_type'], 'image/jpeg')
 
     def test_avif_no_gps_portrait(self):
+        """ test converting a avif image without gps coordinates in portrait mode """
         path = '{cwd}/amsterdam_app_api/UNITTESTS/image_data/portrait.avif'.format(cwd=os.getcwd())
         image_data = self.read_file(path)
         image_conversion = ImageConversion(image_data, 'portrait.avif')
@@ -130,6 +136,7 @@ class TestImageConversion(TestCase):
         self.assertEqual(image_conversion.images['810x1080']['mime_type'], 'image/jpeg')
 
     def test_unsupported_format(self):
+        """ Test for unsupported image format (erroneous data) """
         image_data = b'0xff'
         image_conversion = ImageConversion(image_data, 'foobar')
         image_conversion.run()
@@ -138,6 +145,7 @@ class TestImageConversion(TestCase):
         self.assertDictEqual(image_conversion.images, {})
 
     def test_RGBA_to_RGB(self):
+        """ Test converting alpha channel to plain (RGB format) """
         base64_data = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg=='
         image_data = base64.b64decode(base64_data)
         image_conversion = ImageConversion(image_data, 'foobar')

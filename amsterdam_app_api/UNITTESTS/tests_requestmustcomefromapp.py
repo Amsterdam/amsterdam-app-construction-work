@@ -1,3 +1,4 @@
+""" UNITTESTS """
 import os
 from django.test import RequestFactory
 from django.test import TestCase
@@ -6,13 +7,16 @@ from amsterdam_app_api.GenericFunctions.AESCipher import AESCipher
 
 
 class TestRequestMustComeFromApp(TestCase):
+    """ UNITTESTS """
     def __init__(self, *args, **kwargs):
         super(TestRequestMustComeFromApp, self).__init__(*args, **kwargs)
 
     def setUp(self):
+        """ Setup test db """
         self.factory = RequestFactory()
 
     def test_valid_token(self):
+        """ Test if token is valid """
         @RequestMustComeFromApp
         def a_view(request):
             return 'success'
@@ -24,6 +28,7 @@ class TestRequestMustComeFromApp(TestCase):
         self.assertEqual(resp, 'success')
 
     def test_invalid_token(self):
+        """ Test with invalid token """
         @RequestMustComeFromApp
         def a_view(request):  # pragma: no cover
             return 'success'
@@ -34,6 +39,7 @@ class TestRequestMustComeFromApp(TestCase):
         self.assertEqual(resp.status_code, 403)
 
     def test_no_token(self):
+        """ Test without a token """
         @RequestMustComeFromApp
         def a_view(request):  # pragma: no cover
             return 'success'
