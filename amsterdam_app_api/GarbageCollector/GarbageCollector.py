@@ -1,3 +1,4 @@
+""" Iprox garbage collector """
 import datetime
 from amsterdam_app_api.models import Projects
 from amsterdam_app_api.models import ProjectDetails
@@ -8,10 +9,13 @@ from amsterdam_app_api.models import ProjectManager
 
 
 class GarbageCollector:
+    """ Remove old scraped data from database if upstream has removed it too. """
     def __init__(self, last_scrape_time=0):
         self.last_scrape_time = last_scrape_time
 
     def collect_iprox(self, project_type=None):
+        """ Call all iprox dataset garbage collectors one by one """
+
         # If there's no path, projects might be de-activated un-rightfully
         if project_type is not None:
             self.garbage_collect_iprox(Projects.objects.filter(project_type=project_type).all(), siblings=True)
@@ -19,6 +23,7 @@ class GarbageCollector:
             self.garbage_collect_iprox(News.objects.filter(project_type=project_type).all())
 
     def garbage_collect_iprox(self, data_objects, siblings=False):
+        """ Generic garbage collections method """
         for data_object in data_objects:
             # Check if we've seen this project anywhere in the last week, if not -> delete!
             if data_object.last_seen + datetime.timedelta(days=7) <= self.last_scrape_time:

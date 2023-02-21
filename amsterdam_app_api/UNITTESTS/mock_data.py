@@ -1,7 +1,10 @@
+""" UNITTEST TEST DATA """
+# pylint: disable=line-too-long, too-many-lines
 import datetime
 
 
 class TestData:
+    """ Unittest test data """
     def __init__(self):
         self.assets = [
             {
@@ -118,7 +121,14 @@ class TestData:
                 "district_id": 0,
                 "district_name": "West",
                 "images": self.project_images,
-                "news": [{"url": "https://localhost/news/0", "identifier": "00000000000", "project_identifier": "00000000000"}],
+                "news": [
+                    {
+                        "url": "https://localhost/news/0",
+                        "identifier": "00000000000",
+                        "project_identifier":
+                            "00000000000"
+                    }
+                ],
                 "page_id": 0,
                 "title": "test0",
                 "subtitle": "subtitle",

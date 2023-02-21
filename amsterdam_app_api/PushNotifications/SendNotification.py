@@ -1,3 +1,4 @@
+""" Send pushnotification """
 import firebase_admin
 from firebase_admin import messaging
 from firebase_admin import credentials
@@ -9,6 +10,7 @@ from amsterdam_app_backend.settings import BASE_DIR
 
 
 class SendNotification:
+    """ Send notification through the firebase network (google) """
     def __init__(self, identifier, batch_size=500):
         self.logger = Logger()
         self.identifier = identifier
@@ -28,6 +30,7 @@ class SendNotification:
         self.valid_notification = self.setup_result['status']
 
     def setup(self):
+        """ Init subscribers """
         self.notification = self.set_notification()
         if self.notification is None or self.article_type is None:
             return {'status': False, 'result': 'No notification or article type found'}
@@ -39,6 +42,7 @@ class SendNotification:
         return {'status': True, 'result': 'valid notification'}
 
     def set_notification(self):
+        """ Set notification object """
         try:
             notification = Notification.objects.filter(pk=self.identifier).first()
             self.project_identifier = notification.project_identifier
@@ -58,11 +62,14 @@ class SendNotification:
             return None
 
     def create_subscribed_device_batches(self):
+        """ Create batches of subscribers """
         followers = [x.deviceid for x in list(FollowedProjects.objects.filter(projectid=self.project_identifier).all())]
         filtered_devices = [x.firebasetoken for x in list(FirebaseTokens.objects.filter(deviceid__in=followers).all())]
         return [filtered_devices[x:x + self.batch_size] for x in range(0, len(filtered_devices), self.batch_size)]
 
     def send_multicast_and_handle_errors(self):
+        """ Send message to subscribers """
+
         # Only send the notification if the setup() went well
         if self.valid_notification is False:
             return

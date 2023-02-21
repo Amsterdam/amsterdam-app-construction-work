@@ -1,3 +1,4 @@
+""" View for VUE route change password """
 from django.contrib.auth import get_user_model
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
@@ -13,6 +14,7 @@ messages = Messages()
 @api_view(['POST'])
 @IsAuthorized
 def change_password(request):
+    """ Change user password (VUE) """
     username = request.data.get('username', None)
     old_password = request.data.get('old_password', None)
     password = request.data.get('password', None)

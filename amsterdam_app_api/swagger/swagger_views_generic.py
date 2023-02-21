@@ -1,9 +1,10 @@
-from amsterdam_app_api.GenericFunctions.StaticData import StaticData
-from drf_yasg import openapi
-
 """ Swagger definitions used in the views_*_.py decorators '@swagger_auto_schema(**object)'. Each parameter is given the
     name of the methods in views_*_.py prepended with 'as_' (auto_schema)
 """
+
+from drf_yasg import openapi
+from amsterdam_app_api.GenericFunctions.StaticData import StaticData
+
 
 as_image = {
     # /api/v1/image swagger_auto_schema

@@ -1,3 +1,5 @@
+""" Simple hash class """
+
 import hashlib
 
 

@@ -1,13 +1,18 @@
+""" Convert/Scale images to jpg while maintaining the aspect-ration and extract gps data if possible
+    Supported images formats: HEIC, AVIF, JPG, PNG
+"""
+
 import io
+from io import BytesIO
 import exifread
 import pyheif
 import whatimage
-from io import BytesIO
 from PIL import Image
 
 
 class UnsupportedFormat(Exception):
-    pass
+    """ Exception class """
+    pass  # pylint: disable=unnecessary-pass
 
 
 class ImageConversion:
@@ -29,6 +34,7 @@ class ImageConversion:
         self.mime_type = 'image/jpeg'
 
     def run(self):
+        """ process image """
         self.get_format()
         if not self.get_raw_data():
             # Bail-out! We caught an unsupported image format.
@@ -40,11 +46,11 @@ class ImageConversion:
         return True
 
     def get_format(self):
-        # Get image format, returns None if unknown format
+        """ Get image format, returns None if unknown format """
         self.image_format = whatimage.identify_image(self.image_data)
 
     def get_raw_data(self):
-        # Get the raw image data and meta-data. Raise an exception for unsupported image formats
+        """ Get the raw image data and meta-data. Raise an exception for unsupported image formats """
         try:
             if self.image_format in ['heic', 'avif']:
                 image = pyheif.read(self.image_data)
@@ -59,7 +65,7 @@ class ImageConversion:
             self.width = self.raw_data.width
             self.height = self.raw_data.height
             self.aspect_ratio = round(float(self.height) / float(self.width), 2)
-            self.landscape = True if self.width > self.height else False
+            self.landscape = bool(self.width > self.height)
 
             # Convert original image to jpeg
             if self.image_format != 'jpeg':
@@ -72,8 +78,9 @@ class ImageConversion:
             return False
 
     def get_gps_info(self):
-        # Get GPS degrees, minutes and seconds from efix data and convert to decimal (negate if E or S)
-        # If the image does not have any GPS data embedded, catch the exception
+        """ Get GPS degrees, minutes and seconds from efix data and convert to decimal (negate if E or S)
+            If the image does not have any GPS data embedded, catch the exception
+        """
         try:
             tags = exifread.process_file(BytesIO(self.image_data))
             lat_ref = 'N' in tags.get('GPS GPSLatitudeRef').values
@@ -83,11 +90,11 @@ class ImageConversion:
             lon_ref = 'W' in tags.get('GPS GPSLongitudeRef').values
             lon_dms = tags.get('GPS GPSLongitude').values
             self.gps_info['lon'] = (lon_dms[0] + lon_dms[1] / 60. + lon_dms[2] / 3600.) * (-1 if lon_ref else 1)
-        except Exception as error:
+        except Exception:
             pass
 
     def calculate_new_size(self, target_size):
-        # Keep aspect ratio whilst setting new width and height
+        """ Keep aspect ratio whilst setting new width and height """
         if self.landscape:
             width = target_size[0]
             ratio = (width / float(self.raw_data.size[0]))
@@ -100,7 +107,7 @@ class ImageConversion:
         return tuple((width, height))
 
     def scale_image(self):
-        # For each desired image size convert the image and write the result into self.images dict
+        """ For each desired image size convert the image and write the result into self.images dict """
         for target_size in self.target_sizes:
             stream = io.BytesIO()
             valid_landscape_target = self.landscape and self.width >= target_size[0]
@@ -113,7 +120,7 @@ class ImageConversion:
                 self.set_image(data=stream.getvalue(), width=new_size[0], height=new_size[1], key=key)
 
     def set_image(self, data=None, width=None, height=None, key=None):
-        # Populate self.images
+        """ Populate self.images """
         self.images[key] = {
             'data': data,
             'width': width,

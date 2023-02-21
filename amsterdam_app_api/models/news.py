@@ -1,6 +1,3 @@
-from django.db import models
-
-
 """ Models for news about Projects 'kademuren' and 'bruggen'
 
     The News model is used to store the news items belonging to projects 'kademuren' or 'bruggen'.
@@ -27,8 +24,11 @@ from django.db import models
 
 """
 
+from django.db import models
+
 
 class News(models.Model):
+    """ News db model """
     identifier = models.CharField(max_length=100, blank=False, unique=True, primary_key=True)
     project_identifier = models.CharField(max_length=100, blank=False, unique=False)
     project_type = models.CharField(max_length=100, default='', blank=False, unique=False)

@@ -1,9 +1,10 @@
+""" UNITTEST """
 import json
 import os
 import uuid
+from unittest.mock import patch
 from django.test import Client
 from django.test import TestCase
-from unittest.mock import patch
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
 from amsterdam_app_api.UNITTESTS.mock_functions import firebase_admin_messaging_send_multicast
 from amsterdam_app_api.GenericFunctions.AESCipher import AESCipher
@@ -14,6 +15,7 @@ messages = Messages()
 
 
 class TestApiNotification(TestCase):
+    """ UNITTEST """
     def __init__(self, *args, **kwargs):
         super(TestApiNotification, self).__init__(*args, **kwargs)
         self.data = TestData()
@@ -25,6 +27,7 @@ class TestApiNotification(TestCase):
         self.warning_identifier = None
 
     def setUp(self):
+        """ Setup test db """
         for project in self.data.projects:
             Projects.objects.create(**project)
 
@@ -44,7 +47,8 @@ class TestApiNotification(TestCase):
         self.warning_identifier = str(warning_message.identifier)
 
     @patch('firebase_admin.messaging.send_multicast', side_effect=firebase_admin_messaging_send_multicast)
-    def test_post_notification(self, firebase_admin_messaging_send_multicast):
+    def test_post_notification(self, _firebase_admin_messaging_send_multicast):
+        """ Test post notification """
         FirebaseTokens.objects.all().delete()
         for device in self.data.mobile_devices:
             FirebaseTokens.objects.create(**device)
@@ -60,7 +64,8 @@ class TestApiNotification(TestCase):
         self.assertDictEqual(result.data, {'status': True, 'result': 'push-notification accepted'})
 
     @patch('firebase_admin.messaging.send_multicast', side_effect=firebase_admin_messaging_send_multicast)
-    def test_post_notification_no_subscriptions(self, firebase_admin_messaging_send_multicast):
+    def test_post_notification_no_subscriptions(self, _firebase_admin_messaging_send_multicast):
+        """ Test post notification without subscriptions """
         data = {'title': 'title', 'body': 'text', 'warning_identifier': self.warning_identifier}
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
@@ -68,6 +73,7 @@ class TestApiNotification(TestCase):
         self.assertDictEqual(result.data, {'status': False, 'result': 'No subscribed devices found'})
 
     def test_post_notification_no_warning_message(self):
+        """ Test post notification without a warning message """
         data = {'title': 'title', 'body': 'text', 'warning_identifier': str(uuid.uuid4())}
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
@@ -75,6 +81,7 @@ class TestApiNotification(TestCase):
         self.assertDictEqual(result.data, {'status': False, 'result': messages.no_record_found})
 
     def test_post_notification_no_news_message(self):
+        """ Test post notification without a news message """
         data = {'title': 'title', 'body': 'text', 'warning_identifier': self.warning_identifier, 'news_identifier': ''}
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
@@ -82,13 +89,15 @@ class TestApiNotification(TestCase):
         self.assertDictEqual(result.data, {'status': False, 'result': messages.no_record_found})
 
     def test_post_notification_no_identifiers(self):
+        """ test post a notification without an identifier """
         data = {'title': 'title', 'body': 'text'}
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
         self.assertEqual(result.status_code, 422)
         self.assertDictEqual(result.data, {'status': False, 'result': messages.invalid_query})
 
-    def test_post_notification_title_body(self):
+    def test_post_notification_without_title_or_body(self):
+        """ Post notification without a title or body"""
         data = {}
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
@@ -96,7 +105,8 @@ class TestApiNotification(TestCase):
         self.assertDictEqual(result.data, {'status': False, 'result': messages.invalid_query})
 
     @patch('firebase_admin.messaging.send_multicast', side_effect=firebase_admin_messaging_send_multicast)
-    def test_get_notification(self, firebase_admin_messaging_send_multicast):
+    def test_get_notification(self, _firebase_admin_messaging_send_multicast):
+        """ Get notifications from db """
         FirebaseTokens.objects.all().delete()
         for device in self.data.mobile_devices:
             FirebaseTokens.objects.create(**device)
@@ -131,7 +141,8 @@ class TestApiNotification(TestCase):
         self.assertDictEqual(result_data, expected_result)
 
     @patch('firebase_admin.messaging.send_multicast', side_effect=firebase_admin_messaging_send_multicast)
-    def test_get_notification_inactive_project(self, firebase_admin_messaging_send_multicast):
+    def test_get_notification_inactive_project(self, _firebase_admin_messaging_send_multicast):
+        """ Get notifications on inactive projects """
         FirebaseTokens.objects.all().delete()
         for device in self.data.mobile_devices:
             FirebaseTokens.objects.create(**device)
@@ -156,6 +167,7 @@ class TestApiNotification(TestCase):
         self.assertDictEqual(result.data, {'status': False, 'result': 'No record found'})
 
     def test_get_notification_invalid_query(self):
+        """ Get notifications with an invalid query """
         result = self.client.get('{url}s'.format(url=self.url))
 
         self.assertEqual(result.status_code, 422)

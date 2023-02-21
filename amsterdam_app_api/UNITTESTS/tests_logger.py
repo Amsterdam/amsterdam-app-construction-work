@@ -1,3 +1,5 @@
+""" UNITTESTS """
+
 import os
 import logging
 from unittest.mock import patch, call
@@ -6,7 +8,9 @@ from amsterdam_app_api.GenericFunctions.Logger import Logger
 
 
 class TestLogger(TestCase):
+    """ Test logging facility """
     def test_logger_debug_enabled(self):
+        """ test logger debug level """
         debug = os.environ.get('DEBUG', '')
         os.environ['DEBUG'] = 'true'
         logger = Logger()
@@ -26,6 +30,7 @@ class TestLogger(TestCase):
         os.environ['DEBUG'] = debug
 
     def test_logger_debug_disabled(self):
+        """ test logger debug disabled """
         debug = os.environ.get('DEBUG', '')
         os.environ['DEBUG'] = 'false'
 

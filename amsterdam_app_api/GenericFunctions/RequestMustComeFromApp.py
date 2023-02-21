@@ -1,7 +1,9 @@
+""" This class is a decorator for APIs specific for devices."""
+
 import os
 import functools
-from amsterdam_app_api.GenericFunctions.AESCipher import AESCipher
 from django.http.response import HttpResponseForbidden
+from amsterdam_app_api.GenericFunctions.AESCipher import AESCipher
 
 valid_app_token = os.getenv('APP_TOKEN')
 
@@ -37,6 +39,7 @@ class RequestMustComeFromApp:
 
     @staticmethod
     def is_valid_token(encrypted_token=None):
+        """ Check if token is valid """
         if encrypted_token is None:
             return False
         aes_secret = os.getenv('AES_SECRET')

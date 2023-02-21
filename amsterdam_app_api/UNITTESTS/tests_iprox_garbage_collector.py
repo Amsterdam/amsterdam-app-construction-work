@@ -1,3 +1,5 @@
+""" UNITTESTS """
+
 import datetime
 from django.test import TestCase
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
@@ -9,11 +11,13 @@ from amsterdam_app_api.models import ProjectManager
 
 
 class TestGarbageCollector(TestCase):
+    """ test for garbage collector"""
     def __init__(self, *args, **kwargs):
         super(TestGarbageCollector, self).__init__(*args, **kwargs)
         self.data = TestData()
 
     def setUp(self):
+        """ setup test db """
         Projects.objects.all().delete()
         for project in self.data.projects:
             Projects.objects.create(**project)
@@ -31,6 +35,7 @@ class TestGarbageCollector(TestCase):
             ProjectManager.objects.create(**project_manager)
 
     def test_no_objects_changed(self):
+        """ test with no objects changed """
         gc = GarbageCollector(last_scrape_time=(datetime.datetime.now() - datetime.timedelta(hours=1)))
         gc.collect_iprox(project_type='brug')
         projects = list(Projects.objects.all())
@@ -48,6 +53,7 @@ class TestGarbageCollector(TestCase):
             self.assertEqual(item.active, True)
 
     def test_all_objects_inactive(self):
+        """ test if all objects are inactive """
         gc = GarbageCollector(last_scrape_time=datetime.datetime.now())
         gc.collect_iprox(project_type='brug')
         gc.collect_iprox(project_type='kade')
@@ -65,6 +71,7 @@ class TestGarbageCollector(TestCase):
             self.assertEqual(item.active, False)
 
     def test_all_objects_deleted(self):
+        """ test that all objects are deleted """
         gc = GarbageCollector(last_scrape_time=(datetime.datetime.now() + datetime.timedelta(days=7)))
         gc.collect_iprox(project_type='brug')
         gc.collect_iprox(project_type='kade')

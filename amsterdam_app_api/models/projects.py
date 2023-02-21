@@ -1,14 +1,11 @@
-from django.db import models
-
-
 """ Models for Projects 'kademuren' and 'bruggen'
-    
+
     The 'Projects' model is used for a summary of all projects.
     The 'ProjectsDetails' model is used to get all details regarding a specific project.
     A single project from the 'Projects' model is linked to the 'ProjectDetails' via the identifier field.
-    
+
     Json produced by Projects model:
-    
+
       [{
         "identifier": string (md5 hash),
         "project_type": string,
@@ -32,9 +29,9 @@ from django.db import models
         "modification_date": string,
         "source_url": string
       }, ...]
-    
+
     Json produced by ProjectDetails model:
-    
+
       {
         "identifier": string (md5 hash),
         "body": {
@@ -69,18 +66,21 @@ from django.db import models
         "rel_url": string,
         "url": string,
         "contacts": [{
-            'name': None, 
-            'position': None, 
-            'email': None, 
-            'phone': None, 
+            'name': None,
+            'position': None,
+            'email': None,
+            'phone': None,
             'address': None
             }, ...
         ]
       }
 """
 
+from django.db import models
+
 
 class Projects(models.Model):
+    """ Projects db model """
     project_type = models.CharField(max_length=40, blank=False, default='')
     district_id = models.IntegerField(default=-1)
     district_name = models.CharField(max_length=1000, blank=True, default='')
@@ -101,6 +101,7 @@ class Projects(models.Model):
 
 
 class ProjectDetails(models.Model):
+    """ ProjectsDetails db model """
     identifier = models.CharField(max_length=100, blank=False, unique=True, primary_key=True)
     project_type = models.CharField(max_length=100, default='', blank=False, unique=False)
     body = models.JSONField(null=True, default=list)

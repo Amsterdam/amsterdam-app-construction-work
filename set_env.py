@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+""" Setup environment file for new backend """
 import string
 import random
 import os
@@ -9,12 +10,18 @@ class SetEnv:
     """
     @staticmethod
     def weak(password):
-        if len(password) > 7 and any(x.islower() for x in password) and any(x.isupper() for x in password) and any(x.isnumeric() for x in password):
+        """ Check strength of password """
+        if len(password) > 7 and \
+                any(x.islower() for x in password) and \
+                any(x.isupper() for x in password) and \
+                any(x.isnumeric() for x in password):
             return False
+
         return True
 
     def create_password(self):
-        # Create a password with at least one digit, one uppercase and one lowercase letter and a total length of 8
+        """ Create a password with at least one digit, one uppercase and one lowercase letter and a total length of 8
+        """
         while True:
             letters = string.ascii_lowercase + string.ascii_uppercase + string.digits
             password = ''.join(random.choice(letters) for _ in range(8))
@@ -22,13 +29,15 @@ class SetEnv:
                 return password
 
     def questions(self):
+        """ Questionare for the environment file """
         path = '{cwd}/env'.format(cwd=os.getcwd())
         try:
             # check if credentials exist and ask permission to override them
             satisfied = ''
             while satisfied.lower() not in ['y', 'n', 'a']:
                 if os.path.isfile(path):
-                    satisfied = input('Database credential files already exist! Do you wish to override them? (Y/N/A(bort)): ') or 'n'
+                    satisfied = input('Warning: credential files already exist! '
+                                      'Do you wish to override them? (Y/N/A(bort)): ') or 'n'
                     if satisfied.lower() == 'y':
                         pass
                     elif satisfied.lower() in ['n', 'a']:
@@ -40,11 +49,15 @@ class SetEnv:
             while True:
                 random_psql_password = self.create_password()
                 random_web_password = self.create_password()
-                postgres_database = input('Please enter your POSTGRES database (default: amsterdam_app_backend): ') or 'amsterdam_app_backend'
+                postgres_database = input('Please enter your POSTGRES database (default: amsterdam_app_backend): ') \
+                                    or 'amsterdam_app_backend'
                 postgres_user = input('Please enter your POSTGRES username (default: backend): ') or 'backend'
-                postgres_password = input('Please enter your POSTGRES password (or use: {random_psql_password}): '.format(random_psql_password=random_psql_password)) or random_psql_password
-                web_username = input('Please enter your WEB username (default: redactie@amsterdam.nl): ') or 'redactie@amsterdam.nl'
-                web_password = input('Please enter your WEB password (or use: {random_web_password}): '.format(random_web_password=random_web_password)) or random_web_password
+                postgres_password = input(f'Please enter your POSTGRES password (or use: {random_psql_password}): ') \
+                                    or random_psql_password
+                web_username = input('Please enter your WEB username (default: redactie@amsterdam.nl): ') \
+                               or 'redactie@amsterdam.nl'
+                web_password = input(f'Please enter your WEB password (or use: {random_web_password}): ') \
+                               or random_web_password
                 app_token = input('Please enter you Secret APP token')
                 aes_secret = input('Please enter you AES secret')
 
@@ -57,17 +70,16 @@ class SetEnv:
                 if satisfied.lower() in ['y', 'a']:
                     if satisfied.lower() == 'y':
                         with open(path, 'w') as f:
-                            f.write('POSTGRES_PASSWORD={postgres_password}\n'.format(postgres_password=postgres_password))
-                            f.write('POSTGRES_USER={postgres_user}\n'.format(postgres_user=postgres_user))
-                            f.write('POSTGRES_DB={postgres_database}\n'.format(postgres_database=postgres_database))
-                            f.write('WEB_USERNAME={web_username}\n'.format(web_username=web_username))
-                            f.write('WEB_PASSWORD={web_password}\n'.format(web_password=web_password))
-                            f.write('APP_TOKEN={app_token}\n'.format(app_token=app_token))
-                            f.write('AES_SECRET={aes_secret}\n'.format(aes_secret=aes_secret))
+                            f.write(f'POSTGRES_PASSWORD={postgres_password}\n')
+                            f.write(f'POSTGRES_USER={postgres_user}\n')
+                            f.write(f'POSTGRES_DB={postgres_database}\n')
+                            f.write(f'WEB_USERNAME={web_username}\n')
+                            f.write(f'WEB_PASSWORD={web_password}\n')
+                            f.write(f'APP_TOKEN={app_token}\n')
+                            f.write(f'AES_SECRET={aes_secret}\n')
                         print('Environment written to: {path}'.format(path=path))
                         return
-                    else:
-                        raise KeyboardInterrupt
+                    raise KeyboardInterrupt
         except KeyboardInterrupt:
             print('Aborted, nothing is saved.')
         except Exception as error:

@@ -1,14 +1,15 @@
-from drf_yasg import openapi
-from amsterdam_app_api.serializers import ProjectsSerializer, ProjectDetailsSerializer
-from amsterdam_app_api.api_messages import Messages
-
-message = Messages()
-
 """ Swagger definitions used in the views_*_.py decorators '@swagger_auto_schema(**object)'. Each parameter is given the
     name of the methods in views_*_.py prepended with 'as_' (auto_schema)
 """
 
-article_identifiers = openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_STRING, description='article identifier'))
+from drf_yasg import openapi
+from amsterdam_app_api.api_messages import Messages
+
+message = Messages()
+
+
+article_identifiers = openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_STRING,
+                                                                                   description='article identifier'))
 
 images = openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
     'type': openapi.Schema(type=openapi.TYPE_STRING, description='image type'),
@@ -138,27 +139,42 @@ as_projects = {
         200: openapi.Response('application/json',
                               openapi.Schema(type=openapi.TYPE_OBJECT, properties={
                                   'status': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='status'),
-                                  'result': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                                  'result': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                           items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
                                       'identifier': openapi.Schema(type=openapi.TYPE_STRING, description='identifier'),
-                                      'project_type': openapi.Schema(type=openapi.TYPE_STRING, description='project_type'),
-                                      'district_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='dictrict id'),
-                                      'district_name': openapi.Schema(type=openapi.TYPE_STRING, description='district name'),
+                                      'project_type': openapi.Schema(type=openapi.TYPE_STRING,
+                                                                     description='project_type'),
+                                      'district_id': openapi.Schema(type=openapi.TYPE_INTEGER,
+                                                                    description='dictrict id'),
+                                      'district_name': openapi.Schema(type=openapi.TYPE_STRING,
+                                                                      description='district name'),
                                       'title': openapi.Schema(type=openapi.TYPE_STRING, description='title'),
                                       'subtitle': openapi.Schema(type=openapi.TYPE_STRING, description='subtitle'),
-                                      'content_html': openapi.Schema(type=openapi.TYPE_STRING, description='content html'),
-                                      'content_text': openapi.Schema(type=openapi.TYPE_STRING, description='content text'),
+                                      'content_html': openapi.Schema(type=openapi.TYPE_STRING,
+                                                                     description='content html'),
+                                      'content_text': openapi.Schema(type=openapi.TYPE_STRING,
+                                                                     description='content text'),
                                       'images': images,
-                                      'publication_date': openapi.Schema(type=openapi.TYPE_STRING, description='publication date'),
-                                      'modification_date': openapi.Schema(type=openapi.TYPE_STRING, description='modification date'),
+                                      'publication_date': openapi.Schema(type=openapi.TYPE_STRING,
+                                                                         description='publication date'),
+                                      'modification_date': openapi.Schema(type=openapi.TYPE_STRING,
+                                                                          description='modification date'),
                                       'source_url': openapi.Schema(type=openapi.TYPE_STRING, description='source url'),
-                                      'last_seen': openapi.Schema(type=openapi.TYPE_STRING, description='datetime field'),
-                                      'active': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='is record active'),
-                                      'followed': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='is following this project'),
+                                      'last_seen': openapi.Schema(type=openapi.TYPE_STRING,
+                                                                  description='datetime field'),
+                                      'active': openapi.Schema(type=openapi.TYPE_BOOLEAN,
+                                                               description='is record active'),
+                                      'followed': openapi.Schema(type=openapi.TYPE_BOOLEAN,
+                                                                 description='is following this project'),
                                       'meter': openapi.Schema(type=openapi.TYPE_INTEGER, description='meter'),
                                       'strides': openapi.Schema(type=openapi.TYPE_INTEGER, description='strides'),
-                                      'recent_articles': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
-                                          'identifier': openapi.Schema(type=openapi.TYPE_STRING, description='identifier'),
-                                          'publication_date': openapi.Schema(type=openapi.TYPE_STRING, description='publication date')
+                                      'recent_articles': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                                        items=openapi.Schema(type=openapi.TYPE_OBJECT,
+                                                                                             properties={
+                                          'identifier': openapi.Schema(type=openapi.TYPE_STRING,
+                                                                       description='identifier'),
+                                          'publication_date': openapi.Schema(type=openapi.TYPE_STRING,
+                                                                             description='publication date')
                                       }))
                                   })),
                                   'page': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
@@ -170,7 +186,8 @@ as_projects = {
                                   '_links': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
                                       "self": openapi.Schema(type=openapi.TYPE_STRING, description='Link to main api'),
                                       "next": openapi.Schema(type=openapi.TYPE_STRING, description='Link to next page'),
-                                      "previous": openapi.Schema(type=openapi.TYPE_STRING, description='Link to previous page')
+                                      "previous": openapi.Schema(type=openapi.TYPE_STRING,
+                                                                 description='Link to previous page')
                                   })
                               }),
                               examples={'application/json': {'status': True, 'result': []}}),
@@ -235,8 +252,10 @@ as_project_details = {
                                           'more-info': body_element,
                                           'timeline': timeline
                                       }),
-                                      'district_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='dictrict id'),
-                                      'district_name': openapi.Schema(type=openapi.TYPE_STRING, description='district name'),
+                                      'district_id': openapi.Schema(type=openapi.TYPE_INTEGER,
+                                                                    description='dictrict id'),
+                                      'district_name': openapi.Schema(type=openapi.TYPE_STRING,
+                                                                      description='district name'),
                                       'news': news,
                                       'images': images,
                                       'page_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='page id'),
@@ -244,8 +263,10 @@ as_project_details = {
                                       'subtitle': openapi.Schema(type=openapi.TYPE_STRING, description='subtitle'),
                                       'rel_url': openapi.Schema(type=openapi.TYPE_STRING, description='relative url'),
                                       'url': openapi.Schema(type=openapi.TYPE_STRING, description='url'),
-                                      'meter': openapi.Schema(type=openapi.TYPE_STRING, description='distance between address and project'),
-                                      'strides': openapi.Schema(type=openapi.TYPE_STRING, description='distance between address and project')
+                                      'meter': openapi.Schema(type=openapi.TYPE_STRING,
+                                                              description='distance between address and project'),
+                                      'strides': openapi.Schema(type=openapi.TYPE_STRING,
+                                                                description='distance between address and project')
                                   })
                               }),
                               examples={'application/json': {'status': True, 'result': {}}}),

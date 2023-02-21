@@ -1,6 +1,10 @@
+""" Views for distance API's """
 import json
-import requests
 import urllib.parse
+import requests
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from amsterdam_app_api.GenericFunctions.StaticData import StaticData
 from amsterdam_app_api.GenericFunctions.Distance import Distance
 from amsterdam_app_api.GenericFunctions.Sort import Sort
@@ -8,9 +12,6 @@ from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import ProjectDetails, Projects
 from amsterdam_app_api.serializers import ProjectsSerializer
 from amsterdam_app_api.swagger.swagger_views_distance import as_distance
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from drf_yasg.utils import swagger_auto_schema
 
 messages = Messages()
 
@@ -57,7 +58,7 @@ def distance(request):
     except Exception as error:
         return Response({'status': False, 'result': str(error)}, 500)
 
-    results = list()
+    results = []
     projects = list(ProjectDetails.objects.filter().all())
     for project in projects:
         cords_2 = (project.coordinates['lat'], project.coordinates['lon'])

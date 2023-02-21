@@ -1,6 +1,11 @@
+""" Class file for 'magic' -numbers, -data, -urls etc... """
+
+
 class StaticData:
+    """ Magic static data class methods """
     @staticmethod
     def districts():
+        """ Convert city district numbers into names """
         return [
             {'id': 5398, 'name': 'Centrum'},
             {'id': 5520, 'name': 'Nieuw-West'},
@@ -13,6 +18,7 @@ class StaticData:
 
     @staticmethod
     def city_office_waiting_times_lookup_table():
+        """ 'Magic' number table to convert city offices into ... magic number """
         return {
             '9': 'e9871a7716da02a4c20cfb06f9547005',
             '1': '5d9637689a8b902fa1a13acdf0006d26',
@@ -25,6 +31,7 @@ class StaticData:
 
     @staticmethod
     def urls():
+        """ Some urls to simple names table """
         return {
             'address_to_gps': 'https://api.data.amsterdam.nl/atlas/search/adres/?q=',
             'waiting_times': 'https://wachttijdenamsterdam.nl/data'

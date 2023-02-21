@@ -1,11 +1,12 @@
+""" Swagger definitions used in the views_*_.py decorators '@swagger_auto_schema(**object)'. Each parameter is given the
+    name of the methods in views_*_.py prepended with 'as_' (auto_schema)
+"""
+
 from drf_yasg import openapi
 from amsterdam_app_api.api_messages import Messages
 
 messages = Messages()
 
-""" Swagger definitions used in the views_*_.py decorators '@swagger_auto_schema(**object)'. Each parameter is given the
-    name of the methods in views_*_.py prepended with 'as_' (auto_schema)
-"""
 
 as_search = {
     # /api/v1/XXX/search swagger_auto_schema
@@ -47,7 +48,8 @@ as_search = {
             schema=openapi.Schema(type=openapi.TYPE_OBJECT,
                                   properties={
                                       'status': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='result status'),
-                                      'result': openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT)),
+                                      'result': openapi.Schema(type=openapi.TYPE_ARRAY,
+                                                               items=openapi.Schema(type=openapi.TYPE_OBJECT)),
                                       'page': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
                                           "number": openapi.Schema(type=openapi.TYPE_INTEGER),
                                           "size": openapi.Schema(type=openapi.TYPE_INTEGER),
@@ -55,9 +57,12 @@ as_search = {
                                           "totalPages":openapi.Schema(type=openapi.TYPE_INTEGER)
                                       }),
                                       '_links': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
-                                          "self": openapi.Schema(type=openapi.TYPE_STRING, description='Link to main api'),
-                                          "next": openapi.Schema(type=openapi.TYPE_STRING, description='Link to next page'),
-                                          "previous": openapi.Schema(type=openapi.TYPE_STRING, description='Link to previous page')
+                                          "self": openapi.Schema(type=openapi.TYPE_STRING,
+                                                                 description='Link to main api'),
+                                          "next": openapi.Schema(type=openapi.TYPE_STRING,
+                                                                 description='Link to next page'),
+                                          "previous": openapi.Schema(type=openapi.TYPE_STRING,
+                                                                     description='Link to previous page')
                                       })
                                   })),
         422: openapi.Response('{a}|{b}'.format(a=messages.invalid_query, b=messages.no_such_field_in_model))

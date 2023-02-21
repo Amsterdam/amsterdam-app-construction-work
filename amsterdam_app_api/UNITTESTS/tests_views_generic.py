@@ -1,3 +1,4 @@
+""" UNITTESTS """
 import json
 from django.test import Client
 from django.test import TestCase
@@ -11,6 +12,7 @@ messages = Messages()
 
 
 class SetUp:
+    """ Setup test db"""
     def __init__(self):
         self.data = TestData()
         for asset in self.data.assets:
@@ -21,10 +23,13 @@ class SetUp:
 
 
 class TestApiImage(TestCase):
+    """ UNITTESTS """
     def setUp(self):
+        """ Setup test db """
         SetUp()
 
     def test_invalid_query(self):
+        """ Invalid query parameters """
         c = Client()
         response = c.get('/api/v1/image')
 
@@ -32,6 +37,7 @@ class TestApiImage(TestCase):
         self.assertEqual(response.data, {'status': False, 'result': messages.invalid_query})
 
     def test_image_does_exist(self):
+        """ Request a valid image """
         c = Client()
         response = c.get('/api/v1/image', {'id': '0000000000'})
 
@@ -39,6 +45,7 @@ class TestApiImage(TestCase):
         self.assertEqual(response.content, b'')
 
     def test_image_does_not_exist(self):
+        """ Image is not existing """
         c = Client()
         response = c.get('/api/v1/image', {'id': 'does not exist'})
 
@@ -46,6 +53,7 @@ class TestApiImage(TestCase):
         self.assertEqual(response.data, 'Error: file not found')
 
     def test_method_not_allowed(self):
+        """ Invalid http method """
         c = Client()
         response = c.post('/api/v1/image')
         result = json.loads(response.content)
@@ -55,10 +63,13 @@ class TestApiImage(TestCase):
 
 
 class TestApiAsset(TestCase):
+    """ UNITTEST """
     def setUp(self):
+        """ Setup test db """
         SetUp()
 
     def test_invalid_query(self):
+        """ Invalid query parameters """
         c = Client()
         response = c.get('/api/v1/asset')
 
@@ -66,6 +77,7 @@ class TestApiAsset(TestCase):
         self.assertEqual(response.data, {'status': False, 'result': messages.invalid_query})
 
     def test_asset_does_exist(self):
+        """ A valid request """
         c = Client()
         response = c.get('/api/v1/asset', {'id': '0000000000'})
 
@@ -73,6 +85,7 @@ class TestApiAsset(TestCase):
         self.assertEqual(response.content, b'')
 
     def test_asset_does_not_exist(self):
+        """ The asset doesn't exist """
         c = Client()
         response = c.get('/api/v1/asset', {'id': 'does not exist'})
 
@@ -80,6 +93,7 @@ class TestApiAsset(TestCase):
         self.assertEqual(response.data, 'Error: file not found')
 
     def test_method_not_allowed(self):
+        """ Invalid http method """
         c = Client()
         response = c.post('/api/v1/asset')
         result = json.loads(response.content)
@@ -89,7 +103,9 @@ class TestApiAsset(TestCase):
 
 
 class TestApiDistricts(TestCase):
+    """ UNITTEST """
     def test_invalid_query(self):
+        """ Invalid districts query """
         c = Client()
         response = c.get('/api/v1/districts')
 
