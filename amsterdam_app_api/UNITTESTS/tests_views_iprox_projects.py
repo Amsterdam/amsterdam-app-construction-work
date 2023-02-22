@@ -102,7 +102,7 @@ class TestApiProjects(TestCase):
 
         expected_results = {
             'status': True,
-            'result': self.data.projects[::-1],
+            'result': self.data.projects,
             'page': {'number': 1, 'size': 10, 'totalElements': 2, 'totalPages': 1},
             '_links': {'self': {'href': 'http://localhost/api/v1/projects'}}
         }
