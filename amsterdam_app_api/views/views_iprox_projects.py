@@ -84,8 +84,6 @@ def projects(request):
     if deviceid is None:
         return Response({'status': False, 'result': message.invalid_headers}, status=422)
 
-    sort_by = request.GET.get('sort-by', None)
-    sort_order = request.GET.get('sort-order', None)
     model_items = request.GET.get('fields', None)
     articles_max_age = request.GET.get('articles_max_age', None)
     lat = request.GET.get('lat', None)
@@ -181,8 +179,9 @@ def projects(request):
                                                                                             end_date]).all())
         serializer_warnings = WarningMessagesExternalSerializer(warning_articles_all, many=True)
         all_articles = news_articles + serializer_warnings.data
+        all_articles_sort_on_publication_date = sorted(all_articles, key=lambda x: x['publication_date'], reverse=True)
         articles = {}
-        for article in all_articles:
+        for article in all_articles_sort_on_publication_date:
             payload = {'identifier': article['identifier'], 'publication_date': article['publication_date']}
             try:
                 if article['project_identifier'] in articles:
@@ -197,7 +196,27 @@ def projects(request):
             if results[i]['identifier'] in articles:
                 results[i]['recent_articles'] = articles[results[i]['identifier']]
 
-    result = Sort().list_of_dicts(results, key=sort_by, sort_order=sort_order)
+    # Sort projects Algorithm (articles have been pre-sorted (desc) by publication date):
+
+    # Divide the projects in two lists, followed projects and all others
+    data = {"follow": [], "others": []}
+    [data["follow"].append(x) if x["identifier"] in following else data["others"].append(x) for x in results]
+
+    # Next: → Sort the followed projects by most recent articles, (data["follow"] can be an empty list)
+    lambda_expression = lambda x: x["recent_articles"][0]["publication_date"] if "recent_articles" in x else ""
+    if len(data["follow"]) != 0:
+        data["follow"] = sorted(data["follow"], key=lambda_expression, reverse=True)
+
+    # Next: → If the user has not provided an address, sort on publication date of most recent news-article
+    if lat is None and lon is None:
+        data["others"] = sorted(data["others"], key=lambda_expression, reverse=True)
+    # Else: → If the user has provided an address, sort on increasing distance between address and project
+    else:
+        # Magic number "10000000" if meter is None, use a really high number...
+        data["others"] = sorted(data["others"], key=lambda x: x["meter"] if x["meter"] else 10000000, reverse=False)
+
+    # Next: → Concatenate the two lists
+    result = data["follow"] + data["others"]
 
     # Set paginated result and calculate number of pages
     start_index = page * page_size
