@@ -203,7 +203,8 @@ def projects(request):
     [data["follow"].append(x) if x["identifier"] in following else data["others"].append(x) for x in results]
 
     # Next: → Sort the followed projects by most recent articles, (data["follow"] can be an empty list)
-    lambda_expression = lambda x: x["recent_articles"][0]["publication_date"] if "recent_articles" in x else ""
+    lambda_expression = lambda x: x["recent_articles"][0]["publication_date"] \
+        if "recent_articles" in x and len(x['recent_articles']) > 0 else ""
     if len(data["follow"]) != 0:
         data["follow"] = sorted(data["follow"], key=lambda_expression, reverse=True)
 

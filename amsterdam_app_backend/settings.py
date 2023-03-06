@@ -128,6 +128,7 @@ POSTGRES_PASSWORD = os.getenv('POSTGRES_PASSWORD', 'POSTGRES_PASSWORD')
 POSTGRES_USER = os.getenv('POSTGRES_USER', 'POSTGRES_USER')
 POSTGRES_DB = os.getenv('POSTGRES_DB', 'POSTGRES_DB')
 POSTGRES_HOST = os.getenv('POSTGRES_HOST', '0.0.0.0')
+POSTGRES_PORT = int(os.getenv('POSTGRES_PORT', '5432'))
 
 # Setup database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
@@ -139,7 +140,7 @@ DATABASES = {
         'USER': POSTGRES_USER,
         'PASSWORD': POSTGRES_PASSWORD,
         'HOST': POSTGRES_HOST,
-        'PORT': 5432
+        'PORT': POSTGRES_PORT
     }
 }
 
