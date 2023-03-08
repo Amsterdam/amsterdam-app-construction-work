@@ -10,7 +10,7 @@
 
 ### Run pylinter
 
-    pylint $(find . -name '*.py' | grep -v -e venv -e migrations -e klasblok)
+    pylint $(find . -name '*.py' | grep -v -e venv -e migrations -e kladblok)
 
 ### Branches
 The _main_ branch is the current stable release where the _main_ branch (made from _main_) is the upcoming

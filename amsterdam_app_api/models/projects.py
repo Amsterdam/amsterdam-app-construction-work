@@ -76,6 +76,7 @@
       }
 """
 
+from datetime import datetime
 from django.db import models
 
 
@@ -93,11 +94,15 @@ class Projects(models.Model):
     publication_date = models.CharField(max_length=40, blank=False)
     modification_date = models.CharField(max_length=40, blank=False)
     source_url = models.CharField(max_length=1000, blank=True, default='')
-    last_seen = models.DateTimeField(auto_now=True, blank=True)
+    last_seen = models.DateTimeField(null=True, blank=True)
     active = models.BooleanField(default=True, blank=True)
 
     class Meta:
         ordering = ['title']
+
+    def save(self, *args, **kwargs):
+        self.last_seen = datetime.now()
+        super(Projects, self).save(*args, **kwargs)
 
 
 class ProjectDetails(models.Model):
@@ -115,9 +120,13 @@ class ProjectDetails(models.Model):
     subtitle = models.CharField(max_length=1000, null=True)
     rel_url = models.CharField(max_length=1000, blank=True, default='')
     url = models.CharField(max_length=1000, blank=True, default='')
-    last_seen = models.DateTimeField(auto_now=True, blank=True)
+    last_seen = models.DateTimeField(null=True, blank=True)
     active = models.BooleanField(default=True, blank=True)
     contacts = models.JSONField(null=True, default=list)
 
     class Meta:
         ordering = ['district_id', 'title']
+
+    def save(self, *args, **kwargs):
+        self.last_seen = datetime.now()
+        super(ProjectDetails, self).save(*args, **kwargs)

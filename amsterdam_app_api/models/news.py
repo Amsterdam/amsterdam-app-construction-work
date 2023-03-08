@@ -24,6 +24,7 @@
 
 """
 
+from datetime import datetime
 from django.db import models
 
 
@@ -38,5 +39,12 @@ class News(models.Model):
     body = models.JSONField(null=True, default=dict)
     images = models.JSONField(null=True, default=list)
     assets = models.JSONField(null=True, default=list)
-    last_seen = models.DateTimeField(auto_now=True, blank=True)
+    last_seen = models.DateTimeField(null=True, blank=True)
     active = models.BooleanField(default=True, blank=True)
+
+    class Meta:
+        ordering = ['publication_date']
+
+    def save(self, *args, **kwargs):
+        self.last_seen = datetime.now()
+        super(News, self).save(*args, **kwargs)

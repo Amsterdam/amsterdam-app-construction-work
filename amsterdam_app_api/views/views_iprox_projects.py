@@ -1,3 +1,4 @@
+# pylint: disable=unnecessary-lambda-assignment,expression-not-assigned
 """ Views for iprox project pages """
 import json
 from math import ceil
@@ -26,7 +27,6 @@ from amsterdam_app_api.serializers import NewsSerializer
 from amsterdam_app_api.serializers import WarningMessagesExternalSerializer
 from amsterdam_app_api.GenericFunctions.Distance import Distance
 from amsterdam_app_api.GenericFunctions.SetFilter import SetFilter
-from amsterdam_app_api.GenericFunctions.Sort import Sort
 from amsterdam_app_api.GenericFunctions.StaticData import StaticData
 from amsterdam_app_api.GenericFunctions.TextSearch import TextSearch
 from amsterdam_app_api.GenericFunctions.RequestMustComeFromApp import RequestMustComeFromApp

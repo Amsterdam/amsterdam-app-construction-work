@@ -14,7 +14,7 @@ import functools
 from uuid import UUID
 import jwt
 from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError
-from django.http.response import HttpResponseForbidden
+from django.http.response import HttpResponseForbidden, HttpResponse
 from amsterdam_app_backend.settings import SECRET_KEY
 from amsterdam_app_api.GenericFunctions.AESCipher import AESCipher
 from amsterdam_app_api.models import ProjectManager
@@ -60,8 +60,8 @@ class IsAuthorized:
             elif ingestauthorization is not None:
                 if self.is_valid_INGEST_token(encrypted_token=ingestauthorization):
                     return self.func(*args, **kwargs)
-        except Exception:  # pragma: no cover
-            pass
+        except Exception as error:  # pragma: no cover
+            return HttpResponse(f'Server error: {error}', status=500)
 
         # Access is not allowed, abort with 401
         return HttpResponseForbidden()

@@ -1,12 +1,13 @@
 """ Views for ingestion routes """
 import base64
-import datetime
-
+from datetime import datetime
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from amsterdam_app_api.GenericFunctions.IsAuthorized import IsAuthorized
 from amsterdam_app_api.GenericFunctions.Logger import Logger
 from amsterdam_app_api.GarbageCollector.GarbageCollector import GarbageCollector
+from amsterdam_app_api.swagger.swagger_views_ingestion import as_garbage_collector
 from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import Image, Assets
 # from amsterdam_app_api.models import CityOffices
@@ -92,12 +93,12 @@ def project(request):
     try:
         data = dict(request.data)
         # New record or update existing
-        project_details_object, created = ProjectDetails.objects.update_or_create(identifier=data.get('identifier'))
-        if created is True:
+        project_details_object = ProjectDetails.objects.filter(identifier=data.get('identifier')).first()
+        if project_details_object is None:
             project_details_object = ProjectDetails(**data)  # Update last scrape time is done implicitly
             project_details_object.save()
         else:
-            data['last_seen'] = datetime.datetime.now()  # Update last scrape time
+            data['last_seen'] = datetime.now()  # Update last scrape time
             ProjectDetails.objects.filter(pk=data.get('identifier')).update(**data)
         return Response({'status': True, 'result': True}, status=200)
     except Exception as error:
@@ -127,12 +128,12 @@ def projects(request):
             data = dict(request.data)
 
             # New record or update existing
-            _, created = Projects.objects.update_or_create(identifier=data.get('identifier'))
-            if created is True:
+            project_object = Projects.objects.filter(identifier=data.get('identifier')).first()
+            if project_object is None:
                 project_object = Projects(**data)
                 project_object.save()  # Update last scrape time is done implicitly
             else:
-                data['last_seen'] = datetime.datetime.now()
+                data['last_seen'] = datetime.now()
                 Projects.objects.filter(pk=data.get('identifier')).update(**data)
             return Response({'status': True, 'result': True}, status=200)
         except Exception as error:
@@ -161,12 +162,12 @@ def news(request):
     """
     try:
         data = dict(request.data)
-        news_item_object, created = News.objects.update_or_create(identifier=data.get('identifier'))
-        if created is True:
+        news_item_object = News.objects.filter(identifier=data.get('identifier')).first()
+        if news_item_object is None:
             news_item_object = News(**data)  # Update last scrape time is done implicitly
             news_item_object.save()
         else:
-            data['last_seen'] = datetime.datetime.now()  # Update last scrape time
+            data['last_seen'] = datetime.now()  # Update last scrape time
             News.objects.filter(pk=data.get('identifier')).update(**data)
         return Response({'status': True, 'result': True}, status=200)
     except Exception as error:
@@ -175,13 +176,16 @@ def news(request):
         return Response({'status': False, 'result': str(error)}, status=500)
 
 
-@IsAuthorized
+@swagger_auto_schema(**as_garbage_collector)
 @api_view(['GET'])
+@IsAuthorized
 def garbage_collector(request):
     """ Garbage collector
     """
     project_type = request.GET.get('project_type')
-    collector = GarbageCollector(last_scrape_time=(datetime.datetime.now() - datetime.timedelta(hours=1)))
+    date = request.GET.get('date', str(datetime.now()))
+    last_scrape_time = datetime.strptime(date, '%Y-%m-%d %H:%M:%S.%f')
+    collector = GarbageCollector(last_scrape_time=last_scrape_time)
     collector.collect_iprox(project_type=project_type)
 
     return Response({'status': True, 'result': 'Garbage collection done'}, status=200)

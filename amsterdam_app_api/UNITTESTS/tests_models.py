@@ -440,7 +440,8 @@ class TestNotificationModel(TestCase):
             'publication_date': str(notification.publication_date),
             'body': 'test',
             'images': None,
-            'assets': None
+            'assets': None,
+            'last_seen': None
         }
 
         self.assertDictEqual(serializer_data, expected_result)
