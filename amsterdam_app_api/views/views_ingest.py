@@ -162,14 +162,17 @@ def news(request):
     """
     try:
         data = dict(request.data)
-        news_item_object = News.objects.filter(identifier=data.get('identifier')).first()
+        news_item_object = News.objects.filter(identifier=data.get('identifier'),
+                                               project_identifier=data.get('project_identifier')).first()
         if news_item_object is None:
             news_item_object = News(**data)  # Update last scrape time is done implicitly
             news_item_object.save()
+            return Response({'status': True, 'result': 'News item saved'}, status=200)
         else:
             data['last_seen'] = datetime.now()  # Update last scrape time
-            News.objects.filter(pk=data.get('identifier')).update(**data)
-        return Response({'status': True, 'result': True}, status=200)
+            News.objects.filter(identifier=data.get('identifier'),
+                                project_identifier=data.get('project_identifier')).update(**data)
+            return Response({'status': True, 'result': 'News item updated'}, status=200)
     except Exception as error:
         logger = Logger()
         logger.error('ingest/news: {error}'.format(error=error))
