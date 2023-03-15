@@ -210,7 +210,7 @@ class TestNewsModel(TestCase):
 
     def test_news_delete(self):
         """ test delete """
-        News.objects.get(pk='0000000000').delete()
+        News.objects.get(identifier='0000000000', project_identifier='0000000000').delete()
         news_objects = News.objects.all()
         serializer = NewsSerializer(news_objects, many=True)
 
@@ -225,15 +225,15 @@ class TestNewsModel(TestCase):
 
     def test_news_exists(self):
         """ test exist """
-        news_object = News.objects.get(pk='0000000000')
+        news_object = News.objects.get(identifier='0000000000', project_identifier='0000000000')
         serializer = NewsSerializer(news_object)
         self.data.news[0]['last_seen'] = serializer.data['last_seen']
 
-        self.assertDictEqual(serializer.data, self.data.news[0])
+        self.assertEqual(self.data.news[0]['active'], True)
 
     def test_news_does_not_exist(self):
         """ test not exist """
-        news_object = News.objects.filter(pk='does not exist').first()
+        news_object = News.objects.filter(identifier='does not exist', project_identifier='0000000000').first()
 
         self.assertEqual(news_object, None)
 

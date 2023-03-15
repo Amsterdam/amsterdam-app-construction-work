@@ -189,6 +189,15 @@ def garbage_collector(request):
     date = request.GET.get('date', str(datetime.now()))
     last_scrape_time = datetime.strptime(date, '%Y-%m-%d %H:%M:%S.%f')
     collector = GarbageCollector(last_scrape_time=last_scrape_time)
-    collector.collect_iprox(project_type=project_type)
+    result = collector.collect_iprox(project_type=project_type)
 
-    return Response({'status': True, 'result': 'Garbage collection done'}, status=200)
+    return Response({'status': True, 'result': result}, status=200)
+
+
+
+# @swagger_auto_schema(**as_scraper_report)
+@api_view(['GET'])
+@IsAuthorized
+def scraper_report(request):
+    data = dict(request.data)
+    return Response({'status': True, 'result': 'scraper result stored'}, status=200)

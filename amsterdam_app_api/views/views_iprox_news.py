@@ -43,7 +43,7 @@ def news(request):
     if identifier is None:
         return Response({'status': False, 'result': message.invalid_query}, status=422)
 
-    news_object = News.objects.filter(pk=identifier, active=True).first()
+    news_object = News.objects.filter(identifier=identifier, active=True).first()
     if news_object is None:
         return Response({'status': False, 'result': message.no_record_found}, status=404)
 

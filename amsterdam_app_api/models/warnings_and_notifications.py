@@ -85,7 +85,7 @@ class Notification(models.Model):
         if self.warning_identifier is not None:
             message = WarningMessages.objects.filter(pk=self.warning_identifier).first()
         else:
-            message = News.objects.filter(pk=self.news_identifier).first()
+            message = News.objects.filter(identifier=self.news_identifier).first()
 
         if message is not None:
             self.project_identifier = message.project_identifier
