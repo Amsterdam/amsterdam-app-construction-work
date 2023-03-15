@@ -48,7 +48,7 @@ class NewsSerializer(serializers.ModelSerializer):
     """ Project news serializer """
     class Meta:
         model = News
-        fields = '__all__'
+        exclude = ['id']
 
 
 class ProjectManagerSerializer(serializers.ModelSerializer):

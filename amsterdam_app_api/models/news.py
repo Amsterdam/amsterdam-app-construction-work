@@ -30,8 +30,8 @@ from django.db import models
 
 class News(models.Model):
     """ News db model """
-    identifier = models.CharField(max_length=100, blank=False, unique=True, primary_key=True)
-    project_identifier = models.CharField(max_length=100, blank=False, unique=False)
+    identifier = models.CharField(max_length=100, blank=False)
+    project_identifier = models.CharField(max_length=100, blank=False)
     project_type = models.CharField(max_length=100, default='', blank=False, unique=False)
     url = models.CharField(max_length=1000, blank=True, default='')
     title = models.CharField(max_length=1000, blank=True, default='')
@@ -43,6 +43,10 @@ class News(models.Model):
     active = models.BooleanField(default=True, blank=True)
 
     class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['identifier', 'project_identifier'],
+                                    name='identifier_and_project_identifier')
+        ]
         ordering = ['publication_date']
 
     def save(self, *args, **kwargs):

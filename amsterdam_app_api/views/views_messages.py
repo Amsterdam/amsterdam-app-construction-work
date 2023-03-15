@@ -205,7 +205,7 @@ def notification_post(request):
     if news_identifier is None and warning_identifier is None:
         return Response({'status': False, 'result': messages.invalid_query}, status=422)
 
-    if news_identifier is not None and News.objects.filter(pk=news_identifier).first() is None:
+    if news_identifier is not None and News.objects.filter(identifier=news_identifier).first() is None:
         return Response({'status': False, 'result': messages.no_record_found}, status=404)
 
     if warning_identifier is not None and WarningMessages.objects.filter(pk=warning_identifier).first() is None:

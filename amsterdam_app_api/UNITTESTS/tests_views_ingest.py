@@ -311,7 +311,7 @@ class TestApiImage(TestCase):
         news_objects = list(News.objects.all())
 
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(result.data, {'status': True, 'result': True})
+        self.assertEqual(result.data, {'status': True, 'result': 'News item saved'})
         self.assertEqual(len(news_objects), 1)
 
         # Update existing record
@@ -322,7 +322,7 @@ class TestApiImage(TestCase):
         news_objects = list(News.objects.all())
 
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(result.data, {'status': True, 'result': True})
+        self.assertEqual(result.data, {'status': True, 'result': 'News item updated'})
         self.assertEqual(len(news_objects), 1)
 
     def test_news_invalid(self):
@@ -352,4 +352,4 @@ class TestApiImage(TestCase):
                                      content_type='application/json')
 
             self.assertEqual(result.status_code, 200)
-            self.assertEqual(result.data, {'status': True, 'result': 'Garbage collection done'})
+            self.assertEqual(result.data, {'status': True, 'result': None})
