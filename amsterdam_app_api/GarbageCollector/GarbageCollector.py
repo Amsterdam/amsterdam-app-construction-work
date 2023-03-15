@@ -23,11 +23,11 @@ class GarbageCollector:
             news = list(News.objects.filter(project_type=project_type).all())
             report_projects = self.garbage_collect_iprox(projects, model=Projects, siblings=True)
             report_project_details = self.garbage_collect_iprox(project_details, model=ProjectDetails)
-            report_news = self.garbage_collect_iprox(news, model=News)
+            report_news = self.garbage_collect_iprox(news, model=News, model_name='News')
 
             return {'projects': report_projects, 'project_details': report_project_details, 'news': report_news}
 
-    def garbage_collect_iprox(self, data_objects, model=None, siblings=False):
+    def garbage_collect_iprox(self, data_objects, model=None, model_name=None, siblings=False):
         """ Generic garbage collections method """
         report = {}
         for data_object in data_objects:
@@ -60,7 +60,11 @@ class GarbageCollector:
             # If we haven't seen the object in last scrape, assume it's deleted from iprox and mark inactive
             elif data_object.last_seen < self.last_scrape_time:
                 data = {'active': False}
-                model.objects.filter(pk=data_object.identifier).update(**data)
+                if model_name == 'News':
+                    model.objects.filter(identifier=data_object.identifier,
+                                         project_identifier=data_object.project_identifier).update(**data)
+                else:
+                    model.objects.filter(pk=data_object.identifier).update(**data)
                 report[data_object.identifier] = 'deactivated'
 
         return report

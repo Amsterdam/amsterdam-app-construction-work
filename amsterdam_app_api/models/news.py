@@ -30,6 +30,7 @@ from django.db import models
 
 class News(models.Model):
     """ News db model """
+    id = models.BigAutoField(primary_key=True)
     identifier = models.CharField(max_length=100, blank=False)
     project_identifier = models.CharField(max_length=100, blank=False)
     project_type = models.CharField(max_length=100, default='', blank=False, unique=False)

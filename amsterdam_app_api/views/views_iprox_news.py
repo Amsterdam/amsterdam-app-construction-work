@@ -85,7 +85,7 @@ def articles(request):
     if query_params is not None:
         project_identifiers = query_params.split(',')
         for project_identifier in project_identifiers:
-            news_objects = list(News.objects.filter(project_identifier=project_identifier).all())
+            news_objects = list(News.objects.filter(project_identifier=project_identifier, active=True).all())
             for news_object in news_objects:
                 result += filtering([NewsSerializer(news_object, many=False).data], 'news')
 

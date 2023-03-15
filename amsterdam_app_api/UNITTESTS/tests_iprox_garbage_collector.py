@@ -68,7 +68,7 @@ class TestGarbageCollector(TestCase):
             self.assertEqual(project.active, False)
 
         for item in news_items:
-            self.assertEqual(item.active, True)
+            self.assertEqual(item.active, False)
 
     def test_all_objects_deleted(self):
         """ test that all objects are deleted """

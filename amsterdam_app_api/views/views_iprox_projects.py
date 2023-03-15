@@ -172,7 +172,7 @@ def projects(request):
         end_date = datetime.now()
         start_date_str = start_date.strftime('%Y-%m-%d')
 
-        news_articles_all = list(News.objects.all())
+        news_articles_all = list(News.objects.filter(active=True).all())
         serializer_news = NewsSerializer(news_articles_all, many=True)
         news_articles = [x for x in serializer_news.data if x['publication_date'] >= start_date_str]
         warning_articles_all = list(WarningMessages.objects.filter(publication_date__range=[start_date,
@@ -297,7 +297,7 @@ def project_details(request):
         start_date = datetime.now() - timedelta(days=articles_max_age)
         end_date = datetime.now()
         start_date_str = start_date.strftime('%Y-%m-%d')
-        news_articles_all = list(News.objects.filter(project_identifier=identifier).all())
+        news_articles_all = list(News.objects.filter(project_identifier=identifier, active=True).all())
         serializer_news = NewsSerializer(news_articles_all, many=True)
         news_articles = [x['identifier'] for x in serializer_news.data
                          if x['publication_date'] >= start_date_str]
