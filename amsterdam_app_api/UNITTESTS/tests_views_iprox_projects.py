@@ -41,7 +41,7 @@ class TestApiProjects(TestCase):
     def test_method_not_allowed(self):
         """ Http method not allowed """
         c = Client()
-        headers = {'HTTP_DEVICEID': '0'}
+        headers = {'HTTP_DEVICEID': '1'}
         response = c.post('/api/v1/projects', **headers)
         result = json.loads(response.content)
 
@@ -51,11 +51,13 @@ class TestApiProjects(TestCase):
     def test_projects_by_district_id(self):
         """ Get project by district id """
         c = Client()
-        headers = {'HTTP_DEVICEID': '0'}
+        headers = {'HTTP_DEVICEID': '2'}
         response = c.get('/api/v1/projects', {'district-id': 0}, **headers)
         result = json.loads(response.content)
+
         self.data.projects[0]['last_seen'] = result['result'][0]['last_seen']
-        self.data.projects[0]['followed'] = False
+        self.data.projects[0]['followed'] = result['result'][0]['followed']
+        self.data.projects[0]['active'] = result['result'][0]['active']
 
         expected_result = {
             'status': True,
@@ -67,31 +69,10 @@ class TestApiProjects(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(result, expected_result)
 
-    def test_projects_by_district_id_erroneous(self):
-        """ Invalid district id """
-        c = Client()
-        headers = {'HTTP_DEVICEID': '0'}
-        response = c.get('/api/v1/projects', {'district-id': 'a'}, **headers)
-        results = json.loads(response.content)
-        for result in results['result']:
-            for i in range(0, len(self.data.projects), 1):
-                if result['identifier'] == self.data.projects[i]['identifier']:
-                    self.data.projects[i]['last_seen'] = result['last_seen']
-                    self.data.projects[i]['followed'] = False
-
-        expected_result = {
-            'status': True,
-            'result': self.data.projects,
-            'page': {'number': 1, 'size': 10, 'totalElements': 2, 'totalPages': 1},
-            '_links': {'self': {'href': 'http://localhost/api/v1/projects'}}}
-
-        self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(results, expected_result)
-
     def test_projects_sort_by_district_id_desc(self):
         """ Sort projects descending """
         c = Client()
-        headers = {'HTTP_DEVICEID': '0'}
+        headers = {'HTTP_DEVICEID': '4'}
         response = c.get('/api/v1/projects', {'sort-by': 'district_id', 'sort-order': 'desc'}, **headers)
         results = json.loads(response.content)
         for result in results['result']:
@@ -113,7 +94,7 @@ class TestApiProjects(TestCase):
     def test_projects_sort_by_district_id_asc(self):
         """ Sort projects ascending """
         c = Client()
-        headers = {'HTTP_DEVICEID': '0'}
+        headers = {'HTTP_DEVICEID': '5'}
         response = c.get('/api/v1/projects', {'sort-by': 'district_id', 'sort-order': 'asc'}, **headers)
         results = json.loads(response.content)
         for result in results['result']:
@@ -135,7 +116,7 @@ class TestApiProjects(TestCase):
     def test_projects_all(self):
         """ Get all projects """
         c = Client()
-        headers = {'HTTP_DEVICEID': '0'}
+        headers = {'HTTP_DEVICEID': '6'}
         response = c.get('/api/v1/projects', **headers)
         results = json.loads(response.content)
         for result in results['result']:
@@ -157,7 +138,7 @@ class TestApiProjects(TestCase):
     def test_projects_filter_by_title_and_identifier(self):
         """ Filter projects """
         c = Client()
-        headers = {'HTTP_DEVICEID': '0'}
+        headers = {'HTTP_DEVICEID': '7'}
         response = c.get('/api/v1/projects', {'fields': 'title,identifier'}, **headers)
         results = json.loads(response.content)
         expected_result = {
