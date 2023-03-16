@@ -30,8 +30,11 @@ from amsterdam_app_api.GenericFunctions.SetFilter import SetFilter
 from amsterdam_app_api.GenericFunctions.StaticData import StaticData
 from amsterdam_app_api.GenericFunctions.TextSearch import TextSearch
 from amsterdam_app_api.GenericFunctions.RequestMustComeFromApp import RequestMustComeFromApp
+from amsterdam_app_api.GenericFunctions.Memoize import Memoize
+
 
 message = Messages()
+memoize = Memoize(ttl=300, max_items=128)
 
 
 def set_next_previous_links(request, result):
@@ -75,151 +78,159 @@ def search(model, request):
 
 
 @swagger_auto_schema(**as_projects)
-@api_view(['GET'])
+@api_view(['GET'])  # keep cached result for 5 minutes in memory
 def projects(request):
     """
     Get a list of all projects. Narrow down by query param: project-type
     """
-    deviceid = request.META.get('HTTP_DEVICEID', None)
-    if deviceid is None:
-        return Response({'status': False, 'result': message.invalid_headers}, status=422)
 
-    model_items = request.GET.get('fields', None)
-    articles_max_age = request.GET.get('articles_max_age', None)
-    lat = request.GET.get('lat', None)
-    lon = request.GET.get('lon', None)
-    radius = request.GET.get('radius', None)
-    address = request.GET.get('address', None)
-    page_size = int(request.GET.get('page_size', 10))
-    page = int(request.GET.get('page', 1)) - 1
+    @memoize
+    def _fetch_projects(deviceid):
+        deviceid = request.META.get('HTTP_DEVICEID', None)
+        if deviceid is None:
+            return Response({'status': False, 'result': message.invalid_headers}, status=422)
 
-    if address is not None:
-        apis = StaticData.urls()
-        url = '{api}{address}'.format(api=apis['address_to_gps'], address=urllib.parse.quote_plus(address))
-        result = requests.get(url=url, timeout=1)
-        data = json.loads(result.content)
-        if len(data['results']) == 1:
-            lon = data['results'][0]['centroid'][0]
-            lat = data['results'][0]['centroid'][1]
+        # Get query parameters
+        model_items = request.GET.get('fields', None)
+        articles_max_age = request.GET.get('articles_max_age', None)
+        lat = request.GET.get('lat', None)
+        lon = request.GET.get('lon', None)
+        radius = request.GET.get('radius', None)
+        address = request.GET.get('address', None)
+        district_id = None if request.GET.get('district-id', None) is None else int(request.GET.get('district-id'))
 
-    fields = [] if model_items is None else model_items.split(',')
-    if articles_max_age is not None and 'identifier' not in fields:
-        fields.append('identifier')
+        if address is not None:
+            apis = StaticData.urls()
+            url = '{api}{address}'.format(api=apis['address_to_gps'], address=urllib.parse.quote_plus(address))
+            result = requests.get(url=url, timeout=1)
+            data = json.loads(result.content)
+            if len(data['results']) == 1:
+                lon = data['results'][0]['centroid'][0]
+                lat = data['results'][0]['centroid'][1]
 
-    followed = False
-    if 'followed' in fields:
-        fields.remove('followed')
-        if 'identifier' in fields:
-            followed = True
+        fields = [] if model_items is None else model_items.split(',')
+        if articles_max_age is not None and 'identifier' not in fields:
+            fields.append('identifier')
 
-    # Get list of projects by district
-    try:
-        district_id = int(request.GET.get('district-id', None))
-    except Exception:
-        district_id = None
+        followed = False
+        if 'followed' in fields:
+            fields.remove('followed')
+            if 'identifier' in fields:
+                followed = True
 
-    # Set filter
-    query_filter = SetFilter(district_id=district_id, active=True).get()
+        # Set filter
+        query_filter = SetFilter(district_id=district_id, active=True).get()
 
-    # Return filtered result or all projects
+        # Return filtered result or all projects
 
-    projects_object = Projects.objects.filter(**query_filter).all()
+        projects_object = Projects.objects.filter(**query_filter).all()
 
-    # Get followers for projects
-    following = [x['projectid'] for x in FollowedProjects.objects.filter(deviceid__iexact=deviceid).values('projectid')]
-    if len(fields) != 0:
-        model_fields = [x.name for x in Projects._meta.fields]
-        serializer_fields = [x for x in fields if x in model_fields]
-        serializer = ProjectsSerializer(projects_object, context={'fields': serializer_fields}, many=True)
-        if followed is True:
+        # Get followers for projects
+        following = [x['projectid'] for x in FollowedProjects.objects.filter(deviceid__iexact=deviceid).values('projectid')]
+        if len(fields) != 0:
+            model_fields = [x.name for x in Projects._meta.fields]
+            serializer_fields = [x for x in fields if x in model_fields]
+            serializer = ProjectsSerializer(projects_object, context={'fields': serializer_fields}, many=True)
+            if followed is True:
+                for i in range(len(serializer.data)):
+                    serializer.data[i]['followed'] = False
+                    if serializer.data[i]['identifier'] in following:
+                        serializer.data[i]['followed'] = True
+        else:
+            serializer = ProjectsSerializer(projects_object, many=True)
             for i in range(len(serializer.data)):
                 serializer.data[i]['followed'] = False
                 if serializer.data[i]['identifier'] in following:
                     serializer.data[i]['followed'] = True
-    else:
-        serializer = ProjectsSerializer(projects_object, many=True)
-        for i in range(len(serializer.data)):
-            serializer.data[i]['followed'] = False
-            if serializer.data[i]['identifier'] in following:
-                serializer.data[i]['followed'] = True
 
-    # Get results from serializer
-    results = serializer.data
+        # Get results from serializer
+        results = serializer.data
 
-    # Get distance
-    if lat is not None and lon is not None:
-        _project_details = ProjectDetails.objects.values('identifier', 'coordinates').all()
-        coordinates = {x['identifier']: (x['coordinates']['lat'], x['coordinates']['lon']) for x in _project_details}
-        for i in range(len(serializer.data) - 1, -1, -1):
-            identifier = results[i]['identifier']
-            cords_1 = (float(lat), float(lon))
-            cords_2 = coordinates.get(identifier, (None, None))
-            if None in cords_2:
-                cords_2 = (None, None)
-            elif (0, 0) == cords_2:
-                cords_2 = (None, None)
-            distance = Distance(cords_1, cords_2)
-            results[i]['meter'] = distance.meter
-            results[i]['strides'] = distance.strides
+        # Get distance
+        if lat is not None and lon is not None:
+            _project_details = ProjectDetails.objects.values('identifier', 'coordinates').all()
+            coordinates = {x['identifier']: (x['coordinates']['lat'], x['coordinates']['lon']) for x in _project_details}
+            for i in range(len(serializer.data) - 1, -1, -1):
+                identifier = results[i]['identifier']
+                cords_1 = (float(lat), float(lon))
+                cords_2 = coordinates.get(identifier, (None, None))
+                if None in cords_2:
+                    cords_2 = (None, None)
+                elif (0, 0) == cords_2:
+                    cords_2 = (None, None)
+                distance = Distance(cords_1, cords_2)
+                results[i]['meter'] = distance.meter
+                results[i]['strides'] = distance.strides
 
-            if radius is not None and distance.meter is not None:
-                if distance.meter > float(radius):
-                    del results[i]
+                if radius is not None and distance.meter is not None:
+                    if distance.meter > float(radius):
+                        del results[i]
 
-    if articles_max_age is not None:
-        articles_max_age = int(articles_max_age)
-        start_date = datetime.now() - timedelta(days=articles_max_age)
-        end_date = datetime.now()
-        start_date_str = start_date.strftime('%Y-%m-%d')
+        if articles_max_age is not None:
+            articles_max_age = int(articles_max_age)
+            start_date = datetime.now() - timedelta(days=articles_max_age)
+            end_date = datetime.now()
+            start_date_str = start_date.strftime('%Y-%m-%d')
 
-        news_articles_all = list(News.objects.filter(active=True).all())
-        serializer_news = NewsSerializer(news_articles_all, many=True)
-        news_articles = [x for x in serializer_news.data if x['publication_date'] >= start_date_str]
-        warning_articles_all = list(WarningMessages.objects.filter(publication_date__range=[start_date,
-                                                                                            end_date]).all())
-        serializer_warnings = WarningMessagesExternalSerializer(warning_articles_all, many=True)
-        all_articles = news_articles + serializer_warnings.data
-        all_articles_sort_on_publication_date = sorted(all_articles, key=lambda x: x['publication_date'], reverse=True)
-        articles = {}
-        for article in all_articles_sort_on_publication_date:
-            payload = {'identifier': article['identifier'], 'publication_date': article['publication_date']}
-            try:
-                if article['project_identifier'] in articles:
-                    articles[article['project_identifier']].append(payload)
-                else:
-                    articles[article['project_identifier']] = [payload]
-            except Exception as error:
-                print(error)
+            news_articles_all = list(News.objects.filter(active=True).all())
+            serializer_news = NewsSerializer(news_articles_all, many=True)
+            news_articles = [x for x in serializer_news.data if x['publication_date'] >= start_date_str]
+            warning_articles_all = list(WarningMessages.objects.filter(publication_date__range=[start_date,
+                                                                                                end_date]).all())
+            serializer_warnings = WarningMessagesExternalSerializer(warning_articles_all, many=True)
+            all_articles = news_articles + serializer_warnings.data
+            all_articles_sort_on_publication_date = sorted(all_articles, key=lambda x: x['publication_date'], reverse=True)
+            articles = {}
+            for article in all_articles_sort_on_publication_date:
+                payload = {'identifier': article['identifier'], 'publication_date': article['publication_date']}
+                try:
+                    if article['project_identifier'] in articles:
+                        articles[article['project_identifier']].append(payload)
+                    else:
+                        articles[article['project_identifier']] = [payload]
+                except Exception as error:
+                    print(error)
 
-        for i in range(len(results)):
-            results[i]['recent_articles'] = []
-            if results[i]['identifier'] in articles:
-                results[i]['recent_articles'] = articles[results[i]['identifier']]
+            for i in range(len(results)):
+                results[i]['recent_articles'] = []
+                if results[i]['identifier'] in articles:
+                    results[i]['recent_articles'] = articles[results[i]['identifier']]
 
-    # Sort projects Algorithm (articles have been pre-sorted (desc) by publication date):
+        # Sort projects Algorithm (articles have been pre-sorted (desc) by publication date):
 
-    # Divide the projects in two lists, followed projects and all others
-    data = {"follow": [], "others": []}
-    [data["follow"].append(x) if x["identifier"] in following else data["others"].append(x) for x in results]
+        # Divide the projects in two lists, followed projects and all others
+        data = {"follow": [], "others": []}
+        [data["follow"].append(x) if x["identifier"] in following else data["others"].append(x) for x in results]
 
-    # Next: → Sort the followed projects by most recent articles, (data["follow"] can be an empty list)
-    lambda_expression = lambda x: x["recent_articles"][0]["publication_date"] \
-        if "recent_articles" in x and len(x['recent_articles']) > 0 else ""
-    if len(data["follow"]) != 0:
-        data["follow"] = sorted(data["follow"], key=lambda_expression, reverse=True)
+        # Next: → Sort the followed projects by most recent articles, (data["follow"] can be an empty list)
+        lambda_expression = lambda x: x["recent_articles"][0]["publication_date"] \
+            if "recent_articles" in x and len(x['recent_articles']) > 0 else ""
+        if len(data["follow"]) != 0:
+            data["follow"] = sorted(data["follow"], key=lambda_expression, reverse=True)
 
-    # Next: → If the user has not provided an address, sort on publication date of most recent news-article
-    if lat is None and lon is None:
-        data["others"] = sorted(data["others"], key=lambda_expression, reverse=True)
-    # Else: → If the user has provided an address, sort on increasing distance between address and project
-    else:
-        # Magic number "10000000" if meter is None, use a really high number...
-        data["others"] = sorted(data["others"], key=lambda x: x["meter"] if x["meter"] else 10000000, reverse=False)
+        # Next: → If the user has not provided an address, sort on publication date of most recent news-article
+        if lat is None and lon is None:
+            data["others"] = sorted(data["others"], key=lambda_expression, reverse=True)
+        # Else: → If the user has provided an address, sort on increasing distance between address and project
+        else:
+            # Magic number "10000000" if meter is None, use a really high number...
+            data["others"] = sorted(data["others"], key=lambda x: x["meter"] if x["meter"] else 10000000, reverse=False)
 
-    # Next: → Concatenate the two lists
-    result = data["follow"] + data["others"]
+        # Next: → Concatenate the two lists
+        _result = data["follow"] + data["others"]
+        return _result
+
+    # Guard clause
+    deviceid = request.META.get('HTTP_DEVICEID', None)
+    if deviceid is None:
+        return Response({'status': False, 'result': message.invalid_headers}, status=422)
+
+    # Call _fetch_projects
+    result = _fetch_projects(deviceid)
 
     # Set paginated result and calculate number of pages
+    page_size = int(request.GET.get('page_size', 10))
+    page = int(request.GET.get('page', 1)) - 1
     start_index = page * page_size
     stop_index = page * page_size + page_size
     paginated_result = result[start_index:stop_index]
