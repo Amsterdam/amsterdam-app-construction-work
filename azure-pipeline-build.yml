@@ -13,6 +13,19 @@ variables:
   value: false
 
 steps:
+- script: |
+    export PYTHONPATH=$(Build.SourcesDirectory)
+    python3 -m pip install pylint pylint_django
+    python3 -m pip install -r requirements.txt
+    pylint --rcfile ./.pylintrc $(find . -name '*.py' | grep -v -e venv -e migrations -e kladblok) && echo "##vso[task.setvariable variable=pylintPassed;]true"
+  displayName: 'Running pylint'
+
+- script: |    
+    if [ $(pylintPassed) == 'false' ]; then
+      exit 1
+    fi
+  displayName: 'Fail if code has been rated less then 10.0'
+
 - task: DownloadSecureFile@1
   displayName: 'Download fcm_credentials.json'
   name: fcm_credentials
