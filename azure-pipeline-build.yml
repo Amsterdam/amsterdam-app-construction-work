@@ -43,7 +43,7 @@ steps:
     export env_path=$(Build.SourcesDirectory)/.env-unittest
     export database_path=$(Agent.BuildDirectory)/database
     docker-compose -f docker-compose-unittest.yml --env-file $(Build.SourcesDirectory)/.env-unittest run --rm api-server && echo "##vso[task.setvariable variable=unittestPassed;]true"
-  displayName: 'Docker compose'
+  displayName: 'Run UnitTests'
 
 # Handling the  result needs to be in a different step because only then variable wil be expanded
 # See: https://learn.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch#macro-syntax-variables
