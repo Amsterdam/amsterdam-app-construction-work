@@ -44,8 +44,8 @@ class IsAuthorized:
             jwt_token = request.META.get('HTTP_AUTHORIZATION', None)
 
             header_uauth = request.META.get('headers', {}).get('UserAuthorization', None)
-            header_iauth = request.META.get('headers', {}).get('HTTP_INGESTAUTHORIZATION', None)
-            header_jwt_token = request.META.get('headers', {}).get('HTTP_AUTHORIZATION', None)
+            header_iauth = request.META.get('headers', {}).get('INGESTAUTHORIZATION', None)
+            header_jwt_token = request.META.get('headers', {}).get('AUTHORIZATION', None)
 
             userauthorization = http_userauthorization if http_userauthorization is not None else header_uauth
             ingestauthorization = http_ingestauthorization if http_ingestauthorization is not None else header_iauth

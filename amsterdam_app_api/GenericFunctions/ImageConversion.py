@@ -97,11 +97,11 @@ class ImageConversion:
         """ Keep aspect ratio whilst setting new width and height """
         if self.landscape:
             width = target_size[0]
-            ratio = (width / float(self.raw_data.size[0]))
+            ratio = width / float(self.raw_data.size[0])
             height = int((float(self.raw_data.size[1]) * float(ratio)))
         else:
             height = target_size[1]
-            ratio = (height / float(self.raw_data.size[1]))
+            ratio = height / float(self.raw_data.size[1])
             width = int((float(self.raw_data.size[0]) * float(ratio)))
 
         return tuple((width, height))

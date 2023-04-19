@@ -126,7 +126,8 @@ def projects(request):
         projects_object = Projects.objects.filter(**query_filter).all()
 
         # Get followers for projects
-        following = [x['projectid'] for x in FollowedProjects.objects.filter(deviceid__iexact=deviceid).values('projectid')]
+        following = [x['projectid']
+                     for x in FollowedProjects.objects.filter(deviceid__iexact=deviceid).values('projectid')]
         if len(fields) != 0:
             model_fields = [x.name for x in Projects._meta.fields]
             serializer_fields = [x for x in fields if x in model_fields]
@@ -149,7 +150,8 @@ def projects(request):
         # Get distance
         if lat is not None and lon is not None:
             _project_details = ProjectDetails.objects.values('identifier', 'coordinates').all()
-            coordinates = {x['identifier']: (x['coordinates']['lat'], x['coordinates']['lon']) for x in _project_details}
+            coordinates = {x['identifier']: (x['coordinates']['lat'], x['coordinates']['lon'])
+                           for x in _project_details}
             for i in range(len(serializer.data) - 1, -1, -1):
                 identifier = results[i]['identifier']
                 cords_1 = (float(lat), float(lon))
@@ -179,7 +181,9 @@ def projects(request):
                                                                                                 end_date]).all())
             serializer_warnings = WarningMessagesExternalSerializer(warning_articles_all, many=True)
             all_articles = news_articles + serializer_warnings.data
-            all_articles_sort_on_publication_date = sorted(all_articles, key=lambda x: x['publication_date'], reverse=True)
+            all_articles_sort_on_publication_date = sorted(all_articles,
+                                                           key=lambda x: x['publication_date'],
+                                                           reverse=True)
             articles = {}
             for article in all_articles_sort_on_publication_date:
                 payload = {'identifier': article['identifier'], 'publication_date': article['publication_date']}

@@ -33,7 +33,7 @@ class TestApiImage(TestCase):
         """ setup test db """
         SetUp()
         token = AESCipher('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', os.getenv('AES_SECRET')).encrypt()
-        self.header = {'HTTP_INGESTAUTHORIZATION': token}
+        self.header = {'INGESTAUTHORIZATION': token}
         self.content_type = "application/json"
         self.client = Client()
 

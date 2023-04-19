@@ -20,7 +20,7 @@ class SignInTest(TestCase):
                                                          email=email)
         self.user.save()
         response = self.client.post('/api/v1/get-token/', {'username': username, 'password': password})
-        self.headers = {'Accept': 'application/json', 'HTTP_AUTHORIZATION': response.data['access']}
+        self.headers = {'Accept': 'application/json', 'AUTHORIZATION': response.data['access']}
 
     def tearDown(self):
         """ Run teardown setup """

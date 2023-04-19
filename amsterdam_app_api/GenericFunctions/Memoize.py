@@ -89,10 +89,11 @@ class Memoize:
         self.max_items = max_items
 
     def add_cache(self, key, value, ttl):
+        """ Store cache item """
         self.memoize_cache[key] = (time.time() + ttl, value)
 
     def clean_cache(self):
-        # Remove items by time
+        """ Clear expired cached items """
         now = time.time()
         self.memoize_cache = {key: value for key, value in self.memoize_cache.items() if now <= value[0]}
 
