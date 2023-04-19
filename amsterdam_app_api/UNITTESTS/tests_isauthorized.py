@@ -54,7 +54,7 @@ class TestIsAuthorized(TestCase):
             return 'success'
 
         token = AESCipher('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', os.getenv('AES_SECRET')).encrypt()
-        headers = {'Accept': 'application/json', 'HTTP_INGESTAUTHORIZATION': token}
+        headers = {'Accept': 'application/json', 'INGESTAUTHORIZATION': token}
         request = self.factory.post('/', headers=headers)
         resp = a_view(request)
         self.assertEqual(resp, 'success')
@@ -65,7 +65,7 @@ class TestIsAuthorized(TestCase):
         def a_view(request):  # pragma: no cover
             return 'success'
 
-        headers = {'Accept': 'application/json', 'HTTP_INGESTAUTHORIZATION': 'bogus'}
+        headers = {'Accept': 'application/json', 'INGESTAUTHORIZATION': 'bogus'}
         request = self.factory.post('/', headers=headers)
         result = a_view(request)
         self.assertEqual(result.reason_phrase, 'Forbidden')
@@ -98,7 +98,7 @@ class TestIsAuthorized(TestCase):
         def a_view(request):  # pragma: no cover
             return 'success'
 
-        headers = {'Accept': 'application/json', 'HTTP_AUTHORIZATION': self.jwt_token}
+        headers = {'Accept': 'application/json', 'AUTHORIZATION': self.jwt_token}
         request = self.factory.post('/', headers=headers)
         result = a_view(request)
         self.assertEqual(result, 'success')
@@ -109,7 +109,7 @@ class TestIsAuthorized(TestCase):
         def a_view(request):  # pragma: no cover
             return 'success'
 
-        headers = {'Accept': 'application/json', 'HTTP_AUTHORIZATION': 'bogus'}
+        headers = {'Accept': 'application/json', 'AUTHORIZATION': 'bogus'}
         request = self.factory.post('/', headers=headers)
         result = a_view(request)
         self.assertEqual(result.reason_phrase, 'Forbidden')
