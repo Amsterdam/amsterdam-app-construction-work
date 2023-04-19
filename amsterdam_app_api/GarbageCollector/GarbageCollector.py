@@ -15,6 +15,9 @@ class GarbageCollector:
 
     def collect_iprox(self, project_type=None):
         """ Call all iprox dataset garbage collectors one by one """
+        report_projects = {}
+        report_project_details = {}
+        report_news = {}
 
         # If there's no path, projects might be de-activated un-rightfully
         if project_type is not None:
@@ -25,7 +28,7 @@ class GarbageCollector:
             report_project_details = self.garbage_collect_iprox(project_details, model=ProjectDetails)
             report_news = self.garbage_collect_iprox(news, model=News, model_name='News')
 
-            return {'projects': report_projects, 'project_details': report_project_details, 'news': report_news}
+        return {'projects': report_projects, 'project_details': report_project_details, 'news': report_news}
 
     def garbage_collect_iprox(self, data_objects, model=None, model_name=None, siblings=False):
         """ Generic garbage collections method """
