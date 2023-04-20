@@ -16,30 +16,30 @@ RUN cd /code/vue_web_code \
  && npm run build \
  && cp -r dist /code/static/
 
-FROM python:3.9.0-slim-buster as deploy
+FROM python:3.9-alpine as deploy
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=on
 
 # Install python requirements
-COPY requirements.txt /code/
-RUN cd /code && python3 -m pip install -r requirements.txt
-
-RUN apt-get update  \
- && apt-get -y install --no-install-recommends \
-    netcat \
-    procps \
-    postgresql-client-11 \
- && rm -rf /var/lib/apt/lists/* /var/cache/debconf/*-old \
- && apt-get autoremove -y \
- && rm -rf /tmp/*
-
-# Copy sources to container
 COPY --from=build-phase1 /code/static /code/static
+COPY requirements.txt /code/
 COPY init.sh /code/
 COPY manage.py /code/
 COPY create_user.py /code/
 COPY amsterdam_app_backend /code/amsterdam_app_backend
 COPY amsterdam_app_api /code/amsterdam_app_api
 
-# Setup run script
-RUN chmod +x /code/init.sh
+# Install dependencies
+RUN apk add --no-cache --virtual .build-deps build-base \
+    && apk add --no-cache \
+      bash \
+      netcat-openbsd \
+      procps \
+      postgresql-client \
+    && cd /code \
+    && python3 -m pip --no-cache-dir install -r /code/requirements.txt \
+    && rm -rf /tmp/* \
+    && find / -name "*.c" -delete \
+    && find / -name "*.pyc" -delete \
+    && apk del .build-deps \
+    && chmod +x /code/init.sh
