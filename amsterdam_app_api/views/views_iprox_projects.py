@@ -84,7 +84,7 @@ def projects(request):
     Get a list of all projects. Narrow down by query param: project-type
     """
 
-    @memoize
+    # @memoize
     def _fetch_projects(deviceid):
         deviceid = request.META.get('HTTP_DEVICEID', None)
         if deviceid is None:
