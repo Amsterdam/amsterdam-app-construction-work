@@ -109,7 +109,8 @@ def projects(request):
                 lat = data['results'][0]['centroid'][1]
 
         fields = [] if model_items is None else model_items.split(',')
-        fields.append('identifier')
+        if articles_max_age is not None and 'identifier' not in fields:
+            fields.append('identifier')
 
         followed = False
         if 'followed' in fields:

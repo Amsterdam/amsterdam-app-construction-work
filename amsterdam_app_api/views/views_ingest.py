@@ -163,7 +163,6 @@ def news(request):
     try:
         data = dict(request.data)
         data['active'] = True
-
         news_item_object = News.objects.filter(identifier=data.get('identifier'),
                                                project_identifier=data.get('project_identifier')).first()
         if news_item_object is None:
