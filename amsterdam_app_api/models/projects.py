@@ -106,8 +106,16 @@ class Projects(models.Model):
 
 
 class ProjectDetails(models.Model):
-    """ ProjectsDetails db model """
-    identifier = models.CharField(max_length=100, blank=False, unique=True, primary_key=True)
+    """ ProjectsDetails db model
+
+        Note on 'identifier': (fields.W342) Setting unique=True on a ForeignKey has the same effect as using a
+        OneToOneField. ForeignKey(unique=True) is usually better served by a OneToOneField.
+
+        Note on 'on_delete=Models.CASCADE' When the referenced object is deleted, also delete the objects that have
+        references to it (when you remove a Project for instance, you might want to delete ProjectDetails as well). SQL
+        equivalent: CASCADE.
+    """
+    identifier = models.OneToOneField(Projects, on_delete=models.CASCADE, unique=True, primary_key=True)
     project_type = models.CharField(max_length=100, default='', blank=False, unique=False)
     body = models.JSONField(null=True, default=list)
     coordinates = models.JSONField(null=True, default=dict)

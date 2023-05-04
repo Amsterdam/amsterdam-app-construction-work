@@ -1,10 +1,12 @@
 bs4
 coverage
 django
+django-cors-headers
 django_crontab
 django-nose
 djangorestframework
 djangorestframework-simplejwt
+django-postgres-extensions
 drf-yasg
 drf-yasg2
 ExifRead

@@ -26,13 +26,22 @@
 
 from datetime import datetime
 from django.db import models
+from amsterdam_app_api.models.projects import Projects
 
 
 class News(models.Model):
-    """ News db model """
+    """ News db model
+
+        Note on 'project_identifier': (fields.W342) Setting unique=True on a ForeignKey has the same effect as using a
+        OneToOneField. ForeignKey(unique=True) is usually better served by a OneToOneField.
+
+        Note on 'on_delete=Models.CASCADE' When the referenced object is deleted, also delete the objects that have
+        references to it (when you remove a Project for instance, you might want to delete ProjectDetails as well). SQL
+        equivalent: CASCADE.
+    """
     id = models.BigAutoField(primary_key=True)
     identifier = models.CharField(max_length=100, blank=False)
-    project_identifier = models.CharField(max_length=100, blank=False)
+    project_identifier = models.ForeignKey(Projects, on_delete=models.CASCADE, unique=False)
     project_type = models.CharField(max_length=100, default='', blank=False, unique=False)
     url = models.CharField(max_length=1000, blank=True, default='')
     title = models.CharField(max_length=1000, blank=True, default='')
