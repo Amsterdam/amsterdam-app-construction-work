@@ -100,9 +100,22 @@ def articles(request):
         result += filtering(news_serializer.data, 'news')
         result += filtering(warning_serializer.data, 'warning')
 
+    # Get hostname for this server
+    hostname = request.get_host()
+    port = request.get_port()
+    base_url = f'https://{hostname}/api/v1/image?id='
+    if port != 443:
+        base_url = f'http://{hostname}/api/v1/image?id='
+
     result = Sort().list_of_dicts(result, key=sort_by, sort_order=sort_order)
-    for i in range(0, len(result), 1):
-        result[i]['publication_date'] = result[i]['publication_date']
+    for item in result:
+        item['publication_date'] = item['publication_date']
+
+        # Create image url for warning messages
+        if item['type'] == 'warning':
+            for image in item['images']:
+                for source in image['sources']:
+                    source['url'] = f'{base_url}{source["image_id"]}'
 
     if limit != 0:
         result = result[:limit]
