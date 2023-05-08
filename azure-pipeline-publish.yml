@@ -22,8 +22,6 @@ steps:
       script: |
             az login --identity
             az acr login --name $(RegistryName)
-            az acr repository list --name $(RegistryName)
             docker build -t $(RegistryName).azurecr.io/$(RepositoryName)/$(ImageName):$(build.BuildNumber) .
             docker push $(RegistryName).azurecr.io/$(RepositoryName)/$(ImageName):$(build.BuildNumber)
-            #az acr repository show -n $(RegistryName) --repository $(RepositoryName)
             az acr repository show-tags --name $(RegistryName) --repository $(RepositoryName)/$(ImageName)     
