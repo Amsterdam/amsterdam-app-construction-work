@@ -21,9 +21,10 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      $version = Get-Content -Path $(Build.SourcesDirectory)\.version
-      Write-Host "$(version)"
+      $version = Get-Content -Path $(Build.SourcesDirectory)\.version -Raw
+      Write-Host "$(ImageVersion)"
       Write-Host "##vso[task.setvariable variable=ImageVersion]$version"
+      Write-Host "$(ImageVersion)"
 
 
 - task: Bash@3
