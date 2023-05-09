@@ -13,8 +13,17 @@ variables:
   RegistryName: saks01weuacrpgpgo5qvmwo
   RepositoryName: aapp/images
   ImageName: amsterdam-app-backend
+  ImageVersion: 0.0.1
 
 steps:
+- task: Bash@3
+  displayName: Get version
+  inputs:
+    targetType: 'inline'
+    script: |
+      echo "##vso[task.setvariable variable=ImageVersion]$(cat $(Build.Repository.LocalPath)/.version)"
+
+
 - task: Bash@3
   displayName: Build and push an image to container registry
   inputs:
@@ -22,6 +31,6 @@ steps:
       script: |
             az login --identity
             az acr login --name $(RegistryName)
-            docker build -t $(RegistryName).azurecr.io/$(RepositoryName)/$(ImageName):$(build.BuildNumber) .
-            docker push $(RegistryName).azurecr.io/$(RepositoryName)/$(ImageName):$(build.BuildNumber)
+            docker build -t $(RegistryName).azurecr.io/$(RepositoryName)/$(ImageName):$(ImageVersion) .
+            docker push $(RegistryName).azurecr.io/$(RepositoryName)/$(ImageName):$(ImageVersion)
             az acr repository show-tags --name $(RegistryName) --repository $(RepositoryName)/$(ImageName)     
