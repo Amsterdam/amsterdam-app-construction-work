@@ -13,6 +13,7 @@ variables:
   RegistryName: saks01weuacrpgpgo5qvmwo
   RepositoryName: aapp/images
   ImageName: amsterdam-app-backend
+  ImageVersion: 0.0.1
 
 steps:
 - task: PowerShell@2
@@ -21,7 +22,9 @@ steps:
     targetType: 'inline'
     script: |
       $version = Get-Content -Path $(Build.SourcesDirectory)\.version
-      Write-Host "##vso[task.setvariable variable=version]$version"      
+      Write-Host "$(version)"
+      Write-Host "##vso[task.setvariable variable=ImageVersion]$version"
+
 
 - task: Bash@3
   displayName: Build and push an image to container registry
