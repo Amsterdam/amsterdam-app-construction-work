@@ -15,13 +15,13 @@ variables:
   ImageName: amsterdam-app-backend
 
 steps:
-- task: gitversion/setup@0
-  displayName: Install GitVersion
+- task: PowerShell@2
+  displayName: Get version
   inputs:
-    versionSpec: '5.5.0'
-    
-- task: gitversion/execute@0
-  displayName: Determine Version
+    targetType: 'inline'
+    script: |
+      $version = Get-Content -Path $(Build.SourcesDirectory)\.version
+      Write-Host "##vso[task.setvariable variable=version]$version"      
 
 - task: Bash@3
   displayName: Build and push an image to container registry
