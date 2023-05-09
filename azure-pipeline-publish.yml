@@ -21,11 +21,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      ls -al
-      pwd
-      echo "$(Build.Repository.LocalPath)"
       echo "##vso[task.setvariable variable=ImageVersion]$(cat $(Build.Repository.LocalPath)/.version)"
-      echo "$(ImageVersion)"
 
 
 - task: Bash@3
