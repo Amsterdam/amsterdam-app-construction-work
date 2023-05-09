@@ -15,6 +15,14 @@ variables:
   ImageName: amsterdam-app-backend
 
 steps:
+- task: gitversion/setup@0
+  displayName: Install GitVersion
+  inputs:
+    versionSpec: '5.5.0'
+    
+- task: gitversion/execute@0
+  displayName: Determine Version
+
 - task: Bash@3
   displayName: Build and push an image to container registry
   inputs:
@@ -22,6 +30,6 @@ steps:
       script: |
             az login --identity
             az acr login --name $(RegistryName)
-            docker build -t $(RegistryName).azurecr.io/$(RepositoryName)/$(ImageName):$(build.BuildNumber) .
-            docker push $(RegistryName).azurecr.io/$(RepositoryName)/$(ImageName):$(build.BuildNumber)
+            docker build -t $(RegistryName).azurecr.io/$(RepositoryName)/$(ImageName):$(GitVersion.FullSemVer) .
+            docker push $(RegistryName).azurecr.io/$(RepositoryName)/$(ImageName):$(GitVersion.FullSemVer)
             az acr repository show-tags --name $(RegistryName) --repository $(RepositoryName)/$(ImageName)     
