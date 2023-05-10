@@ -41,10 +41,10 @@ class News(models.Model):
     """
     id = models.BigAutoField(primary_key=True)
     identifier = models.CharField(max_length=100, blank=False)
-    project_identifier = models.ForeignKey(Projects, on_delete=models.CASCADE, unique=False)
+    project_identifier = models.ForeignKey(Projects, on_delete=models.CASCADE, unique=False, db_column='project_identifier')
     project_type = models.CharField(max_length=100, default='', blank=False, unique=False)
     url = models.CharField(max_length=1000, blank=True, default='')
-    title = models.CharField(max_length=1000, blank=True, default='')
+    title = models.CharField(max_length=1000, blank=True, default='', db_index=True)
     publication_date = models.CharField(max_length=10, blank=True, default='')
     body = models.JSONField(null=True, default=dict)
     images = models.JSONField(null=True, default=list)

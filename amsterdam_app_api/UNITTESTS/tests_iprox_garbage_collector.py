@@ -23,11 +23,18 @@ class TestGarbageCollector(TestCase):
             Projects.objects.create(**project)
 
         ProjectDetails.objects.all().delete()
-        for project in self.data.project_details:
-            ProjectDetails.objects.create(**project)
+        for project_detail in self.data.project_details:
+            try:
+                project = Projects.objects.filter(pk=project_detail['identifier']).first()
+                project_detail['identifier'] = project
+                ProjectDetails.objects.create(**project_detail)
+            except Exception as error:
+                print(error)
 
         News.objects.all().delete()
         for news in self.data.news:
+            project = Projects.objects.filter(pk=news['project_identifier']).first()
+            news['project_identifier'] = project
             News.objects.create(**news)
 
         ProjectManager.objects.all().delete()

@@ -3,22 +3,32 @@
 
 from django.db import models
 from amsterdam_app_api.models.projects import Projects
+from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
 
 class FollowedProjects(models.Model):
     """ Follow projects db model
-
-        Note on 'identifier': (fields.W342) Setting unique=True on a ForeignKey has the same effect as using a
-        OneToOneField. ForeignKey(unique=True) is usually better served by a OneToOneField.
-
-        Note on 'on_delete=Models.CASCADE' When the referenced object is deleted, also delete the objects that have
-        references to it (when you remove a Project for instance, you might want to delete ProjectDetails as well). SQL
-        equivalent: CASCADE.
     """
     deviceid = models.CharField(max_length=200, blank=False)
-    projectid = models.ForeignKey(Projects, on_delete=models.CASCADE, unique=False)
+    projectid = models.CharField(max_length=20, blank=False, default='', unique=False)
 
     class Meta:
         constraints = [
             models.UniqueConstraint(fields=['deviceid', 'projectid'], name='deviceid_and_projectid')
         ]
+
+
+@receiver(pre_delete, sender=Projects)
+def remove_project_from_followed_projects(sender, instance, **kwargs):
+    """ This code adds a signal receiver function remove_project_from_followed_projects that listens for the pre_delete
+        signal of the Projects model. When a project is about to be deleted, the remove_project_from_managers function
+        is called with the instance parameter being the project being deleted.
+
+        The function then gets the identifier of the project and finds all ProjectManager instances that have this
+        project in their projects array field using the projects__contains query lookup. It then uses the remove method
+        to remove the project from the projects array field of all the matching ProjectManager instances. This will
+        automatically update the projects array of all the affected ProjectManager instances in the database.
+    """
+    for followed_project in FollowedProjects.objects.filter(projectid__contains=instance.identifier):
+        followed_project.delete()
