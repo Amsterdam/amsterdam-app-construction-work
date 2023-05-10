@@ -102,10 +102,9 @@ def articles(request):
 
     # Get hostname for this server
     hostname = request.get_host()
-    port = request.get_port()
-    base_url = f'https://{hostname}/api/v1/image?id='
-    if port != 443:
-        base_url = f'http://{hostname}/api/v1/image?id='
+    base_url = f'http://{hostname}/api/v1/image?id='
+    if request.META.get('HTTP_X_FORWARDED_PROTO', None):
+        base_url = f'https://{hostname}/api/v1/image?id='
 
     result = Sort().list_of_dicts(result, key=sort_by, sort_order=sort_order)
     for item in result:
