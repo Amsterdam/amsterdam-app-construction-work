@@ -25,7 +25,9 @@ class GarbageCollector:
             report_news = self.garbage_collect_iprox(news, model=News, model_name='News')
 
             project_details = list(ProjectDetails.objects.filter(project_type=project_type).all())
-            report_project_details = self.garbage_collect_iprox(project_details, model=ProjectDetails)
+            report_project_details = self.garbage_collect_iprox(project_details,
+                                                                model=ProjectDetails,
+                                                                model_name='ProjectDetails')
 
             projects = list(Projects.objects.filter(project_type=project_type).all())
             report_projects = self.garbage_collect_iprox(projects, model=Projects, model_name='Projects')
@@ -47,7 +49,10 @@ class GarbageCollector:
             elif data_object.last_seen >= self.last_scrape_time:
                 data = {'active': True}
                 model.objects.filter(pk=data_object.identifier).update(**data)
-                report[data_object.identifier] = 'activated'
+                if model_name == 'ProjectDetails':
+                    report[data_object.identifier_id] = 'activated'
+                else:
+                    report[data_object.identifier] = 'activated'
 
             # If we haven't seen the object in last scrape, assume it's deleted from iprox and mark inactive
             elif data_object.last_seen < self.last_scrape_time:
@@ -57,6 +62,10 @@ class GarbageCollector:
                                          project_identifier=data_object.project_identifier).update(**data)
                 else:
                     model.objects.filter(pk=data_object.identifier).update(**data)
-                report[data_object.identifier] = 'deactivated'
+
+                if model_name == 'ProjectDetails':
+                    report[data_object.identifier_id] = 'deactivated'
+                else:
+                    report[data_object.identifier] = 'deactivated'
 
         return report

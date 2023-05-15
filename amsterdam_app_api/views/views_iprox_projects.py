@@ -150,6 +150,7 @@ def projects(request):
 
         # Get distance
         if lat is not None and lon is not None:
+            # TODO: Double check if this still works!!!
             _project_details = list(ProjectDetails.objects.values('identifier', 'coordinates').all())
             coordinates = {x['identifier']: (x['coordinates']['lat'], x['coordinates']['lon'])
                            for x in _project_details}
