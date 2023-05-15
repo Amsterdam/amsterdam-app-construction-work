@@ -8,6 +8,18 @@ from amsterdam_app_api.api_messages import Messages
 
 message = Messages()
 
+images = openapi.Schema(type=openapi.TYPE_ARRAY, items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+    'type': openapi.Schema(type=openapi.TYPE_STRING, description='image type'),
+    'sources': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+        '<int>px': openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+            'url': openapi.Schema(type=openapi.TYPE_STRING, description='url'),
+            'size': openapi.Schema(type=openapi.TYPE_STRING, description='size'),
+            'filename': openapi.Schema(type=openapi.TYPE_STRING, description='filename'),
+            'image_id': openapi.Schema(type=openapi.TYPE_STRING, description='image id'),
+            'description': openapi.Schema(type=openapi.TYPE_STRING, description='description'),
+        })
+    })
+}))
 
 as_project_manager_get = {
     # /api/v1/project/news swagger_auto_schema
@@ -24,11 +36,17 @@ as_project_manager_get = {
                                             type=openapi.TYPE_STRING,
                                             format='<id>',
                                             required=False)
-                        ],
+                          ],
     'responses': {
         200: openapi.Response('application/json',
-                              ProjectManagerSerializer,
-                              examples={'application/json': {'status': True, 'result': []}})
+                              openapi.Schema(type=openapi.TYPE_ARRAY,
+                                             items=openapi.Schema(type=openapi.TYPE_OBJECT, properties={
+                                                 'identifier': openapi.Schema(type=openapi.TYPE_STRING, description='identifier'),
+                                                 'images': images,
+                                                 'subtitle': openapi.Schema(type=openapi.TYPE_STRING, description='subtitle'),
+                                                 'title': openapi.Schema(type=openapi.TYPE_STRING, description='title'),
+                                             })),
+                              examples={'application/json': {'status': True, 'result': {}}})
     },
     'tags': ['Projects']
 }
