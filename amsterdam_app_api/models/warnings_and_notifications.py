@@ -94,8 +94,8 @@ class Notification(models.Model):
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=1000, unique=False)
     body = models.CharField(max_length=1000, unique=False)
-    project_identifier = models.OneToOneField(Projects,  default='', on_delete=models.CASCADE, unique=False,
-                                              db_index=True, db_column='project_identifier')
+    project_identifier = models.ForeignKey(Projects,  default='', on_delete=models.CASCADE, unique=False,
+                                           db_index=True, db_column='project_identifier')
     news_identifier = models.CharField(null=True, max_length=100, unique=False)
     warning_identifier = models.UUIDField(null=True, unique=False)
     publication_date = models.DateTimeField(auto_now_add=True, blank=True)

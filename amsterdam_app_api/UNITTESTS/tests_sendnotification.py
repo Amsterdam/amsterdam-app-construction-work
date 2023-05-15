@@ -7,6 +7,7 @@ from django.test import TestCase
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
 from amsterdam_app_api.UNITTESTS.mock_functions import firebase_admin_messaging_send_multicast
 from amsterdam_app_api.PushNotifications.SendNotification import SendNotification
+from amsterdam_app_api.models import Projects
 from amsterdam_app_api.models import Notification
 from amsterdam_app_api.models import News
 from amsterdam_app_api.models import WarningMessages
@@ -30,16 +31,23 @@ class TestSendNotification(TestCase):
 
     def setUp(self):
         """ Setup test db """
+        Projects.objects.all().delete()
+        for project in self.data.projects:
+            Projects.objects.create(**project)
+
         ProjectManager.objects.all().delete()
         for project_manager in self.data.project_manager:
             ProjectManager.objects.create(**project_manager)
 
+        self.data.news[0]['project_identifier'] = Projects.objects.filter(
+            pk=self.data.news[0]['project_identifier']
+        ).first()
         news = News.objects.create(**self.data.news[0])
         self.news_identifier = news.identifier
 
         warning_message_data1 = {
             'title': 'title',
-            'project_identifier': '0000000000',
+            'project_identifier': Projects.objects.filter(pk='0000000000').first(),
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'preface': 'short text', 'content': 'long text'},
             'images': []
@@ -47,7 +55,7 @@ class TestSendNotification(TestCase):
 
         warning_message_data2 = {
             'title': 'title',
-            'project_identifier': '0000000001',
+            'project_identifier': Projects.objects.filter(pk='0000000001').first(),
             'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             'body': {'preface': 'short text', 'content': 'long text'},
             'images': []
@@ -128,7 +136,7 @@ class TestSendNotification(TestCase):
             self.assertEqual(send_notification.subscribed_device_batches, None)
             self.assertEqual(send_notification.valid_notification, False)
             expected_result = [call("Caught error in SendNotification.set_notification(): "
-                                    "'NoneType' object has no attribute 'project_identifier'")]
+                                    "'NoneType' object has no attribute 'project_identifier_id'")]
             assert mocked_log.call_args_list == expected_result
 
         # reset environment

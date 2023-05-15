@@ -177,9 +177,9 @@ class TestApiProjectWarning(TestCase):
             "result": {
                 "identifier": str(warning_message.identifier),
                 "title": "title",
-                "body": 'Body text',
-                "project_identifier":"0000000000",
-                "images":[],
+                "body": "Body text",
+                "project_identifier": "0000000000",
+                "images": [],
                 "publication_date": str(warning_message.publication_date),
                 "modification_date": str(warning_message.modification_date),
                 "author_email":"mock0@amsterdam.nl"
