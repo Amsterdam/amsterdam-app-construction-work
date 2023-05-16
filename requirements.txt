@@ -20,7 +20,7 @@ pkcs7==0.1.0
 psycopg2-binary>=2.8
 pybase64
 pycryptodome
-pyheif
+pyheif==0.7.0
 requests
 whatimage
 wheel
