@@ -3,9 +3,6 @@ from datetime import timedelta
 from amsterdam_app_api.models import Projects
 from amsterdam_app_api.models import ProjectDetails
 from amsterdam_app_api.models import News
-from amsterdam_app_api.models import Notification
-from amsterdam_app_api.models import WarningMessages
-from amsterdam_app_api.models import ProjectManager
 
 
 class GarbageCollector:

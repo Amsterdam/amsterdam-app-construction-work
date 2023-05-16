@@ -125,7 +125,6 @@ def projects(request):
 
         projects_object = Projects.objects.filter(**query_filter).all()
 
-        fp = list(FollowedProjects.objects.all())
         # Get followers for projects
         following = [x['projectid']
                      for x in FollowedProjects.objects.filter(deviceid__iexact=deviceid).values('projectid')]
@@ -150,7 +149,6 @@ def projects(request):
 
         # Get distance
         if lat is not None and lon is not None:
-            # TODO: Double check if this still works!!!
             _project_details = list(ProjectDetails.objects.values('identifier', 'coordinates').all())
             coordinates = {x['identifier']: (x['coordinates']['lat'], x['coordinates']['lon'])
                            for x in _project_details}

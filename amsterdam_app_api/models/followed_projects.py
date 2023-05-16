@@ -2,9 +2,9 @@
 """
 
 from django.db import models
-from amsterdam_app_api.models.projects import Projects
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
+from amsterdam_app_api.models.projects import Projects
 
 
 class FollowedProjects(models.Model):
