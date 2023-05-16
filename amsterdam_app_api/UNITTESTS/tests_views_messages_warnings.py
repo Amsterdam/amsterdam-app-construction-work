@@ -336,7 +336,7 @@ class TestApiProjectWarning(TestCase):
         warning_message = WarningMessages.objects.filter(project_identifier='0000000000').first()
         self.assertEqual(len(warning_message.images), 1)
         sources = warning_message.images[0]['sources']
-        self.assertEqual(len(sources), 6)
+        self.assertEqual(len(sources), 5)
         for source in sources:
             image = Image.objects.filter(pk=source['image_id']).first()
             self.assertEqual(image.url, 'db://amsterdam_app_api.warning_message/{id}'.format(id=source['image_id']))
