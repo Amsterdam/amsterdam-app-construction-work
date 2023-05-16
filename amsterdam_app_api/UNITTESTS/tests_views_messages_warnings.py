@@ -313,7 +313,7 @@ class TestApiProjectWarning(TestCase):
         self.assertDictEqual(result.data, {'status': True,
                                            'result': {'warning_identifier': str(warning_message.identifier)}})
 
-        path = '{cwd}/amsterdam_app_api/UNITTESTS/image_data/landscape.HEIC'.format(cwd=os.getcwd())
+        path = '{cwd}/amsterdam_app_api/UNITTESTS/image_data/portrait.jpg'.format(cwd=os.getcwd())
         base64_image_data = base64.b64encode(self.read_file(path)).decode('utf-8')
 
         image_data = {
