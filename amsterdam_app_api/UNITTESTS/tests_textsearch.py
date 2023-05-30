@@ -21,8 +21,11 @@ class SetUp:
         for project in self.data.projects:
             Projects.objects.create(**project)
 
-        for project in self.data.project_details:
-            ProjectDetails.objects.create(**project)
+        for project_detail in self.data.project_details:
+            project_detail['identifier'] = Projects.objects.filter(
+                pk=project_detail['identifier']
+            ).first()
+            ProjectDetails.objects.create(**project_detail)
 
 
 class TestTextSearch(TestCase):

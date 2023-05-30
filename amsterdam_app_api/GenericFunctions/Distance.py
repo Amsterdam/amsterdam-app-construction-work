@@ -38,5 +38,7 @@ class Distance:
             try:
                 self.meter = int(geopy.distance.geodesic(coords_1, coords_2).km * 1000)
                 self.strides = int(self.meter / 0.74)
+            except ValueError:
+                pass
             except Exception as error:
                 print(error, flush=True)

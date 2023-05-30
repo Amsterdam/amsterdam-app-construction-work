@@ -177,9 +177,9 @@ class TestApiProjectWarning(TestCase):
             "result": {
                 "identifier": str(warning_message.identifier),
                 "title": "title",
-                "body": 'Body text',
-                "project_identifier":"0000000000",
-                "images":[],
+                "body": "Body text",
+                "project_identifier": "0000000000",
+                "images": [],
                 "publication_date": str(warning_message.publication_date),
                 "modification_date": str(warning_message.modification_date),
                 "author_email":"mock0@amsterdam.nl"
@@ -313,7 +313,7 @@ class TestApiProjectWarning(TestCase):
         self.assertDictEqual(result.data, {'status': True,
                                            'result': {'warning_identifier': str(warning_message.identifier)}})
 
-        path = '{cwd}/amsterdam_app_api/UNITTESTS/image_data/landscape.HEIC'.format(cwd=os.getcwd())
+        path = '{cwd}/amsterdam_app_api/UNITTESTS/image_data/portrait.jpg'.format(cwd=os.getcwd())
         base64_image_data = base64.b64encode(self.read_file(path)).decode('utf-8')
 
         image_data = {
@@ -336,7 +336,7 @@ class TestApiProjectWarning(TestCase):
         warning_message = WarningMessages.objects.filter(project_identifier='0000000000').first()
         self.assertEqual(len(warning_message.images), 1)
         sources = warning_message.images[0]['sources']
-        self.assertEqual(len(sources), 6)
+        self.assertEqual(len(sources), 5)
         for source in sources:
             image = Image.objects.filter(pk=source['image_id']).first()
             self.assertEqual(image.url, 'db://amsterdam_app_api.warning_message/{id}'.format(id=source['image_id']))

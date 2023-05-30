@@ -17,16 +17,18 @@ class SetUp:
     def __init__(self):
         self.data = TestData()
         self.identifiers = []
+
+        Projects.objects.all().delete()
+        for project in self.data.projects:
+            Projects.objects.create(**project)
+
         for news in self.data.news:
+            news['project_identifier'] = Projects.objects.filter(pk=news['project_identifier']).first()
             news_item = News.objects.create(**news)
             news_item.save()
             self.identifiers.append(news_item.identifier)
 
         WarningMessages.objects.all().delete()
-
-        Projects.objects.all().delete()
-        for project in self.data.projects:
-            Projects.objects.create(**project)
 
         ProjectManager.objects.all().delete()
         for project_manager in self.data.project_manager:

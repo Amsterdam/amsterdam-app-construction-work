@@ -149,7 +149,7 @@ def projects(request):
 
         # Get distance
         if lat is not None and lon is not None:
-            _project_details = ProjectDetails.objects.values('identifier', 'coordinates').all()
+            _project_details = list(ProjectDetails.objects.values('identifier', 'coordinates').all())
             coordinates = {x['identifier']: (x['coordinates']['lat'], x['coordinates']['lon'])
                            for x in _project_details}
             for i in range(len(serializer.data) - 1, -1, -1):

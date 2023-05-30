@@ -149,8 +149,13 @@ class TestApiImage(TestCase):
 
     def test_project_valid(self):
         """ test valid project """
+        test_data = TestData()
+        Projects.objects.all().delete()
+        for project in test_data.projects:
+            Projects.objects.create(**project)
+
         data = {
-            "identifier": "acf4d3879bbba27bf66fedb792549163",
+            "identifier": "0000000000",
             "project_type": "kade",
             "body": {
                 "what": [{"html": "<div>mock</div>", "text": "mock", "title": "mock"}],
@@ -176,7 +181,7 @@ class TestApiImage(TestCase):
                     }
                 }
             }],
-            "news": [{"url": "https://mock", "identifier": "mock", "project_identifier": "00000000"}],
+            "news": [{"url": "https://mock", "identifier": "mock", "project_identifier": "0000000000"}],
             "page_id": 957308,
             "title": "mock",
             "subtitle": "mock",
@@ -215,7 +220,8 @@ class TestApiImage(TestCase):
                                   content_type='application/json')
         db_objects = list(ProjectDetails.objects.all())
 
-        self.assertEqual(result.status_code, 500)
+        self.assertEqual(result.status_code, 404)
+        self.assertDictEqual(result.data, {'status': False, 'result': messages.no_record_found})
         self.assertEqual(len(db_objects), 0)
 
     def test_projects_get(self):
@@ -303,6 +309,10 @@ class TestApiImage(TestCase):
     def test_news_valid(self):
         """ test ingesting valid news """
         test_data = TestData()
+
+        Projects.objects.all().delete()
+        for project in test_data.projects:
+            Projects.objects.create(**project)
 
         result = self.client.post('/api/v1/ingest/news',
                                   data=test_data.news[0],

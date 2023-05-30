@@ -160,9 +160,16 @@ class TestProjectDetailsModel(TestCase):
 
     def setUp(self):
         """ UNITTESTS db setup """
+        Projects.objects.all().delete()
+        for project in self.data.projects:
+            Projects.objects.create(**project)
+
         ProjectDetails.objects.all().delete()
-        for project in self.data.project_details:
-            ProjectDetails.objects.create(**project)
+        for project_detail in self.data.project_details:
+            project_detail['identifier'] = Projects.objects.filter(
+                pk=project_detail['identifier']
+            ).first()
+            ProjectDetails.objects.create(**project_detail)
 
     def test_projects_delete(self):
         """ test delete """
@@ -175,19 +182,20 @@ class TestProjectDetailsModel(TestCase):
     def test_project_details_get_all(self):
         """ test retrieve """
         project_objects = ProjectDetails.objects.all()
-        serializer = ProjectDetailsSerializer(project_objects, many=True)
-        for i in range(0, len(serializer.data), 1):
-            self.data.project_details[i]['last_seen'] = serializer.data[i]['last_seen']
+        data = ProjectDetailsSerializer(project_objects, many=True).data
+        for i in range(0, len(data), 1):
+            self.data.project_details[i]['last_seen'] = data[i]['last_seen']
+        self.data.project_details = ProjectDetailsSerializer(self.data.project_details, many=True).data
 
-        self.assertEqual(serializer.data, self.data.project_details)
+        self.assertEqual(data, self.data.project_details)
 
     def test_project_details_does_exist(self):
         """ test exist """
         project_objects = ProjectDetails.objects.filter(pk='0000000000').first()
-        serializer = ProjectDetailsSerializer(project_objects)
-        self.data.project_details[0]['last_seen'] = serializer.data['last_seen']
-
-        self.assertEqual(serializer.data, self.data.project_details[0])
+        data = ProjectDetailsSerializer(project_objects, many=False).data
+        self.data.project_details[0]['last_seen'] = data['last_seen']
+        original_data = ProjectDetailsSerializer(self.data.project_details[0], many=False).data
+        self.assertEqual(data, original_data)
 
     def test_project_details_does_not_exist(self):
         """ test not exist """
@@ -204,8 +212,13 @@ class TestNewsModel(TestCase):
 
     def setUp(self):
         """ UNITTESTS db setup """
+        Projects.objects.all().delete()
+        for project in self.data.projects:
+            Projects.objects.create(**project)
+
         News.objects.all().delete()
         for news in self.data.news:
+            news['project_identifier'] = Projects.objects.filter(pk=news['project_identifier']).first()
             News.objects.create(**news)
 
     def test_news_delete(self):
@@ -335,6 +348,10 @@ class TestWarningMessagesModel(TestCase):
 
     def setUp(self):
         """ Setup test db """
+        Projects.objects.all().delete()
+        for project in self.data.projects:
+            Projects.objects.create(**project)
+
         WarningMessages.objects.all().delete()
         ProjectManager.objects.all().delete()
         for project_manager in self.data.project_manager:
@@ -342,6 +359,9 @@ class TestWarningMessagesModel(TestCase):
 
     def test_create_message(self):
         """ Test create warning message """
+        self.data.warning_message['project_identifier'] = Projects.objects.filter(
+            pk=self.data.warning_message['project_identifier']
+        ).first()
         warning_message = WarningMessages.objects.create(**self.data.warning_message)
 
         self.assertEqual(type(warning_message.identifier), type(uuid.uuid4()))
@@ -353,12 +373,18 @@ class TestWarningMessagesModel(TestCase):
         """ Test default email on creation """
         data = dict(self.data.warning_message)
         data['project_manager_id'] = uuid.uuid4()
+        data['project_identifier'] = Projects.objects.filter(
+            pk=data['project_identifier']
+        ).first()
         warning_message = WarningMessages.objects.create(**data)
 
         self.assertEqual(warning_message.author_email, 'redactieprojecten@amsterdam.nl')
 
     def test_modification_date(self):
         """ test modification date on changing a message """
+        self.data.warning_message['project_identifier'] = Projects.objects.filter(
+            pk=self.data.warning_message['project_identifier']
+        ).first()
         warning_message = WarningMessages.objects.create(**self.data.warning_message)
         date = warning_message.modification_date
         warning_message.save()
@@ -368,6 +394,9 @@ class TestWarningMessagesModel(TestCase):
     def test_serializer_internal(self):
         """ Purpose: test if project_manager_id is present in serializer
         """
+        self.data.warning_message['project_identifier'] = Projects.objects.filter(
+            pk=self.data.warning_message['project_identifier']
+        ).first()
         warning_message = WarningMessages.objects.create(**self.data.warning_message)
         serializer = WarningMessagesInternalSerializer(warning_message, many=False)
         data = dict(serializer.data)
@@ -388,6 +417,9 @@ class TestWarningMessagesModel(TestCase):
     def test_serializer_external(self):
         """ Purpose: test if project_manager_id is NOT present in serializer
         """
+        self.data.warning_message['project_identifier'] = Projects.objects.filter(
+            pk=self.data.warning_message['project_identifier']
+        ).first()
         warning_message = WarningMessages.objects.create(**self.data.warning_message)
         serializer = WarningMessagesExternalSerializer(warning_message, many=False)
         data = dict(serializer.data)
@@ -414,7 +446,14 @@ class TestNotificationModel(TestCase):
 
     def setUp(self):
         """ Setup test db """
+        Projects.objects.all().delete()
+        for project in self.data.projects:
+            Projects.objects.create(**project)
+
         WarningMessages.objects.all().delete()
+        self.data.warning_message['project_identifier'] = Projects.objects.filter(
+            pk=self.data.warning_message['project_identifier']
+        ).first()
         warning_message = WarningMessages.objects.create(**self.data.warning_message)
         self.warning_identifier = warning_message.identifier
 
@@ -423,8 +462,9 @@ class TestNotificationModel(TestCase):
         data = {'title': 'test', 'body': 'test', 'warning_identifier': self.warning_identifier}
         notification = Notification.objects.create(**data)
         notification.save()
+        data = NewsSerializer(notification, many=False).data
 
-        self.assertEqual(notification.project_identifier, '0000000000')
+        self.assertEqual(data['project_identifier'], '0000000000')
 
     def test_serializer(self):
         """ Test the serializer for notification messages """

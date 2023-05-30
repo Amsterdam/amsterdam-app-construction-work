@@ -45,7 +45,7 @@ class SendNotification:
         """ Set notification object """
         try:
             notification = Notification.objects.filter(pk=self.identifier).first()
-            self.project_identifier = notification.project_identifier
+            self.project_identifier = notification.project_identifier_id
             if notification.news_identifier != '' and notification.news_identifier is not None:
                 self.article_type = 'NewsUpdatedByProjectManager'
                 self.link_source_id = notification.news_identifier

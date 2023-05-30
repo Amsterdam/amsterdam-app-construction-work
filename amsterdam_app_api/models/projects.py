@@ -85,8 +85,8 @@ class Projects(models.Model):
     project_type = models.CharField(max_length=40, blank=False, default='')
     district_id = models.IntegerField(default=-1)
     district_name = models.CharField(max_length=1000, blank=True, default='')
-    title = models.CharField(max_length=1000, blank=True, default='')
-    subtitle = models.CharField(max_length=1000, null=True)
+    title = models.CharField(max_length=1000, blank=True, default='', db_index=True)
+    subtitle = models.CharField(max_length=1000, null=True, db_index=True)
     content_html = models.TextField()
     content_text = models.TextField()
     images = models.JSONField(null=True, default=list)
@@ -95,7 +95,7 @@ class Projects(models.Model):
     modification_date = models.CharField(max_length=40, blank=False)
     source_url = models.CharField(max_length=1000, blank=True, default='')
     last_seen = models.DateTimeField(null=True, blank=True)
-    active = models.BooleanField(default=True, blank=True)
+    active = models.BooleanField(default=True, blank=True, db_index=True)
 
     class Meta:
         ordering = ['title']
@@ -106,8 +106,17 @@ class Projects(models.Model):
 
 
 class ProjectDetails(models.Model):
-    """ ProjectsDetails db model """
-    identifier = models.CharField(max_length=100, blank=False, unique=True, primary_key=True)
+    """ ProjectsDetails db model
+
+        Note on 'identifier': (fields.W342) Setting unique=True on a ForeignKey has the same effect as using a
+        OneToOneField. ForeignKey(unique=True) is usually better served by a OneToOneField.
+
+        Note on 'on_delete=Models.CASCADE' When the referenced object is deleted, also delete the objects that have
+        references to it (when you remove a Project for instance, you might want to delete ProjectDetails as well). SQL
+        equivalent: CASCADE.
+    """
+    identifier = models.OneToOneField(Projects, on_delete=models.CASCADE, unique=True, primary_key=True,
+                                      db_column='identifier')
     project_type = models.CharField(max_length=100, default='', blank=False, unique=False)
     body = models.JSONField(null=True, default=list)
     coordinates = models.JSONField(null=True, default=dict)
@@ -116,12 +125,12 @@ class ProjectDetails(models.Model):
     images = models.JSONField(null=True, default=list)
     news = models.JSONField(null=True, default=list)
     page_id = models.IntegerField(default=-1)
-    title = models.CharField(max_length=1000, blank=True, default='')
-    subtitle = models.CharField(max_length=1000, null=True)
+    title = models.CharField(max_length=1000, blank=True, default='', db_index=True)
+    subtitle = models.CharField(max_length=1000, null=True, db_index=True)
     rel_url = models.CharField(max_length=1000, blank=True, default='')
     url = models.CharField(max_length=1000, blank=True, default='')
     last_seen = models.DateTimeField(null=True, blank=True)
-    active = models.BooleanField(default=True, blank=True)
+    active = models.BooleanField(default=True, blank=True, db_index=True)
     contacts = models.JSONField(null=True, default=list)
 
     class Meta:

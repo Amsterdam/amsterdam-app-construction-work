@@ -93,13 +93,18 @@ def project(request):
     try:
         data = dict(request.data)
         # New record or update existing
-        project_details_object = ProjectDetails.objects.filter(identifier=data.get('identifier')).first()
+        _project = Projects.objects.filter(pk=data.get('identifier')).first()
+        if _project is None:
+            return Response({'status': False, 'result': message.no_record_found}, status=404)
+
+        project_details_object = ProjectDetails.objects.filter(identifier=_project).first()
+        data['identifier'] = _project
         if project_details_object is None:
             project_details_object = ProjectDetails(**data)  # Update last scrape time is done implicitly
             project_details_object.save()
         else:
             data['last_seen'] = datetime.now()  # Update last scrape time
-            ProjectDetails.objects.filter(pk=data.get('identifier')).update(**data)
+            ProjectDetails.objects.filter(pk=_project).update(**data)
         return Response({'status': True, 'result': True}, status=200)
     except Exception as error:
         if created is True:
@@ -163,9 +168,11 @@ def news(request):
     try:
         data = dict(request.data)
         data['active'] = True
+        _project = Projects.objects.filter(pk=data.get('project_identifier')).first()
         news_item_object = News.objects.filter(identifier=data.get('identifier'),
-                                               project_identifier=data.get('project_identifier')).first()
+                                               project_identifier=_project).first()
         if news_item_object is None:
+            data['project_identifier'] = _project
             news_item_object = News(**data)  # Update last scrape time is done implicitly
             news_item_object.save()
             return Response({'status': True, 'result': 'News item saved'}, status=200)
@@ -173,7 +180,7 @@ def news(request):
         # Else...
         data['last_seen'] = datetime.now()  # Update last scrape time
         News.objects.filter(identifier=data.get('identifier'),
-                            project_identifier=data.get('project_identifier')).update(**data)
+                            project_identifier=_project).update(**data)
         return Response({'status': True, 'result': 'News item updated'}, status=200)
     except Exception as error:
         logger = Logger()

@@ -106,7 +106,7 @@ def warning_message_get(request):
     if warning_messages_object is None:
         return {'result': {'status': False, 'result': messages.no_record_found}, 'status_code': 404}
 
-    project = Projects.objects.filter(pk=warning_messages_object.project_identifier).first()
+    project = Projects.objects.filter(pk=warning_messages_object.project_identifier_id).first()
     if project.active is True:
         serializer = WarningMessagesExternalSerializer(warning_messages_object, many=False)
         return {'result': {'status': True, 'result': serializer.data}, 'status_code': 200}
@@ -165,7 +165,7 @@ def warning_message_post(request):
 
     message_object = WarningMessages(title=title,
                                      body=body,
-                                     project_identifier=project_identifier,
+                                     project_identifier=Projects.objects.filter(pk=project_identifier).first(),
                                      project_manager_id=project_manager_id,
                                      images=[])
     message_object.save()
