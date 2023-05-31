@@ -3,8 +3,9 @@
 """
 
 from drf_yasg import openapi
-from amsterdam_app_api.serializers import ProjectManagerSerializer
+
 from amsterdam_app_api.api_messages import Messages
+from amsterdam_app_api.serializers import ProjectManagerSerializer
 from amsterdam_app_api.swagger.swagger_abstract_objects import images
 
 message = Messages()
@@ -41,12 +42,27 @@ as_project_manager_get = {
                         "identifier": openapi.Schema(
                             type=openapi.TYPE_STRING, description="identifier"
                         ),
-                        "images": images,
-                        "subtitle": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="subtitle"
+                        "email": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="email"
                         ),
-                        "title": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="title"
+                        "projects": openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            items=openapi.Schema(
+                                type=openapi.TYPE_OBJECT,
+                                properties={
+                                    "identifier": openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description="identifier",
+                                    ),
+                                    "images": images,
+                                    "subtitle": openapi.Schema(
+                                        type=openapi.TYPE_STRING, description="subtitle"
+                                    ),
+                                    "title": openapi.Schema(
+                                        type=openapi.TYPE_STRING, description="title"
+                                    ),
+                                },
+                            ),
                         ),
                     },
                 ),
