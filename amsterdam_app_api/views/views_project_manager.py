@@ -52,7 +52,8 @@ def get(request):
     for identifier in data['projects']:
         project = Projects.objects.filter(pk=identifier, active=True).first()
         if project is not None:
-            active_projects.append(identifier)
+            active_projects.append({"identifier": identifier, "images": project.images,
+                                   "subtitle": project.subtitle, "title": project.title})
     data['projects'] = active_projects
     return {'result': {'status': True, 'result': [data]}, 'status': 200}
 
