@@ -5,33 +5,9 @@
 from drf_yasg import openapi
 from amsterdam_app_api.serializers import ProjectManagerSerializer
 from amsterdam_app_api.api_messages import Messages
+from amsterdam_app_api.swagger.swagger_abstract_objects import images
 
 message = Messages()
-
-images = openapi.Schema(
-    type=openapi.TYPE_ARRAY,
-    items=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties={
-            "type": openapi.Schema(type=openapi.TYPE_STRING, description="image type"),
-            "sources": openapi.Schema(
-                type=openapi.TYPE_OBJECT,
-                properties={
-                    "<int>px": openapi.Schema(
-                        type=openapi.TYPE_OBJECT,
-                        properties={
-                            "url": openapi.Schema(type=openapi.TYPE_STRING, description="url"),
-                            "size": openapi.Schema(type=openapi.TYPE_STRING, description="size"),
-                            "filename": openapi.Schema(type=openapi.TYPE_STRING, description="filename"),
-                            "image_id": openapi.Schema(type=openapi.TYPE_STRING, description="image id"),
-                            "description": openapi.Schema(type=openapi.TYPE_STRING, description="description"),
-                        },
-                    )
-                },
-            ),
-        },
-    ),
-)
 
 as_project_manager_get = {
     # /api/v1/project/news swagger_auto_schema
@@ -62,10 +38,16 @@ as_project_manager_get = {
                 items=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        "identifier": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
+                        "identifier": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="identifier"
+                        ),
                         "images": images,
-                        "subtitle": openapi.Schema(type=openapi.TYPE_STRING, description="subtitle"),
-                        "title": openapi.Schema(type=openapi.TYPE_STRING, description="title"),
+                        "subtitle": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="subtitle"
+                        ),
+                        "title": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="title"
+                        ),
                     },
                 ),
             ),
@@ -98,10 +80,19 @@ as_project_manager_delete = {
     ],
     "responses": {
         200: openapi.Response(
-            "application/json", examples={"application/json": {"status": True, "result": "Project manager removed"}}
+            "application/json",
+            examples={
+                "application/json": {
+                    "status": True,
+                    "result": "Project manager removed",
+                }
+            },
         ),
         422: openapi.Response(
-            "application/json", examples={"application/json": {"status": False, "result": message.invalid_query}}
+            "application/json",
+            examples={
+                "application/json": {"status": False, "result": message.invalid_query}
+            },
         ),
     },
     "tags": ["Projects"],
@@ -123,13 +114,25 @@ as_project_manager_post_patch = {
     "request_body": ProjectManagerSerializer,
     "responses": {
         200: openapi.Response(
-            "application/json", examples={"application/json": {"status": True, "result": "Project manager updated"}}
+            "application/json",
+            examples={
+                "application/json": {
+                    "status": True,
+                    "result": "Project manager updated",
+                }
+            },
         ),
         404: openapi.Response(
-            "application/json", examples={"application/json": {"status": False, "result": message.no_record_found}}
+            "application/json",
+            examples={
+                "application/json": {"status": False, "result": message.no_record_found}
+            },
         ),
         422: openapi.Response(
-            "application/json", examples={"application/json": {"status": False, "result": message.invalid_query}}
+            "application/json",
+            examples={
+                "application/json": {"status": False, "result": message.invalid_query}
+            },
         ),
     },
     "tags": ["Projects"],
