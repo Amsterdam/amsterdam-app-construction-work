@@ -60,12 +60,45 @@ class TestApiProjectManager(TestCase):
             **self.headers
         )
 
-        expected_result = {
-            "identifier": '00"000"00003',
-            "images": self.project_images,
-            "subtitle": "subtitle",
-            "title": "title",
-        }
+        expected_result = [
+            {
+                "identifier": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                "email": "mock0@amsterdam.nl",
+                "projects": [
+                    {
+                        "identifier": "0000000000",
+                        "images": [
+                            {
+                                "type": "banner",
+                                "sources": {
+                                    "orig": {
+                                        "url": "https://localhost/image.jpg",
+                                        "size": "orig",
+                                        "filename": "image.jpg",
+                                        "image_id": "0000000000",
+                                        "description": "",
+                                    }
+                                },
+                            },
+                            {
+                                "type": "additional",
+                                "sources": {
+                                    "orig": {
+                                        "url": "https://localhost/image.jpg",
+                                        "size": "orig",
+                                        "filename": "image.jpg",
+                                        "image_id": "0000000001",
+                                        "description": "",
+                                    }
+                                },
+                            },
+                        ],
+                        "subtitle": "subtitle",
+                        "title": "title",
+                    }
+                ],
+            }
+        ]
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(response.data, {"status": True, "result": expected_result})
 
