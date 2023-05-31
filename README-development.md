@@ -3,6 +3,9 @@
 ### Pull sources from repository 
     git clone git@ssh.dev.azure.com:v3/CloudCompetenceCenter/Amsterdam-App/Amsterdam-App-Backend
 
+### Install development requirements
+    pip install -r requirements-devtools.txt
+
 ### Create container on m1 arch for amd64
     
     docker buildx build --platform=linux/amd64 . -t registry-ams.luscinia-solutions.com/backend-api:tst-latest
