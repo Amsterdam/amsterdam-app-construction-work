@@ -10,6 +10,7 @@ from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.GenericFunctions.ImageConversion import ImageConversion
 from amsterdam_app_api.GenericFunctions.IsAuthorized import IsAuthorized
 from amsterdam_app_api.GenericFunctions.Sort import Sort
+from amsterdam_app_api.GenericFunctions.StaticData import StaticData
 from amsterdam_app_api.models import Image, News, Notification, ProjectManager, Projects, WarningMessages
 from amsterdam_app_api.PushNotifications.SendNotification import SendNotification
 from amsterdam_app_api.serializers import NotificationSerializer, WarningMessagesExternalSerializer
@@ -111,10 +112,7 @@ def warning_message_get(request):
         }
 
     # Get hostname for this server
-    hostname = request.get_host()
-    base_url = f"http://{hostname}/api/v1/image?id="
-    if request.META.get("HTTP_X_FORWARDED_PROTO", None):
-        base_url = f"https://{hostname}/api/v1/image?id="
+    base_url = StaticData.base_url(request)
 
     project = Projects.objects.filter(pk=warning_messages_object.project_identifier_id).first()
     if project.active is True:
@@ -123,7 +121,7 @@ def warning_message_get(request):
             for j in range(0, len(project_data["images"][i]["sources"])):
                 if "url" not in project_data["images"][i]["sources"][j]:
                     image_id = project_data["images"][i]["sources"][j]["image_id"]
-                    project_data["images"][i]["sources"][j]["url"] = f"{base_url}{image_id}"
+                    project_data["images"][i]["sources"][j]["url"] = f"{base_url}image?id={image_id}"
         return {
             "result": {"status": True, "result": project_data},
             "status_code": 200,
