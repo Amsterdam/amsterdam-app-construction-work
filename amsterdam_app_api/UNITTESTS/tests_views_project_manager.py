@@ -55,8 +55,8 @@ class TestApiProjectManager(TestCase):
         """Get a single project manager that does not exist"""
         c = Client()
         response = c.get(
-            "{url}?id=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab".format(url=self.url),
-            **self.headers
+            f"{self.url}?id=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab",
+            **self.headers,
         )
 
         self.assertEqual(response.status_code, 404)
@@ -68,8 +68,8 @@ class TestApiProjectManager(TestCase):
         """Get a single project manager"""
         c = Client()
         response = c.get(
-            "{url}?id=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa".format(url=self.url),
-            **self.headers
+            f"{self.url}?id=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            **self.headers,
         )
 
         expected_result = [
@@ -122,8 +122,8 @@ class TestApiProjectManager(TestCase):
 
         c = Client()
         response = c.get(
-            "{url}?id=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa".format(url=self.url),
-            **self.headers
+            f"{self.url}?id=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            **self.headers,
         )
 
         self.assertEqual(response.status_code, 200)
@@ -155,8 +155,8 @@ class TestApiProjectManager(TestCase):
         """Delete a project manager"""
         c = Client()
         response = c.delete(
-            "{url}?id=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa".format(url=self.url),
-            **self.headers
+            f"{self.url}?id=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            **self.headers,
         )
 
         self.assertEqual(response.status_code, 200)
