@@ -231,12 +231,18 @@ export default {
         axios({
           methods: 'GET',
           url: '/projects',
+          params: {
+            fields: 'identifier,title',
+            page_size: 10000,
+            page: 1
+          },
           headers: {deviceid: '00000000-0000-0000-0000-000000000000'}}).then(response => {
           let titles = {}
           for (let i = 0; i < response.data.result.length; i++) {
             titles[response.data.result[i].identifier] = response.data.result[i].title
           }
           for (let i = 0; i < warningResponse.length; i++) {
+            warningResponse[i]['body'] = JSON.parse(warningResponse[i]['body'].replace(/'/g, '"'))
             warningResponse[i]['project_title'] = titles[warningResponse[i]['project_identifier']]
             warningResponse[i]['date'] = warningResponse[i]['modification_date'].split('T')[0]
           }
