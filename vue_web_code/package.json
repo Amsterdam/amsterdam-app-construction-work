@@ -5,7 +5,7 @@
   "scripts": {
     "serve": "npm run build && vue-cli-service serve",
     "build": "vue-cli-service build && npm run copy",
-    "build_dev": "vue-cli-service build --mode development",
+    "build_dev": "vue-cli-service build --mode development && npm run copy",
     "lint": "vue-cli-service lint",
     "copy": "cp -r dist ../static"
   },

@@ -92,19 +92,14 @@
               <div class="media-content">
                 <div class="content">
                   <p>
-                    <span style="color: darkgray">{{ props.row.project_title }}</span>
+                    <strong>Titel</strong>
                     <br>
-                    <strong>{{ props.row.title }}</strong>
-                  </p>
-                  <p>
-                    <strong>Inleiding</strong>
-                    <br>
-                    {{ props.row.body.preface }}
+                    {{ props.row.title }}
                   </p>
                   <p>
                     <strong>Bericht tekst</strong>
                     <br>
-                    {{ props.row.body.content }}
+                    {{ props.row.body }}
                   </p>
                 </div>
               </div>
@@ -139,27 +134,13 @@
         class="align-left margin-less">
         <span
           style="font-weight: 600; color: darkgray">
-          Inleiding
-        </span>
-      </div>
-      <b-field class="align-left">
-        <b-input
-          v-model="preface"
-          maxlength="4000"
-          type="textarea"/>
-      </b-field>
-
-      <div
-        class="align-left margin-less">
-        <span
-          style="font-weight: 600; color: darkgray">
           Bericht tekst
         </span>
       </div>
       <b-field class="align-left">
         <b-input
-          v-model="content"
-          maxlength="4000"
+          v-model="body"
+          maxlength="500"
           type="textarea"/>
       </b-field>
 
@@ -192,8 +173,7 @@ export default {
       selected: warnings[0],
       selectedIdentifier: 0,
       title: '',
-      preface: '',
-      content: '',
+      body: '',
       identifier: '',
       showDetailIcon: true,
       useTransition: true,
@@ -242,7 +222,6 @@ export default {
             titles[response.data.result[i].identifier] = response.data.result[i].title
           }
           for (let i = 0; i < warningResponse.length; i++) {
-            warningResponse[i]['body'] = JSON.parse(warningResponse[i]['body'].replace(/'/g, '"'))
             warningResponse[i]['project_title'] = titles[warningResponse[i]['project_identifier']]
             warningResponse[i]['date'] = warningResponse[i]['modification_date'].split('T')[0]
           }
@@ -264,8 +243,7 @@ export default {
     },
     editor: function () {
       this.title = this.selected.title
-      this.preface = this.selected.body.preface
-      this.content = this.selected.body.content
+      this.body = this.selected.body
       this.identifier = this.selectedIdentifier
       this.edit = true
     },
@@ -310,10 +288,7 @@ export default {
       let payload = {
         identifier: this.identifier,
         title: this.title,
-        body: {
-          preface: this.preface,
-          content: this.content
-        }
+        body: this.body
       }
       axios.patch('/project/warning', payload).then(response => {
         this.$buefy.toast.open('Wijzigingen zijn opgeslagen')

@@ -145,7 +145,7 @@ def warning_message_patch(request):
             "status_code": 422,
         }
 
-    if not isinstance(body, dict):
+    if not isinstance(body, str):
         return {
             "result": {"status": False, "result": messages.invalid_query},
             "status_code": 422,
