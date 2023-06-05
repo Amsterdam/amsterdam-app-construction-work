@@ -1,11 +1,10 @@
 """ UNITTESTS """
 from django.contrib.auth import get_user_model
-from django.test import Client
-from django.test import TestCase
-from amsterdam_app_api.models import ProjectManager
-from amsterdam_app_api.models import Projects
-from amsterdam_app_api.UNITTESTS.mock_data import TestData
+from django.test import Client, TestCase
+
 from amsterdam_app_api.api_messages import Messages
+from amsterdam_app_api.models import ProjectManager, Projects
+from amsterdam_app_api.UNITTESTS.mock_data import TestData
 
 messages = Messages()
 
@@ -50,6 +49,19 @@ class TestApiProjectManager(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(
             response.data, {"status": True, "result": self.data.project_manager}
+        )
+
+    def test_get_single_project_manager_not_exist(self):
+        """Get a single project manager that does not exist"""
+        c = Client()
+        response = c.get(
+            "{url}?id=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab".format(url=self.url),
+            **self.headers
+        )
+
+        self.assertEqual(response.status_code, 404)
+        self.assertDictEqual(
+            response.data, {"status": False, "result": messages.no_record_found}
         )
 
     def test_get_single_project_managers(self):

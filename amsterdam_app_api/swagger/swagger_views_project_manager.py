@@ -68,7 +68,13 @@ as_project_manager_get = {
                 ),
             ),
             examples={"application/json": {"status": True, "result": {}}},
-        )
+        ),
+        404: openapi.Response(
+            "application/json",
+            examples={
+                "application/json": {"status": False, "result": message.no_record_found}
+            },
+        ),
     },
     "tags": ["Projects"],
 }
