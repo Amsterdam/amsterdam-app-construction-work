@@ -8,8 +8,13 @@
 
 ### Create container on m1 arch for amd64
     
-    docker buildx build --platform=linux/amd64 . -t registry-ams.luscinia-solutions.com/backend-api:tst-latest
-    docker buildx build --platform=linux/amd64 . -t registry-ams.luscinia-solutions.com/backend-api:prd-latest
+    docker buildx build --platform=linux/amd64 . -t registry-ams.app-amsterdam.nl/backend-api:tst-latest
+    docker buildx build --platform=linux/amd64 . -t registry-ams.app-amsterdam.nl/backend-api:prd-latest
+
+### Push container to registry
+
+    docker push registry-ams.app-amsterdam.nl/backend-api:tst-latest
+    docker push registry-ams.app-amsterdam.nl/backend-api:prd-latest
 
 ### Run pylinter
 
