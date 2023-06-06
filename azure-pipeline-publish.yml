@@ -45,6 +45,6 @@ jobs:
     steps:
       - template: ./pipelines/templates/push-repo-to-github.yml
         parameters:
-          repository: "construction-work"
+          repository: "amsterdam-app-construction-work"
           sshKeySecureFile: "Construction-Work-github-ssh"
           sshPublicKey: $(sshPublicKeyConstructionWork)
