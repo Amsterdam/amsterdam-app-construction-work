@@ -14,8 +14,8 @@ services:
       - "${POSTGRESS_PORT:-5432}:5432" 
     restart: always
 
-  # BACKEND_API (api/web)
-  api-server:
+  # construction-work (api/web)
+  construction-work:
     image: ${TAG}
     command: bash /code/init.sh
     environment:

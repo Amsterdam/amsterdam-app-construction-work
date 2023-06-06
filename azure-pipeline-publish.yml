@@ -15,7 +15,7 @@ jobs:
     variables:
       RegistryName: saks01weuacrpgpgo5qvmwo
       RepositoryName: aapp/images
-      ImageName: amsterdam-app-backend
+      ImageName: construction-work
       ImageVersion: 0.0.1
 
     steps:
@@ -45,6 +45,6 @@ jobs:
     steps:
       - template: ./pipelines/templates/push-repo-to-github.yml
         parameters:
-          repository: "amsterdam-app-backend"
+          repository: "amsterdam-app-construction-work"
           sshKeySecureFile: "Construction-Work-github-ssh"
           sshPublicKey: $(sshPublicKeyConstructionWork)
