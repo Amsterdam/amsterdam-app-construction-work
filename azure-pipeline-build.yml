@@ -6,7 +6,7 @@ pool:
 variables:
 - group: Python Django Variables
 - name: imageName
-  value: amsterdam-app-backend
+  value: construction-work
 - name: tag
   value: $(imageName)-unittest
 - name: unittestPassed

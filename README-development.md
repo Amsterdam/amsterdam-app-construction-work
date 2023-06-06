@@ -1,19 +1,19 @@
 # Setup your python development environment
 
 ### Pull sources from repository 
-    git clone git@ssh.dev.azure.com:v3/CloudCompetenceCenter/Amsterdam-App/Amsterdam-App-Backend
+    git clone git@ssh.dev.azure.com:v3/CloudCompetenceCenter/Amsterdam-App/construction-work
 
 ### Install development requirements
     pip install -r requirements-devtools.txt
 
 ### Create container on m1 arch for amd64
     
-    docker buildx build --platform=linux/amd64 . -t registry-ams.luscinia-solutions.com/backend-api:tst-latest
-    docker buildx build --platform=linux/amd64 . -t registry-ams.luscinia-solutions.com/backend-api:prd-latest
+    docker buildx build --platform=linux/amd64 . -t registry-ams.app-amsterdam.nl/construction-work:tst-latest
+    docker buildx build --platform=linux/amd64 . -t registry-ams.app-amsterdam.nl/construction-work:prd-latest
 
 ### Run pylinter
 
-    pylint $(find . -name '*.py' | grep -v -e venv -e migrations -e kladblok)
+    pylint $(find . -name '*.py' | grep -v -e venv -e migrations -e ... -e ...)
 
 ### Branches
 The _main_ branch is the current stable release where the _main_ branch (made from _main_) is the upcoming

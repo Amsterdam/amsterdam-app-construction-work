@@ -15,7 +15,7 @@ services:
     restart: always
 
   # PYTHON/DJANGO BACKEND SERVER
-  api-server:
+  construction-work:
     build: .
     command: bash /code/init.sh
     environment:
