@@ -18,7 +18,6 @@ from django.http.response import HttpResponse, HttpResponseForbidden
 from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError
 
 from amsterdam_app_api.GenericFunctions.AESCipher import AESCipher
-from amsterdam_app_api.models import ProjectManager
 from amsterdam_app_backend.settings import SECRET_KEY
 
 
