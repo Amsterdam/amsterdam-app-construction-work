@@ -7,7 +7,11 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from amsterdam_app_api.api_messages import Messages
-from amsterdam_app_api.GenericFunctions.IsAuthorized import IsAuthorized
+from amsterdam_app_api.GenericFunctions.IsAuthorized import (
+    IsAuthorized,
+    get_jwtauthorization,
+    is_valid_JWT_token,
+)
 from amsterdam_app_api.models import ProjectManager, Projects
 from amsterdam_app_api.serializers import ProjectManagerSerializer
 from amsterdam_app_api.swagger.swagger_views_project_manager import (
@@ -43,9 +47,18 @@ def get(request):
     """Get one or all project managers from database"""
     identifier = request.GET.get("id", None)
     if identifier is None:
-        project_manager_objects = ProjectManager.objects.all()
-        serializer = ProjectManagerSerializer(project_manager_objects, many=True)
-        return {"result": {"status": True, "result": serializer.data}, "status": 200}
+        jwt_token = get_jwtauthorization(request)
+        if is_valid_JWT_token(jwt_encrypted_token=jwt_token):
+            project_manager_objects = ProjectManager.objects.all()
+            serializer = ProjectManagerSerializer(project_manager_objects, many=True)
+            return {
+                "result": {"status": True, "result": serializer.data},
+                "status": 200,
+            }
+        return {
+            "result": {"status": True, "result": messages.access_denied},
+            "status": 403,
+        }
 
     if not ProjectManager.objects.filter(pk=identifier).exists():
         return {
