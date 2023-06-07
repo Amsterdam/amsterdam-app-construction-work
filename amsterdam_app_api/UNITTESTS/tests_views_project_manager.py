@@ -1,10 +1,13 @@
 """ UNITTESTS """
+from uuid import uuid4
+
 from django.contrib.auth import get_user_model
-from django.test import Client, TestCase
+from django.test import Client, RequestFactory, TestCase
 
 from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.models import ProjectManager, Projects
 from amsterdam_app_api.UNITTESTS.mock_data import TestData
+from amsterdam_app_api.views.views_project_manager import get as get_project_manager
 
 messages = Messages()
 
@@ -41,6 +44,8 @@ class TestApiProjectManager(TestCase):
         for project in self.data.projects:
             Projects.objects.create(**project)
 
+        self.factory = RequestFactory()
+
     def test_get_all_project_managers(self):
         """Get all project managers"""
         c = Client()
@@ -54,8 +59,9 @@ class TestApiProjectManager(TestCase):
     def test_get_single_project_manager_not_exist(self):
         """Get a single project manager that does not exist"""
         c = Client()
+        mock_uuid = str(uuid4())
         response = c.get(
-            f"{self.url}?id=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaab",
+            f"{self.url}?id={mock_uuid}",
             **self.headers,
         )
 
@@ -243,3 +249,15 @@ class TestApiProjectManager(TestCase):
         self.assertDictEqual(
             response.data, {"status": True, "result": "Project manager updated"}
         )
+
+    def test_invalid_token(self):
+        """Test with a invalid JWT token"""
+
+        headers = {"Accept": "application/json", "Authorization": "invalid"}
+        request = self.factory.post("/", headers=headers)
+        result = get_project_manager(request)
+        expected_result = {
+            "result": {"status": True, "result": messages.access_denied},
+            "status": 403,
+        }
+        self.assertDictEqual(result, expected_result)
