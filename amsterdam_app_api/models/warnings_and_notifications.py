@@ -46,28 +46,39 @@
 
 import datetime
 import uuid
-from django.db import models
+
 from django.contrib.postgres.fields import ArrayField
+from django.db import models
+
 from amsterdam_app_api.models.projects import Projects
-from .project_managers import ProjectManager
+
 from .news import News
+from .project_managers import ProjectManager
 
 
 class WarningMessages(models.Model):
-    """ Warning messages db model
+    """Warning messages db model
 
-        Note on 'project_identifier': (fields.W342) Setting unique=True on a ForeignKey has the same effect as using a
-        OneToOneField. ForeignKey(unique=True) is usually better served by a OneToOneField.
+    Note on 'project_identifier': (fields.W342) Setting unique=True on a ForeignKey has the same effect as using a
+    OneToOneField. ForeignKey(unique=True) is usually better served by a OneToOneField.
 
-        Note on 'on_delete=Models.CASCADE' When the referenced object is deleted, also delete the objects that have
-        references to it (when you remove a Project for instance, you might want to delete ProjectDetails as well). SQL
-        equivalent: CASCADE.
+    Note on 'on_delete=Models.CASCADE' When the referenced object is deleted, also delete the objects that have
+    references to it (when you remove a Project for instance, you might want to delete ProjectDetails as well). SQL
+    equivalent: CASCADE.
     """
+
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=1000, unique=False, db_index=True)
     body = models.CharField(max_length=1000, unique=False)
-    project_identifier = models.OneToOneField(Projects, blank=False, default='', on_delete=models.CASCADE, unique=False,
-                                              db_index=True, db_column='project_identifier')
+    project_identifier = models.OneToOneField(
+        Projects,
+        blank=False,
+        default="",
+        on_delete=models.CASCADE,
+        unique=False,
+        db_index=True,
+        db_column="project_identifier",
+    )
     project_manager_id = models.CharField(max_length=100, blank=False, unique=False)
     images = ArrayField(models.JSONField(null=True, default=dict), blank=False)
     publication_date = models.DateTimeField(auto_now_add=True, blank=True)
@@ -76,26 +87,28 @@ class WarningMessages(models.Model):
 
     def save(self, *args, **kwargs):
         project_manager = ProjectManager.objects.filter(pk=self.project_manager_id).first()
-        self.author_email = project_manager.email if project_manager is not None else 'redactieprojecten@amsterdam.nl'
+        self.author_email = project_manager.email if project_manager is not None else "redactieprojecten@amsterdam.nl"
         self.modification_date = datetime.datetime.now()
         super(WarningMessages, self).save(*args, **kwargs)
 
 
 class Notification(models.Model):
-    """ Notifications db model
+    """Notifications db model
 
-        Note on 'project_identifier': (fields.W342) Setting unique=True on a ForeignKey has the same effect as using a
-        OneToOneField. ForeignKey(unique=True) is usually better served by a OneToOneField.
+    Note on 'project_identifier': (fields.W342) Setting unique=True on a ForeignKey has the same effect as using a
+    OneToOneField. ForeignKey(unique=True) is usually better served by a OneToOneField.
 
-        Note on 'on_delete=Models.CASCADE' When the referenced object is deleted, also delete the objects that have
-        references to it (when you remove a Project for instance, you might want to delete ProjectDetails as well). SQL
-        equivalent: CASCADE.
+    Note on 'on_delete=Models.CASCADE' When the referenced object is deleted, also delete the objects that have
+    references to it (when you remove a Project for instance, you might want to delete ProjectDetails as well). SQL
+    equivalent: CASCADE.
     """
+
     identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=1000, unique=False)
     body = models.CharField(max_length=1000, unique=False)
-    project_identifier = models.ForeignKey(Projects,  default='', on_delete=models.CASCADE, unique=False,
-                                           db_index=True, db_column='project_identifier')
+    project_identifier = models.ForeignKey(
+        Projects, default="", on_delete=models.CASCADE, unique=False, db_index=False, db_column="project_identifier"
+    )
     news_identifier = models.CharField(null=True, max_length=100, unique=False)
     warning_identifier = models.UUIDField(null=True, unique=False)
     publication_date = models.DateTimeField(auto_now_add=True, blank=True)
