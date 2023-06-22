@@ -3,6 +3,7 @@ coverage
 django
 django-cors-headers
 django_crontab
+django_earthdistance
 django-nose
 djangorestframework
 djangorestframework-simplejwt
@@ -14,6 +15,7 @@ firebase-admin
 geopy
 lorem
 markdown
+numpy
 pact-python
 Pillow
 pkcs7==0.1.0
