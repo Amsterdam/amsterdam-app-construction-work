@@ -117,7 +117,7 @@ def projects(request):
         lat = request.GET.get("lat", None)
         lon = request.GET.get("lon", None)
         address = request.GET.get("address", None)
-        articles_max_age = request.GET.get("articles_max_age", 3)  # Max days since publication date
+        articles_max_age = int(request.GET.get("articles_max_age", 3))  # Max days since publication date
 
         # Convert address into GPS data. Note: This should never happen, the device should already
         if address is not None:
