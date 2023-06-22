@@ -171,15 +171,25 @@ def projects(request):
 
         # Add articles to 'projects', sorted descending on publication_date
         for project in _projects:
-            project["recent_articles"] = sorted(
-                [
-                    {"identifier": article["identifier"], "publication_date": article["publication_date"]}
-                    for article in articles
-                    if article["project_identifier"] == project["identifier"]
-                ],
-                key=lambda x: x["publication_date"],
-                reverse=True,
-            )
+            try:
+                project["recent_articles"] = sorted(
+                    [
+                        {
+                            "identifier": article["identifier"],
+                            "publication_date": (
+                                datetime.strptime(article["publication_date"], "%Y-%m-%d")
+                                if isinstance(article["publication_date"], str)
+                                else article["publication_date"]
+                            ),
+                        }
+                        for article in articles
+                        if article["project_identifier"] == project["identifier"]
+                    ],
+                    key=lambda x: x["publication_date"],
+                    reverse=True,
+                )
+            except Exception as error:
+                print(error, flush=True)
 
         # Calculate distance from app-users-address to project (python based)
         # efficiency: ~0.08s for 304 projects
@@ -194,8 +204,10 @@ def projects(request):
         # Next: → Sort the followed projects by most recent articles, (data["follow"] can be an empty list)
         lambda_expression = (
             lambda x: x["recent_articles"][0]["publication_date"]
-            if "recent_articles" in x and len(x["recent_articles"]) > 0
-            else ""
+            if "recent_articles" in x
+            and len(x["recent_articles"]) > 0
+            and isinstance(x["recent_articles"][0]["publication_date"], datetime)
+            else datetime.min
         )
         if len(data["follow"]) != 0:
             data["follow"] = sorted(data["follow"], key=lambda_expression, reverse=True)
