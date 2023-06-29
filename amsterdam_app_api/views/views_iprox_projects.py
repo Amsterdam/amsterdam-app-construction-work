@@ -160,6 +160,9 @@ def projects(request):
             .all()
         )
 
+        for article in news_articles:
+            article["publication_date"] = datetime.strptime(article["publication_date"], "%Y-%m-%d")
+
         warning_articles = list(
             WarningMessages.objects.filter(publication_date__range=[start_date, end_date])
             .values("project_identifier", "identifier", "publication_date")
@@ -174,14 +177,7 @@ def projects(request):
             try:
                 project["recent_articles"] = sorted(
                     [
-                        {
-                            "identifier": article["identifier"],
-                            "publication_date": (
-                                datetime.strptime(article["publication_date"], "%Y-%m-%d")
-                                if isinstance(article["publication_date"], str)
-                                else article["publication_date"]
-                            ),
-                        }
+                        {"identifier": article["identifier"], "publication_date": article["publication_date"]}
                         for article in articles
                         if article["project_identifier"] == project["identifier"]
                     ],
@@ -204,9 +200,8 @@ def projects(request):
         # Next: → Sort the followed projects by most recent articles, (data["follow"] can be an empty list)
         lambda_expression = (
             lambda x: x["recent_articles"][0]["publication_date"]
-            if "recent_articles" in x
-            and len(x["recent_articles"]) > 0
-            and isinstance(x["recent_articles"][0]["publication_date"], datetime)
+            if "recent_articles" in x and len(x["recent_articles"]) > 0
+            # and isinstance(x["recent_articles"][0]["publication_date"], datetime)
             else datetime.min
         )
         if len(data["follow"]) != 0:
