@@ -25,11 +25,12 @@
 import geopy.distance
 
 
-class Distance:
-    """ Calculate distance between two gps coordinates """
+class GeoPyDistance:
+    """Calculate distance between two gps coordinates"""
+
     def __init__(self, coords_1, coords_2):
-        """ :param coords_1: tuple(52.2296756, 21.0122287)
-            :param coords_2: tuple(52.406374, 16.9251681)
+        """:param coords_1: tuple(52.2296756, 21.0122287)
+        :param coords_2: tuple(52.406374, 16.9251681)
         """
         self.meter = None
         self.strides = None
