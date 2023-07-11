@@ -26,3 +26,4 @@ pyheif
 requests
 whatimage
 wheel
+uwsgi

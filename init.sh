@@ -12,7 +12,7 @@
 function is_db_alive {
   state=0
   printf "checking for database"
-  while ! nc -q 1 ${POSTGRES_HOST} 5432 </dev/null 1> /dev/null 2> /dev/null; do
+  while ! nc -q 1 ${POSTGRES_HOST} ${POSTGRES_PORT} </dev/null 1> /dev/null 2> /dev/null; do
     case $state in
       0) printf "\rchecking for database: -";;
       1) printf "\rchecking for database: \\";;
@@ -54,16 +54,19 @@ function create_user {
 }
 
 function start_backend {
-    printf "\nStarting Django API server\n\n"
-    DEFAULT_API_PORT=8000
-    API_PORT="${API_PORT:=${DEFAULT_API_PORT}}"
-    cd /code && python manage.py runserver 0.0.0.0:${API_PORT}
+    printf "\nStarting Django API server (uwsgi)\n\n"
+    cd /code && uwsgi --ini uwsgi.ini
+}
+
+function start_nginx {
+    printf "\nStarting Nginx server\n\n"
+    cd /code && nginx -g "daemon off;" &
 }
 
 function enter_infinity_loop {
   if [ -z ${UNITTEST} ]; then
     while true; do
-      # Touch /code/DEBUG, kill python process and run python manage.py [...] manually for debugging...
+      # Touch /code/DEBUG, kill uwsgi processes and run python manage.py [...] manually for debugging...
       if [[ ! -f "/code/DEBUG" ]]
       then
         start_backend;
@@ -82,4 +85,5 @@ set_header
 make_migrations
 create_user
 add_static_files
+start_nginx
 enter_infinity_loop
