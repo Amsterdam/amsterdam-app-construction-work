@@ -7,7 +7,7 @@ from amsterdam_app_api.api_messages import Messages
 from amsterdam_app_api.GenericFunctions.SetFilter import SetFilter
 from amsterdam_app_api.GenericFunctions.Sort import Sort
 from amsterdam_app_api.GenericFunctions.StaticData import StaticData
-from amsterdam_app_api.models import News, WarningMessages
+from amsterdam_app_api.models import Article, WarningMessages
 from amsterdam_app_api.serializers import NewsSerializer, WarningMessagesExternalSerializer
 from amsterdam_app_api.swagger.swagger_views_iprox_news import as_articles_get, as_news, as_news_by_project_id
 
@@ -28,7 +28,7 @@ def news_by_project_id(request):
     query_filter = SetFilter(project_identifier=project_identifier, active=True).get()
 
     # Return filtered result or all projects
-    news_objects = News.objects.filter(**query_filter).all()
+    news_objects = Article.objects.filter(**query_filter).all()
 
     serializer = NewsSerializer(news_objects, many=True)
     result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
@@ -45,7 +45,7 @@ def news(request):
     if identifier is None:
         return Response({"status": False, "result": message.invalid_query}, status=422)
 
-    news_object = News.objects.filter(identifier=identifier, active=True).first()
+    news_object = Article.objects.filter(identifier=identifier, active=True).first()
     if news_object is None:
         return Response({"status": False, "result": message.no_record_found}, status=404)
 
@@ -89,7 +89,7 @@ def articles(request):
     if query_params is not None:
         project_identifiers = query_params.split(",")
         for project_identifier in project_identifiers:
-            news_objects = list(News.objects.filter(project_identifier=project_identifier, active=True).all())
+            news_objects = list(Article.objects.filter(project_identifier=project_identifier, active=True).all())
             for news_object in news_objects:
                 result += filtering([NewsSerializer(news_object, many=False).data], "news")
 
@@ -97,7 +97,7 @@ def articles(request):
             for warning_object in warning_objects:
                 result += filtering([WarningMessagesExternalSerializer(warning_object, many=False).data], "warning")
     else:
-        news_objects = News.objects.all()
+        news_objects = Article.objects.all()
         news_serializer = NewsSerializer(news_objects, many=True)
         warning_objects = WarningMessages.objects.all()
         warning_serializer = WarningMessagesExternalSerializer(warning_objects, many=True)

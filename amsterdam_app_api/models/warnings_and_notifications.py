@@ -52,7 +52,7 @@ from django.db import models
 
 from amsterdam_app_api.models.projects import Projects
 
-from .news import News
+from .article import Article
 from .project_managers import ProjectManager
 
 
@@ -117,7 +117,7 @@ class Notification(models.Model):
         if self.warning_identifier is not None:
             message = WarningMessages.objects.filter(pk=self.warning_identifier).first()
         else:
-            message = News.objects.filter(identifier=self.news_identifier).first()
+            message = Article.objects.filter(identifier=self.news_identifier).first()
 
         if message is not None:
             self.project_identifier = message.project_identifier
