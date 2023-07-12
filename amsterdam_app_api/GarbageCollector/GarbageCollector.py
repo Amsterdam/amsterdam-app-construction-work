@@ -1,7 +1,7 @@
 """ Iprox garbage collector """
 from datetime import timedelta
 
-from amsterdam_app_api.models import News, ProjectDetails, Projects
+from amsterdam_app_api.models import Article, ProjectDetails, Projects
 
 
 class GarbageCollector:
@@ -18,8 +18,8 @@ class GarbageCollector:
 
         # If there's no path, projects might be de-activated un-rightfully
         if project_type is not None:
-            news = list(News.objects.filter(project_type=project_type).all())
-            report_news = self.garbage_collect_iprox(news, model=News, model_name="News")
+            news = list(Article.objects.filter(project_type=project_type).all())
+            report_news = self.garbage_collect_iprox(news, model=Article, model_name="News")
 
             project_details = list(ProjectDetails.objects.filter(project_type=project_type).all())
             report_project_details = self.garbage_collect_iprox(

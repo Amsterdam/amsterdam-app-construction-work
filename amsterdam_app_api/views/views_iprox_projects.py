@@ -19,15 +19,11 @@ from amsterdam_app_api.GenericFunctions.Memoize import Memoize
 from amsterdam_app_api.GenericFunctions.RequestMustComeFromApp import RequestMustComeFromApp
 from amsterdam_app_api.GenericFunctions.StaticData import StaticData
 from amsterdam_app_api.GenericFunctions.TextSearch import TextSearch
-from amsterdam_app_api.models import FollowedProjects, News, ProjectDetails, Projects, WarningMessages
+from amsterdam_app_api.models import Article, FollowedProjects, ProjectDetails, Projects, WarningMessages
 from amsterdam_app_api.serializers import NewsSerializer, ProjectDetailsSerializer, WarningMessagesExternalSerializer
-from amsterdam_app_api.swagger.swagger_views_iprox_projects import (
-    as_project_details,
-    as_projects,
-    as_projects_follow_delete,
-    as_projects_follow_post,
-    as_projects_followed_articles,
-)
+from amsterdam_app_api.swagger.swagger_views_iprox_projects import (as_project_details, as_projects,
+                                                                    as_projects_follow_delete, as_projects_follow_post,
+                                                                    as_projects_followed_articles)
 from amsterdam_app_api.swagger.swagger_views_search import as_search
 
 message = Messages()
@@ -154,7 +150,7 @@ def projects(request):
         start_date_str = start_date.strftime("%Y-%m-%d")
 
         news_articles = list(
-            News.objects.filter(publication_date__gte=start_date_str)
+            Article.objects.filter(publication_date__gte=start_date_str)
             .values("project_identifier", "identifier", "publication_date")
             .order_by("publication_date")
             .all()
@@ -306,7 +302,7 @@ def project_details(request):
         start_date = datetime.now() - timedelta(days=articles_max_age)
         end_date = datetime.now()
         start_date_str = start_date.strftime("%Y-%m-%d")
-        news_articles_all = list(News.objects.filter(project_identifier=identifier, active=True).all())
+        news_articles_all = list(Article.objects.filter(project_identifier=identifier, active=True).all())
         serializer_news = NewsSerializer(news_articles_all, many=True)
         news_articles = [x["identifier"] for x in serializer_news.data if x["publication_date"] >= start_date_str]
         warning_articles = list(
@@ -376,7 +372,7 @@ def projects_followed_articles(request):
         start_date = datetime.now() - timedelta(days=article_max_age)
         end_date = datetime.now()
         start_date_str = start_date.strftime("%Y-%m-%d")
-        news_articles_all = list(News.objects.filter(project_identifier=identifier).all())
+        news_articles_all = list(Article.objects.filter(project_identifier=identifier).all())
         serializer_news = NewsSerializer(news_articles_all, many=True)
         news_articles = [x["identifier"] for x in serializer_news.data if x["publication_date"] >= start_date_str]
         warning_articles = list(
