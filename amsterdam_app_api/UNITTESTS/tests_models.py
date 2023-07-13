@@ -15,9 +15,9 @@ from amsterdam_app_api.models import (
     WarningMessages,
 )
 from amsterdam_app_api.serializers import (
+    ArticleSerializer,
     AssetsSerializer,
     ImageSerializer,
-    NewsSerializer,
     Notification,
     ProjectDetailsSerializer,
     ProjectManagerSerializer,
@@ -226,7 +226,7 @@ class TestNewsModel(TestCase):
             Projects.objects.create(**project)
 
         Article.objects.all().delete()
-        for news in self.data.news:
+        for news in self.data.article:
             news["project_identifier"] = Projects.objects.filter(pk=news["project_identifier"]).first()
             Article.objects.create(**news)
 
@@ -234,24 +234,24 @@ class TestNewsModel(TestCase):
         """test delete"""
         Article.objects.get(identifier="0000000000", project_identifier="0000000000").delete()
         news_objects = Article.objects.all()
-        serializer = NewsSerializer(news_objects, many=True)
+        serializer = ArticleSerializer(news_objects, many=True)
 
         self.assertEqual(len(serializer.data), 1)
 
     def test_news_get_all(self):
         """test retrieve"""
         news_objects = Article.objects.all()
-        serializer = NewsSerializer(news_objects, many=True)
+        serializer = ArticleSerializer(news_objects, many=True)
 
         self.assertEqual(len(serializer.data), 2)
 
     def test_news_exists(self):
         """test exist"""
         news_object = Article.objects.get(identifier="0000000000", project_identifier="0000000000")
-        serializer = NewsSerializer(news_object)
-        self.data.news[0]["last_seen"] = serializer.data["last_seen"]
+        serializer = ArticleSerializer(news_object)
+        self.data.article[0]["last_seen"] = serializer.data["last_seen"]
 
-        self.assertEqual(self.data.news[0]["active"], True)
+        self.assertEqual(self.data.article[0]["active"], True)
 
     def test_news_does_not_exist(self):
         """test not exist"""
@@ -473,7 +473,7 @@ class TestNotificationModel(TestCase):
         data = {"title": "test", "body": "test", "warning_identifier": self.warning_identifier}
         notification = Notification.objects.create(**data)
         notification.save()
-        data = NewsSerializer(notification, many=False).data
+        data = ArticleSerializer(notification, many=False).data
 
         self.assertEqual(data["project_identifier"], "0000000000")
 
@@ -481,7 +481,7 @@ class TestNotificationModel(TestCase):
         """Test the serializer for notification messages"""
         data = {"title": "test", "body": "test", "warning_identifier": self.warning_identifier}
         notification = Notification.objects.create(**data)
-        serializer = NewsSerializer(notification, many=False)
+        serializer = ArticleSerializer(notification, many=False)
         serializer_data = dict(serializer.data)
 
         expected_result = {

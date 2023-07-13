@@ -44,10 +44,10 @@ class TestSendNotification(TestCase):
         for project_manager in self.data.project_manager:
             ProjectManager.objects.create(**project_manager)
 
-        self.data.news[0]["project_identifier"] = Projects.objects.filter(
-            pk=self.data.news[0]["project_identifier"]
+        self.data.article[0]["project_identifier"] = Projects.objects.filter(
+            pk=self.data.article[0]["project_identifier"]
         ).first()
-        news = Article.objects.create(**self.data.news[0])
+        news = Article.objects.create(**self.data.article[0])
         self.news_identifier = news.identifier
 
         warning_message_data1 = {

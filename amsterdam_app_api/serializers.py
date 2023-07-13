@@ -51,7 +51,7 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class NewsSerializer(serializers.ModelSerializer):
+class ArticleSerializer(serializers.ModelSerializer):
     """Project news serializer"""
 
     class Meta:

@@ -4,7 +4,7 @@
 
 from drf_yasg import openapi
 
-from amsterdam_app_api.serializers import NewsSerializer
+from amsterdam_app_api.serializers import ArticleSerializer
 from amsterdam_app_api.views.views_messages import Messages
 
 messages = Messages()
@@ -42,7 +42,7 @@ as_news_by_project_id = {
     "responses": {
         200: openapi.Response(
             "application/json",
-            NewsSerializer,
+            ArticleSerializer,
             examples={"application/json": {"status": True, "result": []}},
         ),
         405: openapi.Response("Error: Method not allowed"),
@@ -51,14 +51,14 @@ as_news_by_project_id = {
     "tags": ["Projects"],
 }
 
-as_news = {
+as_article = {
     # /api/v1/project/news swagger_auto_schema
     "methods": ["GET"],
     "manual_parameters": [
         openapi.Parameter(
             "id",
             openapi.IN_QUERY,
-            "Query by news identifier",
+            "Query by news- or work-article identifier",
             type=openapi.TYPE_STRING,
             format="<identifier>",
             required=True,
@@ -67,7 +67,7 @@ as_news = {
     "responses": {
         200: openapi.Response(
             "application/json",
-            NewsSerializer,
+            ArticleSerializer,
             examples={"application/json": {"status": True, "result": []}},
         ),
         404: openapi.Response("Error: No record found"),
@@ -123,21 +123,11 @@ as_articles_get = {
                 items=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        "identifier": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="identifier"
-                        ),
-                        "title": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="title"
-                        ),
-                        "publication_date": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="year-month-day"
-                        ),
-                        "type": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="<news|warning>>"
-                        ),
-                        "image": openapi.Schema(
-                            type=openapi.TYPE_OBJECT, properties={}
-                        ),
+                        "identifier": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
+                        "title": openapi.Schema(type=openapi.TYPE_STRING, description="title"),
+                        "publication_date": openapi.Schema(type=openapi.TYPE_STRING, description="year-month-day"),
+                        "type": openapi.Schema(type=openapi.TYPE_STRING, description="<news|work|warning>"),
+                        "image": openapi.Schema(type=openapi.TYPE_OBJECT, properties={}),
                     },
                 ),
             ),

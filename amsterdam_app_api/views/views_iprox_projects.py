@@ -20,10 +20,14 @@ from amsterdam_app_api.GenericFunctions.RequestMustComeFromApp import RequestMus
 from amsterdam_app_api.GenericFunctions.StaticData import StaticData
 from amsterdam_app_api.GenericFunctions.TextSearch import TextSearch
 from amsterdam_app_api.models import Article, FollowedProjects, ProjectDetails, Projects, WarningMessages
-from amsterdam_app_api.serializers import NewsSerializer, ProjectDetailsSerializer, WarningMessagesExternalSerializer
-from amsterdam_app_api.swagger.swagger_views_iprox_projects import (as_project_details, as_projects,
-                                                                    as_projects_follow_delete, as_projects_follow_post,
-                                                                    as_projects_followed_articles)
+from amsterdam_app_api.serializers import ArticleSerializer, ProjectDetailsSerializer, WarningMessagesExternalSerializer
+from amsterdam_app_api.swagger.swagger_views_iprox_projects import (
+    as_project_details,
+    as_projects,
+    as_projects_follow_delete,
+    as_projects_follow_post,
+    as_projects_followed_articles,
+)
 from amsterdam_app_api.swagger.swagger_views_search import as_search
 
 message = Messages()
@@ -303,7 +307,7 @@ def project_details(request):
         end_date = datetime.now()
         start_date_str = start_date.strftime("%Y-%m-%d")
         news_articles_all = list(Article.objects.filter(project_identifier=identifier, active=True).all())
-        serializer_news = NewsSerializer(news_articles_all, many=True)
+        serializer_news = ArticleSerializer(news_articles_all, many=True)
         news_articles = [x["identifier"] for x in serializer_news.data if x["publication_date"] >= start_date_str]
         warning_articles = list(
             WarningMessages.objects.filter(
@@ -373,7 +377,7 @@ def projects_followed_articles(request):
         end_date = datetime.now()
         start_date_str = start_date.strftime("%Y-%m-%d")
         news_articles_all = list(Article.objects.filter(project_identifier=identifier).all())
-        serializer_news = NewsSerializer(news_articles_all, many=True)
+        serializer_news = ArticleSerializer(news_articles_all, many=True)
         news_articles = [x["identifier"] for x in serializer_news.data if x["publication_date"] >= start_date_str]
         warning_articles = list(
             WarningMessages.objects.filter(
