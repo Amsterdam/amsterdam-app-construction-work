@@ -306,22 +306,22 @@ class TestApiImage(TestCase):
             Projects.objects.create(**project)
 
         result = self.client.post(
-            "/api/v1/ingest/news", data=test_data.news[0], headers=self.header, content_type="application/json"
+            "/api/v1/ingest/article", data=test_data.article[0], headers=self.header, content_type="application/json"
         )
         news_objects = list(Article.objects.all())
 
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(result.data, {"status": True, "result": "News item saved"})
+        self.assertEqual(result.data, {"status": True, "result": "work item saved"})
         self.assertEqual(len(news_objects), 1)
 
         # Update existing record
         result = self.client.post(
-            "/api/v1/ingest/news", data=test_data.news[0], headers=self.header, content_type="application/json"
+            "/api/v1/ingest/article", data=test_data.article[0], headers=self.header, content_type="application/json"
         )
         news_objects = list(Article.objects.all())
 
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(result.data, {"status": True, "result": "News item updated"})
+        self.assertEqual(result.data, {"status": True, "result": "work item updated"})
         self.assertEqual(len(news_objects), 1)
 
     def test_news_invalid(self):
@@ -329,7 +329,7 @@ class TestApiImage(TestCase):
         data = "bogus"
 
         result = self.client.post(
-            "/api/v1/ingest/news", data=data, headers=self.header, content_type="application/json"
+            "/api/v1/ingest/article", data=data, headers=self.header, content_type="application/json"
         )
         news_objects = list(Article.objects.all())
 

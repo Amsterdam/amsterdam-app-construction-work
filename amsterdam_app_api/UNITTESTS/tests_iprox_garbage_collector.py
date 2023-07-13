@@ -32,7 +32,7 @@ class TestGarbageCollector(TestCase):
                 print(error)
 
         Article.objects.all().delete()
-        for news in self.data.news:
+        for news in self.data.article:
             project = Projects.objects.filter(pk=news["project_identifier"]).first()
             news["project_identifier"] = project
             Article.objects.create(**news)

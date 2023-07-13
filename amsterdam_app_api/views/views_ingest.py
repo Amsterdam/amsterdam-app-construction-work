@@ -166,6 +166,7 @@ def article(request):
     try:
         data = dict(request.data)
         data["active"] = True
+        _type = data["type"]
         _project = Projects.objects.filter(pk=data.get("project_identifier")).first()
         news_item_object = Article.objects.filter(
             identifier=data.get("identifier"), project_identifier=_project
@@ -174,12 +175,12 @@ def article(request):
             data["project_identifier"] = _project
             news_item_object = Article(**data)  # Update last scrape time is done implicitly
             news_item_object.save()
-            return Response({"status": True, "result": "News item saved"}, status=200)
+            return Response({"status": True, "result": f"{_type} item saved"}, status=200)
 
         # Else...
         data["last_seen"] = datetime.now()  # Update last scrape time
         Article.objects.filter(identifier=data.get("identifier"), project_identifier=_project).update(**data)
-        return Response({"status": True, "result": "News item updated"}, status=200)
+        return Response({"status": True, "result": f"{_type} item updated"}, status=200)
     except Exception as error:
         logger = Logger()
         logger.error("ingest/news: {error}".format(error=error))

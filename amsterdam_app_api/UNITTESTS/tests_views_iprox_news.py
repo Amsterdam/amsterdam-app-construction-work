@@ -24,7 +24,7 @@ class SetUp:
         for project in self.data.projects:
             Projects.objects.create(**project)
 
-        for news in self.data.news:
+        for news in self.data.article:
             news["project_identifier"] = Projects.objects.filter(pk=news["project_identifier"]).first()
             news_item = Article.objects.create(**news)
             news_item.save()
@@ -110,9 +110,9 @@ class TestNews(TestCase):
         for i in range(0, len(self.setup.identifiers)):
             response = c.get("/api/v1/project/news?id={identifier}".format(identifier=self.setup.identifiers[i]))
             result = json.loads(response.content)
-            self.data.news[i]["last_seen"] = result["result"]["last_seen"]
+            self.data.article[i]["last_seen"] = result["result"]["last_seen"]
             self.assertEqual(response.status_code, 200)
-            self.assertDictEqual(result, {"status": True, "result": self.data.news[i]})
+            self.assertDictEqual(result, {"status": True, "result": self.data.article[i]})
 
     def test_invalid_query(self):
         """Test invalid news query"""
@@ -159,21 +159,21 @@ class TestNewsItemsByProjectId(TestCase):
         response = c.get("/api/v1/project/news_by_project_id")
         results = json.loads(response.content)
         for result in results["result"]:
-            for i in range(0, len(self.data.news), 1):
-                if result["identifier"] == self.data.news[i]["identifier"]:
-                    self.data.news[i]["last_seen"] = result["last_seen"]
+            for i in range(0, len(self.data.article), 1):
+                if result["identifier"] == self.data.article[i]["identifier"]:
+                    self.data.article[i]["last_seen"] = result["last_seen"]
 
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(results, {"status": True, "result": self.data.news[::-1]})
+        self.assertDictEqual(results, {"status": True, "result": self.data.article[::-1]})
 
     def test_get_news_by_project_identifier_exists(self):
         """Test get news by existing identifier"""
         c = Client()
         response = c.get("/api/v1/project/news_by_project_id", {"project-identifier": "0000000000"})
         result = json.loads(response.content)
-        self.data.news[0]["last_seen"] = result["result"][0]["last_seen"]
+        self.data.article[0]["last_seen"] = result["result"][0]["last_seen"]
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(result, {"status": True, "result": [self.data.news[0]]})
+        self.assertDictEqual(result, {"status": True, "result": [self.data.article[0]]})
 
     def test_get_news_sorted_by_publication_date_desc(self):
         """Get news and sort descending by publication date"""
@@ -181,12 +181,12 @@ class TestNewsItemsByProjectId(TestCase):
         response = c.get("/api/v1/project/news_by_project_id", {"sort-by": "publication_date"})
         results = json.loads(response.content)
         for result in results["result"]:
-            for i in range(0, len(self.data.news), 1):
-                if result["identifier"] == self.data.news[i]["identifier"]:
-                    self.data.news[i]["last_seen"] = result["last_seen"]
+            for i in range(0, len(self.data.article), 1):
+                if result["identifier"] == self.data.article[i]["identifier"]:
+                    self.data.article[i]["last_seen"] = result["last_seen"]
 
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(results, {"status": True, "result": self.data.news[::-1]})
+        self.assertDictEqual(results, {"status": True, "result": self.data.article[::-1]})
 
     def test_get_news_sorted_by_publication_date_asc(self):
         """Get news and sort ascending by publication date"""
@@ -194,12 +194,12 @@ class TestNewsItemsByProjectId(TestCase):
         response = c.get("/api/v1/project/news_by_project_id", {"sort-by": "publication_date", "sort-order": "asc"})
         results = json.loads(response.content)
         for result in results["result"]:
-            for i in range(0, len(self.data.news), 1):
-                if result["identifier"] == self.data.news[i]["identifier"]:
-                    self.data.news[i]["last_seen"] = result["last_seen"]
+            for i in range(0, len(self.data.article), 1):
+                if result["identifier"] == self.data.article[i]["identifier"]:
+                    self.data.article[i]["last_seen"] = result["last_seen"]
 
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(results, {"status": True, "result": self.data.news})
+        self.assertDictEqual(results, {"status": True, "result": self.data.article})
 
     def test_get_news_by_project_identifier_does_not_exists(self):
         """Get news with invalid identifier"""

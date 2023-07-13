@@ -36,6 +36,7 @@ class Article(models.Model):
     assets = models.JSONField(null=True, default=list)
     last_seen = models.DateTimeField(null=True, blank=True)
     active = models.BooleanField(default=True, blank=True)
+    type = models.CharField(max_length=30, default="news", blank=False)  # news or work
 
     class Meta:
         constraints = [
