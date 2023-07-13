@@ -11,7 +11,7 @@ from amsterdam_app_api.GenericFunctions.ImageConversion import ImageConversion
 from amsterdam_app_api.GenericFunctions.IsAuthorized import IsAuthorized
 from amsterdam_app_api.GenericFunctions.Sort import Sort
 from amsterdam_app_api.GenericFunctions.StaticData import StaticData
-from amsterdam_app_api.models import Image, News, Notification, ProjectManager, Projects, WarningMessages
+from amsterdam_app_api.models import Article, Image, Notification, ProjectManager, Projects, WarningMessages
 from amsterdam_app_api.PushNotifications.SendNotification import SendNotification
 from amsterdam_app_api.serializers import NotificationSerializer, WarningMessagesExternalSerializer
 from amsterdam_app_api.swagger.swagger_views_messages import (
@@ -254,7 +254,7 @@ def notification_post(request):
     if news_identifier is None and warning_identifier is None:
         return Response({"status": False, "result": messages.invalid_query}, status=422)
 
-    if news_identifier is not None and News.objects.filter(identifier=news_identifier).first() is None:
+    if news_identifier is not None and Article.objects.filter(identifier=news_identifier).first() is None:
         return Response({"status": False, "result": messages.no_record_found}, status=404)
 
     if warning_identifier is not None and WarningMessages.objects.filter(pk=warning_identifier).first() is None:

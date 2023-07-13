@@ -4,21 +4,22 @@ import datetime
 
 
 class TestData:
-    """ Unittest test data """
+    """Unittest test data"""
+
     def __init__(self):
         self.assets = [
             {
                 "identifier": "0000000000",
                 "url": "https://localhost/test0.pdf",
                 "mime_type": "application/pdf",
-                "data": b""
+                "data": b"",
             },
             {
                 "identifier": "0000000001",
                 "url": "https://localhost/test1.pdf",
                 "mime_type": "application/pdf",
-                "data": b""
-            }
+                "data": b"",
+            },
         ]
 
         self.images = [
@@ -29,7 +30,7 @@ class TestData:
                 "filename": "image.jpg",
                 "description": "",
                 "mime_type": "image/jpg",
-                "data": b""
+                "data": b"",
             },
             {
                 "identifier": "0000000001",
@@ -38,8 +39,8 @@ class TestData:
                 "filename": "image.jpg",
                 "description": "",
                 "mime_type": "image/jpg",
-                "data": b""
-            }
+                "data": b"",
+            },
         ]
 
         self.project_images = [
@@ -51,9 +52,9 @@ class TestData:
                         "size": "orig",
                         "filename": "image.jpg",
                         "image_id": "0000000000",
-                        "description": ""
+                        "description": "",
                     }
-                }
+                },
             },
             {
                 "type": "additional",
@@ -63,10 +64,10 @@ class TestData:
                         "size": "orig",
                         "filename": "image.jpg",
                         "image_id": "0000000001",
-                        "description": ""
+                        "description": "",
                     }
-                }
-            }
+                },
+            },
         ]
 
         self.projects = [
@@ -83,7 +84,7 @@ class TestData:
                 "images": self.project_images,
                 "publication_date": "1970-01-01",
                 "modification_date": "1970-01-01",
-                "source_url": "https://localhost/test0/"
+                "source_url": "https://localhost/test0/",
             },
             {
                 "identifier": "0000000001",
@@ -98,8 +99,8 @@ class TestData:
                 "images": self.project_images,
                 "publication_date": "1970-01-02",
                 "modification_date": "1970-01-02",
-                "source_url": "https://localhost/test1/"
-            }
+                "source_url": "https://localhost/test1/",
+            },
         ]
 
         self.project_details = [
@@ -114,7 +115,7 @@ class TestData:
                     "where": [{"html": "html content", "text": "text content", "title": "title"}],
                     "contact": [{"html": "html content", "text": "text content", "title": "title"}],
                     "timeline": {},
-                    "more-info": [{"html": "html content", "text": "text content", "title": "title"}]
+                    "more-info": [{"html": "html content", "text": "text content", "title": "title"}],
                 },
                 "contacts": [],
                 "coordinates": {"lat": 0.0, "lon": 0.0},
@@ -125,15 +126,14 @@ class TestData:
                     {
                         "url": "https://localhost/news/0",
                         "identifier": "00000000000",
-                        "project_identifier":
-                            "00000000000"
+                        "project_identifier": "00000000000",
                     }
                 ],
                 "page_id": 0,
                 "title": "test0",
                 "subtitle": "subtitle",
                 "rel_url": "project/0",
-                "url": "https://localhost/project/0"
+                "url": "https://localhost/project/0",
             },
             {
                 "identifier": "0000000001",
@@ -146,7 +146,7 @@ class TestData:
                     "where": [{"html": "html content", "text": "text content", "title": "title"}],
                     "contact": [{"html": "html content", "text": "text content", "title": "title"}],
                     "timeline": {},
-                    "more-info": [{"html": "html content", "text": "text content", "title": "title"}]
+                    "more-info": [{"html": "html content", "text": "text content", "title": "title"}],
                 },
                 "contacts": [],
                 "coordinates": {"lat": 1.0, "lon": 1.0},
@@ -158,33 +158,25 @@ class TestData:
                 "title": "test0",
                 "subtitle": "subtitle",
                 "rel_url": "project/0",
-                "url": "https://localhost/project/0"
-            }
+                "url": "https://localhost/project/0",
+            },
         ]
 
-        self.news = [
+        self.article = [
             {
-                "last_seen": datetime.datetime.strptime('1970-01-01T00:00:00.000000', '%Y-%d-%mT%H:%M:%S.000000'),
+                "last_seen": datetime.datetime.strptime("1970-01-01T00:00:00.000000", "%Y-%d-%mT%H:%M:%S.000000"),
                 "active": True,
                 "project_type": "kade",
+                "type": "work",
                 "identifier": "0000000000",
                 "project_identifier": "0000000000",
                 "url": "https://localhost/news0",
                 "title": "title0",
                 "publication_date": "1970-01-01",
                 "body": {
-                    "content": {
-                        "html": "html content",
-                        "text": "text content"
-                    },
-                    "preface": {
-                        "html": "html content",
-                        "text": "text content"
-                    },
-                    "summary": {
-                        "html": "html content",
-                        "text": "text content"
-                    }
+                    "content": {"html": "html content", "text": "text content"},
+                    "preface": {"html": "html content", "text": "text content"},
+                    "summary": {"html": "html content", "text": "text content"},
                 },
                 "images": self.project_images,
                 "assets": [
@@ -193,32 +185,24 @@ class TestData:
                         "title": "title",
                         "filename": "test0.pdf",
                         "mime_type": "application/pdf",
-                        "identifier": "0000000000"
+                        "identifier": "0000000000",
                     }
-                ]
+                ],
             },
             {
-                "last_seen": datetime.datetime.strptime('1970-01-01T00:00:00.000000', '%Y-%d-%mT%H:%M:%S.000000'),
+                "last_seen": datetime.datetime.strptime("1970-01-01T00:00:00.000000", "%Y-%d-%mT%H:%M:%S.000000"),
                 "active": True,
                 "project_type": "kade",
+                "type": "news",
                 "identifier": "0000000001",
                 "project_identifier": "0000000001",
                 "url": "https://localhost/news1",
                 "title": "title1",
                 "publication_date": "1970-01-02",
                 "body": {
-                    "content": {
-                        "html": "html content",
-                        "text": "text content"
-                    },
-                    "preface": {
-                        "html": "html content",
-                        "text": "text content"
-                    },
-                    "summary": {
-                        "html": "html content",
-                        "text": "text content"
-                    }
+                    "content": {"html": "html content", "text": "text content"},
+                    "preface": {"html": "html content", "text": "text content"},
+                    "summary": {"html": "html content", "text": "text content"},
                 },
                 "images": self.project_images,
                 "assets": [
@@ -227,27 +211,15 @@ class TestData:
                         "title": "title",
                         "filename": "test1.pdf",
                         "mime_type": "application/pdf",
-                        "identifier": "0000000001"
+                        "identifier": "0000000001",
                     }
-                ]
-            }
+                ],
+            },
         ]
 
         self.image_download_jobs = [
-            {
-                'url': 'valid_url',
-                'image_id': '0',
-                'filename': 'mock0.jpg',
-                'description': '',
-                'size': 'orig'
-            },
-            {
-                'url': 'invalid_url',
-                'image_id': '1',
-                'filename': 'mock1.jpg',
-                'description': '',
-                'size': 'orig'
-            }
+            {"url": "valid_url", "image_id": "0", "filename": "mock0.jpg", "description": "", "size": "orig"},
+            {"url": "invalid_url", "image_id": "1", "filename": "mock1.jpg", "description": "", "size": "orig"},
         ]
 
         self.iprox_recursion = {
@@ -255,8 +227,8 @@ class TestData:
             "cluster": [
                 {"Nam": "Target", "cluster": [{"Nam": "Target", "veld": []}]},
                 {"Nam": "Target", "cluster": {"Nam": "Target", "veld": {}}},
-                {"Nam": "Invalid Target", "cluster": {}}
-            ]
+                {"Nam": "Invalid Target", "cluster": {}},
+            ],
         }
 
         self.iprox_project_detail = {
@@ -318,12 +290,8 @@ class TestData:
                                                 "Nam": "Gebruik Amsterdamse kaartmateriaal",
                                                 "Wrd": "0",
                                                 "_": "\r\n          ",
-                                                "script": {
-                                                    "type": "text/javascript"
-                                                },
-                                                "style": {
-                                                    "resolved": "true"
-                                                }
+                                                "script": {"type": "text/javascript"},
+                                                "style": {"resolved": "true"},
                                             },
                                             {
                                                 "PagVldIdt": "21621951",
@@ -332,12 +300,8 @@ class TestData:
                                                 "Nam": "Geen share-buttons",
                                                 "Wrd": "0",
                                                 "_": "\r\n          ",
-                                                "script": {
-                                                    "type": "text/javascript"
-                                                },
-                                                "style": {
-                                                    "resolved": "true"
-                                                }
+                                                "script": {"type": "text/javascript"},
+                                                "style": {"resolved": "true"},
                                             },
                                             {
                                                 "PagVldIdt": "21621952",
@@ -346,12 +310,8 @@ class TestData:
                                                 "Nam": "Auteur",
                                                 "Wrd": "Mischa Tiebie",
                                                 "_": "\r\n          ",
-                                                "script": {
-                                                    "type": "text/javascript"
-                                                },
-                                                "style": {
-                                                    "resolved": "true"
-                                                }
+                                                "script": {"type": "text/javascript"},
+                                                "style": {"resolved": "true"},
                                             },
                                             {
                                                 "PagVldIdt": "21621955",
@@ -362,45 +322,41 @@ class TestData:
                                                 "_": "\r\n          ",
                                                 "Src": {
                                                     "resolved": "true",
-                                                    "_": "/publish/pages/970738/herengracht213_1.jpg"
+                                                    "_": "/publish/pages/970738/herengracht213_1.jpg",
                                                 },
-                                                "Txt": "\r\n              <div>\r\n                <img src=\"/publish/pages/970738/herengracht213_1.jpg\" width=\"620\" data-sources=\"[{&quot;width&quot;:80,&quot;height&quot;:45,&quot;src&quot;:&quot;/publish/pages/970738/80px/herengracht213_1.jpg&quot;,&quot;sizeClass&quot;:&quot;size_80px&quot;},{&quot;width&quot;:220,&quot;height&quot;:123,&quot;src&quot;:&quot;/publish/pages/970738/220px/herengracht213_1.jpg&quot;,&quot;sizeClass&quot;:&quot;size_220px&quot;},{&quot;width&quot;:620,&quot;height&quot;:348,&quot;src&quot;:&quot;/publish/pages/970738/herengracht213_1.jpg&quot;}]\" data-original=\"{&quot;width&quot;:940,&quot;height&quot;:415,&quot;src&quot;:&quot;/publish/pages/970738/orig/herengracht213_1.jpg&quot;,&quot;sizeClass&quot;:&quot;size_orig&quot;}\" data-original-src=\"/publish/pages/970738/orig/herengracht213_1.jpg\" height=\"348\" alt=\"\" data-id=\"970738\" data-hoffset=\"0\" data-voffset=\"0\" id=\"img_pagvld_21621955_0\" class=\"img-bitmap img_pagvld_21621955_0\" resolved=\"true\" />\r\n              </div>\r\n            ",
+                                                "Txt": '\r\n              <div>\r\n                <img src="/publish/pages/970738/herengracht213_1.jpg" width="620" data-sources="[{&quot;width&quot;:80,&quot;height&quot;:45,&quot;src&quot;:&quot;/publish/pages/970738/80px/herengracht213_1.jpg&quot;,&quot;sizeClass&quot;:&quot;size_80px&quot;},{&quot;width&quot;:220,&quot;height&quot;:123,&quot;src&quot;:&quot;/publish/pages/970738/220px/herengracht213_1.jpg&quot;,&quot;sizeClass&quot;:&quot;size_220px&quot;},{&quot;width&quot;:620,&quot;height&quot;:348,&quot;src&quot;:&quot;/publish/pages/970738/herengracht213_1.jpg&quot;}]" data-original="{&quot;width&quot;:940,&quot;height&quot;:415,&quot;src&quot;:&quot;/publish/pages/970738/orig/herengracht213_1.jpg&quot;,&quot;sizeClass&quot;:&quot;size_orig&quot;}" data-original-src="/publish/pages/970738/orig/herengracht213_1.jpg" height="348" alt="" data-id="970738" data-hoffset="0" data-voffset="0" id="img_pagvld_21621955_0" class="img-bitmap img_pagvld_21621955_0" resolved="true" />\r\n              </div>\r\n            ',
                                                 "asset": [
                                                     {
                                                         "FilNam": "herengracht213_1.jpg",
                                                         "_": "\r\n            ",
                                                         "Src": {
                                                             "resolved": "true",
-                                                            "_": "/publish/pages/970738/220px/herengracht213_1.jpg"
-                                                        }
+                                                            "_": "/publish/pages/970738/220px/herengracht213_1.jpg",
+                                                        },
                                                     },
                                                     {
                                                         "FilNam": "herengracht213_1.jpg",
                                                         "_": "\r\n            ",
                                                         "Src": {
                                                             "resolved": "true",
-                                                            "_": "/publish/pages/970738/80px/herengracht213_1.jpg"
-                                                        }
+                                                            "_": "/publish/pages/970738/80px/herengracht213_1.jpg",
+                                                        },
                                                     },
                                                     {
                                                         "FilNam": "herengracht213_1.jpg",
                                                         "_": "\r\n            ",
                                                         "Src": {
                                                             "resolved": "true",
-                                                            "_": "/publish/pages/970738/orig/herengracht213_1.jpg"
-                                                        }
-                                                    }
+                                                            "_": "/publish/pages/970738/orig/herengracht213_1.jpg",
+                                                        },
+                                                    },
                                                 ],
-                                                "script": {
-                                                    "type": "text/javascript"
-                                                },
+                                                "script": {"type": "text/javascript"},
                                                 "style": {
                                                     "resolved": "true",
-                                                    "_": "#img_pagvld_21621955_0, .img_pagvld_21621955_0 {\r\n        width:620px; max-width:620px; height:348px; max-height:348px; \r\n      }\r\n      .achtergrond_img_pagvld_21621955_0 {\r\n        background-image: url( /publish/pages/970738/herengracht213_1.jpg );\r\n      }\r\n\r\n      #img_pagvld_21621955_0.size_220px, .img_pagvld_21621955_0.size_220px {\r\n            width:220px;max-width:220px;height:123px;max-height:123px;\r\n          }\r\n          .achtergrond_img_pagvld_21621955_0.size_220px {\r\n            background-image: url( /publish/pages/970738/220px/herengracht213_1.jpg );\r\n          }\r\n        #img_pagvld_21621955_0.size_80px, .img_pagvld_21621955_0.size_80px {\r\n            width:80px;max-width:80px;height:45px;max-height:45px;\r\n          }\r\n          .achtergrond_img_pagvld_21621955_0.size_80px {\r\n            background-image: url( /publish/pages/970738/80px/herengracht213_1.jpg );\r\n          }\r\n        #img_pagvld_21621955_0.size_orig, .img_pagvld_21621955_0.size_orig {\r\n            width:940px;max-width:940px;height:415px;max-height:415px;\r\n          }\r\n          .achtergrond_img_pagvld_21621955_0.size_orig {\r\n            background-image: url( /publish/pages/970738/orig/herengracht213_1.jpg );\r\n          }\r\n        "
+                                                    "_": "#img_pagvld_21621955_0, .img_pagvld_21621955_0 {\r\n        width:620px; max-width:620px; height:348px; max-height:348px; \r\n      }\r\n      .achtergrond_img_pagvld_21621955_0 {\r\n        background-image: url( /publish/pages/970738/herengracht213_1.jpg );\r\n      }\r\n\r\n      #img_pagvld_21621955_0.size_220px, .img_pagvld_21621955_0.size_220px {\r\n            width:220px;max-width:220px;height:123px;max-height:123px;\r\n          }\r\n          .achtergrond_img_pagvld_21621955_0.size_220px {\r\n            background-image: url( /publish/pages/970738/220px/herengracht213_1.jpg );\r\n          }\r\n        #img_pagvld_21621955_0.size_80px, .img_pagvld_21621955_0.size_80px {\r\n            width:80px;max-width:80px;height:45px;max-height:45px;\r\n          }\r\n          .achtergrond_img_pagvld_21621955_0.size_80px {\r\n            background-image: url( /publish/pages/970738/80px/herengracht213_1.jpg );\r\n          }\r\n        #img_pagvld_21621955_0.size_orig, .img_pagvld_21621955_0.size_orig {\r\n            width:940px;max-width:940px;height:415px;max-height:415px;\r\n          }\r\n          .achtergrond_img_pagvld_21621955_0.size_orig {\r\n            background-image: url( /publish/pages/970738/orig/herengracht213_1.jpg );\r\n          }\r\n        ",
                                                 },
-                                                "styleattributes": {
-                                                    "forclass": "img_pagvld_21621955_0"
-                                                }
+                                                "styleattributes": {"forclass": "img_pagvld_21621955_0"},
                                             },
                                             {
                                                 "PagVldIdt": "21621954",
@@ -409,12 +365,8 @@ class TestData:
                                                 "Nam": "Samenvatting",
                                                 "_": "\r\n          ",
                                                 "Txt": "\r\n              <div>\r\n                <p>We nemen maatregelen om kademuur Herengracht 213 tot 243 veilig te houden en levensduur te verlengen. We willen juli 2021 starten met het versterken.</p>\r\n              </div>\r\n            ",
-                                                "script": {
-                                                    "type": "text/javascript"
-                                                },
-                                                "style": {
-                                                    "resolved": "true"
-                                                }
+                                                "script": {"type": "text/javascript"},
+                                                "style": {"resolved": "true"},
                                             },
                                             {
                                                 "PagVldIdt": "21621953",
@@ -423,14 +375,10 @@ class TestData:
                                                 "Nam": "Brondatum",
                                                 "Dtm": "20210504",
                                                 "_": "\r\n          ",
-                                                "script": {
-                                                    "type": "text/javascript"
-                                                },
-                                                "style": {
-                                                    "resolved": "true"
-                                                }
-                                            }
-                                        ]
+                                                "script": {"type": "text/javascript"},
+                                                "style": {"resolved": "true"},
+                                            },
+                                        ],
                                     },
                                     {
                                         "PagClsIdt": "16090100",
@@ -448,13 +396,9 @@ class TestData:
                                             "Nam": "Opnemen in AmsterdamMail",
                                             "Wrd": "0",
                                             "_": "\r\n          ",
-                                            "script": {
-                                                "type": "text/javascript"
-                                            },
-                                            "style": {
-                                                "resolved": "true"
-                                            }
-                                        }
+                                            "script": {"type": "text/javascript"},
+                                            "style": {"resolved": "true"},
+                                        },
                                     },
                                     {
                                         "PagClsIdt": "16090099",
@@ -464,7 +408,7 @@ class TestData:
                                         "RepTyp": "2",
                                         "DefVlgNum": "2",
                                         "Nam": "Speciale trefwoorden",
-                                        "_": "\r\n        "
+                                        "_": "\r\n        ",
                                     },
                                     {
                                         "PagClsIdt": "16090102",
@@ -485,18 +429,10 @@ class TestData:
                                             "Src": "Stadsdeel",
                                             "SelWrd": "Centrum",
                                             "_": "\r\n          ",
-                                            "item": {
-                                                "SelItmIdt": "5398",
-                                                "Wrd": "Centrum",
-                                                "_": "\r\n            "
-                                            },
-                                            "script": {
-                                                "type": "text/javascript"
-                                            },
-                                            "style": {
-                                                "resolved": "true"
-                                            }
-                                        }
+                                            "item": {"SelItmIdt": "5398", "Wrd": "Centrum", "_": "\r\n            "},
+                                            "script": {"type": "text/javascript"},
+                                            "style": {"resolved": "true"},
+                                        },
                                     },
                                     {
                                         "PagClsIdt": "16090103",
@@ -520,18 +456,14 @@ class TestData:
                                             "item": {
                                                 "SelItmIdt": "6075",
                                                 "Wrd": "Tunnels, bruggen, kades, oevers",
-                                                "_": "\r\n            "
+                                                "_": "\r\n            ",
                                             },
-                                            "script": {
-                                                "type": "text/javascript"
-                                            },
-                                            "style": {
-                                                "resolved": "true"
-                                            }
-                                        }
-                                    }
-                                ]
-                            }
+                                            "script": {"type": "text/javascript"},
+                                            "style": {"resolved": "true"},
+                                        },
+                                    },
+                                ],
+                            },
                         },
                         {
                             "PagClsIdt": "16090139",
@@ -548,13 +480,9 @@ class TestData:
                                 "Nam": "Kaart verbergen",
                                 "Wrd": "0",
                                 "_": "\r\n      ",
-                                "script": {
-                                    "type": "text/javascript"
-                                },
-                                "style": {
-                                    "resolved": "true"
-                                }
-                            }
+                                "script": {"type": "text/javascript"},
+                                "style": {"resolved": "true"},
+                            },
                         },
                         {
                             "PagClsIdt": "16090104",
@@ -592,12 +520,8 @@ class TestData:
                                                     "Nam": "Kleine kop",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21822730",
@@ -608,55 +532,51 @@ class TestData:
                                                     "_": "\r\n          ",
                                                     "Src": {
                                                         "resolved": "true",
-                                                        "_": "/publish/pages/970738/940x415_herengracht.jpg"
+                                                        "_": "/publish/pages/970738/940x415_herengracht.jpg",
                                                     },
-                                                    "Txt": "\r\n              <div>\r\n                <img src=\"/publish/pages/970738/940x415_herengracht.jpg\" width=\"940\" data-sources=\"[{&quot;width&quot;:80,&quot;height&quot;:35,&quot;src&quot;:&quot;/publish/pages/970738/80px/940x415_herengracht.jpg&quot;,&quot;sizeClass&quot;:&quot;size_80px&quot;},{&quot;width&quot;:220,&quot;height&quot;:97,&quot;src&quot;:&quot;/publish/pages/970738/220px/940x415_herengracht.jpg&quot;,&quot;sizeClass&quot;:&quot;size_220px&quot;},{&quot;width&quot;:460,&quot;height&quot;:203,&quot;src&quot;:&quot;/publish/pages/970738/460px/940x415_herengracht.jpg&quot;,&quot;sizeClass&quot;:&quot;size_460px&quot;},{&quot;width&quot;:700,&quot;height&quot;:309,&quot;src&quot;:&quot;/publish/pages/970738/700px/940x415_herengracht.jpg&quot;,&quot;sizeClass&quot;:&quot;size_700px&quot;},{&quot;width&quot;:940,&quot;height&quot;:415,&quot;src&quot;:&quot;/publish/pages/970738/940x415_herengracht.jpg&quot;}]\" height=\"415\" alt=\"\" data-id=\"970738\" id=\"img_pagvld_21822730_0\" class=\"img-bitmap img_pagvld_21822730_0\" resolved=\"true\" />\r\n              </div>\r\n            ",
+                                                    "Txt": '\r\n              <div>\r\n                <img src="/publish/pages/970738/940x415_herengracht.jpg" width="940" data-sources="[{&quot;width&quot;:80,&quot;height&quot;:35,&quot;src&quot;:&quot;/publish/pages/970738/80px/940x415_herengracht.jpg&quot;,&quot;sizeClass&quot;:&quot;size_80px&quot;},{&quot;width&quot;:220,&quot;height&quot;:97,&quot;src&quot;:&quot;/publish/pages/970738/220px/940x415_herengracht.jpg&quot;,&quot;sizeClass&quot;:&quot;size_220px&quot;},{&quot;width&quot;:460,&quot;height&quot;:203,&quot;src&quot;:&quot;/publish/pages/970738/460px/940x415_herengracht.jpg&quot;,&quot;sizeClass&quot;:&quot;size_460px&quot;},{&quot;width&quot;:700,&quot;height&quot;:309,&quot;src&quot;:&quot;/publish/pages/970738/700px/940x415_herengracht.jpg&quot;,&quot;sizeClass&quot;:&quot;size_700px&quot;},{&quot;width&quot;:940,&quot;height&quot;:415,&quot;src&quot;:&quot;/publish/pages/970738/940x415_herengracht.jpg&quot;}]" height="415" alt="" data-id="970738" id="img_pagvld_21822730_0" class="img-bitmap img_pagvld_21822730_0" resolved="true" />\r\n              </div>\r\n            ',
                                                     "asset": [
                                                         {
                                                             "FilNam": "940x415_herengracht.jpg",
                                                             "_": "\r\n            ",
                                                             "Src": {
                                                                 "resolved": "true",
-                                                                "_": "/publish/pages/970738/460px/940x415_herengracht.jpg"
-                                                            }
+                                                                "_": "/publish/pages/970738/460px/940x415_herengracht.jpg",
+                                                            },
                                                         },
                                                         {
                                                             "FilNam": "940x415_herengracht.jpg",
                                                             "_": "\r\n            ",
                                                             "Src": {
                                                                 "resolved": "true",
-                                                                "_": "/publish/pages/970738/80px/940x415_herengracht.jpg"
-                                                            }
+                                                                "_": "/publish/pages/970738/80px/940x415_herengracht.jpg",
+                                                            },
                                                         },
                                                         {
                                                             "FilNam": "940x415_herengracht.jpg",
                                                             "_": "\r\n            ",
                                                             "Src": {
                                                                 "resolved": "true",
-                                                                "_": "/publish/pages/970738/220px/940x415_herengracht.jpg"
-                                                            }
+                                                                "_": "/publish/pages/970738/220px/940x415_herengracht.jpg",
+                                                            },
                                                         },
                                                         {
                                                             "FilNam": "940x415_herengracht.jpg",
                                                             "_": "\r\n            ",
                                                             "Src": {
                                                                 "resolved": "true",
-                                                                "_": "/publish/pages/970738/700px/940x415_herengracht.jpg"
-                                                            }
-                                                        }
+                                                                "_": "/publish/pages/970738/700px/940x415_herengracht.jpg",
+                                                            },
+                                                        },
                                                     ],
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
+                                                    "script": {"type": "text/javascript"},
                                                     "style": {
                                                         "resolved": "true",
-                                                        "_": "#img_pagvld_21822730_0, .img_pagvld_21822730_0 {\r\n        width:940px; max-width:940px; height:415px; max-height:415px; \r\n      }\r\n      .achtergrond_img_pagvld_21822730_0 {\r\n        background-image: url( /publish/pages/970738/940x415_herengracht.jpg );\r\n      }\r\n\r\n      #img_pagvld_21822730_0.size_460px, .img_pagvld_21822730_0.size_460px {\r\n            width:460px;max-width:460px;height:203px;max-height:203px;\r\n          }\r\n          .achtergrond_img_pagvld_21822730_0.size_460px {\r\n            background-image: url( /publish/pages/970738/460px/940x415_herengracht.jpg );\r\n          }\r\n        #img_pagvld_21822730_0.size_80px, .img_pagvld_21822730_0.size_80px {\r\n            width:80px;max-width:80px;height:35px;max-height:35px;\r\n          }\r\n          .achtergrond_img_pagvld_21822730_0.size_80px {\r\n            background-image: url( /publish/pages/970738/80px/940x415_herengracht.jpg );\r\n          }\r\n        #img_pagvld_21822730_0.size_220px, .img_pagvld_21822730_0.size_220px {\r\n            width:220px;max-width:220px;height:97px;max-height:97px;\r\n          }\r\n          .achtergrond_img_pagvld_21822730_0.size_220px {\r\n            background-image: url( /publish/pages/970738/220px/940x415_herengracht.jpg );\r\n          }\r\n        #img_pagvld_21822730_0.size_700px, .img_pagvld_21822730_0.size_700px {\r\n            width:700px;max-width:700px;height:309px;max-height:309px;\r\n          }\r\n          .achtergrond_img_pagvld_21822730_0.size_700px {\r\n            background-image: url( /publish/pages/970738/700px/940x415_herengracht.jpg );\r\n          }\r\n        "
+                                                        "_": "#img_pagvld_21822730_0, .img_pagvld_21822730_0 {\r\n        width:940px; max-width:940px; height:415px; max-height:415px; \r\n      }\r\n      .achtergrond_img_pagvld_21822730_0 {\r\n        background-image: url( /publish/pages/970738/940x415_herengracht.jpg );\r\n      }\r\n\r\n      #img_pagvld_21822730_0.size_460px, .img_pagvld_21822730_0.size_460px {\r\n            width:460px;max-width:460px;height:203px;max-height:203px;\r\n          }\r\n          .achtergrond_img_pagvld_21822730_0.size_460px {\r\n            background-image: url( /publish/pages/970738/460px/940x415_herengracht.jpg );\r\n          }\r\n        #img_pagvld_21822730_0.size_80px, .img_pagvld_21822730_0.size_80px {\r\n            width:80px;max-width:80px;height:35px;max-height:35px;\r\n          }\r\n          .achtergrond_img_pagvld_21822730_0.size_80px {\r\n            background-image: url( /publish/pages/970738/80px/940x415_herengracht.jpg );\r\n          }\r\n        #img_pagvld_21822730_0.size_220px, .img_pagvld_21822730_0.size_220px {\r\n            width:220px;max-width:220px;height:97px;max-height:97px;\r\n          }\r\n          .achtergrond_img_pagvld_21822730_0.size_220px {\r\n            background-image: url( /publish/pages/970738/220px/940x415_herengracht.jpg );\r\n          }\r\n        #img_pagvld_21822730_0.size_700px, .img_pagvld_21822730_0.size_700px {\r\n            width:700px;max-width:700px;height:309px;max-height:309px;\r\n          }\r\n          .achtergrond_img_pagvld_21822730_0.size_700px {\r\n            background-image: url( /publish/pages/970738/700px/940x415_herengracht.jpg );\r\n          }\r\n        ",
                                                     },
-                                                    "styleattributes": {
-                                                        "forclass": "img_pagvld_21822730_0"
-                                                    }
-                                                }
-                                            ]
+                                                    "styleattributes": {"forclass": "img_pagvld_21822730_0"},
+                                                },
+                                            ],
                                         },
                                         {
                                             "PagClsIdt": "16090137",
@@ -666,9 +586,9 @@ class TestData:
                                             "RepTyp": "2",
                                             "DefVlgNum": "1",
                                             "Nam": "Verwijzing",
-                                            "_": "\r\n        "
-                                        }
-                                    ]
+                                            "_": "\r\n        ",
+                                        },
+                                    ],
                                 },
                                 {
                                     "PagClsIdt": "16090127",
@@ -693,14 +613,10 @@ class TestData:
                                                 "SelItmIdt": "6864",
                                                 "Wrd": "Heel lichtgrijs",
                                                 "Aka": "neutral-grey1",
-                                                "_": "\r\n          "
+                                                "_": "\r\n          ",
                                             },
-                                            "script": {
-                                                "type": "text/javascript"
-                                            },
-                                            "style": {
-                                                "resolved": "true"
-                                            }
+                                            "script": {"type": "text/javascript"},
+                                            "style": {"resolved": "true"},
                                         },
                                         {
                                             "PagVldIdt": "21622011",
@@ -709,14 +625,10 @@ class TestData:
                                             "Nam": "Paginabreed",
                                             "Wrd": "1",
                                             "_": "\r\n        ",
-                                            "script": {
-                                                "type": "text/javascript"
-                                            },
-                                            "style": {
-                                                "resolved": "true"
-                                            }
-                                        }
-                                    ]
+                                            "script": {"type": "text/javascript"},
+                                            "style": {"resolved": "true"},
+                                        },
+                                    ],
                                 },
                                 {
                                     "PagClsIdt": "16090105",
@@ -745,12 +657,8 @@ class TestData:
                                                     "Nam": "Titel",
                                                     "Wrd": "Wat er gaat gebeuren",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21621958",
@@ -759,12 +667,8 @@ class TestData:
                                                     "Nam": "Kleine kop",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21621962",
@@ -773,12 +677,8 @@ class TestData:
                                                     "Nam": "Tekst",
                                                     "_": "\r\n          ",
                                                     "Txt": "\r\n              <div>\r\n                <p>De kademuur ter hoogte van Herengracht 213 tot en met 243 is in slechte staat. Dit is de kade tussen de Raadhuisstraat en de Gasthuismolensteeg. Op lange termijn gaan we kademuur helemaal vernieuwen. We hebben tijdelijke maatregelen genomen om de kademuur veilig te houden tot de vernieuwing.</p>\r\n                <p>In 2021 is op basis van onderzoek en metingen vastgesteld dat de houten fundering onder de kademuur op meerdere plekken gebreken vertoont. Zoals funderingspalen die scheef onder de kademuur staan. In het metselwerk van de kademuur zitten scheuren. De kademuur bewoog op meerdere punten richting het water.</p>\r\n              </div>\r\n            ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21621959",
@@ -787,12 +687,8 @@ class TestData:
                                                     "Nam": "Kolommen",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21621960",
@@ -801,12 +697,8 @@ class TestData:
                                                     "Nam": "Vaste hoogte",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21621961",
@@ -815,12 +707,8 @@ class TestData:
                                                     "Nam": "Geen ezelsoor",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21791064",
@@ -835,16 +723,12 @@ class TestData:
                                                         "SelItmIdt": "7055",
                                                         "Wrd": "Wat",
                                                         "Aka": "what",
-                                                        "_": "\r\n            "
+                                                        "_": "\r\n            ",
                                                     },
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
-                                                }
-                                            ]
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
+                                                },
+                                            ],
                                         },
                                         {
                                             "PagClsIdt": "16090106",
@@ -854,9 +738,9 @@ class TestData:
                                             "RepTyp": "2",
                                             "DefVlgNum": "1",
                                             "Nam": "Verwijzing",
-                                            "_": "\r\n        "
-                                        }
-                                    ]
+                                            "_": "\r\n        ",
+                                        },
+                                    ],
                                 },
                                 {
                                     "PagClsIdt": "16090116",
@@ -885,12 +769,8 @@ class TestData:
                                                     "Nam": "Titel",
                                                     "Wrd": "Maatregelen",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21621990",
@@ -899,12 +779,8 @@ class TestData:
                                                     "Nam": "Kleine kop",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21621995",
@@ -913,12 +789,8 @@ class TestData:
                                                     "Nam": "Tekst",
                                                     "_": "\r\n          ",
                                                     "Txt": "\r\n              <div>\r\n                <ul>\r\n                  <li>Van 10 mei tot 27 augustus 2021 was de Herengracht tussen de Raadhuisstraat en de Gasthuismolensteeg afgesloten voor gemotoriseerd verkeer.</li>\r\n                  <li>Van 12 juli tot 26 augustus 2021 is de kademuur versterkt met een veiligheidsconstructie van damwanden die in het water voor de kade is geplaatst.</li>\r\n                  <li>Op de rand van de kade staat een laag, groen hek. Dit is een bescherming om te voorkomen dat mensen hier van de kade, op de veiligheidsconstructie vallen. Het hek blijft staan tot de vernieuwing van de kademuur.</li>\r\n                  <li>Ter hoogte van Herengracht 213 tot en met 243 geldt een afmeerverbod. De veiligheidsconstructie voor de kade is niet berekend op het afmeren van vaartuigen.</li>\r\n                  <li>In het najaar van 2021 zetten we planten in het zand tussen de veiligheidsconstructie en de kademuur. Zo geven we de kade een groenere aanblik en stimuleren we de biodiversiteit.</li>\r\n                  <li>We blijven de kademuur voorlopig volgen met metingen.</li>\r\n                </ul>\r\n              </div>\r\n            ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21621991",
@@ -927,12 +799,8 @@ class TestData:
                                                     "Nam": "Kolommen",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21621992",
@@ -941,12 +809,8 @@ class TestData:
                                                     "Nam": "Vaste hoogte",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21621993",
@@ -955,12 +819,8 @@ class TestData:
                                                     "Nam": "Geen ezelsoor",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21791065",
@@ -975,16 +835,12 @@ class TestData:
                                                         "SelItmIdt": "7062",
                                                         "Wrd": "Werkzaamheden / Maatregelen",
                                                         "Aka": "work",
-                                                        "_": "\r\n            "
+                                                        "_": "\r\n            ",
                                                     },
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
-                                                }
-                                            ]
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
+                                                },
+                                            ],
                                         },
                                         {
                                             "PagClsIdt": "16090117",
@@ -994,9 +850,9 @@ class TestData:
                                             "RepTyp": "2",
                                             "DefVlgNum": "1",
                                             "Nam": "Verwijzing",
-                                            "_": "\r\n        "
-                                        }
-                                    ]
+                                            "_": "\r\n        ",
+                                        },
+                                    ],
                                 },
                                 {
                                     "PagClsIdt": "16233213",
@@ -1025,12 +881,8 @@ class TestData:
                                                     "Nam": "Titel",
                                                     "Wrd": "Wanneer",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21819205",
@@ -1039,12 +891,8 @@ class TestData:
                                                     "Nam": "Kleine kop",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21819507",
@@ -1053,12 +901,8 @@ class TestData:
                                                     "Nam": "Tekst",
                                                     "_": "\r\n          ",
                                                     "Txt": "\r\n              <div>\r\n                <p>Op lange termijn vernieuwen we de hele kademuur. Wanneer dit gebeurt, is op dit moment nog niet bekend.</p>\r\n              </div>\r\n            ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21819206",
@@ -1067,12 +911,8 @@ class TestData:
                                                     "Nam": "Kolommen",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21819207",
@@ -1081,12 +921,8 @@ class TestData:
                                                     "Nam": "Vaste hoogte",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21819208",
@@ -1095,14 +931,10 @@ class TestData:
                                                     "Nam": "Geen ezelsoor",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
-                                                }
-                                            ]
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
+                                                },
+                                            ],
                                         },
                                         {
                                             "PagClsIdt": "16233214",
@@ -1112,9 +944,9 @@ class TestData:
                                             "RepTyp": "2",
                                             "DefVlgNum": "1",
                                             "Nam": "Verwijzing",
-                                            "_": "\r\n        "
-                                        }
-                                    ]
+                                            "_": "\r\n        ",
+                                        },
+                                    ],
                                 },
                                 {
                                     "PagClsIdt": "16090128",
@@ -1132,13 +964,9 @@ class TestData:
                                         "Nam": "Horizontale separator",
                                         "Wrd": "0",
                                         "_": "\r\n        ",
-                                        "script": {
-                                            "type": "text/javascript"
-                                        },
-                                        "style": {
-                                            "resolved": "true"
-                                        }
-                                    }
+                                        "script": {"type": "text/javascript"},
+                                        "style": {"resolved": "true"},
+                                    },
                                 },
                                 {
                                     "PagClsIdt": "16090111",
@@ -1167,12 +995,8 @@ class TestData:
                                                     "Nam": "Titel",
                                                     "Wrd": "Meer informatie",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21621972",
@@ -1181,12 +1005,8 @@ class TestData:
                                                     "Nam": "Kleine kop",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21621973",
@@ -1195,12 +1015,8 @@ class TestData:
                                                     "Nam": "Kolommen",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21621974",
@@ -1209,12 +1025,8 @@ class TestData:
                                                     "Nam": "Vaste hoogte",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21621975",
@@ -1223,12 +1035,8 @@ class TestData:
                                                     "Nam": "Geen ezelsoor",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21791063",
@@ -1243,16 +1051,12 @@ class TestData:
                                                         "SelItmIdt": "7059",
                                                         "Wrd": "Meer info",
                                                         "Aka": "more-info",
-                                                        "_": "\r\n            "
+                                                        "_": "\r\n            ",
                                                     },
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
-                                                }
-                                            ]
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
+                                                },
+                                            ],
                                         },
                                         {
                                             "PagClsIdt": "16090112",
@@ -1285,14 +1089,10 @@ class TestData:
                                                             "SitItmIdt": "11417139",
                                                             "pagetype": "subhome",
                                                             "resolved": "true",
-                                                            "Url": "https://www.amsterdam.nl/projecten/kademuren/"
+                                                            "Url": "https://www.amsterdam.nl/projecten/kademuren/",
                                                         },
-                                                        "script": {
-                                                            "type": "text/javascript"
-                                                        },
-                                                        "style": {
-                                                            "resolved": "true"
-                                                        }
+                                                        "script": {"type": "text/javascript"},
+                                                        "style": {"resolved": "true"},
                                                     },
                                                     {
                                                         "PagVldIdt": "21621970",
@@ -1307,19 +1107,15 @@ class TestData:
                                                             "SelItmIdt": "2173",
                                                             "Wrd": "Huidig venster",
                                                             "Aka": "self",
-                                                            "_": "\r\n              "
+                                                            "_": "\r\n              ",
                                                         },
-                                                        "script": {
-                                                            "type": "text/javascript"
-                                                        },
-                                                        "style": {
-                                                            "resolved": "true"
-                                                        }
-                                                    }
-                                                ]
-                                            }
-                                        }
-                                    ]
+                                                        "script": {"type": "text/javascript"},
+                                                        "style": {"resolved": "true"},
+                                                    },
+                                                ],
+                                            },
+                                        },
+                                    ],
                                 },
                                 {
                                     "PagClsIdt": "16090131",
@@ -1344,14 +1140,10 @@ class TestData:
                                                 "SelItmIdt": "6675",
                                                 "Wrd": "Rood",
                                                 "Aka": "red",
-                                                "_": "\r\n          "
+                                                "_": "\r\n          ",
                                             },
-                                            "script": {
-                                                "type": "text/javascript"
-                                            },
-                                            "style": {
-                                                "resolved": "true"
-                                            }
+                                            "script": {"type": "text/javascript"},
+                                            "style": {"resolved": "true"},
                                         },
                                         {
                                             "PagVldIdt": "21622027",
@@ -1360,14 +1152,10 @@ class TestData:
                                             "Nam": "Paginabreed",
                                             "Wrd": "1",
                                             "_": "\r\n        ",
-                                            "script": {
-                                                "type": "text/javascript"
-                                            },
-                                            "style": {
-                                                "resolved": "true"
-                                            }
-                                        }
-                                    ]
+                                            "script": {"type": "text/javascript"},
+                                            "style": {"resolved": "true"},
+                                        },
+                                    ],
                                 },
                                 {
                                     "PagClsIdt": "16090108",
@@ -1396,12 +1184,8 @@ class TestData:
                                                     "Nam": "Titel",
                                                     "Wrd": "Contact",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21621964",
@@ -1410,12 +1194,8 @@ class TestData:
                                                     "Nam": "Kleine kop",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21621969",
@@ -1423,13 +1203,9 @@ class TestData:
                                                     "GgvTyp": "5",
                                                     "Nam": "Tekst",
                                                     "_": "\r\n          ",
-                                                    "Txt": "\r\n              <div>\r\n                <ul>\r\n                  <li>\r\n                    <p>Ester Seinen, omgevingsmanager<br /><a href=\"mailto:e.seijnen@amsterdam.nl\">e.seijnen@amsterdam.nl</a><br /><a href=\"tel:0657875986\" class=\"externLink\">06 5787 5986</a></p>\r\n                  </li>\r\n                </ul>\r\n              </div>\r\n            ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "Txt": '\r\n              <div>\r\n                <ul>\r\n                  <li>\r\n                    <p>Ester Seinen, omgevingsmanager<br /><a href="mailto:e.seijnen@amsterdam.nl">e.seijnen@amsterdam.nl</a><br /><a href="tel:0657875986" class="externLink">06 5787 5986</a></p>\r\n                  </li>\r\n                </ul>\r\n              </div>\r\n            ',
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21621965",
@@ -1438,12 +1214,8 @@ class TestData:
                                                     "Nam": "Kolommen",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21621966",
@@ -1452,12 +1224,8 @@ class TestData:
                                                     "Nam": "Vaste hoogte",
                                                     "Wrd": "0",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21621967",
@@ -1466,12 +1234,8 @@ class TestData:
                                                     "Nam": "Geen ezelsoor",
                                                     "Wrd": "1",
                                                     "_": "\r\n          ",
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
                                                 },
                                                 {
                                                     "PagVldIdt": "21791062",
@@ -1486,16 +1250,12 @@ class TestData:
                                                         "SelItmIdt": "7057",
                                                         "Wrd": "Contact",
                                                         "Aka": "contact",
-                                                        "_": "\r\n            "
+                                                        "_": "\r\n            ",
                                                     },
-                                                    "script": {
-                                                        "type": "text/javascript"
-                                                    },
-                                                    "style": {
-                                                        "resolved": "true"
-                                                    }
-                                                }
-                                            ]
+                                                    "script": {"type": "text/javascript"},
+                                                    "style": {"resolved": "true"},
+                                                },
+                                            ],
                                         },
                                         {
                                             "PagClsIdt": "16090109",
@@ -1505,9 +1265,9 @@ class TestData:
                                             "RepTyp": "2",
                                             "DefVlgNum": "1",
                                             "Nam": "Verwijzing",
-                                            "_": "\r\n        "
-                                        }
-                                    ]
+                                            "_": "\r\n        ",
+                                        },
+                                    ],
                                 },
                                 {
                                     "PagClsIdt": "16090132",
@@ -1525,15 +1285,11 @@ class TestData:
                                         "Nam": "Horizontale separator",
                                         "Wrd": "0",
                                         "_": "\r\n        ",
-                                        "script": {
-                                            "type": "text/javascript"
-                                        },
-                                        "style": {
-                                            "resolved": "true"
-                                        }
-                                    }
-                                }
-                            ]
+                                        "script": {"type": "text/javascript"},
+                                        "style": {"resolved": "true"},
+                                    },
+                                },
+                            ],
                         },
                         {
                             "PagClsIdt": "16090138",
@@ -1579,9 +1335,9 @@ class TestData:
                                                     "name": "Afbeelding",
                                                     "id": "16090135",
                                                     "columns": "12",
-                                                    "DimSiz": "960"
-                                                }
-                                            }
+                                                    "DimSiz": "960",
+                                                },
+                                            },
                                         },
                                         {
                                             "columns": "12",
@@ -1599,8 +1355,8 @@ class TestData:
                                                         "name": "Start groepering",
                                                         "id": "16090127",
                                                         "columns": "12",
-                                                        "DimSiz": "960"
-                                                    }
+                                                        "DimSiz": "960",
+                                                    },
                                                 },
                                                 {
                                                     "number": "2",
@@ -1610,8 +1366,8 @@ class TestData:
                                                         "id": "16090105",
                                                         "columns": "9",
                                                         "DimSiz": "720",
-                                                        "suffix": "3"
-                                                    }
+                                                        "suffix": "3",
+                                                    },
                                                 },
                                                 {
                                                     "number": "3",
@@ -1621,8 +1377,8 @@ class TestData:
                                                         "id": "16090116",
                                                         "columns": "9",
                                                         "DimSiz": "720",
-                                                        "suffix": "3"
-                                                    }
+                                                        "suffix": "3",
+                                                    },
                                                 },
                                                 {
                                                     "number": "4",
@@ -1632,8 +1388,8 @@ class TestData:
                                                         "id": "16233213",
                                                         "columns": "9",
                                                         "DimSiz": "720",
-                                                        "suffix": "3"
-                                                    }
+                                                        "suffix": "3",
+                                                    },
                                                 },
                                                 {
                                                     "number": "5",
@@ -1642,10 +1398,10 @@ class TestData:
                                                         "name": "Eind groepering",
                                                         "id": "16090128",
                                                         "columns": "12",
-                                                        "DimSiz": "960"
-                                                    }
-                                                }
-                                            ]
+                                                        "DimSiz": "960",
+                                                    },
+                                                },
+                                            ],
                                         },
                                         {
                                             "columns": "12",
@@ -1663,9 +1419,9 @@ class TestData:
                                                     "id": "16090111",
                                                     "columns": "6",
                                                     "DimSiz": "480",
-                                                    "suffix": "6"
-                                                }
-                                            }
+                                                    "suffix": "6",
+                                                },
+                                            },
                                         },
                                         {
                                             "columns": "12",
@@ -1683,8 +1439,8 @@ class TestData:
                                                         "name": "Start groepering",
                                                         "id": "16090131",
                                                         "columns": "12",
-                                                        "DimSiz": "960"
-                                                    }
+                                                        "DimSiz": "960",
+                                                    },
                                                 },
                                                 {
                                                     "number": "8",
@@ -1694,8 +1450,8 @@ class TestData:
                                                         "id": "16090108",
                                                         "columns": "9",
                                                         "DimSiz": "720",
-                                                        "suffix": "3"
-                                                    }
+                                                        "suffix": "3",
+                                                    },
                                                 },
                                                 {
                                                     "number": "9",
@@ -1704,10 +1460,10 @@ class TestData:
                                                         "name": "Eind groepering",
                                                         "id": "16090132",
                                                         "columns": "12",
-                                                        "DimSiz": "960"
-                                                    }
-                                                }
-                                            ]
+                                                        "DimSiz": "960",
+                                                    },
+                                                },
+                                            ],
                                         },
                                         {
                                             "columns": "12",
@@ -1715,17 +1471,13 @@ class TestData:
                                             "Aka": "slot",
                                             "VlgNum": "2",
                                             "Toe": "Voor gerelateerde inhoud",
-                                            "DimSiz": "960"
-                                        }
-                                    ]
+                                            "DimSiz": "960",
+                                        },
+                                    ],
                                 },
-                                "script": {
-                                    "type": "text/javascript"
-                                },
-                                "style": {
-                                    "resolved": "true"
-                                }
-                            }
+                                "script": {"type": "text/javascript"},
+                                "style": {"resolved": "true"},
+                            },
                         },
                         {
                             "PagClsIdt": "16090140",
@@ -1748,12 +1500,12 @@ class TestData:
                                         "json": [
                                             {
                                                 "type": "EPSG:28992",
-                                                "_": "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"properties\":null,\"geometry\":{\"type\":\"Point\",\"coordinates\":[120957.72860244672,487334.7077594542]}}]}"
+                                                "_": '{"type":"FeatureCollection","features":[{"type":"Feature","properties":null,"geometry":{"type":"Point","coordinates":[120957.72860244672,487334.7077594542]}}]}',
                                             },
                                             {
                                                 "type": "EPSG:4326",
-                                                "_": "{\"type\":\"FeatureCollection\",\"features\":[{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\",\"coordinates\":[4.8873162716572942,52.372831707583551]},\"properties\":null}]}"
-                                            }
+                                                "_": '{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[4.8873162716572942,52.372831707583551]},"properties":null}]}',
+                                            },
                                         ],
                                         "gml": [
                                             {
@@ -1768,11 +1520,11 @@ class TestData:
                                                             "_": "\r\n                  ",
                                                             "feature:Point": {
                                                                 "feature:pos": "120957.72860244672 487334.7077594542",
-                                                                "_": "\r\n                    "
-                                                            }
-                                                        }
-                                                    }
-                                                }
+                                                                "_": "\r\n                    ",
+                                                            },
+                                                        },
+                                                    },
+                                                },
                                             },
                                             {
                                                 "type": "EPSG:4326",
@@ -1786,56 +1538,44 @@ class TestData:
                                                             "_": "\r\n                  ",
                                                             "feature:Point": {
                                                                 "feature:pos": "4.88731627165729 52.3728317075836",
-                                                                "_": "\r\n                    "
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        ]
-                                    }
+                                                                "_": "\r\n                    ",
+                                                            },
+                                                        },
+                                                    },
+                                                },
+                                            },
+                                        ],
+                                    },
                                 },
-                                "script": {
-                                    "type": "text/javascript"
-                                },
-                                "style": {
-                                    "resolved": "true"
-                                }
-                            }
-                        }
+                                "script": {"type": "text/javascript"},
+                                "style": {"resolved": "true"},
+                            },
+                        },
                     ],
-                    "prototype": {
-                        "ProTypIdt": "51",
-                        "Nam": "Meta",
-                        "Aka": "meta"
-                    }
+                    "prototype": {"ProTypIdt": "51", "Nam": "Meta", "Aka": "meta"},
                 },
-                "coords": {
-                    "pregenerated": "static"
-                },
-                "data": {
-                    "type": "subhome"
-                },
-                "spec": {
-                    "pagetype": "subhome"
-                }
+                "coords": {"pregenerated": "static"},
+                "data": {"type": "subhome"},
+                "spec": {"pagetype": "subhome"},
             }
         }
 
-        self.iprox_projects = [{
-            "category": "Algemeen",
-            "feedid": "https://www.amsterdam.nl/projecten/kademuren/maatregelen-vernieuwen/baarsjesweg-216-313/",
-            "publication_date": "2020-06-27",
-            "modification_date": "2021-08-31",
-            "image_url": "https://www.amsterdam.nl/publish/varianten/368/logo_voor_social.png",
-            "title": "Baarsjesweg 216 - 313: vernieuwen kademuur",
-            "content": "<div><p>De kademuur ter hoogte van de Baarsjesweg 216 tot 313, tussen de Postjesweg en Surinamestraat, is in slechte staat. We nemen tijdelijke maatregelen.</p></div>",
-            "source_url": "https://www.amsterdam.nl/projecten/kademuren/maatregelen-vernieuwen/baarsjesweg-216-313/",
-            "related_articles": "",
-            "author": "",
-            "photo_author": "",
-            "images": []
-        }]
+        self.iprox_projects = [
+            {
+                "category": "Algemeen",
+                "feedid": "https://www.amsterdam.nl/projecten/kademuren/maatregelen-vernieuwen/baarsjesweg-216-313/",
+                "publication_date": "2020-06-27",
+                "modification_date": "2021-08-31",
+                "image_url": "https://www.amsterdam.nl/publish/varianten/368/logo_voor_social.png",
+                "title": "Baarsjesweg 216 - 313: vernieuwen kademuur",
+                "content": "<div><p>De kademuur ter hoogte van de Baarsjesweg 216 tot 313, tussen de Postjesweg en Surinamestraat, is in slechte staat. We nemen tijdelijke maatregelen.</p></div>",
+                "source_url": "https://www.amsterdam.nl/projecten/kademuren/maatregelen-vernieuwen/baarsjesweg-216-313/",
+                "related_articles": "",
+                "author": "",
+                "photo_author": "",
+                "images": [],
+            }
+        ]
 
         self.iprox_stadsloketten = {
             "item": {
@@ -1856,14 +1596,12 @@ class TestData:
                                                     {
                                                         "Nam": "Link",
                                                         "Wrd": "loketten",
-                                                        "link": {
-                                                            "Url": "https://sub-page/"
-                                                        },
+                                                        "link": {"Url": "https://sub-page/"},
                                                     }
-                                                ]
-                                            }
+                                                ],
+                                            },
                                         }
-                                    ]
+                                    ],
                                 },
                                 {
                                     "Nam": "Lijst",
@@ -1875,17 +1613,14 @@ class TestData:
                                                     "Nam": "Titel",
                                                     "Wrd": "contact",
                                                 },
-                                                {
-                                                    "Nam": "Tekst",
-                                                    "Txt": "text"
-                                                }
-                                            ]
+                                                {"Nam": "Tekst", "Txt": "text"},
+                                            ],
                                         }
-                                    ]
-                                }
-                            ]
+                                    ],
+                                },
+                            ],
                         }
-                    ]
+                    ],
                 }
             }
         }
@@ -1899,18 +1634,8 @@ class TestData:
                             "Nam": "Meta",
                             "cluster": {
                                 "Nam": "Meta",
-                                "cluster": [
-                                    {
-                                        "Nam": "Gegevens",
-                                        "veld": [
-                                            {
-                                                "Nam": "Samenvatting",
-                                                "Txt": "text"
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
+                                "cluster": [{"Nam": "Gegevens", "veld": [{"Nam": "Samenvatting", "Txt": "text"}]}],
+                            },
                         },
                         {
                             "Nam": "Blok",
@@ -1924,27 +1649,15 @@ class TestData:
                                                 {
                                                     "Nam": "Afbeelding",
                                                     "FilNam": "test_orig.jpg",
-                                                    "Src": {
-                                                        "_": "/1/2/3/test_orig.jpg"
-                                                    },
+                                                    "Src": {"_": "/1/2/3/test_orig.jpg"},
                                                     "asset": [
-                                                        {
-                                                            "FilNam": "test.jpg",
-                                                            "Src": {
-                                                                "_": "/1/2/3/1px/text.jpg"
-                                                            }
-                                                        },
-                                                        {
-                                                            "FilNam": None,
-                                                            "Src": {
-                                                                "_": None
-                                                            }
-                                                        }
-                                                    ]
+                                                        {"FilNam": "test.jpg", "Src": {"_": "/1/2/3/1px/text.jpg"}},
+                                                        {"FilNam": None, "Src": {"_": None}},
+                                                    ],
                                                 }
-                                            ]
+                                            ],
                                         }
-                                    ]
+                                    ],
                                 },
                                 {
                                     "Nam": "Leestekst",
@@ -1956,8 +1669,8 @@ class TestData:
                                         {
                                             "Nam": "Tekst",
                                             "Txt": "text",
-                                        }
-                                    ]
+                                        },
+                                    ],
                                 },
                                 {
                                     "Nam": "Lijst",
@@ -1972,10 +1685,10 @@ class TestData:
                                                 {
                                                     "Nam": "Tekst",
                                                     "Txt": "text",
-                                                }
-                                            ]
+                                                },
+                                            ],
                                         }
-                                    ]
+                                    ],
                                 },
                                 {
                                     "Nam": "Lijst",
@@ -1987,9 +1700,9 @@ class TestData:
                                                     "Nam": "Tekst",
                                                     "Txt": "text",
                                                 },
-                                            ]
+                                            ],
                                         }
-                                    ]
+                                    ],
                                 },
                                 {
                                     "Nam": "Lijst",
@@ -2005,13 +1718,13 @@ class TestData:
                                                     "Nam": "Tekst",
                                                     "Txt": "text",
                                                 },
-                                            ]
+                                            ],
                                         }
-                                    ]
-                                }
-                            ]
-                        }
-                    ]
+                                    ],
+                                },
+                            ],
+                        },
+                    ],
                 }
             }
         }
@@ -2020,53 +1733,36 @@ class TestData:
             {
                 "email": "mock0@amsterdam.nl",
                 "identifier": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-                "projects": ["0000000000"]
+                "projects": ["0000000000"],
             },
             {
                 "email": "mock1@amsterdam.nl",
                 "identifier": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
-                "projects": ["0000000002", "0000000003"]
-            }
+                "projects": ["0000000002", "0000000003"],
+            },
         ]
 
         self.project_manager_invalid = {
             "email": "mock@invalid.domain",
             "identifier": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-            "projects": ["0000000000", "0000000001"]
+            "projects": ["0000000000", "0000000001"],
         }
 
         self.mobile_devices = [
-            {
-                "deviceid": "0",
-                "firebasetoken": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-                "os": "android"
-            },
-            {
-                "deviceid": "1",
-                "firebasetoken": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
-                "os": "ios"
-            }
+            {"deviceid": "0", "firebasetoken": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "os": "android"},
+            {"deviceid": "1", "firebasetoken": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "os": "ios"},
         ]
 
         self.followed_projects = [
-            {
-                "deviceid": '0',
-                "projectid": '0000000000'
-            },
-            {
-                "deviceid": '0',
-                "projectid": '0000000001'
-            },
-            {
-                "deviceid": '1',
-                "projectid": '0000000000'
-            }
+            {"deviceid": "0", "projectid": "0000000000"},
+            {"deviceid": "0", "projectid": "0000000001"},
+            {"deviceid": "1", "projectid": "0000000000"},
         ]
 
         self.warning_message = {
-            'title': 'title',
-            'body': 'Body text',
-            'project_identifier': '0000000000',
-            'project_manager_id': 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-            'images': []
+            "title": "title",
+            "body": "Body text",
+            "project_identifier": "0000000000",
+            "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            "images": [],
         }
