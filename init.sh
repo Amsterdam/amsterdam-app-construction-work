@@ -55,7 +55,7 @@ function create_user {
 
 function start_backend {
     printf "\nStarting Django API server (uwsgi)\n\n"
-    cd /code && uwsgi --ini uwsgi.ini
+    cd /code && python manage.py runserver 0.0.0.0:8000
 }
 
 function start_nginx {
@@ -85,5 +85,5 @@ set_header
 make_migrations
 create_user
 add_static_files
-start_nginx
+# start_nginx
 enter_infinity_loop
