@@ -11,7 +11,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_DB=${POSTGRES_DB}
     ports:
-      - "${POSTGRESS_PORT:-5432}:5432" 
+      - "5432:5432"
     restart: always
 
   # construction-work (api/web)
@@ -23,6 +23,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
       - WEB_USERNAME=${WEB_USERNAME}
       - WEB_PASSWORD=${WEB_PASSWORD}
       - APP_TOKEN=${APP_TOKEN}
