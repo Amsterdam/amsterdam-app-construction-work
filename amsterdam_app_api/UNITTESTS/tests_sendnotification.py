@@ -103,7 +103,7 @@ class TestSendNotification(TestCase):
         for project in followed_projects:
             FollowedProjects.objects.create(**project)
 
-    @patch("firebase_admin.messaging.send_multicast", side_effect=firebase_admin_messaging_send_multicast)
+    @patch("firebase_admin.messaging.send_each_for_multicast", side_effect=firebase_admin_messaging_send_multicast)
     def test_send_warning(self, _firebase_admin_messaging_send_multicast):
         """First message should always fail in the mocked send_multicast mock!!!
         Send warning message
@@ -123,7 +123,7 @@ class TestSendNotification(TestCase):
         # reset environment
         os.environ["DEBUG"] = debug
 
-    @patch("firebase_admin.messaging.send_multicast", side_effect=firebase_admin_messaging_send_multicast)
+    @patch("firebase_admin.messaging.send_each_for_multicast", side_effect=firebase_admin_messaging_send_multicast)
     def test_send_unknown_notification(self, _firebase_admin_messaging_send_multicast):
         """First message should always fail in the mocked send_multicast mock!!!
         Send non-existing notification
@@ -151,7 +151,7 @@ class TestSendNotification(TestCase):
         # reset environment
         os.environ["DEBUG"] = debug
 
-    @patch("firebase_admin.messaging.send_multicast", side_effect=firebase_admin_messaging_send_multicast)
+    @patch("firebase_admin.messaging.send_each_for_multicast", side_effect=firebase_admin_messaging_send_multicast)
     def test_send_news(self, _firebase_admin_messaging_send_multicast):
         """First message should always fail in the mocked send_multicast mock!!!
         Send news item as notification
