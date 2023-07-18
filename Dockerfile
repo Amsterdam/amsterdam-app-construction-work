@@ -28,15 +28,19 @@ COPY manage.py /code/
 COPY create_user.py /code/
 COPY amsterdam_app_backend /code/amsterdam_app_backend
 COPY amsterdam_app_api /code/amsterdam_app_api
+COPY uwsgi.ini /code/uwsgi.ini
+COPY nginx.conf /etc/nginx/nginx.conf
 
 # Install dependencies
 RUN apk add --no-cache --virtual .build-deps build-base linux-headers \
     && apk add --no-cache \
-      bash \
-      netcat-openbsd \
-      procps \
-      postgresql-client \
-      libffi-dev libheif-dev libde265-dev \
+         bash \
+         netcat-openbsd \
+         procps \
+         postgresql-client \
+         libffi-dev libheif-dev libde265-dev \
+         pcre pcre-dev  \
+         nginx \
     && cd /code \
     && python3 -m pip --no-cache-dir install -r /code/requirements.txt \
     && rm -rf /tmp/* \
