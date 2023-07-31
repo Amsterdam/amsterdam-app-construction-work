@@ -15,19 +15,12 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, include, re_path
+from django.urls import include, path, re_path
+
 from amsterdam_app_backend import views
 
 urlpatterns = [
-    path('api/v1/', include('amsterdam_app_api.urls')),
-    path('readme', views.readme),
-    path('', views.index),
-    re_path(r'^appstore/.*$', views.appstore),
-    re_path(r'^css/.*$', views.css_files),
-    re_path(r'^js/.*$', views.js_files),
-    re_path(r'^img/.*$', views.img_files),
-    re_path(r'^assets/.*$', views.img_files),
-    re_path(r'^static/.*$', views.static),
-    re_path(r'^favicon.ico$', views.favicon),
-    path('admin/', admin.site.urls),
+    path("api/v1/", include("amsterdam_app_api.urls")),
+    re_path(r"^appstore/.*$", views.appstore),
+    path("admin/", admin.site.urls),
 ]
