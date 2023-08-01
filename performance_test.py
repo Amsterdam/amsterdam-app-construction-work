@@ -1,3 +1,6 @@
+# pylint: disable=consider-using-with
+""" A simple performance test
+"""
 import concurrent.futures
 import random
 import threading
@@ -7,8 +10,14 @@ import requests
 
 
 class PerformanceTest:
-    def __init__(self, concurrency=None, cycles=None):
-        self.url = "https://test.masikh.org/api/v1/projects?fields=followed,identifier,images,publication_date,recent_articles,subtitle,title&articles_max_age=60&page_size=20"
+    """Simple class to conduct a performance test"""
+
+    def __init__(self, server=None, concurrency=None, cycles=None):
+        """ """
+        api = "api/v1/projects"
+        fields = "followed,identifier,images,publication_date,recent_articles,subtitle,title"
+        query_params = "articles_max_age=60&page_size=20"
+        self.url = f"https://{server}/{api}?fields={fields}&{query_params}"
         self.concurrent_requests = concurrency
         self.cycles = cycles
         self.response_times = []
@@ -21,6 +30,7 @@ class PerformanceTest:
         self.lock = threading.Lock()
 
     def send_request(self, url, max_retries=5):
+        """Send request to upstream server"""
         headers = {"DEVICEID": "uwsgi+nginx+client"}
         retries = 0
         start_time = time.time()
@@ -39,7 +49,7 @@ class PerformanceTest:
                     return  # Exit the loop if the request was successful
 
                 retries += 1
-            except requests.exceptions.RequestException as e:
+            except requests.exceptions.RequestException:
                 retries += 1
 
             self.retried_requests += 1
@@ -49,7 +59,7 @@ class PerformanceTest:
         self.lock.release()  # Release the lock
 
     def start_test(self):
-        # Perform performance testing
+        """Perform performance testing"""
         self.test_start = time.time()
         with concurrent.futures.ThreadPoolExecutor(max_workers=self.concurrent_requests) as executor:
             lat_lon = []
@@ -72,7 +82,7 @@ class PerformanceTest:
         self.test_stop = time.time()
 
     def print_metrics(self):
-        # Calculate statistics
+        """Calculate statistics"""
         total_time = sum(self.response_times)
         average_time = total_time / (self.concurrent_requests * self.cycles)
         fastest_time = min(self.response_times)
@@ -106,6 +116,6 @@ class PerformanceTest:
 
 
 if __name__ == "__main__":
-    performance_test = PerformanceTest(concurrency=300, cycles=50)
+    performance_test = PerformanceTest(server="test.masikh.org", concurrency=300, cycles=50)
     performance_test.start_test()
     performance_test.print_metrics()

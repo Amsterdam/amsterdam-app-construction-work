@@ -1,12 +1,5 @@
 """ Views for VUE website """
-import io
-import mimetypes
-
-import markdown
 from django.http import HttpResponse
-from PIL import Image as PILImage
-
-from amsterdam_app_backend.settings import BASE_DIR
 
 
 def appstore(request):
