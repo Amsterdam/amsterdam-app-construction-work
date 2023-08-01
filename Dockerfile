@@ -41,6 +41,7 @@ RUN apk add --no-cache --virtual .build-deps build-base linux-headers \
          libffi-dev libheif-dev libde265-dev \
          pcre pcre-dev  \
          nginx \
+         mailcap \
     && cd /code \
     && python3 -m pip --no-cache-dir install -r /code/requirements.txt \
     && rm -rf /tmp/* \
