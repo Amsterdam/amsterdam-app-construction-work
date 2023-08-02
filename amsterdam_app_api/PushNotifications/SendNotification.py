@@ -4,7 +4,7 @@ from firebase_admin import credentials, messaging
 
 from amsterdam_app_api.GenericFunctions.Logger import Logger
 from amsterdam_app_api.models import FirebaseTokens, FollowedProjects, Notification
-from amsterdam_app_backend.settings import BASE_DIR
+from main_application.settings import BASE_DIR
 
 
 class SendNotification:

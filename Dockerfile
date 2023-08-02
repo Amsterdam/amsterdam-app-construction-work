@@ -26,7 +26,7 @@ COPY requirements.txt /code/
 COPY init.sh /code/
 COPY manage.py /code/
 COPY create_user.py /code/
-COPY amsterdam_app_backend /code/amsterdam_app_backend
+COPY main_application /code/amsterdam_app_backend
 COPY amsterdam_app_api /code/amsterdam_app_api
 COPY uwsgi.ini /code/uwsgi.ini
 COPY nginx.conf /etc/nginx/nginx.conf

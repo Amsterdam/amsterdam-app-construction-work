@@ -1,5 +1,5 @@
 """
-ASGI config for amsterdam_app_backend project.
+ASGI config for main_application project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'amsterdam_app_backend.settings')
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "main_application.settings")
 
 application = get_asgi_application()

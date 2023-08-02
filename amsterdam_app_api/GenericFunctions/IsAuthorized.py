@@ -18,38 +18,28 @@ from django.http.response import HttpResponse, HttpResponseForbidden
 from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError
 
 from amsterdam_app_api.GenericFunctions.AESCipher import AESCipher, AESException
-from amsterdam_app_backend.settings import SECRET_KEY
+from main_application.settings import SECRET_KEY
 
 
 def get_jwtauthorization(request):
     """Get the JWT token from the request"""
     http_jwt_token = request.META.get("HTTP_AUTHORIZATION", None)
     header_jwt_token = request.META.get("headers", {}).get("AUTHORIZATION", None)
-    return (
-        header_jwt_token.encode("utf-8")
-        if header_jwt_token is not None
-        else http_jwt_token
-    )
+    return header_jwt_token.encode("utf-8") if header_jwt_token is not None else http_jwt_token
 
 
 def get_userauthorization(request):
     """Get the AES encrypted token from the request"""
     http_userauthorization = request.META.get("HTTP_USERAUTHORIZATION", None)
     header_uauth = request.META.get("headers", {}).get("UserAuthorization", None)
-    return (
-        http_userauthorization if http_userauthorization is not None else header_uauth
-    )
+    return http_userauthorization if http_userauthorization is not None else header_uauth
 
 
 def get_ingestauthorization(request):
     """Get the AES encrypted token from the request"""
     http_ingestauthorization = request.META.get("HTTP_INGESTAUTHORIZATION", None)
     header_iauth = request.META.get("headers", {}).get("INGESTAUTHORIZATION", None)
-    return (
-        http_ingestauthorization
-        if http_ingestauthorization is not None
-        else header_iauth
-    )
+    return http_ingestauthorization if http_ingestauthorization is not None else header_iauth
 
 
 def is_valid_AES_token(encrypted_token=None):
@@ -72,9 +62,7 @@ def is_valid_JWT_token(jwt_encrypted_token=None):
 def is_valid_INGEST_token(encrypted_token=None):
     """Test is ingest token is valid"""
     try:
-        token = UUID(
-            AESCipher(encrypted_token, os.getenv("AES_SECRET")).decrypt(), version=4
-        )
+        token = UUID(AESCipher(encrypted_token, os.getenv("AES_SECRET")).decrypt(), version=4)
         return isinstance(token, UUID)
     except (InvalidSignatureError, ExpiredSignatureError, Exception):
         return False
