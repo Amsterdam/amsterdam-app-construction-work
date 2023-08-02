@@ -60,7 +60,7 @@ def main():
 
         import coverage
 
-        cov = coverage.coverage(source=["amsterdam_app_api"], omit=["*/tests/*"])
+        cov = coverage.coverage(source=["construction_work"], omit=["*/tests/*"])
         cov.erase()
         cov.start()
 

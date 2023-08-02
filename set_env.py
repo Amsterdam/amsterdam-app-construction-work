@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """ Setup environment file for new backend """
-import string
-import random
 import os
+import random
+import string
 
 
 class SetEnv:
@@ -38,9 +38,7 @@ class SetEnv:
             while satisfied.lower() not in ["y", "n", "a"]:
                 if os.path.isfile(path):
                     satisfied = (
-                        input(
-                            "Warning: credential files already exist! " "Do you wish to override them? (Y/N/A(bort)): "
-                        )
+                        input("Warning: credential files already exist! Do you wish to override them? (Y/N/A(bort)): ")
                         or "n"
                     )
                     if satisfied.lower() == "y":

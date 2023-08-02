@@ -20,7 +20,7 @@ from django.urls import include, path, re_path
 from main_application import views
 
 urlpatterns = [
-    path("api/v1/", include("amsterdam_app_api.urls")),
+    path("api/v1/", include("construction_work.urls")),
     re_path(r"^appstore/.*$", views.appstore),
     path("admin/", admin.site.urls),
 ]

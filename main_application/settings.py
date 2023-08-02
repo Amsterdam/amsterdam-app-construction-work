@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     "drf_yasg",
     "rest_framework",
     "rest_framework.authtoken",
-    "amsterdam_app_api.apps.AmsterdamAppApiConfig",
+    "construction_work.apps.ConstructionWorkApiConfig",
 ]
 
 MIDDLEWARE = [
@@ -197,4 +197,4 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Use nose to run all tests
 TEST_RUNNER = "django_nose.NoseTestSuiteRunner"
 
-NOSE_ARGS = ["--cover-package=amsterdam_app_api"]
+NOSE_ARGS = ["--cover-package=construction_work"]
