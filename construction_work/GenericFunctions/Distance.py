@@ -24,6 +24,8 @@
 
 import geopy.distance
 
+STRIDES_PER_METER = 1 / 0.74
+
 
 class GeoPyDistance:
     """Calculate distance between two gps coordinates"""
@@ -35,10 +37,13 @@ class GeoPyDistance:
         self.meter = None
         self.strides = None
 
-        if not any(elem is None for elem in [coords_1[0], coords_1[1], coords_2[0], coords_2[1]]):
+        if not any(
+            elem is None
+            for elem in [coords_1[0], coords_1[1], coords_2[0], coords_2[1]]
+        ):
             try:
                 self.meter = int(geopy.distance.geodesic(coords_1, coords_2).km * 1000)
-                self.strides = int(self.meter / 0.74)
+                self.strides = int(self.meter * STRIDES_PER_METER)
             except ValueError:
                 pass
             except Exception as error:

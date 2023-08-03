@@ -58,47 +58,55 @@
 
     Memoize depends on the python build-ins `time` and `functools`
 """
-import time
 import functools
+import time
+
+TTL = 300
+MAX_ITEMS = 128
 
 
 class Memoize:
-    """ Example usage:
+    """Example usage:
 
-        memoize = Memoize(ttl=300, max_items=100)
+    memoize = Memoize(ttl=300, max_items=100)
 
-        @memoize
-        def students(year, age=None):
-            query = {'year': year}
-            if age:
-                query['age'] = age
-            _students = list(Student.objects.objects.filter(**query).all())
-            ...
-            return result
+    @memoize
+    def students(year, age=None):
+        query = {'year': year}
+        if age:
+            query['age'] = age
+        _students = list(Student.objects.objects.filter(**query).all())
+        ...
+        return result
 
-        @memoize(ttl=5)
-        def signed_in(building):
-            query = {'building': building}
-            _students = list(SignedIn.objects.objects.filter(**query).all())
-            ...
-            return result
+    @memoize(ttl=5)
+    def signed_in(building):
+        query = {'building': building}
+        _students = list(SignedIn.objects.objects.filter(**query).all())
+        ...
+        return result
     """
-    def __init__(self, ttl=300, max_items=128):
+
+    def __init__(self, ttl=TTL, max_items=MAX_ITEMS):
         self.memoize_cache = {}
         self.ttl = ttl
         self.max_items = max_items
 
     def add_cache(self, key, value, ttl):
-        """ Store cache item """
+        """Store cache item"""
         self.memoize_cache[key] = (time.time() + ttl, value)
 
     def clean_cache(self):
-        """ Clear expired cached items """
+        """Clear expired cached items"""
         now = time.time()
-        self.memoize_cache = {key: value for key, value in self.memoize_cache.items() if now <= value[0]}
+        self.memoize_cache = {
+            key: value for key, value in self.memoize_cache.items() if now <= value[0]
+        }
 
         # Remove all items more than self.max_items by cache-age
-        sorted_cache = sorted(self.memoize_cache.items(), key=lambda x: x[1][0], reverse=False)
+        sorted_cache = sorted(
+            self.memoize_cache.items(), key=lambda x: x[1][0], reverse=False
+        )
         for key, value in sorted_cache:
             if len(self.memoize_cache) - self.max_items <= 0:
                 break
@@ -129,4 +137,5 @@ class Memoize:
             self.add_cache(args[0], result, _ttl)
             self.clean_cache()
             return result
+
         return wrapper
