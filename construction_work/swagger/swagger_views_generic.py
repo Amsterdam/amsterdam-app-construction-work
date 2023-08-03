@@ -4,7 +4,7 @@
 
 from drf_yasg import openapi
 
-from construction_work.GenericFunctions.StaticData import StaticData
+from construction_work.generic_functions.static_data import StaticData
 
 as_image = {
     # /api/v1/image swagger_auto_schema

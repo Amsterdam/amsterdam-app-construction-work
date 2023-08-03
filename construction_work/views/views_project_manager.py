@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from construction_work.api_messages import Messages
-from construction_work.GenericFunctions.IsAuthorized import IsAuthorized, get_jwtauthorization, is_valid_JWT_token
+from construction_work.generic_functions.is_authorized import IsAuthorized, get_jwtauthorization, is_valid_JWT_token
 from construction_work.models import ProjectManager, Projects
 from construction_work.serializers import ProjectManagerSerializer
 from construction_work.swagger.swagger_views_project_manager import (
