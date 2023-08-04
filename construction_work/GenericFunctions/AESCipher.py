@@ -24,7 +24,9 @@ class AESCipher:
         self.data = data
         self.secret = secret.encode()
         self.blk_size = 16
-        self.pad = lambda s: s + (self.blk_size - len(s) % self.blk_size) * chr(self.blk_size - len(s) % self.blk_size)
+        self.pad = lambda s: s + (self.blk_size - len(s) % self.blk_size) * chr(
+            self.blk_size - len(s) % self.blk_size
+        )
         self.unpad = lambda s: s[: -ord(s[len(s) - 1 :])]
 
     def bytes_to_key(self, data, salt, output=48):
@@ -42,11 +44,13 @@ class AESCipher:
         """Encrypt string"""
         try:
             salt = Random.new().read(8)
-            key_iv = self.bytes_to_key(self.secret, salt, 32 + 16)
+            key_iv = self.bytes_to_key(self.secret, salt, 32 + self.blk_size)
             key = key_iv[:32]
             iv = key_iv[32:]
             aes = AES.new(key, AES.MODE_CBC, iv)
-            return b64encode(b"Salted__" + salt + aes.encrypt(self.pad(self.data).encode())).decode()
+            return b64encode(
+                b"Salted__" + salt + aes.encrypt(self.pad(self.data).encode())
+            ).decode()
         except Exception as error:
             self.logger.error(error)
             return None

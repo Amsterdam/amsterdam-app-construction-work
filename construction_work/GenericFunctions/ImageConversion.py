@@ -10,6 +10,13 @@ import pyheif
 import whatimage
 from PIL import Image
 
+DIMENSIONS = {
+    "SMALL": (320, 180),
+    "MEDIUM": (768, 432),
+    "LARGE": (1280, 720),
+    "XLARGE": (1920, 1080),
+}
+
 
 class UnsupportedFormat(Exception):
     """Exception class"""
@@ -24,7 +31,12 @@ class ImageConversion:
 
     def __init__(self, image_data, image_name=None):
         self.image_data = image_data
-        self.target_sizes = [(320, 180), (768, 432), (1280, 720), (1920, 1080)]
+        self.target_sizes = [
+            DIMENSIONS["SMALL"],
+            DIMENSIONS["MEDIUM"],
+            DIMENSIONS["LARGE"],
+            DIMENSIONS["XLARGE"],
+        ]
         self.width = None
         self.height = None
         self.aspect_ratio = None
@@ -45,7 +57,9 @@ class ImageConversion:
         self.get_gps_info()
         self.scale_image()
         self.mime_type = "image/{format}".format(format=self.image_format)
-        self.set_image(data=self.image_data, width=self.width, height=self.height, key="original")
+        self.set_image(
+            data=self.image_data, width=self.width, height=self.height, key="original"
+        )
         return True
 
     def get_format(self):
@@ -57,7 +71,9 @@ class ImageConversion:
         try:
             if self.image_format in ["heic", "avif"]:
                 image = pyheif.read(self.image_data)
-                self.raw_data = Image.frombytes(mode=image.mode, size=image.size, data=image.data)
+                self.raw_data = Image.frombytes(
+                    mode=image.mode, size=image.size, data=image.data
+                )
             elif self.image_format in ["jpeg", "png"]:
                 image = BytesIO(self.image_data)
                 self.raw_data = Image.open(image)
@@ -74,7 +90,12 @@ class ImageConversion:
             if self.image_format != "jpeg":
                 stream = io.BytesIO()
                 self.raw_data.save(stream, format="JPEG")
-                self.set_image(data=stream.getvalue(), width=self.width, height=self.height, key="original-size-jpeg")
+                self.set_image(
+                    data=stream.getvalue(),
+                    width=self.width,
+                    height=self.height,
+                    key="original-size-jpeg",
+                )
 
             return True
         except UnsupportedFormat:
@@ -88,11 +109,15 @@ class ImageConversion:
             tags = exifread.process_file(BytesIO(self.image_data))
             lat_ref = "N" in tags.get("GPS GPSLatitudeRef").values
             lat_dms = tags.get("GPS GPSLatitude").values
-            self.gps_info["lat"] = (lat_dms[0] + lat_dms[1] / 60.0 + lat_dms[2] / 3600.0) * (1 if lat_ref else -1)
+            self.gps_info["lat"] = (
+                lat_dms[0] + lat_dms[1] / 60.0 + lat_dms[2] / 3600.0
+            ) * (1 if lat_ref else -1)
 
             lon_ref = "W" in tags.get("GPS GPSLongitudeRef").values
             lon_dms = tags.get("GPS GPSLongitude").values
-            self.gps_info["lon"] = (lon_dms[0] + lon_dms[1] / 60.0 + lon_dms[2] / 3600.0) * (-1 if lon_ref else 1)
+            self.gps_info["lon"] = (
+                lon_dms[0] + lon_dms[1] / 60.0 + lon_dms[2] / 3600.0
+            ) * (-1 if lon_ref else 1)
         except Exception:
             pass
 
@@ -120,7 +145,12 @@ class ImageConversion:
                 img = self.raw_data.resize(new_size, Image.Resampling.LANCZOS)
                 img.save(stream, format="JPEG")
                 key = "{width}x{height}".format(width=new_size[0], height=new_size[1])
-                self.set_image(data=stream.getvalue(), width=new_size[0], height=new_size[1], key=key)
+                self.set_image(
+                    data=stream.getvalue(),
+                    width=new_size[0],
+                    height=new_size[1],
+                    key=key,
+                )
 
     def set_image(self, data=None, width=None, height=None, key=None):
         """Populate self.images"""
@@ -128,6 +158,8 @@ class ImageConversion:
             "data": data,
             "width": width,
             "height": height,
-            "filename": "{key}-{image_name}".format(key=key, image_name=self.image_name),
+            "filename": "{key}-{image_name}".format(
+                key=key, image_name=self.image_name
+            ),
             "mime_type": self.mime_type,
         }

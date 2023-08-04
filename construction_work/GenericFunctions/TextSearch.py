@@ -16,27 +16,39 @@
 """
 
 from math import ceil
-from django.db.models import Q
+
 from django.contrib.postgres.search import TrigramWordSimilarity
+from django.db.models import Q
+
+PAGE_SIZE = 10
+MIN_QUERY_LENGTH = 3
 
 
 class TextSearch:
-    """ For this class to function your database is required to support the extension 'pg_trgm' (TrigramWordSimilarity)
-        and 'unaccent' (search agnostic for accents e.g. ü or u are equivalent)
+    """For this class to function your database is required to support the extension 'pg_trgm' (TrigramWordSimilarity)
+    and 'unaccent' (search agnostic for accents e.g. ü or u are equivalent)
 
-        model: model object class
-        query: string
-        query_fields: comma separated string of model fields
-        return_fields: comma separated string of model fields
-        page_size: maximum number items in paginated result
-        page: the result page
+    model: model object class
+    query: string
+    query_fields: comma separated string of model fields
+    return_fields: comma separated string of model fields
+    page_size: maximum number items in paginated result
+    page: the result page
     """
 
-    def __init__(self, model, query, query_fields, return_fields=None, page_size=10, page=0):
+    def __init__(
+        self,
+        model,
+        query,
+        query_fields,
+        return_fields=None,
+        page_size=PAGE_SIZE,
+        page=0,
+    ):
         self.model = model
         self.query = query
-        self.query_fields = query_fields.split(',')
-        self.return_fields = None if return_fields is None else return_fields.split(',')
+        self.query_fields = query_fields.split(",")
+        self.return_fields = None if return_fields is None else return_fields.split(",")
         self.threshold = 0.0  # only scores above this threshold are considered
         self.page_size = page_size
         self.page = page
@@ -44,17 +56,19 @@ class TextSearch:
         self.result = []
 
     def search(self):
-        """ Search for string in db """
+        """Search for string in db"""
 
         # Only start the search with at least three characters
-        if len(self.query) < 3:
-            return {'page': self.result, 'pages': self.pages}
+        if len(self.query) < MIN_QUERY_LENGTH:
+            return {"page": self.result, "pages": self.pages}
 
         # Dynamically get appropriate model fields and build a filter for the requested return fields
-        model_fields = [x.name for x in self.model._meta.get_fields() if x.name != 'data']
+        model_fields = [
+            x.name for x in self.model._meta.get_fields() if x.name != "data"
+        ]
         if self.return_fields is not None:
             model_fields = [x for x in model_fields if x in self.return_fields]
-        model_fields += ['score']
+        model_fields += ["score"]
 
         # Build a 'TrigramWordSimilarity' and 'accents agnostic adjacent characters' filter
         score = 0
@@ -66,15 +80,28 @@ class TextSearch:
             weight = weight / 2
 
             # Build accents agnostic filter for adjacent characters in TrigramWordSimilarity search results
-            q = Q(**{'{query_field}__unaccent__icontains'.format(query_field=query_field): self.query})
+            q = Q(
+                **{
+                    "{query_field}__unaccent__icontains".format(
+                        query_field=query_field
+                    ): self.query
+                }
+            )
 
             # Query and filter
-            objects = self.model.objects.annotate(score=score).filter(score__gte=self.threshold).filter(q).order_by('-score')
+            objects = (
+                self.model.objects.annotate(score=score)
+                .filter(score__gte=self.threshold)
+                .filter(q)
+                .order_by("-score")
+            )
             all_objects = all_objects + [x for x in objects if x != []]
         sorted_objects = sorted(all_objects, key=lambda x: x.score, reverse=True)
 
         seen = set()
-        set_sorted_objects = [seen.add(x.pk) or x for x in sorted_objects if x.pk not in seen]
+        set_sorted_objects = [
+            seen.add(x.pk) or x for x in sorted_objects if x.pk not in seen
+        ]
 
         # Set paginated result and calculate number of pages
         start_index = self.page * self.page_size
@@ -92,11 +119,11 @@ class TextSearch:
         # Return result and page count
         # return {'result': self.result, 'pages': self.pages, 'totalElements': len(set_sorted_objects)}
         return {
-            'result': self.result,
-            'page': {
-                'number': self.page + 1,  # Pages are counted from one not zero
-                'size': self.page_size,
-                'totalElements': len(set_sorted_objects),
-                'totalPages': self.pages
-            }
+            "result": self.result,
+            "page": {
+                "number": self.page + 1,  # Pages are counted from one not zero
+                "size": self.page_size,
+                "totalElements": len(set_sorted_objects),
+                "totalPages": self.pages,
+            },
         }
