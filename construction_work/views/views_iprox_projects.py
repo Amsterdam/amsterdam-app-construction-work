@@ -14,13 +14,13 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from construction_work.api_messages import Messages
-from construction_work.GenericFunctions.Distance import GeoPyDistance
-from construction_work.GenericFunctions.Memoize import Memoize
-from construction_work.GenericFunctions.RequestMustComeFromApp import (
+from construction_work.generic_functions.distance import GeoPyDistance
+from construction_work.generic_functions.memoize import Memoize
+from construction_work.generic_functions.request_must_come_from_app import (
     RequestMustComeFromApp,
 )
-from construction_work.GenericFunctions.StaticData import StaticData
-from construction_work.GenericFunctions.TextSearch import TextSearch
+from construction_work.generic_functions.static_data import StaticData
+from construction_work.generic_functions.text_search import TextSearch
 from construction_work.models import (
     Article,
     FollowedProjects,

@@ -4,9 +4,9 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from construction_work.api_messages import Messages
-from construction_work.GenericFunctions.SetFilter import SetFilter
-from construction_work.GenericFunctions.Sort import Sort
-from construction_work.GenericFunctions.StaticData import StaticData
+from construction_work.generic_functions.set_filter import SetFilter
+from construction_work.generic_functions.sort import Sort
+from construction_work.generic_functions.static_data import StaticData
 from construction_work.models import Article, WarningMessages
 from construction_work.serializers import ArticleSerializer, WarningMessagesExternalSerializer
 from construction_work.swagger.swagger_views_iprox_news import as_article, as_articles_get, as_news_by_project_id

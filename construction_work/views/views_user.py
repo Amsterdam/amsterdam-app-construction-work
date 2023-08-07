@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from construction_work.api_messages import Messages
-from construction_work.GenericFunctions.IsAuthorized import IsAuthorized
+from construction_work.generic_functions.is_authorized import IsAuthorized
 from construction_work.swagger.swagger_views_user import as_change_password
 
 messages = Messages()
