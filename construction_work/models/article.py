@@ -8,7 +8,7 @@ from datetime import datetime
 
 from django.db import models
 
-from construction_work.models.projects import Project
+from construction_work.models.project import Project
 
 
 class Article(models.Model):

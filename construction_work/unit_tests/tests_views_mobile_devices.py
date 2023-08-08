@@ -6,7 +6,7 @@ from django.test import Client, TestCase
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.aes_cipher import AESCipher
-from construction_work.models import DeviceAccessLog, FirebaseToken, Project
+from construction_work.models import FirebaseToken, MobilePhoneAccessLog, Project
 from construction_work.unit_tests.mock_data import TestData
 
 messages = Messages()
@@ -46,7 +46,7 @@ class TestDeviceAccessLog(TestCase):
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(result.data, {"status": False, "result": "Registration added"})
 
-        DeviceAccessLog.prune()
+        MobilePhoneAccessLog.prune()
         devices = list(FirebaseToken.objects.all())
         self.assertEqual(len(devices), 1)
 

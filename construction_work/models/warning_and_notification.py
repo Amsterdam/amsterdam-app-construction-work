@@ -50,10 +50,10 @@ import uuid
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from construction_work.models.projects import Project
+from construction_work.models.project import Project
 
 from .article import Article
-from .project_managers import ProjectManager
+from .project_manager import ProjectManager
 
 
 class WarningMessage(models.Model):

@@ -9,7 +9,7 @@ from datetime import timedelta
 
 from django.db import models
 
-from .followed_projects import FollowedProject
+from .followed_project import FollowedProject
 
 
 class FirebaseToken(models.Model):
@@ -21,16 +21,16 @@ class FirebaseToken(models.Model):
 
     def save(self, *args, **kwargs):
         # We've seen the device, update its access log
-        device_access_log = DeviceAccessLog.objects.filter(pk=self.deviceid).first()
+        device_access_log = MobilePhoneAccessLog.objects.filter(pk=self.deviceid).first()
         if device_access_log is not None:
             device_access_log.save()
         else:
-            device_access_log = DeviceAccessLog(deviceid=self.deviceid)
+            device_access_log = MobilePhoneAccessLog(deviceid=self.deviceid)
             device_access_log.save()
         super(FirebaseToken, self).save(*args, **kwargs)
 
 
-class DeviceAccessLog(models.Model):
+class MobilePhoneAccessLog(models.Model):
     """Device access log db model"""
 
     deviceid = models.CharField(max_length=200, unique=True, primary_key=True)
@@ -38,16 +38,16 @@ class DeviceAccessLog(models.Model):
 
     def save(self, *args, **kwargs):
         self.last_access = datetime.datetime.now()
-        super(DeviceAccessLog, self).save(*args, **kwargs)
+        super(MobilePhoneAccessLog, self).save(*args, **kwargs)
 
     @staticmethod
     def prune():
         """Prune devices after 1 year of inactivity"""
         now = datetime.datetime.now()
         prune_date = now - timedelta(days=365)
-        devices = DeviceAccessLog.objects.filter(last_access__lte=prune_date).all()
+        devices = MobilePhoneAccessLog.objects.filter(last_access__lte=prune_date).all()
         device_ids = [x.deviceid for x in devices]
 
         FirebaseToken.objects.filter(deviceid__in=device_ids).delete()
         FollowedProject.objects.filter(deviceid__in=device_ids).delete()
-        DeviceAccessLog.objects.filter(deviceid__in=device_ids).delete()
+        MobilePhoneAccessLog.objects.filter(deviceid__in=device_ids).delete()
