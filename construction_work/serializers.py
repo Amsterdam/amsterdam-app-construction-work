@@ -3,13 +3,13 @@ from rest_framework import serializers
 
 from construction_work.models import (
     Article,
-    Assets,
+    Asset,
     Image,
     Notification,
-    ProjectDetails,
+    Project,
+    ProjectDetail,
     ProjectManager,
-    Projects,
-    WarningMessages,
+    WarningMessage,
 )
 
 
@@ -17,7 +17,7 @@ class AssetsSerializer(serializers.ModelSerializer):
     """Assets serializer (pdf's)"""
 
     class Meta:
-        model = Assets
+        model = Asset
         fields = "__all__"
 
 
@@ -33,7 +33,7 @@ class ProjectsSerializer(serializers.ModelSerializer):
     """Project pages serializer"""
 
     class Meta:
-        model = Projects
+        model = Project
         fields = "__all__"
 
     def get_field_names(self, *args, **kwargs):
@@ -47,7 +47,7 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
     """Project details serializer"""
 
     class Meta:
-        model = ProjectDetails
+        model = ProjectDetail
         fields = "__all__"
 
 
@@ -71,7 +71,7 @@ class WarningMessagesInternalSerializer(serializers.ModelSerializer):
     """warning messages (internal VUE) serializer"""
 
     class Meta:
-        model = WarningMessages
+        model = WarningMessage
         fields = "__all__"
 
 
@@ -79,7 +79,7 @@ class WarningMessagesExternalSerializer(serializers.ModelSerializer):
     """warning messages (external) serializer"""
 
     class Meta:
-        model = WarningMessages
+        model = WarningMessage
         exclude = ["project_manager_id"]
 
 

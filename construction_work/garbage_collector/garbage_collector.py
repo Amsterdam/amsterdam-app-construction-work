@@ -1,7 +1,7 @@
 """ Iprox garbage collector """
 from datetime import timedelta
 
-from construction_work.models import Article, ProjectDetails, Projects
+from construction_work.models import Article, Project, ProjectDetail
 
 
 class GarbageCollector:
@@ -21,13 +21,13 @@ class GarbageCollector:
             news = list(Article.objects.filter(project_type=project_type).all())
             report_news = self.garbage_collect_iprox(news, model=Article, model_name="News")
 
-            project_details = list(ProjectDetails.objects.filter(project_type=project_type).all())
+            project_details = list(ProjectDetail.objects.filter(project_type=project_type).all())
             report_project_details = self.garbage_collect_iprox(
-                project_details, model=ProjectDetails, model_name="ProjectDetails"
+                project_details, model=ProjectDetail, model_name="ProjectDetails"
             )
 
-            projects = list(Projects.objects.filter(project_type=project_type).all())
-            report_projects = self.garbage_collect_iprox(projects, model=Projects, model_name="Projects")
+            projects = list(Project.objects.filter(project_type=project_type).all())
+            report_projects = self.garbage_collect_iprox(projects, model=Project, model_name="Projects")
 
         return {"projects": report_projects, "project_details": report_project_details, "news": report_news}
 

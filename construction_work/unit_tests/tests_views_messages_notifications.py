@@ -8,7 +8,7 @@ from django.test import Client, TestCase
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.aes_cipher import AESCipher
-from construction_work.models import FirebaseTokens, FollowedProjects, ProjectManager, Projects, WarningMessages
+from construction_work.models import FirebaseToken, FollowedProject, Project, ProjectManager, WarningMessage
 from construction_work.unit_tests.mock_data import TestData
 from construction_work.unit_tests.mock_functions import firebase_admin_messaging_send_multicast
 
@@ -31,7 +31,7 @@ class TestApiNotification(TestCase):
     def setUp(self):
         """Setup test db"""
         for project in self.data.projects:
-            Projects.objects.create(**project)
+            Project.objects.create(**project)
 
         ProjectManager.objects.all().delete()
         for project_manager in self.data.project_manager:
@@ -39,25 +39,25 @@ class TestApiNotification(TestCase):
 
         data = {
             "title": "title",
-            "project_identifier": Projects.objects.filter(pk="0000000000").first(),
+            "project_identifier": Project.objects.filter(pk="0000000000").first(),
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             "body": {"preface": "short text", "content": "long text"},
             "images": [],
         }
-        WarningMessages.objects.all().delete()
-        warning_message = WarningMessages.objects.create(**data)
+        WarningMessage.objects.all().delete()
+        warning_message = WarningMessage.objects.create(**data)
         self.warning_identifier = str(warning_message.identifier)
 
     @patch("firebase_admin.messaging.send_multicast", side_effect=firebase_admin_messaging_send_multicast)
     def test_post_notification(self, _firebase_admin_messaging_send_multicast):
         """Test post notification"""
-        FirebaseTokens.objects.all().delete()
+        FirebaseToken.objects.all().delete()
         for device in self.data.mobile_devices:
-            FirebaseTokens.objects.create(**device)
+            FirebaseToken.objects.create(**device)
 
-        FollowedProjects.objects.all().delete()
+        FollowedProject.objects.all().delete()
         for project in self.data.followed_projects:
-            FollowedProjects.objects.create(**project)
+            FollowedProject.objects.create(**project)
 
         data = {"title": "title", "body": "text", "warning_identifier": self.warning_identifier}
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -109,13 +109,13 @@ class TestApiNotification(TestCase):
     @patch("firebase_admin.messaging.send_multicast", side_effect=firebase_admin_messaging_send_multicast)
     def test_get_notification(self, _firebase_admin_messaging_send_multicast):
         """Get notifications from db"""
-        FirebaseTokens.objects.all().delete()
+        FirebaseToken.objects.all().delete()
         for device in self.data.mobile_devices:
-            FirebaseTokens.objects.create(**device)
+            FirebaseToken.objects.create(**device)
 
-        FollowedProjects.objects.all().delete()
+        FollowedProject.objects.all().delete()
         for project in self.data.followed_projects:
-            FollowedProjects.objects.create(**project)
+            FollowedProject.objects.create(**project)
 
         data = {"title": "title", "body": "text", "warning_identifier": self.warning_identifier}
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -147,13 +147,13 @@ class TestApiNotification(TestCase):
     @patch("firebase_admin.messaging.send_multicast", side_effect=firebase_admin_messaging_send_multicast)
     def test_get_notification_inactive_project(self, _firebase_admin_messaging_send_multicast):
         """Get notifications on inactive projects"""
-        FirebaseTokens.objects.all().delete()
+        FirebaseToken.objects.all().delete()
         for device in self.data.mobile_devices:
-            FirebaseTokens.objects.create(**device)
+            FirebaseToken.objects.create(**device)
 
-        FollowedProjects.objects.all().delete()
+        FollowedProject.objects.all().delete()
         for project in self.data.followed_projects:
-            FollowedProjects.objects.create(**project)
+            FollowedProject.objects.create(**project)
 
         data = {"title": "title", "body": "text", "warning_identifier": self.warning_identifier}
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
@@ -161,7 +161,7 @@ class TestApiNotification(TestCase):
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(result.data, {"status": True, "result": "push-notification accepted"})
 
-        project = Projects.objects.filter(pk="0000000000").first()
+        project = Project.objects.filter(pk="0000000000").first()
         project.active = False
         project.save()
 

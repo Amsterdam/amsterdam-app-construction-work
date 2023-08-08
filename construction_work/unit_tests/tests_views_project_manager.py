@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.test import Client, RequestFactory, TestCase
 
 from construction_work.api_messages import Messages
-from construction_work.models import ProjectManager, Projects
+from construction_work.models import Project, ProjectManager
 from construction_work.unit_tests.mock_data import TestData
 from construction_work.views.views_project_manager import get as get_project_manager
 
@@ -36,9 +36,9 @@ class TestApiProjectManager(TestCase):
         for project_manager in self.data.project_manager:
             ProjectManager.objects.create(**project_manager)
 
-        Projects.objects.all().delete()
+        Project.objects.all().delete()
         for project in self.data.projects:
-            Projects.objects.create(**project)
+            Project.objects.create(**project)
 
         self.factory = RequestFactory()
 
@@ -114,7 +114,7 @@ class TestApiProjectManager(TestCase):
 
     def test_get_single_project_managers_inactive_project(self):
         """Get a single project manager with an inactive project"""
-        project = Projects.objects.filter(pk="0000000000").first()
+        project = Project.objects.filter(pk="0000000000").first()
         project.active = False
         project.save()
 

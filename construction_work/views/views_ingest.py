@@ -12,7 +12,7 @@ from construction_work.generic_functions.generic_logger import Logger
 from construction_work.generic_functions.is_authorized import IsAuthorized
 
 # from construction_work.models import CityOffices
-from construction_work.models import Article, Assets, Image, ProjectDetails, Projects
+from construction_work.models import Article, Asset, Image, Project, ProjectDetail
 from construction_work.serializers import ProjectsSerializer
 from construction_work.swagger.swagger_views_ingestion import as_garbage_collector
 
@@ -49,7 +49,7 @@ def asset(request):
     """Assets ingestion route"""
     if request.method == "GET":
         identifier = request.GET.get("identifier", "")
-        asset_data = Assets.objects.filter(pk=identifier).values("identifier").first()
+        asset_data = Asset.objects.filter(pk=identifier).values("identifier").first()
         if asset_data is not None:
             return Response({"status": True, "result": asset_data}, status=200)
         return Response({"status": False, "result": asset_data}, status=200)
@@ -58,7 +58,7 @@ def asset(request):
     try:
         asset_data = dict(request.data)
         asset_data["data"] = base64.b64decode(asset_data["data"])
-        asset_data = Assets(**asset_data)
+        asset_data = Asset(**asset_data)
         asset_data.save()
         return Response({"status": True, "result": True}, status=200)
     except Exception as error:
@@ -92,22 +92,22 @@ def project(request):
     try:
         data = dict(request.data)
         # New record or update existing
-        _project = Projects.objects.filter(pk=data.get("identifier")).first()
+        _project = Project.objects.filter(pk=data.get("identifier")).first()
         if _project is None:
             return Response({"status": False, "result": message.no_record_found}, status=404)
 
-        project_details_object = ProjectDetails.objects.filter(identifier=_project).first()
+        project_details_object = ProjectDetail.objects.filter(identifier=_project).first()
         data["identifier"] = _project
         if project_details_object is None:
-            project_details_object = ProjectDetails(**data)  # Update last scrape time is done implicitly
+            project_details_object = ProjectDetail(**data)  # Update last scrape time is done implicitly
             project_details_object.save()
         else:
             data["last_seen"] = datetime.now()  # Update last scrape time
-            ProjectDetails.objects.filter(pk=_project).update(**data)
+            ProjectDetail.objects.filter(pk=_project).update(**data)
         return Response({"status": True, "result": True}, status=200)
     except Exception as error:
         if created is True:
-            ProjectDetails.objects.filter(pk="").delete()
+            ProjectDetail.objects.filter(pk="").delete()
         logger = Logger()
         logger.error("ingest/project: {error}".format(error=error))
         return Response({"status": False, "result": str(error)}, status=500)
@@ -119,7 +119,7 @@ def projects(request):
     """Projects"""
     if request.method == "GET":
         identifier = request.GET.get("identifier", None)
-        projects_object = Projects.objects.filter(pk=identifier).first()
+        projects_object = Project.objects.filter(pk=identifier).first()
         if projects_object is None:
             return Response({"status": True, "result": None}, status=200)
         serializer = ProjectsSerializer(projects_object, many=False)
@@ -132,17 +132,17 @@ def projects(request):
             data = dict(request.data)
 
             # New record or update existing
-            project_object = Projects.objects.filter(identifier=data.get("identifier")).first()
+            project_object = Project.objects.filter(identifier=data.get("identifier")).first()
             if project_object is None:
-                project_object = Projects(**data)
+                project_object = Project(**data)
                 project_object.save()  # Update last scrape time is done implicitly
             else:
                 data["last_seen"] = datetime.now()
-                Projects.objects.filter(pk=data.get("identifier")).update(**data)
+                Project.objects.filter(pk=data.get("identifier")).update(**data)
             return Response({"status": True, "result": True}, status=200)
         except Exception as error:
             if created is True:
-                Projects.objects.filter(pk="").delete()
+                Project.objects.filter(pk="").delete()
             logger = Logger()
             logger.error("ingest/projects (POST): {error}".format(error=error))
             return Response({"status": False, "result": str(error)}, status=500)
@@ -151,7 +151,7 @@ def projects(request):
     try:
         # Delete record
         data = dict(request.data)
-        Projects.objects.filter(pk=data.get("identifier")).delete()
+        Project.objects.filter(pk=data.get("identifier")).delete()
         return Response({"status": True, "result": True}, status=200)
     except Exception as error:
         logger = Logger()
@@ -167,7 +167,7 @@ def article(request):
         data = dict(request.data)
         data["active"] = True
         _type = data["type"]
-        _project = Projects.objects.filter(pk=data.get("project_identifier")).first()
+        _project = Project.objects.filter(pk=data.get("project_identifier")).first()
         news_item_object = Article.objects.filter(
             identifier=data.get("identifier"), project_identifier=_project
         ).first()

@@ -6,7 +6,7 @@ import os
 from django.test import Client, TestCase
 
 from construction_work.generic_functions.aes_cipher import AESCipher
-from construction_work.models import Article, ProjectManager, Projects, WarningMessages
+from construction_work.models import Article, Project, ProjectManager, WarningMessage
 from construction_work.unit_tests.mock_data import TestData
 from construction_work.views.views_messages import Messages
 
@@ -20,17 +20,17 @@ class SetUp:
         self.data = TestData()
         self.identifiers = []
 
-        Projects.objects.all().delete()
+        Project.objects.all().delete()
         for project in self.data.projects:
-            Projects.objects.create(**project)
+            Project.objects.create(**project)
 
         for news in self.data.article:
-            news["project_identifier"] = Projects.objects.filter(pk=news["project_identifier"]).first()
+            news["project_identifier"] = Project.objects.filter(pk=news["project_identifier"]).first()
             news_item = Article.objects.create(**news)
             news_item.save()
             self.identifiers.append(news_item.identifier)
 
-        WarningMessages.objects.all().delete()
+        WarningMessage.objects.all().delete()
 
         ProjectManager.objects.all().delete()
         for project_manager in self.data.project_manager:

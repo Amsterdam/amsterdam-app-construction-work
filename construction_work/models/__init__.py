@@ -1,8 +1,8 @@
 """ import for python module """
 from .article import Article
-from .assets_and_images import Assets, Image
-from .devices import DeviceAccessLog, FirebaseTokens
-from .followed_projects import FollowedProjects
+from .assets_and_images import Asset, Image
+from .devices import DeviceAccessLog, FirebaseToken
+from .followed_projects import FollowedProject
 from .project_managers import ProjectManager
-from .projects import ProjectDetails, Projects
-from .warnings_and_notifications import Notification, WarningMessages
+from .projects import Project, ProjectDetail
+from .warnings_and_notifications import Notification, WarningMessage

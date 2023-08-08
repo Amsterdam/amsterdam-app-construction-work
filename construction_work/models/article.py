@@ -8,7 +8,7 @@ from datetime import datetime
 
 from django.db import models
 
-from construction_work.models.projects import Projects
+from construction_work.models.projects import Project
 
 
 class Article(models.Model):
@@ -25,7 +25,7 @@ class Article(models.Model):
     id = models.BigAutoField(primary_key=True)
     identifier = models.CharField(max_length=100, blank=False)
     project_identifier = models.ForeignKey(
-        Projects, on_delete=models.CASCADE, unique=False, db_column="project_identifier"
+        Project, on_delete=models.CASCADE, unique=False, db_column="project_identifier"
     )
     project_type = models.CharField(max_length=100, default="", blank=False, unique=False)
     url = models.CharField(max_length=1000, blank=True, default="")

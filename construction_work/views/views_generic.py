@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.static_data import StaticData
-from construction_work.models import Assets, Image
+from construction_work.models import Asset, Image
 from construction_work.swagger.swagger_views_generic import as_asset, as_districts, as_image
 
 message = Messages()
@@ -34,7 +34,7 @@ def asset(request):
     if identifier is None:
         return Response({"status": False, "result": message.invalid_query}, status=422)
 
-    asset_object = Assets.objects.filter(pk=identifier).first()
+    asset_object = Asset.objects.filter(pk=identifier).first()
     if asset_object is not None:
         return HttpResponse(asset_object.data, content_type=asset_object.mime_type, status=200)
     return Response("Error: file not found", status=404)

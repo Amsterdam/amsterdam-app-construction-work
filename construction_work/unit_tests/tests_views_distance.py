@@ -5,7 +5,7 @@ from unittest.mock import patch
 from django.test import Client, TestCase
 
 from construction_work.api_messages import Messages
-from construction_work.models import ProjectDetails, Projects
+from construction_work.models import Project, ProjectDetail
 from construction_work.unit_tests.mock_data import TestData
 from construction_work.unit_tests.mock_functions import address_to_coordinates
 
@@ -18,11 +18,11 @@ class SetUp:
     def __init__(self):
         self.data = TestData()
         for project in self.data.projects:
-            Projects.objects.create(**project)
+            Project.objects.create(**project)
 
         for project_detail in self.data.project_details:
-            project_detail["identifier"] = Projects.objects.filter(pk=project_detail["identifier"]).first()
-            ProjectDetails.objects.create(**project_detail)
+            project_detail["identifier"] = Project.objects.filter(pk=project_detail["identifier"]).first()
+            ProjectDetail.objects.create(**project_detail)
 
 
 class TestApiProjectDistance(TestCase):

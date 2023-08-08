@@ -8,13 +8,10 @@ from rest_framework.response import Response
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.is_authorized import IsAuthorized, get_jwtauthorization, is_valid_JWT_token
-from construction_work.models import ProjectManager, Projects
+from construction_work.models import Project, ProjectManager
 from construction_work.serializers import ProjectManagerSerializer
-from construction_work.swagger.swagger_views_project_manager import (
-    as_project_manager_delete,
-    as_project_manager_get,
-    as_project_manager_post_patch,
-)
+from construction_work.swagger.swagger_views_project_manager import (as_project_manager_delete, as_project_manager_get,
+                                                                     as_project_manager_post_patch)
 
 messages = Messages()
 
@@ -67,7 +64,7 @@ def get(request):
     data = ProjectManagerSerializer(project_manager_object, many=False).data
     active_projects = []
     for identifier in data["projects"]:
-        project = Projects.objects.filter(pk=identifier, active=True).first()
+        project = Project.objects.filter(pk=identifier, active=True).first()
         if project is not None:
             active_projects.append(
                 {
@@ -96,7 +93,7 @@ def post_patch(request):
         }
 
     for project in projects:
-        if Projects.objects.filter(pk=project).first() is None:
+        if Project.objects.filter(pk=project).first() is None:
             return {
                 "result": {"status": False, "result": messages.no_record_found},
                 "status": 404,

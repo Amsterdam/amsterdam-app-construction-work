@@ -4,10 +4,11 @@
 from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
-from construction_work.models.projects import Projects
+
+from construction_work.models.projects import Project
 
 
-class FollowedProjects(models.Model):
+class FollowedProject(models.Model):
     """Follow projects db model"""
 
     deviceid = models.CharField(max_length=200, blank=False)
@@ -17,8 +18,8 @@ class FollowedProjects(models.Model):
         constraints = [models.UniqueConstraint(fields=["deviceid", "projectid"], name="deviceid_and_projectid")]
 
 
-@receiver(pre_delete, sender=Projects)
-def remove_project_from_followed_projects(sender, instance, **kwargs):
+@receiver(pre_delete, sender=Project)
+def remove_project_from_followed_project(sender, instance, **kwargs):
     """This code adds a signal receiver function remove_project_from_followed_projects that listens for the pre_delete
     signal of the Projects model. When a project is about to be deleted, the remove_project_from_managers function
     is called with the instance parameter being the project being deleted.
@@ -28,5 +29,5 @@ def remove_project_from_followed_projects(sender, instance, **kwargs):
     to remove the project from the projects array field of all the matching ProjectManager instances. This will
     automatically update the projects array of all the affected ProjectManager instances in the database.
     """
-    for followed_project in FollowedProjects.objects.filter(projectid__contains=instance.identifier):
+    for followed_project in FollowedProject.objects.filter(projectid__contains=instance.identifier):
         followed_project.delete()

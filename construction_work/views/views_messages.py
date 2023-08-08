@@ -11,13 +11,19 @@ from construction_work.generic_functions.image_conversion import ImageConversion
 from construction_work.generic_functions.is_authorized import IsAuthorized
 from construction_work.generic_functions.sort import Sort
 from construction_work.generic_functions.static_data import StaticData
-from construction_work.models import Article, Image, Notification, ProjectManager, Projects, WarningMessages
+from construction_work.models import Article, Image, Notification, Project, ProjectManager, WarningMessage
 from construction_work.push_notifications.send_notification import SendNotification
 from construction_work.serializers import NotificationSerializer, WarningMessagesExternalSerializer
-from construction_work.swagger.swagger_views_messages import (as_notification_get, as_notification_post,
-                                                              as_warning_message_delete, as_warning_message_get,
-                                                              as_warning_message_image_post, as_warning_message_patch,
-                                                              as_warning_message_post, as_warning_messages_get)
+from construction_work.swagger.swagger_views_messages import (
+    as_notification_get,
+    as_notification_post,
+    as_warning_message_delete,
+    as_warning_message_get,
+    as_warning_message_image_post,
+    as_warning_message_patch,
+    as_warning_message_post,
+    as_warning_messages_get,
+)
 
 messages = Messages()
 
@@ -32,22 +38,22 @@ def warning_messages_get(request):
 
     warning_messages_objects = []
     if project_identifier is None:
-        projects = Projects.objects.all()
+        projects = Project.objects.all()
         for project in projects:
             if project.active is True:
-                warning_messages_objects += WarningMessages.objects.filter(project_identifier=project.identifier).all()
+                warning_messages_objects += WarningMessage.objects.filter(project_identifier=project.identifier).all()
 
         serializer = WarningMessagesExternalSerializer(warning_messages_objects, many=True)
         result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
         return Response({"status": True, "result": result}, 200)
 
-    project = Projects.objects.filter(pk=project_identifier).first()
+    project = Project.objects.filter(pk=project_identifier).first()
     if project is None:
         return Response({"status": False, "result": messages.no_record_found}, 404)
 
     result = []
     if project.active is True:
-        warning_messages_objects = WarningMessages.objects.filter(project_identifier=project_identifier).all()
+        warning_messages_objects = WarningMessage.objects.filter(project_identifier=project_identifier).all()
         serializer = WarningMessagesExternalSerializer(warning_messages_objects, many=True)
         result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
     return Response({"status": True, "result": result}, 200)
@@ -98,7 +104,7 @@ def warning_message_get(request):
             "status_code": 422,
         }
 
-    warning_messages_object = WarningMessages.objects.filter(pk=identifier).first()
+    warning_messages_object = WarningMessage.objects.filter(pk=identifier).first()
     if warning_messages_object is None:
         return {
             "result": {"status": False, "result": messages.no_record_found},
@@ -108,7 +114,7 @@ def warning_message_get(request):
     # Get hostname for this server
     base_url = StaticData.base_url(request)
 
-    project = Projects.objects.filter(pk=warning_messages_object.project_identifier_id).first()
+    project = Project.objects.filter(pk=warning_messages_object.project_identifier_id).first()
     if project.active is True:
         project_data = WarningMessagesExternalSerializer(warning_messages_object, many=False).data
         for i in range(0, len(project_data["images"])):
@@ -145,13 +151,13 @@ def warning_message_patch(request):
             "status_code": 422,
         }
 
-    if WarningMessages.objects.filter(identifier=identifier).first() is None:
+    if WarningMessage.objects.filter(identifier=identifier).first() is None:
         return {
             "result": {"status": False, "result": messages.no_record_found},
             "status_code": 404,
         }
 
-    message_object = WarningMessages.objects.filter(identifier=identifier).first()
+    message_object = WarningMessage.objects.filter(identifier=identifier).first()
     message_object.body = body
     message_object.title = title
     message_object.save()
@@ -178,7 +184,7 @@ def warning_message_post(request):
             "status_code": 422,
         }
 
-    if Projects.objects.filter(pk=project_identifier).first() is None:
+    if Project.objects.filter(pk=project_identifier).first() is None:
         return {
             "result": {"status": False, "result": messages.invalid_query},
             "status_code": 422,
@@ -198,10 +204,10 @@ def warning_message_post(request):
             "status_code": 404,
         }
 
-    message_object = WarningMessages(
+    message_object = WarningMessage(
         title=title,
         body=body,
-        project_identifier=Projects.objects.filter(pk=project_identifier).first(),
+        project_identifier=Project.objects.filter(pk=project_identifier).first(),
         project_manager_id=project_manager_id,
         images=[],
     )
@@ -225,7 +231,7 @@ def warning_message_delete(request):
             "status_code": 422,
         }
 
-    WarningMessages.objects.filter(identifier=identifier).delete()
+    WarningMessage.objects.filter(identifier=identifier).delete()
     return {
         "result": {"status": False, "result": "Message deleted"},
         "status_code": 200,
@@ -251,7 +257,7 @@ def notification_post(request):
     if news_identifier is not None and Article.objects.filter(identifier=news_identifier).first() is None:
         return Response({"status": False, "result": messages.no_record_found}, status=404)
 
-    if warning_identifier is not None and WarningMessages.objects.filter(pk=warning_identifier).first() is None:
+    if warning_identifier is not None and WarningMessage.objects.filter(pk=warning_identifier).first() is None:
         return Response({"status": False, "result": messages.no_record_found}, status=404)
 
     notification = Notification(
@@ -285,7 +291,7 @@ def notification_get(request):
     project_identifiers = query_params.split(",")
     notifications = []
     for project_identifier in project_identifiers:
-        project = Projects.objects.filter(pk=project_identifier).first()
+        project = Project.objects.filter(pk=project_identifier).first()
         if project is not None and project.active is True:
             notifications += list(Notification.objects.filter(project_identifier=project_identifier).all())
 
@@ -306,7 +312,7 @@ def warning_messages_image_upload(request):
     if None in [image_data, project_warning_id]:
         return Response({"status": False, "result": messages.invalid_query}, status=422)
 
-    if WarningMessages.objects.filter(pk=project_warning_id).first() is None:
+    if WarningMessage.objects.filter(pk=project_warning_id).first() is None:
         return Response({"status": False, "result": messages.no_record_found}, status=404)
 
     if "main" not in image_data:
@@ -363,7 +369,7 @@ def warning_messages_image_upload(request):
         "sources": sources,  # list; created earlier
     }
 
-    warning_message = WarningMessages.objects.filter(pk=project_warning_id).first()
+    warning_message = WarningMessage.objects.filter(pk=project_warning_id).first()
     warning_message.images.append(warning_message_image)
     warning_message.save()
 
