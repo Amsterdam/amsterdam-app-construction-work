@@ -3,7 +3,7 @@ from django.db import DEFAULT_DB_ALIAS, connections
 from django.test import TestCase
 
 from construction_work.generic_functions.text_search import TextSearch
-from construction_work.models import ProjectDetails, Projects
+from construction_work.models import Project, ProjectDetail
 from construction_work.unit_tests.mock_data import TestData
 
 
@@ -18,11 +18,11 @@ class SetUp:
 
         self.data = TestData()
         for project in self.data.projects:
-            Projects.objects.create(**project)
+            Project.objects.create(**project)
 
         for project_detail in self.data.project_details:
-            project_detail["identifier"] = Projects.objects.filter(pk=project_detail["identifier"]).first()
-            ProjectDetails.objects.create(**project_detail)
+            project_detail["identifier"] = Project.objects.filter(pk=project_detail["identifier"]).first()
+            ProjectDetail.objects.create(**project_detail)
 
 
 class TestTextSearch(TestCase):
@@ -39,7 +39,7 @@ class TestTextSearch(TestCase):
     def test_search(self):
         """Test text search"""
         text_search = TextSearch(
-            ProjectDetails, "test0", "title,subtitle", return_fields="title,subtitle", page_size=2, page=0
+            ProjectDetail, "test0", "title,subtitle", return_fields="title,subtitle", page_size=2, page=0
         )
         result = text_search.search()
         expected_result = {
@@ -55,7 +55,7 @@ class TestTextSearch(TestCase):
     def test_search_paginated(self):
         """test text search paginated result"""
         text_search = TextSearch(
-            ProjectDetails, "test0", "title,subtitle", return_fields="title,subtitle", page_size=1, page=1
+            ProjectDetail, "test0", "title,subtitle", return_fields="title,subtitle", page_size=1, page=1
         )
         result = text_search.search()
         expected_result = {
@@ -68,7 +68,7 @@ class TestTextSearch(TestCase):
     def test_search_2_letters(self):
         """test text search 2 char"""
         text_search = TextSearch(
-            ProjectDetails, "te", "title,subtitle", return_fields="title,subtitle", page_size=2, page=0
+            ProjectDetail, "te", "title,subtitle", return_fields="title,subtitle", page_size=2, page=0
         )
         result = text_search.search()
         expected_result = {"page": [], "pages": 0}

@@ -6,7 +6,7 @@ from django.test import Client, TestCase
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.aes_cipher import AESCipher
-from construction_work.models import DeviceAccessLog, FirebaseTokens, Projects
+from construction_work.models import FirebaseToken, MobilePhoneAccessLog, Project
 from construction_work.unit_tests.mock_data import TestData
 
 messages = Messages()
@@ -18,7 +18,7 @@ class SetUp:
     def __init__(self):
         self.data = TestData()
         for project in self.data.projects:
-            Projects.objects.create(**project)
+            Project.objects.create(**project)
 
 
 class TestDeviceAccessLog(TestCase):
@@ -34,7 +34,7 @@ class TestDeviceAccessLog(TestCase):
     def setUp(self):
         """Setup test db"""
         SetUp()
-        FirebaseTokens.objects.all().delete()
+        FirebaseToken.objects.all().delete()
 
     def test_registration_ok(self):
         """Test registration went well"""
@@ -46,8 +46,8 @@ class TestDeviceAccessLog(TestCase):
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(result.data, {"status": False, "result": "Registration added"})
 
-        DeviceAccessLog.prune()
-        devices = list(FirebaseTokens.objects.all())
+        MobilePhoneAccessLog.prune()
+        devices = list(FirebaseToken.objects.all())
         self.assertEqual(len(devices), 1)
 
 
@@ -64,7 +64,7 @@ class TestApiDeviceRegistration(TestCase):
     def setUp(self):
         """Setup test db"""
         SetUp()
-        FirebaseTokens.objects.all().delete()
+        FirebaseToken.objects.all().delete()
 
     def test_delete_registration(self):
         """Test removing a device registration"""
@@ -83,7 +83,7 @@ class TestApiDeviceRegistration(TestCase):
         self.assertDictEqual(result.data, {"status": False, "result": "Registration removed"})
 
         # Assert only one record in db
-        devices = list(FirebaseTokens.objects.all())
+        devices = list(FirebaseToken.objects.all())
         self.assertEqual(len(devices), 0)
 
         # Silently discard not existing registration delete
@@ -109,7 +109,7 @@ class TestApiDeviceRegistration(TestCase):
         self.assertDictEqual(result.data, {"status": False, "result": "Registration added"})
 
         # Assert only one record in db
-        devices = list(FirebaseTokens.objects.all())
+        devices = list(FirebaseToken.objects.all())
         self.assertEqual(len(devices), 1)
 
     def test_missing_os_missing(self):

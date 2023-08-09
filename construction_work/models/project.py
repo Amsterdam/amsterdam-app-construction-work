@@ -1,8 +1,8 @@
-""" Models for Projects 'kademuren' and 'bruggen'
+""" Models for Project 'kademuren' and 'bruggen'
 
-    The 'Projects' model is used for a summary of all projects.
-    The 'ProjectsDetails' model is used to get all details regarding a specific project.
-    A single project from the 'Projects' model is linked to the 'ProjectDetails' via the identifier field.
+    The 'Project' model is used for a summary of all projects.
+    The 'ProjectsDetail' model is used to get all details regarding a specific project.
+    A single project from the 'Project' model is linked to the 'ProjectDetail' via the identifier field.
 
     Json produced by Projects model:
 
@@ -81,7 +81,7 @@ from datetime import datetime
 from django.db import models
 
 
-class Projects(models.Model):
+class Project(models.Model):
     """Projects db model"""
 
     project_type = models.CharField(max_length=40, blank=False, default="")
@@ -104,11 +104,11 @@ class Projects(models.Model):
 
     def save(self, *args, **kwargs):
         self.last_seen = datetime.now()
-        super(Projects, self).save(*args, **kwargs)
+        super(Project, self).save(*args, **kwargs)
 
 
-class ProjectDetails(models.Model):
-    """ProjectsDetails db model
+class ProjectDetail(models.Model):
+    """ProjectsDetail db model
 
     Note on 'identifier': (fields.W342) Setting unique=True on a ForeignKey has the same effect as using a
     OneToOneField. ForeignKey(unique=True) is usually better served by a OneToOneField.
@@ -119,7 +119,7 @@ class ProjectDetails(models.Model):
     """
 
     identifier = models.OneToOneField(
-        Projects, on_delete=models.CASCADE, unique=True, primary_key=True, db_column="identifier"
+        Project, on_delete=models.CASCADE, unique=True, primary_key=True, db_column="identifier"
     )
     project_type = models.CharField(max_length=100, default="", blank=False, unique=False)
     body = models.JSONField(null=True, default=list)
@@ -142,4 +142,4 @@ class ProjectDetails(models.Model):
 
     def save(self, *args, **kwargs):
         self.last_seen = datetime.now()
-        super(ProjectDetails, self).save(*args, **kwargs)
+        super(ProjectDetail, self).save(*args, **kwargs)

@@ -5,7 +5,7 @@ import datetime
 from django.test import TestCase
 
 from construction_work.garbage_collector.garbage_collector import GarbageCollector
-from construction_work.models import Article, ProjectDetails, ProjectManager, Projects
+from construction_work.models import Article, Project, ProjectDetail, ProjectManager
 from construction_work.unit_tests.mock_data import TestData
 
 
@@ -18,22 +18,22 @@ class TestGarbageCollector(TestCase):
 
     def setUp(self):
         """setup test db"""
-        Projects.objects.all().delete()
+        Project.objects.all().delete()
         for project in self.data.projects:
-            Projects.objects.create(**project)
+            Project.objects.create(**project)
 
-        ProjectDetails.objects.all().delete()
+        ProjectDetail.objects.all().delete()
         for project_detail in self.data.project_details:
             try:
-                project = Projects.objects.filter(pk=project_detail["identifier"]).first()
+                project = Project.objects.filter(pk=project_detail["identifier"]).first()
                 project_detail["identifier"] = project
-                ProjectDetails.objects.create(**project_detail)
+                ProjectDetail.objects.create(**project_detail)
             except Exception as error:
                 print(error)
 
         Article.objects.all().delete()
         for news in self.data.article:
-            project = Projects.objects.filter(pk=news["project_identifier"]).first()
+            project = Project.objects.filter(pk=news["project_identifier"]).first()
             news["project_identifier"] = project
             Article.objects.create(**news)
 
@@ -45,8 +45,8 @@ class TestGarbageCollector(TestCase):
         """test with no objects changed"""
         gc = GarbageCollector(last_scrape_time=(datetime.datetime.now() - datetime.timedelta(hours=1)))
         gc.collect_iprox(project_type="brug")
-        projects = list(Projects.objects.all())
-        project_details = list(ProjectDetails.objects.all())
+        projects = list(Project.objects.all())
+        project_details = list(ProjectDetail.objects.all())
         news_items = list(Article.objects.all())
 
         for project in projects:
@@ -63,8 +63,8 @@ class TestGarbageCollector(TestCase):
         gc = GarbageCollector(last_scrape_time=datetime.datetime.now())
         gc.collect_iprox(project_type="brug")
         gc.collect_iprox(project_type="kade")
-        projects = list(Projects.objects.all())
-        project_details = list(ProjectDetails.objects.all())
+        projects = list(Project.objects.all())
+        project_details = list(ProjectDetail.objects.all())
         news_items = list(Article.objects.all())
 
         for project in projects:
@@ -81,8 +81,8 @@ class TestGarbageCollector(TestCase):
         gc = GarbageCollector(last_scrape_time=(datetime.datetime.now() + datetime.timedelta(days=7)))
         gc.collect_iprox(project_type="brug")
         gc.collect_iprox(project_type="kade")
-        projects = list(Projects.objects.all())
-        project_details = list(ProjectDetails.objects.all())
+        projects = list(Project.objects.all())
+        project_details = list(ProjectDetail.objects.all())
         news_items = list(Article.objects.all())
 
         self.assertEqual(len(projects), 0)

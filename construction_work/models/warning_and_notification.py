@@ -1,4 +1,4 @@
-""" Model for Warning messages
+""" Model for Warning message
 
     Notes:
     The project manager writes and article. We’re only sending the text content to start
@@ -50,14 +50,14 @@ import uuid
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 
-from construction_work.models.projects import Projects
+from construction_work.models.project import Project
 
 from .article import Article
-from .project_managers import ProjectManager
+from .project_manager import ProjectManager
 
 
-class WarningMessages(models.Model):
-    """Warning messages db model
+class WarningMessage(models.Model):
+    """Warning message db model
 
     Note on 'project_identifier': (fields.W342) Setting unique=True on a ForeignKey has the same effect as using a
     OneToOneField. ForeignKey(unique=True) is usually better served by a OneToOneField.
@@ -71,7 +71,7 @@ class WarningMessages(models.Model):
     title = models.CharField(max_length=1000, unique=False, db_index=True)
     body = models.CharField(max_length=1000, unique=False)
     project_identifier = models.OneToOneField(
-        Projects,
+        Project,
         blank=False,
         default="",
         on_delete=models.CASCADE,
@@ -89,7 +89,7 @@ class WarningMessages(models.Model):
         project_manager = ProjectManager.objects.filter(pk=self.project_manager_id).first()
         self.author_email = project_manager.email if project_manager is not None else "redactieprojecten@amsterdam.nl"
         self.modification_date = datetime.datetime.now()
-        super(WarningMessages, self).save(*args, **kwargs)
+        super(WarningMessage, self).save(*args, **kwargs)
 
 
 class Notification(models.Model):
@@ -107,7 +107,7 @@ class Notification(models.Model):
     title = models.CharField(max_length=1000, unique=False)
     body = models.CharField(max_length=1000, unique=False)
     project_identifier = models.ForeignKey(
-        Projects, default="", on_delete=models.CASCADE, unique=False, db_index=False, db_column="project_identifier"
+        Project, default="", on_delete=models.CASCADE, unique=False, db_index=False, db_column="project_identifier"
     )
     news_identifier = models.CharField(null=True, max_length=100, unique=False)
     warning_identifier = models.UUIDField(null=True, unique=False)
@@ -115,7 +115,7 @@ class Notification(models.Model):
 
     def save(self, *args, **kwargs):
         if self.warning_identifier is not None:
-            message = WarningMessages.objects.filter(pk=self.warning_identifier).first()
+            message = WarningMessage.objects.filter(pk=self.warning_identifier).first()
         else:
             message = Article.objects.filter(identifier=self.news_identifier).first()
 

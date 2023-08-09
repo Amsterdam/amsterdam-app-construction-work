@@ -5,11 +5,13 @@
 """
 
 import uuid
-from django.db import models
+
 from django.contrib.postgres.fields import ArrayField
+from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
-from construction_work.models.projects import Projects
+
+from construction_work.models.project import Project
 
 
 class ProjectManager(models.Model):
@@ -29,8 +31,8 @@ class ProjectManager(models.Model):
         super(ProjectManager, self).save(*args, **kwargs)
 
 
-@receiver(pre_delete, sender=Projects)
-def remove_project_from_managers(sender, instance, **kwargs):
+@receiver(pre_delete, sender=Project)
+def remove_project_from_manager(sender, instance, **kwargs):
     """This code adds a signal receiver function remove_project_from_managers that listens for the pre_delete signal of
     the Projects model. When a project is about to be deleted, the remove_project_from_managers function is called
     with the instance parameter being the project being deleted.

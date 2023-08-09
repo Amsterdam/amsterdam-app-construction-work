@@ -5,7 +5,7 @@ from django.test import Client, TestCase
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.static_data import StaticData
-from construction_work.models import Assets, Image
+from construction_work.models import Asset, Image
 from construction_work.unit_tests.mock_data import TestData
 
 messages = Messages()
@@ -17,7 +17,7 @@ class SetUp:
     def __init__(self):
         self.data = TestData()
         for asset in self.data.assets:
-            Assets.objects.create(**asset)
+            Asset.objects.create(**asset)
 
         for image in self.data.images:
             Image.objects.create(**image)

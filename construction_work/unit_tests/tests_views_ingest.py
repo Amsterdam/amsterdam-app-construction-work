@@ -8,7 +8,7 @@ from django.test import Client, TestCase
 from construction_work.api_messages import Messages
 from construction_work.garbage_collector.garbage_collector import GarbageCollector
 from construction_work.generic_functions.aes_cipher import AESCipher
-from construction_work.models import Article, Assets, Image, ProjectDetails, Projects
+from construction_work.models import Article, Asset, Image, Project, ProjectDetail
 from construction_work.unit_tests.mock_data import TestData
 
 messages = Messages()
@@ -20,7 +20,7 @@ class SetUp:
     def __init__(self):
         self.data = TestData()
         for asset in self.data.assets:
-            Assets.objects.create(**asset)
+            Asset.objects.create(**asset)
 
         for image in self.data.images:
             Image.objects.create(**image)
@@ -146,9 +146,9 @@ class TestApiImage(TestCase):
     def test_project_valid(self):
         """test valid project"""
         test_data = TestData()
-        Projects.objects.all().delete()
+        Project.objects.all().delete()
         for project in test_data.projects:
-            Projects.objects.create(**project)
+            Project.objects.create(**project)
 
         data = {
             "identifier": "0000000000",
@@ -190,7 +190,7 @@ class TestApiImage(TestCase):
         result = self.client.post(
             "/api/v1/ingest/project", data=data, headers=self.header, content_type="application/json"
         )
-        db_objects = list(ProjectDetails.objects.all())
+        db_objects = list(ProjectDetail.objects.all())
 
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.data, {"status": True, "result": True})
@@ -200,7 +200,7 @@ class TestApiImage(TestCase):
         result = self.client.post(
             "/api/v1/ingest/project", data=data, headers=self.header, content_type="application/json"
         )
-        db_objects = list(ProjectDetails.objects.all())
+        db_objects = list(ProjectDetail.objects.all())
 
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.data, {"status": True, "result": True})
@@ -213,7 +213,7 @@ class TestApiImage(TestCase):
         result = self.client.post(
             "/api/v1/ingest/project", data=data, headers=self.header, content_type="application/json"
         )
-        db_objects = list(ProjectDetails.objects.all())
+        db_objects = list(ProjectDetail.objects.all())
 
         self.assertEqual(result.status_code, 404)
         self.assertDictEqual(result.data, {"status": False, "result": messages.no_record_found})
@@ -222,7 +222,7 @@ class TestApiImage(TestCase):
     def test_projects_get(self):
         """test get project data"""
         test_data = TestData()
-        project_object = Projects(**test_data.projects[0])
+        project_object = Project(**test_data.projects[0])
         project_object.save()
 
         result = self.client.get(
@@ -243,7 +243,7 @@ class TestApiImage(TestCase):
         result = self.client.post(
             "/api/v1/ingest/projects", data=test_data.projects[0], headers=self.header, content_type="application/json"
         )
-        project_objects = list(Projects.objects.all())
+        project_objects = list(Project.objects.all())
 
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.data, {"status": True, "result": True})
@@ -253,7 +253,7 @@ class TestApiImage(TestCase):
         result = self.client.post(
             "/api/v1/ingest/projects", data=test_data.projects[0], headers=self.header, content_type="application/json"
         )
-        project_objects = list(Projects.objects.all())
+        project_objects = list(Project.objects.all())
 
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.data, {"status": True, "result": True})
@@ -266,7 +266,7 @@ class TestApiImage(TestCase):
         result = self.client.post(
             "/api/v1/ingest/projects", data=data, headers=self.header, content_type="application/json"
         )
-        project_objects = list(Projects.objects.all())
+        project_objects = list(Project.objects.all())
 
         self.assertEqual(result.status_code, 500)
         self.assertEqual(len(project_objects), 0)
@@ -274,14 +274,14 @@ class TestApiImage(TestCase):
     def test_projects_delete_valid(self):
         """test deleting valid project"""
         test_data = TestData()
-        project_object = Projects(**test_data.projects[0])
+        project_object = Project(**test_data.projects[0])
         project_object.save()
 
         data = {"identifier": "0000000000"}
         result = self.client.delete(
             "/api/v1/ingest/projects", data=data, headers=self.header, content_type="application/json"
         )
-        project_objects = list(Projects.objects.all())
+        project_objects = list(Project.objects.all())
 
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.data, {"status": True, "result": True})
@@ -301,9 +301,9 @@ class TestApiImage(TestCase):
         """test ingesting valid news"""
         test_data = TestData()
 
-        Projects.objects.all().delete()
+        Project.objects.all().delete()
         for project in test_data.projects:
-            Projects.objects.create(**project)
+            Project.objects.create(**project)
 
         result = self.client.post(
             "/api/v1/ingest/article", data=test_data.article[0], headers=self.header, content_type="application/json"

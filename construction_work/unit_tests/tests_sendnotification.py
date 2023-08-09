@@ -7,15 +7,8 @@ from unittest.mock import call, patch
 from django.test import TestCase
 
 from construction_work.api_messages import Messages
-from construction_work.models import (
-    Article,
-    FirebaseTokens,
-    FollowedProjects,
-    Notification,
-    ProjectManager,
-    Projects,
-    WarningMessages,
-)
+from construction_work.models import (Article, FirebaseToken, FollowedProject, Notification, Project, ProjectManager,
+                                      WarningMessage)
 from construction_work.push_notifications.send_notification import SendNotification
 from construction_work.unit_tests.mock_data import TestData
 from construction_work.unit_tests.mock_functions import firebase_admin_messaging_send_multicast
@@ -36,15 +29,15 @@ class TestSendNotification(TestCase):
 
     def setUp(self):
         """Setup test db"""
-        Projects.objects.all().delete()
+        Project.objects.all().delete()
         for project in self.data.projects:
-            Projects.objects.create(**project)
+            Project.objects.create(**project)
 
         ProjectManager.objects.all().delete()
         for project_manager in self.data.project_manager:
             ProjectManager.objects.create(**project_manager)
 
-        self.data.article[0]["project_identifier"] = Projects.objects.filter(
+        self.data.article[0]["project_identifier"] = Project.objects.filter(
             pk=self.data.article[0]["project_identifier"]
         ).first()
         news = Article.objects.create(**self.data.article[0])
@@ -52,7 +45,7 @@ class TestSendNotification(TestCase):
 
         warning_message_data1 = {
             "title": "title",
-            "project_identifier": Projects.objects.filter(pk="0000000000").first(),
+            "project_identifier": Project.objects.filter(pk="0000000000").first(),
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             "body": {"preface": "short text", "content": "long text"},
             "images": [],
@@ -60,15 +53,15 @@ class TestSendNotification(TestCase):
 
         warning_message_data2 = {
             "title": "title",
-            "project_identifier": Projects.objects.filter(pk="0000000001").first(),
+            "project_identifier": Project.objects.filter(pk="0000000001").first(),
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             "body": {"preface": "short text", "content": "long text"},
             "images": [],
         }
-        WarningMessages.objects.all().delete()
+        WarningMessage.objects.all().delete()
 
-        warning_message1 = WarningMessages.objects.create(**warning_message_data1)
-        warning_message2 = WarningMessages.objects.create(**warning_message_data2)
+        warning_message1 = WarningMessage.objects.create(**warning_message_data1)
+        warning_message2 = WarningMessage.objects.create(**warning_message_data2)
 
         self.warning_identifier1 = str(warning_message1.identifier)
         self.warning_identifier2 = str(warning_message2.identifier)
@@ -92,7 +85,7 @@ class TestSendNotification(TestCase):
             {"firebasetoken": "0000000003", "os": "ios", "deviceid": "0000000003"},
         ]
         for token in firebase_tokens:
-            FirebaseTokens.objects.create(**token)
+            FirebaseToken.objects.create(**token)
 
         followed_projects = [
             {"projectid": "0000000000", "deviceid": "0000000000"},
@@ -101,7 +94,7 @@ class TestSendNotification(TestCase):
             {"projectid": "0000000001", "deviceid": "0000000003"},
         ]
         for project in followed_projects:
-            FollowedProjects.objects.create(**project)
+            FollowedProject.objects.create(**project)
 
     @patch("firebase_admin.messaging.send_each_for_multicast", side_effect=firebase_admin_messaging_send_multicast)
     def test_send_warning(self, _firebase_admin_messaging_send_multicast):

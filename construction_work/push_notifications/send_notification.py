@@ -3,7 +3,7 @@ import firebase_admin
 from firebase_admin import credentials, messaging
 
 from construction_work.generic_functions.generic_logger import Logger
-from construction_work.models import FirebaseTokens, FollowedProjects, Notification
+from construction_work.models import FirebaseToken, FollowedProject, Notification
 from main_application.settings import BASE_DIR
 
 BATCH_SIZE = 500
@@ -17,9 +17,7 @@ class SendNotification:
         self.identifier = identifier
         self.batch_size = batch_size
         if not firebase_admin._apps:
-            cred = credentials.Certificate(
-                "{base_dir}/fcm_credentials.json".format(base_dir=BASE_DIR)
-            )
+            cred = credentials.Certificate("{base_dir}/fcm_credentials.json".format(base_dir=BASE_DIR))
             self.default_app = firebase_admin.initialize_app(cred)
         else:
             self.default_app = firebase_admin.get_app()
@@ -49,46 +47,23 @@ class SendNotification:
         try:
             notification = Notification.objects.filter(pk=self.identifier).first()
             self.project_identifier = notification.project_identifier_id
-            if (
-                notification.news_identifier != ""
-                and notification.news_identifier is not None
-            ):
+            if notification.news_identifier != "" and notification.news_identifier is not None:
                 self.article_type = "NewsUpdatedByProjectManager"
                 self.link_source_id = notification.news_identifier
-            elif (
-                notification.warning_identifier != ""
-                and notification.warning_identifier is not None
-            ):
+            elif notification.warning_identifier != "" and notification.warning_identifier is not None:
                 self.article_type = "ProjectWarningCreatedByProjectManager"
                 self.link_source_id = notification.warning_identifier
 
-            return messaging.Notification(
-                title=notification.title, body=notification.body
-            )
+            return messaging.Notification(title=notification.title, body=notification.body)
         except Exception as error:
-            self.logger.error(
-                "Caught error in SendNotification.set_notification(): {error}".format(
-                    error=error
-                )
-            )
+            self.logger.error("Caught error in SendNotification.set_notification(): {error}".format(error=error))
             return None
 
     def create_subscribed_device_batches(self):
         """Create batches of subscribers"""
-        followers = [
-            x.deviceid
-            for x in list(
-                FollowedProjects.objects.filter(projectid=self.project_identifier).all()
-            )
-        ]
-        filtered_devices = [
-            x.firebasetoken
-            for x in list(FirebaseTokens.objects.filter(deviceid__in=followers).all())
-        ]
-        return [
-            filtered_devices[x : x + self.batch_size]
-            for x in range(0, len(filtered_devices), self.batch_size)
-        ]
+        followers = [x.deviceid for x in list(FollowedProject.objects.filter(projectid=self.project_identifier).all())]
+        filtered_devices = [x.firebasetoken for x in list(FirebaseToken.objects.filter(deviceid__in=followers).all())]
+        return [filtered_devices[x : x + self.batch_size] for x in range(0, len(filtered_devices), self.batch_size)]
 
     def send_multicast_and_handle_errors(self):
         """Send message to subscribers"""
@@ -117,6 +92,4 @@ class SendNotification:
                         failed_tokens.append(registration_tokens[idx])
 
         # Log result
-        self.logger.error(
-            "List of tokens that caused failures: {0}".format(failed_tokens)
-        )
+        self.logger.error("List of tokens that caused failures: {0}".format(failed_tokens))

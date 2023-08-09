@@ -9,7 +9,7 @@ from django.test import Client, TestCase
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.aes_cipher import AESCipher
-from construction_work.models import Image, ProjectManager, Projects, WarningMessages
+from construction_work.models import Image, Project, ProjectManager, WarningMessage
 from construction_work.unit_tests.mock_data import TestData
 
 messages = Messages()
@@ -37,11 +37,11 @@ class TestApiProjectWarning(TestCase):
 
     def setUp(self):
         """setup test db"""
-        WarningMessages.objects.all().delete()
+        WarningMessage.objects.all().delete()
 
-        Projects.objects.all().delete()
+        Project.objects.all().delete()
         for project in self.data.projects:
-            Projects.objects.create(**project)
+            Project.objects.create(**project)
 
         ProjectManager.objects.all().delete()
         for project_manager in self.data.project_manager:
@@ -58,7 +58,7 @@ class TestApiProjectWarning(TestCase):
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
-        warning_message = WarningMessages.objects.filter(project_identifier="0000000000").first()
+        warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
 
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(
@@ -164,7 +164,7 @@ class TestApiProjectWarning(TestCase):
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
-        warning_message = WarningMessages.objects.filter(project_identifier="0000000000").first()
+        warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
 
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(
@@ -203,14 +203,14 @@ class TestApiProjectWarning(TestCase):
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
-        warning_message = WarningMessages.objects.filter(project_identifier="0000000000").first()
+        warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
 
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(
             result.data, {"status": True, "result": {"warning_identifier": str(warning_message.identifier)}}
         )
 
-        project = Projects.objects.filter(pk="0000000000").first()
+        project = Project.objects.filter(pk="0000000000").first()
         project.active = False
         project.save()
 
@@ -246,7 +246,7 @@ class TestApiProjectWarning(TestCase):
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
-        warning_message = WarningMessages.objects.filter(project_identifier="0000000000").first()
+        warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
 
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(
@@ -293,7 +293,7 @@ class TestApiProjectWarning(TestCase):
         }
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
-        warning_message = WarningMessages.objects.filter(project_identifier="0000000000").first()
+        warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
 
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(
@@ -317,7 +317,7 @@ class TestApiProjectWarning(TestCase):
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
-        warning_message = WarningMessages.objects.filter(project_identifier="0000000000").first()
+        warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
 
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(
@@ -342,7 +342,7 @@ class TestApiProjectWarning(TestCase):
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(result.data, {"status": True, "result": "Images stored in database"})
 
-        warning_message = WarningMessages.objects.filter(project_identifier="0000000000").first()
+        warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
         self.assertEqual(len(warning_message.images), 1)
         sources = warning_message.images[0]["sources"]
         self.assertEqual(len(sources), 5)
@@ -363,7 +363,7 @@ class TestApiProjectWarning(TestCase):
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
-        warning_message = WarningMessages.objects.filter(project_identifier="0000000000").first()
+        warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
 
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(
@@ -387,7 +387,7 @@ class TestApiProjectWarning(TestCase):
         self.assertEqual(result.status_code, 422)
         self.assertDictEqual(result.data, {"status": False, "result": messages.unsupported_image_format})
 
-        warning_message = WarningMessages.objects.filter(project_identifier="0000000000").first()
+        warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
         self.assertEqual(len(warning_message.images), 0)
 
     def test_post_warning_message_image_upload_no_data(self):
@@ -400,7 +400,7 @@ class TestApiProjectWarning(TestCase):
         }
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
-        warning_message = WarningMessages.objects.filter(project_identifier="0000000000").first()
+        warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
 
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(
@@ -429,7 +429,7 @@ class TestApiProjectWarning(TestCase):
         }
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
-        warning_message = WarningMessages.objects.filter(project_identifier="0000000000").first()
+        warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
 
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(
@@ -497,7 +497,7 @@ class TestApiProjectWarning(TestCase):
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
-        warning_message = WarningMessages.objects.filter(project_identifier="0000000000").first()
+        warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
 
         patch_data = {
             "title": "new title",
@@ -508,7 +508,7 @@ class TestApiProjectWarning(TestCase):
         result = self.client.patch(
             self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type
         )
-        patched_warning_message = WarningMessages.objects.filter(identifier=warning_message.identifier).first()
+        patched_warning_message = WarningMessage.objects.filter(identifier=warning_message.identifier).first()
 
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(result.data, {"status": True, "result": "Message patched"})
@@ -526,14 +526,14 @@ class TestApiProjectWarning(TestCase):
 
         self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
-        warning_message = WarningMessages.objects.filter(project_identifier="0000000000").first()
+        warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
 
         patch_data = {"body": "New body text", "identifier": str(warning_message.identifier)}
 
         result = self.client.patch(
             self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type
         )
-        patched_warning_message = WarningMessages.objects.filter(identifier=warning_message.identifier).first()
+        patched_warning_message = WarningMessage.objects.filter(identifier=warning_message.identifier).first()
 
         self.assertEqual(result.status_code, 422)
         self.assertDictEqual(result.data, {"status": False, "result": messages.invalid_query})
@@ -551,14 +551,14 @@ class TestApiProjectWarning(TestCase):
 
         self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
-        warning_message = WarningMessages.objects.filter(project_identifier="0000000000").first()
+        warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
 
         patch_data = {"title": "new title", "identifier": str(warning_message.identifier)}
 
         result = self.client.patch(
             self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type
         )
-        patched_warning_message = WarningMessages.objects.filter(identifier=warning_message.identifier).first()
+        patched_warning_message = WarningMessage.objects.filter(identifier=warning_message.identifier).first()
 
         self.assertEqual(result.status_code, 422)
         self.assertDictEqual(result.data, {"status": False, "result": messages.invalid_query})
@@ -600,7 +600,7 @@ class TestApiProjectWarning(TestCase):
 
         self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
 
-        warning_message = WarningMessages.objects.filter(project_identifier="0000000000").first()
+        warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
 
         result = self.client.delete(
             "{url}?id={identifier}".format(url=self.url, identifier=warning_message.identifier),
@@ -608,7 +608,7 @@ class TestApiProjectWarning(TestCase):
             content_type=self.content_type,
         )
 
-        patched_warning_message = WarningMessages.objects.filter(identifier=warning_message.identifier).first()
+        patched_warning_message = WarningMessage.objects.filter(identifier=warning_message.identifier).first()
 
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(result.data, {"status": False, "result": "Message deleted"})
