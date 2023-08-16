@@ -2,9 +2,7 @@
 Django settings for main_application project.
 """
 import os
-from base64 import b64encode
 from pathlib import Path
-from uuid import uuid4
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -12,8 +10,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
 
-# Create random security string on startup
-SECRET_KEY = b64encode(str(uuid4()).encode("utf-8")).decode()
+# Get random secret key from environment variable
+SECRET_KEY = os.getenv("SECRET_KEY")
 
 # Whether to use a secure cookie for the CSRF cookie. If this is set to True, the cookie will be marked as “secure”,
 # which means browsers may ensure that the cookie is only sent with an HTTPS connection.
