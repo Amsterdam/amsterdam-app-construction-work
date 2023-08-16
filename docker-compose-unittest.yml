@@ -30,6 +30,7 @@ services:
       - AES_SECRET=${AES_SECRET}
       - API_PORT=${API_PORT}
       - UNITTEST=true
+      - SECRET_KEY=${SECRET_KEY}
     volumes:
       - ${fcm_credential_path}:/code/fcm_credentials.json
       - ${env_path}:/code/env
