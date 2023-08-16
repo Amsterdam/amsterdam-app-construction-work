@@ -2,9 +2,7 @@
 Django settings for main_application project.
 """
 import os
-from base64 import b64encode
 from pathlib import Path
-from uuid import uuid4
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
