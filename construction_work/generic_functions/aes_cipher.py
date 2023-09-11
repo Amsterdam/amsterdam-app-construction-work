@@ -6,21 +6,16 @@ from Crypto import Random
 from Crypto.Cipher import AES
 from pybase64 import b64decode, b64encode
 
-from construction_work.generic_functions.generic_logger import Logger
-
 
 class AESException(Exception):
     """Exception class for AES"""
-
-    def __init__(self, message):
-        super().__init__(message)
+    pass
 
 
 class AESCipher:
     """AESCipher class implementation"""
 
     def __init__(self, data, secret):
-        self.logger = Logger()
         self.data = data
         self.secret = secret.encode()
         self.blk_size = 16
@@ -51,21 +46,26 @@ class AESCipher:
             return b64encode(
                 b"Salted__" + salt + aes.encrypt(self.pad(self.data).encode())
             ).decode()
-        except Exception as error:
-            self.logger.error(error)
-            return None
+        except Exception as e:
+            raise AESException(e)
 
     def decrypt(self):
         """Decrypt string"""
         try:
+            # Convert base64-encoded ciphertext into binary representation
             encrypted = b64decode(self.data)
+            # Cipher should have been prepared with a random salt value before encryption
             assert encrypted[0:8] == b"Salted__"
             salt = encrypted[8:16]
+            # Derive encryption key and initialization vector
             key_iv = self.bytes_to_key(self.secret, salt, 32 + 16)
             key = key_iv[:32]
             iv = key_iv[32:]
+            # Initializes AES cipher object
             aes = AES.new(key, AES.MODE_CBC, iv)
-            return self.unpad(aes.decrypt(encrypted[16:])).decode()
-        except Exception as error:
-            self.logger.error(error)
-            return None
+            # Decrypt encrypted data and remove padding
+            decrypted_cipher = aes.decrypt(encrypted[16:])
+            unpadded_cipher = self.unpad(decrypted_cipher)
+            return unpadded_cipher.decode()
+        except Exception as e:
+            raise AESException(e)

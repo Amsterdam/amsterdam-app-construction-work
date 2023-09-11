@@ -4,6 +4,7 @@ from django.test import TestCase
 from construction_work.generic_functions.aes_cipher import AESCipher
 
 
+# TODO: more and better testing!
 class TestHashing(TestCase):
     """Unittest aes cyphers"""
 
