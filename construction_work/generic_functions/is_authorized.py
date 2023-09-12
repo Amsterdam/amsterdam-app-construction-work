@@ -36,9 +36,9 @@ def get_token_from_request(request: HttpRequest, http_key: str, header_key: str,
     if http_token:
         return_token = http_token
     elif header_token:
+        return_token = header_token
         if encode_header:
             return_token = header_token.encode("utf-8")
-        return_token = header_token
     
     return return_token
 
@@ -65,7 +65,7 @@ def is_valid_jwt_token(jwt_encrypted_token):
         return isinstance(token_dict, dict)
     except (InvalidSignatureError, ExpiredSignatureError, Exception) as e:
         logger.error(e)
-        raise e
+        return False
 
 
 def is_valid_aes_token(encrypted_token):
@@ -75,7 +75,7 @@ def is_valid_aes_token(encrypted_token):
         return True
     except AESException as e:
         logger.error(e)
-        raise e
+        raise AESException("Invalid encrypted token")
 
 
 def is_valid_ingest_token(encrypted_token):
@@ -87,10 +87,10 @@ def is_valid_ingest_token(encrypted_token):
         return True
     except AESException as e:
         logger.error(e)
-        raise e
+        return False
     except ValueError as e:
         logger.error(e)
-        raise e
+        return False
 
 
 class IsAuthorized:
