@@ -84,29 +84,34 @@ from django.db import models
 class Project(models.Model):
     """Projects db model"""
 
-    identifier = models.CharField(
+    project_id = models.CharField(
         max_length=100, blank=False, unique=True, primary_key=True
     )
+    active = models.BooleanField(default=True, blank=True, db_index=True)
     source_url = models.CharField(max_length=1000, blank=False)
+    
     # TODO: remove? not used anymore?
     # project_type = models.CharField(max_length=40, blank=False, default="")
-    district_id = models.IntegerField(default=None)
     # TODO: retrieve name with id from enum?
     # district_name = models.CharField(max_length=1000, blank=True, default="")
+    
     title = models.CharField(max_length=1000, blank=True, default="", db_index=True)
     subtitle = models.CharField(max_length=1000, null=True, db_index=True)
+    district_id = models.IntegerField(default=None)
     content_html = models.TextField()
     body = models.JSONField(null=True, default=list)
     coordinates = models.JSONField(null=True, default=dict)
-    news = models.JSONField(null=True, default=list)
+    images = models.JSONField(null=True, default=list)
 
     # TODO: deprecated
     # content_text = models.TextField()
-    images = models.JSONField(null=True, default=list)
+    
     publication_date = models.DateField(default=None)
     modification_date = models.DateField(default=None)
     last_seen = models.DateTimeField(null=True, blank=True)
-    active = models.BooleanField(default=True, blank=True, db_index=True)
+
+    # TODO: setup relation with Article model
+    news = models.JSONField(null=True, default=list)
 
     class Meta:
         ordering = ["title"]
