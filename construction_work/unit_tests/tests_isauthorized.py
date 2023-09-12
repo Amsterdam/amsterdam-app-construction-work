@@ -25,9 +25,13 @@ class TestIsAuthorized(TestCase):
     def setUp(self):
         """Setup test db"""
         # Create user for token
-        self.user = get_user_model().objects.create_user(username=username, password=password, email=email)
+        self.user = get_user_model().objects.create_user(
+            username=username, password=password, email=email
+        )
         self.user.save()
-        response = self.client.post("/api/v1/get-token/", {"username": username, "password": password})
+        response = self.client.post(
+            "/api/v1/get-token/", {"username": username, "password": password}
+        )
         self.jwt_token = response.data["access"]
 
         self.factory = RequestFactory()
@@ -42,7 +46,9 @@ class TestIsAuthorized(TestCase):
         def a_view(request):
             return "success"
 
-        token = AESCipher("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", os.getenv("AES_SECRET")).encrypt()
+        token = AESCipher(
+            "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", os.getenv("AES_SECRET")
+        ).encrypt()
         headers = {"Accept": "application/json", "UserAuthorization": token}
         request = self.factory.post("/", headers=headers)
         resp = a_view(request)
@@ -55,7 +61,9 @@ class TestIsAuthorized(TestCase):
         def a_view(request):
             return "success"
 
-        token = AESCipher("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", os.getenv("AES_SECRET")).encrypt()
+        token = AESCipher(
+            "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", os.getenv("AES_SECRET")
+        ).encrypt()
         headers = {"Accept": "application/json", "INGESTAUTHORIZATION": token}
         request = self.factory.post("/", headers=headers)
         resp = a_view(request)

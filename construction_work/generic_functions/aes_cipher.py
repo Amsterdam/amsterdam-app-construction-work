@@ -9,6 +9,7 @@ from pybase64 import b64decode, b64encode
 
 class AESException(Exception):
     """Exception class for AES"""
+
     pass
 
 
@@ -47,7 +48,7 @@ class AESCipher:
                 b"Salted__" + salt + aes.encrypt(self.pad(self.data).encode())
             ).decode()
         except Exception as e:
-            raise AESException(e)
+            raise AESException(e) from e
 
     def decrypt(self):
         """Decrypt string"""
@@ -57,7 +58,7 @@ class AESCipher:
             # Cipher should have been prepared with a random salt value before encryption
             assert encrypted[0:8] == b"Salted__"
             salt = encrypted[8:16]
-            # Derive encryption key and initialization vector
+            # Derive encryption key and initialization vector (IV)
             # Key = 32 bytes, IV = 16 bytes
             key_iv = self.bytes_to_key(self.secret, salt, 32 + self.blk_size)
             key = key_iv[:32]
@@ -69,4 +70,4 @@ class AESCipher:
             unpadded_cipher = self.unpad(decrypted_cipher)
             return unpadded_cipher.decode()
         except Exception as e:
-            raise AESException(e)
+            raise AESException(e) from e

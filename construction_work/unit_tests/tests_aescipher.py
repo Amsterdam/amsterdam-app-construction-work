@@ -1,6 +1,5 @@
 """ unit_tests """
 from django.test import TestCase
-from pybase64 import b64decode
 
 from construction_work.generic_functions.aes_cipher import AESCipher
 

@@ -12,22 +12,25 @@
 import functools
 import os
 from uuid import UUID
-from django.http import HttpRequest
 
 import jwt
-from django.http.response import HttpResponse, HttpResponseForbidden
 from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError
+from django.http.response import HttpResponse, HttpResponseForbidden
+from django.http import HttpRequest
 
-from construction_work.generic_functions.aes_cipher import AESCipher, AESException
 from main_application.settings import SECRET_KEY
+from construction_work.generic_functions.aes_cipher import AESCipher, AESException
 from construction_work.generic_functions.generic_logger import Logger
+
 
 logger = Logger()
 
 AES_SECRET = os.getenv("AES_SECRET")
 
 
-def get_token_from_request(request: HttpRequest, http_key: str, header_key: str, encode_header: bool = False):
+def get_token_from_request(
+    request: HttpRequest, http_key: str, header_key: str, encode_header: bool = False
+):
     """Get the AES encrypted token from the request"""
     http_token = request.META.get(http_key, None)
     header_token = request.META.get("headers", {}).get(header_key, None)
@@ -39,23 +42,29 @@ def get_token_from_request(request: HttpRequest, http_key: str, header_key: str,
         return_token = header_token
         if encode_header:
             return_token = header_token.encode("utf-8")
-    
+
     return return_token
 
 
 def get_jwt_auth_token(request: HttpRequest):
     """Get the JWT token from the request"""
-    return get_token_from_request(request, "HTTP_AUTHORIZATION", "AUTHORIZATION", encode_header=True)
+    return get_token_from_request(
+        request, "HTTP_AUTHORIZATION", "AUTHORIZATION", encode_header=True
+    )
 
 
 def get_user_auth_token(request: HttpRequest):
     """Get the AES encrypted UserAuthorization token from the request"""
-    return get_token_from_request(request, "HTTP_USERAUTHORIZATION", "UserAuthorization")
+    return get_token_from_request(
+        request, "HTTP_USERAUTHORIZATION", "UserAuthorization"
+    )
 
 
 def get_ingest_auth_token(request: HttpRequest):
     """Get the AES encrypted INGEST token from the request"""
-    return get_token_from_request(request, "HTTP_INGESTAUTHORIZATION", "INGESTAUTHORIZATION")
+    return get_token_from_request(
+        request, "HTTP_INGESTAUTHORIZATION", "INGESTAUTHORIZATION"
+    )
 
 
 def is_valid_jwt_token(jwt_encrypted_token):
@@ -75,7 +84,7 @@ def is_valid_aes_token(encrypted_token):
         return True
     except AESException as e:
         logger.error(e)
-        raise AESException("Invalid encrypted token")
+        raise AESException("Invalid encrypted token") from e
 
 
 def is_valid_ingest_token(encrypted_token):
