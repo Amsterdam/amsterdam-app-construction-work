@@ -84,18 +84,27 @@ from django.db import models
 class Project(models.Model):
     """Projects db model"""
 
-    project_type = models.CharField(max_length=40, blank=False, default="")
-    district_id = models.IntegerField(default=-1)
-    district_name = models.CharField(max_length=1000, blank=True, default="")
+    identifier = models.CharField(
+        max_length=100, blank=False, unique=True, primary_key=True
+    )
+    source_url = models.CharField(max_length=1000, blank=False)
+    # TODO: remove? not used anymore?
+    # project_type = models.CharField(max_length=40, blank=False, default="")
+    district_id = models.IntegerField(default=None)
+    # TODO: retrieve name with id from enum?
+    # district_name = models.CharField(max_length=1000, blank=True, default="")
     title = models.CharField(max_length=1000, blank=True, default="", db_index=True)
     subtitle = models.CharField(max_length=1000, null=True, db_index=True)
     content_html = models.TextField()
-    content_text = models.TextField()
+    body = models.JSONField(null=True, default=list)
+    coordinates = models.JSONField(null=True, default=dict)
+    news = models.JSONField(null=True, default=list)
+
+    # TODO: deprecated
+    # content_text = models.TextField()
     images = models.JSONField(null=True, default=list)
-    identifier = models.CharField(max_length=100, blank=False, unique=True, primary_key=True)
-    publication_date = models.CharField(max_length=40, blank=False)
-    modification_date = models.CharField(max_length=40, blank=False)
-    source_url = models.CharField(max_length=1000, blank=True, default="")
+    publication_date = models.DateField(default=None)
+    modification_date = models.DateField(default=None)
     last_seen = models.DateTimeField(null=True, blank=True)
     active = models.BooleanField(default=True, blank=True, db_index=True)
 
@@ -118,16 +127,6 @@ class ProjectDetail(models.Model):
     equivalent: CASCADE.
     """
 
-    identifier = models.OneToOneField(
-        Project, on_delete=models.CASCADE, unique=True, primary_key=True, db_column="identifier"
-    )
-    project_type = models.CharField(max_length=100, default="", blank=False, unique=False)
-    body = models.JSONField(null=True, default=list)
-    coordinates = models.JSONField(null=True, default=dict)
-    district_id = models.IntegerField(default=-1)
-    district_name = models.CharField(max_length=1000, blank=True, default="")
-    images = models.JSONField(null=True, default=list)
-    news = models.JSONField(null=True, default=list)
     page_id = models.IntegerField(default=-1)
     title = models.CharField(max_length=1000, blank=True, default="", db_index=True)
     subtitle = models.CharField(max_length=1000, null=True, db_index=True)
