@@ -58,7 +58,8 @@ class AESCipher:
             assert encrypted[0:8] == b"Salted__"
             salt = encrypted[8:16]
             # Derive encryption key and initialization vector
-            key_iv = self.bytes_to_key(self.secret, salt, 32 + 16)
+            # Key = 32 bytes, IV = 16 bytes
+            key_iv = self.bytes_to_key(self.secret, salt, 32 + self.blk_size)
             key = key_iv[:32]
             iv = key_iv[32:]
             # Initializes AES cipher object
