@@ -1,14 +1,14 @@
 """ unit_tests """
 from django.test import TestCase
+from pybase64 import b64decode
 
 from construction_work.generic_functions.aes_cipher import AESCipher
 
 
-# TODO: more and better testing!
 class TestHashing(TestCase):
     """Unittest aes cyphers"""
 
-    def test_encryption_ok(self):
+    def test_encrypt_decrypt_success(self):
         """test encrypt ok"""
         test_string = "test string"
         aes = AESCipher(test_string, "secret")
