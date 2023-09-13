@@ -22,16 +22,23 @@ else:
 
 # Whether to use a secure cookie for the CSRF cookie. If this is set to True, the cookie will be marked as “secure”,
 # which means browsers may ensure that the cookie is only sent with an HTTPS connection.
-CSRF_COOKIE_SECURE = True if not DJANGO_DEVELOPMENT else False
+CSRF_COOKIE_SECURE = True
+if DJANGO_DEVELOPMENT:
+    CSRF_COOKIE_SECURE = False
 
 # If this is set to True, the cookie will be marked as “secure”, which means browsers may ensure that the cookie is only
 # sent under an HTTPS connection.
-SESSION_COOKIE_SECURE = True if not DJANGO_DEVELOPMENT else False
+SESSION_COOKIE_SECURE = True
+if DJANGO_DEVELOPMENT:
+    SESSION_COOKIE_SECURE = False
 
 # Whether to expire the session when the user closes their browser.
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True if not DJANGO_DEVELOPMENT else False
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+if DJANGO_DEVELOPMENT:
+    SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 
-# In Django, ALLOWED_HOSTS is a list of strings representing the host/domain names that the Django application can serve.
+# In Django, ALLOWED_HOSTS is a list of strings representing
+# the host/domain names that the Django application can serve.
 # This is a security measure to prevent HTTP Host header attacks.
 allowed_hosts_all = ["*"]
 allowed_hosts_limited = [

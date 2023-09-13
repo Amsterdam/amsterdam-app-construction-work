@@ -36,7 +36,7 @@ def main():
     is_testing = "test" in sys.argv
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "main_application.settings")
-    
+
     # In production this app is always started via uWSGI
     # When running manage.py runserver or test, this development mode is enabled
     os.environ["DJANGO_DEVELOPMENT"] = "true"
