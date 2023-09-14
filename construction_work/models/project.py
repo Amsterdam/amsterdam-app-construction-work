@@ -84,33 +84,35 @@ from django.db import models
 class Project(models.Model):
     """Projects db model"""
 
+    # renamed from identifier
     project_id = models.CharField(
         max_length=100, blank=False, unique=True, primary_key=True
     )
     active = models.BooleanField(default=True, blank=True, db_index=True)
-    source_url = models.CharField(max_length=1000, blank=False)
+    last_seen = models.DateTimeField(null=True, blank=True)
+    publication_date = models.DateField(default=None)
+    modification_date = models.DateField(default=None)
 
+    # e.g.: https://amsterdam.nl/@1288615/page/?AppIdt=app-pagetype&reload=true
+    # source_url = models.CharField(max_length=1000, blank=False)
+    # e.g.: projecten-oost/a2-zone-joan-muyskenweg
+    # rel_url = models.CharField(max_length=1000, blank=True, default="")
+
+    url = models.CharField(max_length=1000, blank=True, default="")
     title = models.CharField(max_length=1000, blank=True, default="", db_index=True)
     subtitle = models.CharField(max_length=1000, null=True, db_index=True)
-    district_id = models.IntegerField(default=None)
-    content_html = models.TextField()
+    # TODO: strip content into seperate fields?
     body = models.JSONField(null=True, default=list)
+    content_html = models.TextField()
+    district_id = models.IntegerField(default=None)
     coordinates = models.JSONField(null=True, default=dict)
     images = models.JSONField(null=True, default=list)
 
-    publication_date = models.DateField(default=None)
-    modification_date = models.DateField(default=None)
-    last_seen = models.DateTimeField(null=True, blank=True)
-
-    news = models.JSONField(null=True, default=list)
-    # TODO: setup relation with Article model?
-    # news = models.ManyToManyField(Article)
-
-    page_id = models.IntegerField(default=None)
-    url = models.CharField(max_length=1000, blank=True, default="")
-    rel_url = models.CharField(max_length=1000, blank=True, default="")
-
     contacts = models.JSONField(null=True, default=list)
+
+    # TODO: setup relation with Article model?
+    news = models.JSONField(null=True, default=list)
+    # news = models.ManyToManyField(Article)
 
     class Meta:
         ordering = ["title"]
