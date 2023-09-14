@@ -13,7 +13,7 @@ from construction_work.generic_functions.is_authorized import IsAuthorized
 
 # from construction_work.models import CityOffices
 from construction_work.models import Article, Asset, Image, Project
-from construction_work.serializers import ProjectsSerializer
+from construction_work.serializers import ProjectSerializer
 from construction_work.swagger.swagger_views_ingestion import as_garbage_collector
 
 message = Messages()
@@ -124,7 +124,7 @@ def projects(request):
         projects_object = Project.objects.filter(pk=identifier).first()
         if projects_object is None:
             return Response({"status": True, "result": None}, status=200)
-        serializer = ProjectsSerializer(projects_object, many=False)
+        serializer = ProjectSerializer(projects_object, many=False)
         return Response({"status": True, "result": serializer.data}, status=200)
 
     if request.method == "POST":

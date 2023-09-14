@@ -20,7 +20,7 @@ from construction_work.serializers import (
     ImageSerializer,
     Notification,
     ProjectManagerSerializer,
-    ProjectsSerializer,
+    ProjectSerializer,
     WarningMessagesExternalSerializer,
     WarningMessagesInternalSerializer,
 )
@@ -132,14 +132,14 @@ class TestProjectsModel(TestCase):
         """test delete"""
         Project.objects.filter(pk="0000000000").delete()
         project_objects = Project.objects.all()
-        serializer = ProjectsSerializer(project_objects, many=True)
+        serializer = ProjectSerializer(project_objects, many=True)
 
         self.assertEqual(len(serializer.data), 1)
 
     def test_projects_get_all(self):
         """test retrieve"""
         project_objects = Project.objects.all()
-        serializer = ProjectsSerializer(project_objects, many=True)
+        serializer = ProjectSerializer(project_objects, many=True)
         for i in range(0, len(serializer.data), 1):
             self.data.projects[i]["last_seen"] = serializer.data[i]["last_seen"]
 
@@ -148,7 +148,7 @@ class TestProjectsModel(TestCase):
     def test_projects_does_exist(self):
         """test exist"""
         projects_objects = Project.objects.filter(pk="0000000000").first()
-        serializer = ProjectsSerializer(projects_objects)
+        serializer = ProjectSerializer(projects_objects)
         self.data.projects[0]["last_seen"] = serializer.data["last_seen"]
 
         self.assertEqual(serializer.data, self.data.projects[0])

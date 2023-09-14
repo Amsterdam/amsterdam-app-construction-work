@@ -12,7 +12,7 @@ from construction_work.generic_functions.distance import GeoPyDistance
 from construction_work.generic_functions.sort import Sort
 from construction_work.generic_functions.static_data import StaticData
 from construction_work.models import Project
-from construction_work.serializers import ProjectsSerializer
+from construction_work.serializers import ProjectSerializer
 from construction_work.swagger.swagger_views_distance import as_distance
 
 messages = Messages()
@@ -28,9 +28,9 @@ def distance(request):
 
         if _model_items is not None:
             fields = _model_items.split(",")
-            serializer = ProjectsSerializer(projects_object, context={"fields": fields}, many=False)
+            serializer = ProjectSerializer(projects_object, context={"fields": fields}, many=False)
         else:
-            serializer = ProjectsSerializer(projects_object, many=False)
+            serializer = ProjectSerializer(projects_object, many=False)
 
         result = serializer.data
         result["meter"] = int(_distance.meter) if _distance.meter is not None else None

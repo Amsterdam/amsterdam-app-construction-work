@@ -28,9 +28,10 @@ class ImageSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ProjectsSerializer(serializers.ModelSerializer):
+class ProjectSerializer(serializers.ModelSerializer):
     """Project pages serializer"""
-
+    # TODO: translate district_id to district_name using enum
+    
     class Meta:
         model = Project
         fields = "__all__"
@@ -39,7 +40,7 @@ class ProjectsSerializer(serializers.ModelSerializer):
         field_names = self.context.get("fields", None)
         if field_names:
             return field_names
-        return super(ProjectsSerializer, self).get_field_names(*args, **kwargs)
+        return super(ProjectSerializer, self).get_field_names(*args, **kwargs)
 
 
 class ArticleSerializer(serializers.ModelSerializer):
