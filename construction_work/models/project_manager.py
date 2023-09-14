@@ -42,9 +42,9 @@ def remove_project_from_manager(sender, instance, **kwargs):
     to remove the project from the projects array field of all the matching ProjectManager instances. This will
     automatically update the projects array of all the affected ProjectManager instances in the database.
     """
-    identifier = str(instance.identifier)
+    project_id = str(instance.project_id)
     project_managers = list(ProjectManager.objects.all())
     for project_manager in project_managers:
-        if identifier in project_manager.projects:
-            project_manager.projects.remove(identifier)
+        if project_id in project_manager.projects:
+            project_manager.projects.remove(project_id)
             project_manager.save()

@@ -29,5 +29,5 @@ def remove_project_from_followed_project(sender, instance, **kwargs):
     to remove the project from the projects array field of all the matching ProjectManager instances. This will
     automatically update the projects array of all the affected ProjectManager instances in the database.
     """
-    for followed_project in FollowedProject.objects.filter(projectid__contains=instance.identifier):
+    for followed_project in FollowedProject.objects.filter(projectid__contains=instance.project_id):
         followed_project.delete()

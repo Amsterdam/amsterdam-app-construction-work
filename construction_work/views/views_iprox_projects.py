@@ -20,7 +20,7 @@ from construction_work.generic_functions.request_must_come_from_app import Reque
 from construction_work.generic_functions.static_data import StaticData
 from construction_work.generic_functions.text_search import TextSearch
 from construction_work.models import Article, FollowedProject, Project, WarningMessage
-from construction_work.serializers import ArticleSerializer, WarningMessagesExternalSerializer
+from construction_work.serializers import ArticleSerializer, ProjectSerializer, WarningMessagesExternalSerializer
 from construction_work.swagger.swagger_views_iprox_projects import (as_project_details, as_projects,
                                                                     as_projects_follow_delete, as_projects_follow_post,
                                                                     as_projects_followed_articles)
@@ -129,29 +129,24 @@ def projects(request):
                 lat, lon = address_to_gps(address)
 
         # For each project in the database get the following data:
-        # "identifier", "images", "publication_date", "subtitle", "title", "followed", "coordinates"
+        # "project_id", "images", "publication_date", "subtitle", "title", "followed", "coordinates"
 
-        followed_projects = FollowedProject.objects.filter(projectid=OuterRef("identifier"), deviceid=deviceid).values(
+        followed_projects = FollowedProject.objects.filter(projectid=OuterRef("project_id"), deviceid=deviceid).values(
             "projectid"
         )
-
-        # TODO: fix
-        ProjectDetail = None
-        coordinates_projects = ProjectDetail.objects.filter(identifier=OuterRef("identifier")).values("coordinates")
 
         _projects = list(
             Project.objects.filter(active=True)
             .annotate(
                 followed=Case(
-                    When(identifier__in=Subquery(followed_projects), then=Value(True)),
+                    When(project_id__in=Subquery(followed_projects), then=Value(True)),
                     default=Value(False),
                     output_field=BooleanField(),
                 ),
-                coordinates=Subquery(coordinates_projects[:1]),
             )
             .annotate(followed=Coalesce("followed", Value(False)))
             .values(
-                "identifier",
+                "project_id",
                 "images",
                 "publication_date",
                 "subtitle",
@@ -291,8 +286,8 @@ def project_details(request):
     if deviceid is None:
         return Response({"status": False, "result": message.invalid_headers}, status=422)
 
-    identifier = request.GET.get("id", None)
-    if identifier is None:
+    project_id = request.GET.get("id", None)
+    if project_id is None:
         return Response({"status": False, "result": message.invalid_query}, status=422)
 
     articles_max_age = request.GET.get("articles_max_age", None)
@@ -309,16 +304,15 @@ def project_details(request):
             lon = data["results"][0]["centroid"][0]
             lat = data["results"][0]["centroid"][1]
 
-    # project_object = ProjectDetail.objects.filter(pk=identifier, active=True).first()
-    project_object = None
-    if project_object is None:
+    project_obj = Project.objects.filter(pk=project_id, active=True).first()
+    if project_obj is None:
         return Response({"status": False, "result": message.no_record_found}, status=404)
 
     # Get followers
-    count = FollowedProject.objects.filter(projectid=identifier).count()
-    followed = FollowedProject.objects.filter(deviceid=deviceid, projectid=identifier).first()
-    # project_data = dict(ProjectDetailsSerializer(project_object, many=False).data)
-    project_data = None
+    count = FollowedProject.objects.filter(projectid=project_id).count()
+    followed = FollowedProject.objects.filter(deviceid=deviceid, projectid=project_id).first()
+
+    project_data = dict(ProjectSerializer(project_obj, many=False).data)
     project_data["followers"] = count
     project_data["followed"] = bool(followed is not None)
 
@@ -327,7 +321,7 @@ def project_details(request):
     project_data["strides"] = None
     if lat is not None and lon is not None:
         cords_1 = (float(lat), float(lon))
-        cords_2 = (project_object.coordinates["lat"], project_object.coordinates["lon"])
+        cords_2 = (project_obj.coordinates["lat"], project_obj.coordinates["lon"])
         if None in cords_2:
             cords_2 = (None, None)
         elif (0, 0) == cords_2:
@@ -342,27 +336,18 @@ def project_details(request):
         start_date = datetime.now() - timedelta(days=articles_max_age)
         end_date = datetime.now()
         start_date_str = start_date.strftime("%Y-%m-%d")
-        news_articles_all = list(Article.objects.filter(project_identifier=identifier, active=True).all())
+        news_articles_all = list(Article.objects.filter(project_identifier=project_id, active=True).all())
         serializer_news = ArticleSerializer(news_articles_all, many=True)
         news_articles = [x["identifier"] for x in serializer_news.data if x["publication_date"] >= start_date_str]
         warning_articles = list(
             WarningMessage.objects.filter(
-                project_identifier=identifier,
+                project_identifier=project_id,
                 publication_date__range=[start_date, end_date],
             ).all()
         )
         serializer_warning = WarningMessagesExternalSerializer(warning_articles, many=True)
         project_data["recent_articles"] = news_articles + [x["identifier"] for x in serializer_warning.data]
     return Response({"status": True, "result": project_data}, status=200)
-
-
-@swagger_auto_schema(**as_search)
-@api_view(["GET"])
-def project_details_search(request):
-    """Search in project details"""
-    # model = ProjectDetail
-    model = None
-    return search(model, request)
 
 
 @swagger_auto_schema(**as_projects_follow_post)

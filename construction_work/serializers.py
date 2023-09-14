@@ -10,6 +10,7 @@ from construction_work.models import (
     ProjectManager,
     WarningMessage,
 )
+from construction_work.models.project import DISTRICTS
 
 
 class AssetsSerializer(serializers.ModelSerializer):
@@ -30,11 +31,27 @@ class ImageSerializer(serializers.ModelSerializer):
 
 class ProjectSerializer(serializers.ModelSerializer):
     """Project pages serializer"""
-    # TODO: translate district_id to district_name using enum
-    
+
+    # NOTE: remove when frontend has implemented project_id
+    identifier = serializers.SerializerMethodField()
+    district_name = serializers.SerializerMethodField()
+    source_url = serializers.SerializerMethodField()
+
     class Meta:
         model = Project
         fields = "__all__"
+
+    def get_identifier(self, obj):
+        """Set identifier value for frontend"""
+        return obj.project_id
+
+    def get_district_name(self, obj):
+        """Find district name by id"""
+        return DISTRICTS.get(obj.district_id)
+
+    def get_source_url(self, obj):
+        """Build source URL from project id"""
+        return f"https://amsterdam.nl/@{obj.project_id}/page/?AppIdt=app-pagetype&reload=true"
 
     def get_field_names(self, *args, **kwargs):
         field_names = self.context.get("fields", None)

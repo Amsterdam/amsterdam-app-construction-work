@@ -81,10 +81,21 @@ from datetime import datetime
 from django.db import models
 
 
+DISTRICTS = {
+    5398: "Centrum",
+    5520: "Nieuw-West",
+    5565: "Noord",
+    5399: "Oost",
+    7196: "Weesp",
+    5397: "West",
+    5396: "Zuid",
+    5393: "Zuidoost",
+}
+
 class Project(models.Model):
     """Projects db model"""
 
-    # renamed from identifier
+    # NOTE: renamed from identifier
     project_id = models.CharField(
         max_length=100, blank=False, unique=True, primary_key=True
     )
@@ -93,12 +104,6 @@ class Project(models.Model):
     publication_date = models.DateField(default=None)
     modification_date = models.DateField(default=None)
 
-    # e.g.: https://amsterdam.nl/@1288615/page/?AppIdt=app-pagetype&reload=true
-    # source_url = models.CharField(max_length=1000, blank=False)
-    # e.g.: projecten-oost/a2-zone-joan-muyskenweg
-    # rel_url = models.CharField(max_length=1000, blank=True, default="")
-
-    url = models.CharField(max_length=1000, blank=True, default="")
     title = models.CharField(max_length=1000, blank=True, default="", db_index=True)
     subtitle = models.CharField(max_length=1000, null=True, db_index=True)
     # TODO: strip content into seperate fields?

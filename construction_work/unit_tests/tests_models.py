@@ -10,7 +10,6 @@ from construction_work.models import (
     FirebaseToken,
     Image,
     Project,
-    ProjectDetail,
     ProjectManager,
     WarningMessage,
 )
@@ -25,6 +24,10 @@ from construction_work.serializers import (
     WarningMessagesInternalSerializer,
 )
 from construction_work.unit_tests.mock_data import TestData
+
+
+# TODO: fix
+ProjectDetail = None
 
 
 class TestAssetsModel(TestCase):

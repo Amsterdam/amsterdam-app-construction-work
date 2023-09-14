@@ -8,10 +8,13 @@ from django.test import Client, TestCase
 from construction_work.api_messages import Messages
 from construction_work.garbage_collector.garbage_collector import GarbageCollector
 from construction_work.generic_functions.aes_cipher import AESCipher
-from construction_work.models import Article, Asset, Image, Project, ProjectDetail
+from construction_work.models import Article, Asset, Image, Project
 from construction_work.unit_tests.mock_data import TestData
 
 messages = Messages()
+
+# TODO: fix
+ProjectDetail = None
 
 
 class SetUp:

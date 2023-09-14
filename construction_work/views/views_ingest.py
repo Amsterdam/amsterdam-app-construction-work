@@ -194,10 +194,9 @@ def article(request):
 @IsAuthorized
 def garbage_collector(request):
     """Garbage collector"""
-    project_type = request.GET.get("project_type")
     date = request.GET.get("date", str(datetime.now()))
     last_scrape_time = datetime.strptime(date, "%Y-%m-%d %H:%M:%S.%f")
     collector = GarbageCollector(last_scrape_time=last_scrape_time)
-    result = collector.collect_iprox(project_type=project_type)
+    result = collector.collect_iprox()
 
     return Response({"status": True, "result": result}, status=200)

@@ -3,9 +3,12 @@ from django.db import DEFAULT_DB_ALIAS, connections
 from django.test import TestCase
 
 from construction_work.generic_functions.text_search import TextSearch
-from construction_work.models import Project, ProjectDetail
+from construction_work.models import Project
 from construction_work.unit_tests.mock_data import TestData
 
+
+# TODO: fix
+ProjectDetail = None
 
 class SetUp:
     """Create needed database extensions"""

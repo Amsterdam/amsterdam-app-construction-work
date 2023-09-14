@@ -5,11 +5,14 @@ from unittest.mock import patch
 from django.test import Client, TestCase
 
 from construction_work.api_messages import Messages
-from construction_work.models import Project, ProjectDetail
+from construction_work.models import Project
 from construction_work.unit_tests.mock_data import TestData
 from construction_work.unit_tests.mock_functions import address_to_coordinates
 
 messages = Messages()
+
+# TODO: fix
+ProjectDetail = None
 
 
 class SetUp:
