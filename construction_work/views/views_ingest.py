@@ -12,7 +12,7 @@ from construction_work.generic_functions.generic_logger import Logger
 from construction_work.generic_functions.is_authorized import IsAuthorized
 
 # from construction_work.models import CityOffices
-from construction_work.models import Article, Asset, Image, Project, ProjectDetail
+from construction_work.models import Article, Asset, Image, Project
 from construction_work.serializers import ProjectsSerializer
 from construction_work.swagger.swagger_views_ingestion import as_garbage_collector
 
@@ -96,6 +96,8 @@ def project(request):
         if _project is None:
             return Response({"status": False, "result": message.no_record_found}, status=404)
 
+        # TODO: fix
+        ProjectDetail = None
         project_details_object = ProjectDetail.objects.filter(identifier=_project).first()
         data["identifier"] = _project
         if project_details_object is None:

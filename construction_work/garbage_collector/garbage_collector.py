@@ -1,7 +1,7 @@
 """ Iprox garbage collector """
 from datetime import timedelta
 
-from construction_work.models import Article, Project, ProjectDetail
+from construction_work.models import Article, Project
 
 
 class GarbageCollector:
@@ -20,7 +20,9 @@ class GarbageCollector:
         if project_type is not None:
             news = list(Article.objects.filter(project_type=project_type).all())
             report_news = self.garbage_collect_iprox(news, model=Article, model_name="News")
-
+            
+            # TODO: fix
+            ProjectDetail = None
             project_details = list(ProjectDetail.objects.filter(project_type=project_type).all())
             report_project_details = self.garbage_collect_iprox(
                 project_details, model=ProjectDetail, model_name="ProjectDetails"

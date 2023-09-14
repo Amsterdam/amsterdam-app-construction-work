@@ -7,7 +7,6 @@ from construction_work.models import (
     Image,
     Notification,
     Project,
-    ProjectDetail,
     ProjectManager,
     WarningMessage,
 )
@@ -41,14 +40,6 @@ class ProjectsSerializer(serializers.ModelSerializer):
         if field_names:
             return field_names
         return super(ProjectsSerializer, self).get_field_names(*args, **kwargs)
-
-
-class ProjectDetailsSerializer(serializers.ModelSerializer):
-    """Project details serializer"""
-
-    class Meta:
-        model = ProjectDetail
-        fields = "__all__"
 
 
 class ArticleSerializer(serializers.ModelSerializer):

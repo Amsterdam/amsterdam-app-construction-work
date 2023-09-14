@@ -19,8 +19,8 @@ from construction_work.generic_functions.memoize import Memoize
 from construction_work.generic_functions.request_must_come_from_app import RequestMustComeFromApp
 from construction_work.generic_functions.static_data import StaticData
 from construction_work.generic_functions.text_search import TextSearch
-from construction_work.models import Article, FollowedProject, Project, ProjectDetail, WarningMessage
-from construction_work.serializers import ArticleSerializer, ProjectDetailsSerializer, WarningMessagesExternalSerializer
+from construction_work.models import Article, FollowedProject, Project, WarningMessage
+from construction_work.serializers import ArticleSerializer, WarningMessagesExternalSerializer
 from construction_work.swagger.swagger_views_iprox_projects import (as_project_details, as_projects,
                                                                     as_projects_follow_delete, as_projects_follow_post,
                                                                     as_projects_followed_articles)
@@ -135,6 +135,8 @@ def projects(request):
             "projectid"
         )
 
+        # TODO: fix
+        ProjectDetail = None
         coordinates_projects = ProjectDetail.objects.filter(identifier=OuterRef("identifier")).values("coordinates")
 
         _projects = list(
@@ -307,14 +309,16 @@ def project_details(request):
             lon = data["results"][0]["centroid"][0]
             lat = data["results"][0]["centroid"][1]
 
-    project_object = ProjectDetail.objects.filter(pk=identifier, active=True).first()
+    # project_object = ProjectDetail.objects.filter(pk=identifier, active=True).first()
+    project_object = None
     if project_object is None:
         return Response({"status": False, "result": message.no_record_found}, status=404)
 
     # Get followers
     count = FollowedProject.objects.filter(projectid=identifier).count()
     followed = FollowedProject.objects.filter(deviceid=deviceid, projectid=identifier).first()
-    project_data = dict(ProjectDetailsSerializer(project_object, many=False).data)
+    # project_data = dict(ProjectDetailsSerializer(project_object, many=False).data)
+    project_data = None
     project_data["followers"] = count
     project_data["followed"] = bool(followed is not None)
 
@@ -356,7 +360,8 @@ def project_details(request):
 @api_view(["GET"])
 def project_details_search(request):
     """Search in project details"""
-    model = ProjectDetail
+    # model = ProjectDetail
+    model = None
     return search(model, request)
 
 
@@ -373,7 +378,8 @@ def projects_follow(request):
     if request.method == "POST":
         project_id = request.data.get("project_id", None)
         if project_id is not None:
-            project = ProjectDetail.objects.filter(identifier=project_id).first()
+            # project = ProjectDetail.objects.filter(identifier=project_id).first()
+            project = None
             if project is None:
                 return Response({"status": False, "result": message.no_record_found}, status=404)
         try:

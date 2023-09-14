@@ -11,7 +11,7 @@ from construction_work.api_messages import Messages
 from construction_work.generic_functions.distance import GeoPyDistance
 from construction_work.generic_functions.sort import Sort
 from construction_work.generic_functions.static_data import StaticData
-from construction_work.models import Project, ProjectDetail
+from construction_work.models import Project
 from construction_work.serializers import ProjectsSerializer
 from construction_work.swagger.swagger_views_distance import as_distance
 
@@ -61,7 +61,9 @@ def distance(request):
         return Response({"status": False, "result": str(error)}, 500)
 
     results = []
-    projects = list(ProjectDetail.objects.filter().all())
+    # TODO: fix
+    # projects = list(ProjectDetail.objects.filter().all())
+    projects = None
     for project in projects:
         cords_2 = (project.coordinates["lat"], project.coordinates["lon"])
         if project.coordinates["lat"] is None or project.coordinates["lon"] is None:
