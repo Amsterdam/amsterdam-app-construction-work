@@ -90,7 +90,6 @@ def project(request):
     data = request.data
     project_id = data.get("project_id")
 
-    _project = None
     try:
         _project = Project.objects.get(pk=project_id)
     except Project.DoesNotExist:
@@ -106,9 +105,9 @@ def project(request):
     
     data["last_seen"] = datetime.now()
     _, created = Project.objects.update_or_create(project_id=project_id, defaults=data)
+
     return_data = serializer.data
     return_data["created"] = created
-
     return Response(return_data, status=status.HTTP_200_OK)
 
 
