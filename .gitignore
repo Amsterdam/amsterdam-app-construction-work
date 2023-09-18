@@ -32,6 +32,4 @@ fcm_credentials.json
 data
 data/db
 
-.vscode
-
 environment.sh

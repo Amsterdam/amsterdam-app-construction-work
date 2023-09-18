@@ -1,0 +1,14 @@
+{
+    "python.envFile": "${workspaceFolder}/env",
+    "python.testing.cwd": "${workspaceFolder}",
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": true,
+    "python.testing.unittestArgs": [
+        "DJANGO_SETTING_MODULE=main_application.settings",
+        "-v",
+        "-s",
+        "./construction_work",
+        "-p",
+        "tests*.py",
+    ],
+}
