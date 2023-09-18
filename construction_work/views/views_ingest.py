@@ -1,6 +1,7 @@
 """ Views for ingestion routes """
 import base64
 from datetime import datetime
+from django.forms import ValidationError
 
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
@@ -88,31 +89,31 @@ def asset(request):
 @api_view(["POST"])
 def project(request):
     """Project(s) and News"""
-    created = False
-    try:
-        data = dict(request.data)
-        # New record or update existing
-        _project = Project.objects.filter(pk=data.get("identifier")).first()
-        if _project is None:
-            return Response({"status": False, "result": message.no_record_found}, status=404)
-
-        # TODO: fix
-        ProjectDetail = None
-        project_details_object = ProjectDetail.objects.filter(identifier=_project).first()
-        data["identifier"] = _project
-        if project_details_object is None:
-            project_details_object = ProjectDetail(**data)  # Update last scrape time is done implicitly
-            project_details_object.save()
+    success = False
+    data = dict(request.data)
+    project = Project.objects.filter(pk=data.get("project_id")).first()
+    
+    # New record or update existing
+    if project is None:
+        serializer = ProjectSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            success = True
         else:
-            data["last_seen"] = datetime.now()  # Update last scrape time
-            ProjectDetail.objects.filter(pk=_project).update(**data)
-        return Response({"status": True, "result": True}, status=200)
-    except Exception as error:
-        if created is True:
-            ProjectDetail.objects.filter(pk="").delete()
-        logger = Logger()
-        logger.error("ingest/project: {error}".format(error=error))
-        return Response({"status": False, "result": str(error)}, status=500)
+            success = False
+    else:
+        # TODO: check if this updates the right project
+        serializer = ProjectSerializer(data=data)
+        if serializer.is_valid():
+            project.last_seen = datetime.now()
+            project.save()
+
+    response = None
+    if success:
+        response = Response({"status": True, "result": True}, status=200)
+    else:
+        response = Response({"status": True, "result": True}, status=404)
+    return response
 
 
 @IsAuthorized

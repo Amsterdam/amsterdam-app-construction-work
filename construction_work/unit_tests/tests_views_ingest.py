@@ -13,32 +13,30 @@ from construction_work.unit_tests.mock_data import TestData
 
 messages = Messages()
 
-# TODO: fix
-ProjectDetail = None
-
-
-class SetUp:
-    """setup test db"""
-
-    def __init__(self):
-        self.data = TestData()
-        for asset in self.data.assets:
-            Asset.objects.create(**asset)
-
-        for image in self.data.images:
-            Image.objects.create(**image)
-
 
 class TestApiImage(TestCase):
     """test image api"""
 
     def setUp(self):
         """setup test db"""
-        SetUp()
+        self.test_data = TestData()
+        for asset in self.test_data.assets:
+            Asset.objects.create(**asset)
+
+        for image in self.test_data.images:
+            Image.objects.create(**image)
+
         token = AESCipher("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", os.getenv("AES_SECRET")).encrypt()
         self.header = {"INGESTAUTHORIZATION": token}
         self.content_type = "application/json"
         self.client = Client()
+
+    def tearDown(self):
+        Project.objects.all().delete()
+        Asset.objects.all().delete()
+        Image.objects.all().delete()
+
+        return super().tearDown()
 
     def test_image_exist(self):
         """test image exist"""
@@ -148,13 +146,11 @@ class TestApiImage(TestCase):
 
     def test_project_valid(self):
         """test valid project"""
-        test_data = TestData()
-        Project.objects.all().delete()
-        for project in test_data.projects:
+        for project in self.test_data.projects:
             Project.objects.create(**project)
 
         data = {
-            "identifier": "0000000000",
+            "project_id": "0000000000",
             "project_type": "kade",
             "body": {
                 "what": [{"html": "<div>mock</div>", "text": "mock", "title": "mock"}],
@@ -193,7 +189,7 @@ class TestApiImage(TestCase):
         result = self.client.post(
             "/api/v1/ingest/project", data=data, headers=self.header, content_type="application/json"
         )
-        db_objects = list(ProjectDetail.objects.all())
+        db_objects = list(Project.objects.all())
 
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.data, {"status": True, "result": True})
@@ -203,7 +199,7 @@ class TestApiImage(TestCase):
         result = self.client.post(
             "/api/v1/ingest/project", data=data, headers=self.header, content_type="application/json"
         )
-        db_objects = list(ProjectDetail.objects.all())
+        db_objects = list(Project.objects.all())
 
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.data, {"status": True, "result": True})
@@ -216,7 +212,7 @@ class TestApiImage(TestCase):
         result = self.client.post(
             "/api/v1/ingest/project", data=data, headers=self.header, content_type="application/json"
         )
-        db_objects = list(ProjectDetail.objects.all())
+        db_objects = list(Project.objects.all())
 
         self.assertEqual(result.status_code, 404)
         self.assertDictEqual(result.data, {"status": False, "result": messages.no_record_found})
@@ -224,8 +220,7 @@ class TestApiImage(TestCase):
 
     def test_projects_get(self):
         """test get project data"""
-        test_data = TestData()
-        project_object = Project(**test_data.projects[0])
+        project_object = Project(**self.test_data.projects[0])
         project_object.save()
 
         result = self.client.get(
@@ -242,9 +237,8 @@ class TestApiImage(TestCase):
 
     def test_projects_post_valid(self):
         """test posting valid project data"""
-        test_data = TestData()
         result = self.client.post(
-            "/api/v1/ingest/projects", data=test_data.projects[0], headers=self.header, content_type="application/json"
+            "/api/v1/ingest/projects", data=self.test_data.projects[0], headers=self.header, content_type="application/json"
         )
         project_objects = list(Project.objects.all())
 
@@ -254,7 +248,7 @@ class TestApiImage(TestCase):
 
         # Update record
         result = self.client.post(
-            "/api/v1/ingest/projects", data=test_data.projects[0], headers=self.header, content_type="application/json"
+            "/api/v1/ingest/projects", data=self.test_data.projects[0], headers=self.header, content_type="application/json"
         )
         project_objects = list(Project.objects.all())
 
@@ -276,8 +270,7 @@ class TestApiImage(TestCase):
 
     def test_projects_delete_valid(self):
         """test deleting valid project"""
-        test_data = TestData()
-        project_object = Project(**test_data.projects[0])
+        project_object = Project(**self.test_data.projects[0])
         project_object.save()
 
         data = {"identifier": "0000000000"}
@@ -302,14 +295,12 @@ class TestApiImage(TestCase):
 
     def test_news_valid(self):
         """test ingesting valid news"""
-        test_data = TestData()
-
         Project.objects.all().delete()
-        for project in test_data.projects:
+        for project in self.test_data.projects:
             Project.objects.create(**project)
 
         result = self.client.post(
-            "/api/v1/ingest/article", data=test_data.article[0], headers=self.header, content_type="application/json"
+            "/api/v1/ingest/article", data=self.test_data.article[0], headers=self.header, content_type="application/json"
         )
         news_objects = list(Article.objects.all())
 
@@ -319,7 +310,7 @@ class TestApiImage(TestCase):
 
         # Update existing record
         result = self.client.post(
-            "/api/v1/ingest/article", data=test_data.article[0], headers=self.header, content_type="application/json"
+            "/api/v1/ingest/article", data=self.test_data.article[0], headers=self.header, content_type="application/json"
         )
         news_objects = list(Article.objects.all())
 
