@@ -1,6 +1,7 @@
 """ Views for ingestion routes """
 import base64
 from datetime import datetime
+from django.forms import model_to_dict
 
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
@@ -95,20 +96,14 @@ def project(request):
     except Project.DoesNotExist:
         _project = None
 
-    if _project:
-        serializer = ProjectCreateSerializer(instance=_project, data=data)
-    else:
-        serializer = ProjectCreateSerializer(data=data)
-
+    data["last_seen"] = datetime.now()
+    serializer = ProjectCreateSerializer(instance=_project, data=data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    data["last_seen"] = datetime.now()
-    _, created = Project.objects.update_or_create(project_id=project_id, defaults=data)
-
-    return_data = serializer.data
-    return_data["created"] = created
-    return Response(return_data, status=status.HTTP_200_OK)
+    serializer.save()
+    
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @IsAuthorized

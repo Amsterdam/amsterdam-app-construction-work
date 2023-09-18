@@ -246,9 +246,10 @@ class TestApiImage(TestCase):
         first_project = self.test_data.projects[0]
         Project.objects.create(**first_project)
 
+        new_date = "2023-10-01"
         data = {
             "project_id": "0000000000",
-            "modification_date": "2023-10-01",
+            "modification_date": new_date,
             "content_html": "<html />",
         }
 
@@ -258,11 +259,17 @@ class TestApiImage(TestCase):
             headers=self.header,
             content_type="application/json",
         )
+        # Test for correct status code
         logger.debug(result.data)
         self.assertEqual(result.status_code, 200)
 
+        # Test of no new object was created
         db_objects = list(Project.objects.all())
         self.assertEqual(len(db_objects), 1)
+
+        # Test if objects was actually updated
+        updated_project = db_objects[0]
+        self.assertEqual(str(updated_project.modification_date), new_date)
 
     def test_project_invalid(self):
         """test invalid project"""
