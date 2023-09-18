@@ -181,63 +181,19 @@ class TestApiImage(TestCase):
 
     def test_add_new_project_success(self):
         """Test add new project via ingest API"""
-        data = {
-            "project_id": "0000000000",
-            "publication_date": "2023-09-18",
-            "modification_date": "2023-09-18",
-            "title": "mock",
-            "subtitle": "mock",
-            "body": {
-                "what": [{"html": "<div>mock</div>", "text": "mock", "title": "mock"}],
-                "when": [{"html": "<div>mock</div>", "text": "mock", "title": "mock"}],
-                "work": [{"html": "<div>mock</div>", "text": "mock", "title": "mock"}],
-                "where": [{"html": "<div>mock</div>", "text": "mock", "title": "mock"}],
-                "notice": [
-                    {"html": "<div>mock</div>", "text": "mock", "title": "mock"}
-                ],
-                "contact": [
-                    {"html": "<div>mock</div>", "text": "mock", "title": "mock"}
-                ],
-                "timeline": {},
-                "more-info": [
-                    {"html": "<div>mock</div>", "text": "mock", "title": "mock"}
-                ],
-            },
-            "content_html": "<html/>",
-            "district_id": 1,
-            "coordinates": {"lat": 0.0, "lon": 0.0},
-            "images": [
-                {
-                    "type": "",
-                    "sources": {
-                        "orig": {
-                            "url": "https://mock.jpg",
-                            "filename": "mock.jpg",
-                            "image_id": "00000000",
-                            "description": "mock",
-                        }
-                    },
-                }
-            ],
-            "contacts": [],
-            "news": [
-                {
-                    "url": "https://mock",
-                    "identifier": "mock",
-                    "project_identifier": "0000000000",
-                }
-            ],
-        }
+        first_project = self.test_data.projects[0]
 
         result = self.client.post(
             "/api/v1/ingest/project",
-            data=data,
+            data=first_project,
             headers=self.header,
             content_type="application/json",
         )
+        # Test for correct status code
         logger.debug(result.data)
         self.assertEqual(result.status_code, 200)
 
+        # Test if a new object was created
         db_objects = list(Project.objects.all())
         self.assertEqual(len(db_objects), 1)
 
@@ -263,7 +219,7 @@ class TestApiImage(TestCase):
         logger.debug(result.data)
         self.assertEqual(result.status_code, 200)
 
-        # Test of no new object was created
+        # Test if no new object was created
         db_objects = list(Project.objects.all())
         self.assertEqual(len(db_objects), 1)
 
