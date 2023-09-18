@@ -20,7 +20,7 @@ from construction_work.generic_functions.request_must_come_from_app import Reque
 from construction_work.generic_functions.static_data import StaticData
 from construction_work.generic_functions.text_search import TextSearch
 from construction_work.models import Article, FollowedProject, Project, WarningMessage
-from construction_work.serializers import ArticleSerializer, ProjectSerializer, WarningMessagesExternalSerializer
+from construction_work.serializers import ArticleSerializer, ProjectDetailsSerializer, WarningMessagesExternalSerializer
 from construction_work.swagger.swagger_views_iprox_projects import (as_project_details, as_projects,
                                                                     as_projects_follow_delete, as_projects_follow_post,
                                                                     as_projects_followed_articles)
@@ -308,7 +308,7 @@ def project_details(request):
     if project_obj is None:
         return Response({"status": False, "result": message.no_record_found}, status=404)
 
-    project_serializer = ProjectSerializer(project_obj, many=False, context={
+    project_serializer = ProjectDetailsSerializer(project_obj, many=False, context={
         "lat": lat,
         "lon": lon,
     })

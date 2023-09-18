@@ -30,8 +30,16 @@ class ImageSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ProjectSerializer(serializers.ModelSerializer):
-    """Project pages serializer"""
+class ProjectCreateSerializer(serializers.ModelSerializer):
+    """Project create serializer"""
+
+    class Meta:
+        model = Project
+        fields = "__all__"
+
+
+class ProjectDetailsSerializer(serializers.ModelSerializer):
+    """Project details serializer"""
 
     class Meta:
         model = Project
@@ -41,7 +49,7 @@ class ProjectSerializer(serializers.ModelSerializer):
         field_names = self.context.get("fields", None)
         if field_names:
             return field_names
-        return super(ProjectSerializer, self).get_field_names(*args, **kwargs)
+        return super().get_field_names(*args, **kwargs)
 
     def get_distance_from_project(self, obj: Project):
         lat = self.context.get("lat")
@@ -64,14 +72,11 @@ class ProjectSerializer(serializers.ModelSerializer):
         repr["district_name"] = DISTRICTS.get(instance.district_id)
         repr["source_url"] = f"https://amsterdam.nl/@{instance.project_id}/page/?AppIdt=app-pagetype&reload=true"
         
-        # TODO: meters, strides > via self.context dict with input from request
         distance = self.get_distance_from_project(instance)
         repr["meters"] = distance.meter
         repr["strides"] = distance.strides
 
         # TODO: followers, followed, recent_articles > via relationships with other models
-
-        # TODO: sort output here
 
         return repr
 

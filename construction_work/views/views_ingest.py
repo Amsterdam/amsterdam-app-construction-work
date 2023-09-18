@@ -1,11 +1,11 @@
 """ Views for ingestion routes """
 import base64
 from datetime import datetime
-from django.forms import ValidationError
 
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework import status
 
 from construction_work.api_messages import Messages
 from construction_work.garbage_collector.garbage_collector import GarbageCollector
@@ -14,10 +14,11 @@ from construction_work.generic_functions.is_authorized import IsAuthorized
 
 # from construction_work.models import CityOffices
 from construction_work.models import Article, Asset, Image, Project
-from construction_work.serializers import ProjectSerializer
+from construction_work.serializers import ProjectCreateSerializer
 from construction_work.swagger.swagger_views_ingestion import as_garbage_collector
 
 message = Messages()
+logger = Logger()
 
 
 @IsAuthorized
@@ -39,7 +40,6 @@ def image(request):
         image_object.save()
         return Response({"status": True, "result": True}, status=200)
     except Exception as error:
-        logger = Logger()
         logger.error("ingest/image: {error}".format(error=error))
         return Response({"status": False, "result": str(error)}, status=500)
 
@@ -63,7 +63,6 @@ def asset(request):
         asset_data.save()
         return Response({"status": True, "result": True}, status=200)
     except Exception as error:
-        logger = Logger()
         logger.error("ingest/assets: {error}".format(error=error))
         return Response({"status": False, "result": str(error)}, status=500)
 
@@ -80,7 +79,6 @@ def asset(request):
 #         city_offices.save()
 #         return Response({'status': True, 'result': True}, status=200)
 #     except Exception as error:
-#         logger = Logger()
 #         logger.error('ingest/cityoffices: {error}'.format(error=error))
 #         return Response({'status': False, 'result': 'Caught error ingesting city offices'}, status=500)
 
@@ -88,32 +86,30 @@ def asset(request):
 @IsAuthorized
 @api_view(["POST"])
 def project(request):
-    """Project(s) and News"""
-    success = False
-    data = dict(request.data)
-    project = Project.objects.filter(pk=data.get("project_id")).first()
-    
-    # New record or update existing
-    if project is None:
-        serializer = ProjectSerializer(data=data)
-        if serializer.is_valid():
-            serializer.save()
-            success = True
-        else:
-            success = False
-    else:
-        # TODO: check if this updates the right project
-        serializer = ProjectSerializer(data=data)
-        if serializer.is_valid():
-            project.last_seen = datetime.now()
-            project.save()
+    """Create or update a project"""
+    data = request.data
+    project_id = data.get("project_id")
 
-    response = None
-    if success:
-        response = Response({"status": True, "result": True}, status=200)
+    _project = None
+    try:
+        _project = Project.objects.get(pk=project_id)
+    except Project.DoesNotExist:
+        _project = None
+
+    if _project:
+        serializer = ProjectCreateSerializer(instance=_project, data=data)
     else:
-        response = Response({"status": True, "result": True}, status=404)
-    return response
+        serializer = ProjectCreateSerializer(data=data)
+
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    data["last_seen"] = datetime.now()
+    _, created = Project.objects.update_or_create(project_id=project_id, defaults=data)
+    return_data = serializer.data
+    return_data["created"] = created
+
+    return Response(return_data, status=status.HTTP_200_OK)
 
 
 @IsAuthorized
@@ -125,7 +121,7 @@ def projects(request):
         projects_object = Project.objects.filter(pk=identifier).first()
         if projects_object is None:
             return Response({"status": True, "result": None}, status=200)
-        serializer = ProjectSerializer(projects_object, many=False)
+        serializer = ProjectCreateSerializer(projects_object, many=False)
         return Response({"status": True, "result": serializer.data}, status=200)
 
     if request.method == "POST":
@@ -135,7 +131,9 @@ def projects(request):
             data = dict(request.data)
 
             # New record or update existing
-            project_object = Project.objects.filter(identifier=data.get("identifier")).first()
+            project_object = Project.objects.filter(
+                identifier=data.get("identifier")
+            ).first()
             if project_object is None:
                 project_object = Project(**data)
                 project_object.save()  # Update last scrape time is done implicitly
@@ -146,7 +144,6 @@ def projects(request):
         except Exception as error:
             if created is True:
                 Project.objects.filter(pk="").delete()
-            logger = Logger()
             logger.error("ingest/projects (POST): {error}".format(error=error))
             return Response({"status": False, "result": str(error)}, status=500)
 
@@ -157,7 +154,6 @@ def projects(request):
         Project.objects.filter(pk=data.get("identifier")).delete()
         return Response({"status": True, "result": True}, status=200)
     except Exception as error:
-        logger = Logger()
         logger.error("ingest/projects (DELETE): {error}".format(error=error))
         return Response({"status": False, "result": str(error)}, status=500)
 
@@ -176,16 +172,21 @@ def article(request):
         ).first()
         if news_item_object is None:
             data["project_identifier"] = _project
-            news_item_object = Article(**data)  # Update last scrape time is done implicitly
+            news_item_object = Article(
+                **data
+            )  # Update last scrape time is done implicitly
             news_item_object.save()
-            return Response({"status": True, "result": f"{_type} item saved"}, status=200)
+            return Response(
+                {"status": True, "result": f"{_type} item saved"}, status=200
+            )
 
         # Else...
         data["last_seen"] = datetime.now()  # Update last scrape time
-        Article.objects.filter(identifier=data.get("identifier"), project_identifier=_project).update(**data)
+        Article.objects.filter(
+            identifier=data.get("identifier"), project_identifier=_project
+        ).update(**data)
         return Response({"status": True, "result": f"{_type} item updated"}, status=200)
     except Exception as error:
-        logger = Logger()
         logger.error("ingest/news: {error}".format(error=error))
         return Response({"status": False, "result": str(error)}, status=500)
 

@@ -4,14 +4,17 @@ import os
 from unittest.mock import patch
 
 from django.test import Client, TestCase
+from rest_framework import status
 
 from construction_work.api_messages import Messages
 from construction_work.garbage_collector.garbage_collector import GarbageCollector
 from construction_work.generic_functions.aes_cipher import AESCipher
 from construction_work.models import Article, Asset, Image, Project
 from construction_work.unit_tests.mock_data import TestData
+from construction_work.generic_functions.generic_logger import Logger
 
 messages = Messages()
+logger = Logger()
 
 
 class TestApiImage(TestCase):
@@ -26,7 +29,9 @@ class TestApiImage(TestCase):
         for image in self.test_data.images:
             Image.objects.create(**image)
 
-        token = AESCipher("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", os.getenv("AES_SECRET")).encrypt()
+        token = AESCipher(
+            "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", os.getenv("AES_SECRET")
+        ).encrypt()
         self.header = {"INGESTAUTHORIZATION": token}
         self.content_type = "application/json"
         self.client = Client()
@@ -41,10 +46,14 @@ class TestApiImage(TestCase):
     def test_image_exist(self):
         """test image exist"""
         c = Client()
-        response = c.get("/api/v1/ingest/image?identifier=0000000000", headers=self.header)
+        response = c.get(
+            "/api/v1/ingest/image?identifier=0000000000", headers=self.header
+        )
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, {"status": True, "result": {"identifier": "0000000000"}})
+        self.assertEqual(
+            response.data, {"status": True, "result": {"identifier": "0000000000"}}
+        )
 
     def test_image_not_exist(self):
         """test image does not exist"""
@@ -67,7 +76,10 @@ class TestApiImage(TestCase):
         }
 
         result = self.client.post(
-            "/api/v1/ingest/image", data=data, headers=self.header, content_type="application/json"
+            "/api/v1/ingest/image",
+            data=data,
+            headers=self.header,
+            content_type="application/json",
         )
 
         self.assertEqual(result.status_code, 200)
@@ -86,7 +98,10 @@ class TestApiImage(TestCase):
         }
 
         result = self.client.post(
-            "/api/v1/ingest/image", data=data, headers=self.header, content_type="application/json"
+            "/api/v1/ingest/image",
+            data=data,
+            headers=self.header,
+            content_type="application/json",
         )
 
         self.assertEqual(result.status_code, 500)
@@ -102,10 +117,14 @@ class TestApiImage(TestCase):
     def test_asset_exist(self):
         """test existing asset"""
         c = Client()
-        response = c.get("/api/v1/ingest/asset?identifier=0000000000", headers=self.header)
+        response = c.get(
+            "/api/v1/ingest/asset?identifier=0000000000", headers=self.header
+        )
 
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, {"status": True, "result": {"identifier": "0000000000"}})
+        self.assertEqual(
+            response.data, {"status": True, "result": {"identifier": "0000000000"}}
+        )
 
     def test_asset_not_exist(self):
         """test not existing asset"""
@@ -117,10 +136,18 @@ class TestApiImage(TestCase):
 
     def test_asset_ingest_valid(self):
         """test ingesting valid asset"""
-        data = {"identifier": "0000000000", "url": "mock", "mime_type": "mock", "data": "MHgwMA=="}
+        data = {
+            "identifier": "0000000000",
+            "url": "mock",
+            "mime_type": "mock",
+            "data": "MHgwMA==",
+        }
 
         result = self.client.post(
-            "/api/v1/ingest/asset", data=data, headers=self.header, content_type="application/json"
+            "/api/v1/ingest/asset",
+            data=data,
+            headers=self.header,
+            content_type="application/json",
         )
 
         self.assertEqual(result.status_code, 200)
@@ -128,10 +155,18 @@ class TestApiImage(TestCase):
 
     def test_asset_ingest_invalid(self):
         """test ingesting invalid asset"""
-        data = {"identifier": "0000000000", "url": "mock", "mime_type": "mock", "data": "BOGUS"}
+        data = {
+            "identifier": "0000000000",
+            "url": "mock",
+            "mime_type": "mock",
+            "data": "BOGUS",
+        }
 
         result = self.client.post(
-            "/api/v1/ingest/asset", data=data, headers=self.header, content_type="application/json"
+            "/api/v1/ingest/asset",
+            data=data,
+            headers=self.header,
+            content_type="application/json",
         )
 
         self.assertEqual(result.status_code, 500)
@@ -144,27 +179,33 @@ class TestApiImage(TestCase):
             },
         )
 
-    def test_project_valid(self):
-        """test valid project"""
-        for project in self.test_data.projects:
-            Project.objects.create(**project)
-
+    def test_add_new_project_success(self):
+        """Test add new project via ingest API"""
         data = {
             "project_id": "0000000000",
-            "project_type": "kade",
+            "publication_date": "2023-09-18",
+            "modification_date": "2023-09-18",
+            "title": "mock",
+            "subtitle": "mock",
             "body": {
                 "what": [{"html": "<div>mock</div>", "text": "mock", "title": "mock"}],
                 "when": [{"html": "<div>mock</div>", "text": "mock", "title": "mock"}],
                 "work": [{"html": "<div>mock</div>", "text": "mock", "title": "mock"}],
                 "where": [{"html": "<div>mock</div>", "text": "mock", "title": "mock"}],
-                "notice": [{"html": "<div>mock</div>", "text": "mock", "title": "mock"}],
-                "contact": [{"html": "<div>mock</div>", "text": "mock", "title": "mock"}],
+                "notice": [
+                    {"html": "<div>mock</div>", "text": "mock", "title": "mock"}
+                ],
+                "contact": [
+                    {"html": "<div>mock</div>", "text": "mock", "title": "mock"}
+                ],
                 "timeline": {},
-                "more-info": [{"html": "<div>mock</div>", "text": "mock", "title": "mock"}],
+                "more-info": [
+                    {"html": "<div>mock</div>", "text": "mock", "title": "mock"}
+                ],
             },
-            "coordinates": {"lat": 0.0, "lon": 0.0},
+            "content_html": "<html/>",
             "district_id": 1,
-            "district_name": "mockl",
+            "coordinates": {"lat": 0.0, "lon": 0.0},
             "images": [
                 {
                     "type": "",
@@ -178,31 +219,49 @@ class TestApiImage(TestCase):
                     },
                 }
             ],
-            "news": [{"url": "https://mock", "identifier": "mock", "project_identifier": "0000000000"}],
-            "page_id": 957308,
-            "title": "mock",
-            "subtitle": "mock",
-            "rel_url": "mock",
-            "url": "https://mock",
+            "contacts": [],
+            "news": [
+                {
+                    "url": "https://mock",
+                    "identifier": "mock",
+                    "project_identifier": "0000000000",
+                }
+            ],
         }
 
         result = self.client.post(
-            "/api/v1/ingest/project", data=data, headers=self.header, content_type="application/json"
+            "/api/v1/ingest/project",
+            data=data,
+            headers=self.header,
+            content_type="application/json",
         )
-        db_objects = list(Project.objects.all())
-
+        logger.debug(result.data)
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(result.data, {"status": True, "result": True})
+
+        db_objects = list(Project.objects.all())
         self.assertEqual(len(db_objects), 1)
 
-        # Update record
-        result = self.client.post(
-            "/api/v1/ingest/project", data=data, headers=self.header, content_type="application/json"
-        )
-        db_objects = list(Project.objects.all())
+    def test_update_project_success(self):
+        """Test update existing project via ingest API"""
+        first_project = self.test_data.projects[0]
+        Project.objects.create(**first_project)
 
+        data = {
+            "project_id": "0000000000",
+            "modification_date": "2023-10-01",
+            "content_html": "<html />",
+        }
+
+        result = self.client.post(
+            "/api/v1/ingest/project",
+            data=data,
+            headers=self.header,
+            content_type="application/json",
+        )
+        logger.debug(result.data)
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(result.data, {"status": True, "result": True})
+
+        db_objects = list(Project.objects.all())
         self.assertEqual(len(db_objects), 1)
 
     def test_project_invalid(self):
@@ -210,12 +269,14 @@ class TestApiImage(TestCase):
         data = {"bogus": "bogus"}
 
         result = self.client.post(
-            "/api/v1/ingest/project", data=data, headers=self.header, content_type="application/json"
+            "/api/v1/ingest/project",
+            data=data,
+            headers=self.header,
+            content_type="application/json",
         )
         db_objects = list(Project.objects.all())
 
-        self.assertEqual(result.status_code, 404)
-        self.assertDictEqual(result.data, {"status": False, "result": messages.no_record_found})
+        self.assertEqual(result.status_code, 400)
         self.assertEqual(len(db_objects), 0)
 
     def test_projects_get(self):
@@ -224,13 +285,17 @@ class TestApiImage(TestCase):
         project_object.save()
 
         result = self.client.get(
-            "/api/v1/ingest/projects?identifier=0000000000", headers=self.header, content_type="application/json"
+            "/api/v1/ingest/projects?identifier=0000000000",
+            headers=self.header,
+            content_type="application/json",
         )
         self.assertEqual(result.status_code, 200)
         assert isinstance(result.data["result"], dict)
 
         result = self.client.get(
-            "/api/v1/ingest/projects?identifier=0000000001", headers=self.header, content_type="application/json"
+            "/api/v1/ingest/projects?identifier=0000000001",
+            headers=self.header,
+            content_type="application/json",
         )
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.data, {"status": True, "result": None})
@@ -238,7 +303,10 @@ class TestApiImage(TestCase):
     def test_projects_post_valid(self):
         """test posting valid project data"""
         result = self.client.post(
-            "/api/v1/ingest/projects", data=self.test_data.projects[0], headers=self.header, content_type="application/json"
+            "/api/v1/ingest/projects",
+            data=self.test_data.projects[0],
+            headers=self.header,
+            content_type="application/json",
         )
         project_objects = list(Project.objects.all())
 
@@ -248,7 +316,10 @@ class TestApiImage(TestCase):
 
         # Update record
         result = self.client.post(
-            "/api/v1/ingest/projects", data=self.test_data.projects[0], headers=self.header, content_type="application/json"
+            "/api/v1/ingest/projects",
+            data=self.test_data.projects[0],
+            headers=self.header,
+            content_type="application/json",
         )
         project_objects = list(Project.objects.all())
 
@@ -261,7 +332,10 @@ class TestApiImage(TestCase):
         data = {"bogus": "bogus"}
 
         result = self.client.post(
-            "/api/v1/ingest/projects", data=data, headers=self.header, content_type="application/json"
+            "/api/v1/ingest/projects",
+            data=data,
+            headers=self.header,
+            content_type="application/json",
         )
         project_objects = list(Project.objects.all())
 
@@ -275,7 +349,10 @@ class TestApiImage(TestCase):
 
         data = {"identifier": "0000000000"}
         result = self.client.delete(
-            "/api/v1/ingest/projects", data=data, headers=self.header, content_type="application/json"
+            "/api/v1/ingest/projects",
+            data=data,
+            headers=self.header,
+            content_type="application/json",
         )
         project_objects = list(Project.objects.all())
 
@@ -285,12 +362,19 @@ class TestApiImage(TestCase):
 
         data = "bogus"
         result = self.client.delete(
-            "/api/v1/ingest/projects", data=data, headers=self.header, content_type="application/json"
+            "/api/v1/ingest/projects",
+            data=data,
+            headers=self.header,
+            content_type="application/json",
         )
 
         self.assertEqual(result.status_code, 500)
         self.assertEqual(
-            result.data, {"status": False, "result": "JSON parse error - Expecting value: line 1 column 1 (char 0)"}
+            result.data,
+            {
+                "status": False,
+                "result": "JSON parse error - Expecting value: line 1 column 1 (char 0)",
+            },
         )
 
     def test_news_valid(self):
@@ -300,7 +384,10 @@ class TestApiImage(TestCase):
             Project.objects.create(**project)
 
         result = self.client.post(
-            "/api/v1/ingest/article", data=self.test_data.article[0], headers=self.header, content_type="application/json"
+            "/api/v1/ingest/article",
+            data=self.test_data.article[0],
+            headers=self.header,
+            content_type="application/json",
         )
         news_objects = list(Article.objects.all())
 
@@ -310,7 +397,10 @@ class TestApiImage(TestCase):
 
         # Update existing record
         result = self.client.post(
-            "/api/v1/ingest/article", data=self.test_data.article[0], headers=self.header, content_type="application/json"
+            "/api/v1/ingest/article",
+            data=self.test_data.article[0],
+            headers=self.header,
+            content_type="application/json",
         )
         news_objects = list(Article.objects.all())
 
@@ -323,13 +413,20 @@ class TestApiImage(TestCase):
         data = "bogus"
 
         result = self.client.post(
-            "/api/v1/ingest/article", data=data, headers=self.header, content_type="application/json"
+            "/api/v1/ingest/article",
+            data=data,
+            headers=self.header,
+            content_type="application/json",
         )
         news_objects = list(Article.objects.all())
 
         self.assertEqual(result.status_code, 500)
         self.assertEqual(
-            result.data, {"status": False, "result": "JSON parse error - Expecting value: line 1 column 1 (char 0)"}
+            result.data,
+            {
+                "status": False,
+                "result": "JSON parse error - Expecting value: line 1 column 1 (char 0)",
+            },
         )
         self.assertEqual(len(news_objects), 0)
 
