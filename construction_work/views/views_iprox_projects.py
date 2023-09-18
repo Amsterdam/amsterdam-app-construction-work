@@ -308,27 +308,18 @@ def project_details(request):
     if project_obj is None:
         return Response({"status": False, "result": message.no_record_found}, status=404)
 
+    project_serializer = ProjectSerializer(project_obj, many=False, context={
+        "lat": lat,
+        "lon": lon,
+    })
+    project_data = dict(project_serializer.data)
+
     # Get followers
     count = FollowedProject.objects.filter(projectid=project_id).count()
     followed = FollowedProject.objects.filter(deviceid=deviceid, projectid=project_id).first()
 
-    project_data = dict(ProjectSerializer(project_obj, many=False).data)
     project_data["followers"] = count
     project_data["followed"] = bool(followed is not None)
-
-    # Get distance
-    project_data["meter"] = None
-    project_data["strides"] = None
-    if lat is not None and lon is not None:
-        cords_1 = (float(lat), float(lon))
-        cords_2 = (project_obj.coordinates["lat"], project_obj.coordinates["lon"])
-        if None in cords_2:
-            cords_2 = (None, None)
-        elif (0, 0) == cords_2:
-            cords_2 = (None, None)
-        distance = GeoPyDistance(cords_1, cords_2)
-        project_data["meter"] = distance.meter
-        project_data["strides"] = distance.strides
 
     # Get recent articles
     if articles_max_age is not None:

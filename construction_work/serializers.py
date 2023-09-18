@@ -1,5 +1,6 @@
 """ Serializers for DB models """
 from rest_framework import serializers
+from construction_work.generic_functions.distance import GeoPyDistance
 
 from construction_work.models import (
     Article,
@@ -32,32 +33,48 @@ class ImageSerializer(serializers.ModelSerializer):
 class ProjectSerializer(serializers.ModelSerializer):
     """Project pages serializer"""
 
-    # NOTE: remove when frontend has implemented project_id
-    identifier = serializers.SerializerMethodField()
-    district_name = serializers.SerializerMethodField()
-    source_url = serializers.SerializerMethodField()
-
     class Meta:
         model = Project
         fields = "__all__"
-
-    def get_identifier(self, obj):
-        """Set identifier value for frontend"""
-        return obj.project_id
-
-    def get_district_name(self, obj):
-        """Find district name by id"""
-        return DISTRICTS.get(obj.district_id)
-
-    def get_source_url(self, obj):
-        """Build source URL from project id"""
-        return f"https://amsterdam.nl/@{obj.project_id}/page/?AppIdt=app-pagetype&reload=true"
 
     def get_field_names(self, *args, **kwargs):
         field_names = self.context.get("fields", None)
         if field_names:
             return field_names
         return super(ProjectSerializer, self).get_field_names(*args, **kwargs)
+
+    def get_distance_from_project(self, obj: Project):
+        lat = self.context.get("lat")
+        lon = self.context.get("lon")
+
+        cords_1 = (float(lat), float(lon))
+        cords_2 = (obj.coordinates.get("lat"), obj.coordinates.get("lon"))
+        if None in cords_2:
+            cords_2 = (None, None)
+        elif (0, 0) == cords_2:
+            cords_2 = (None, None)
+        distance = GeoPyDistance(cords_1, cords_2)
+        return distance
+
+    def to_representation(self, instance: Project):
+        repr = super().to_representation(instance)
+
+        # NOTE: remove when frontend has implemented project_id
+        repr["identifier"] = instance.project_id
+        repr["district_name"] = DISTRICTS.get(instance.district_id)
+        repr["source_url"] = f"https://amsterdam.nl/@{instance.project_id}/page/?AppIdt=app-pagetype&reload=true"
+        
+        # TODO: meters, strides > via self.context dict with input from request
+        distance = self.get_distance_from_project(instance)
+        repr["meters"] = distance.meter
+        repr["strides"] = distance.strides
+
+        # TODO: followers, followed, recent_articles > via relationships with other models
+
+        # TODO: sort output here
+
+        return repr
+
 
 
 class ArticleSerializer(serializers.ModelSerializer):
