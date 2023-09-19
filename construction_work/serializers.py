@@ -1,5 +1,6 @@
 """ Serializers for DB models """
 from rest_framework import serializers
+from rest_framework.fields import empty
 from construction_work.generic_functions.distance import GeoPyDistance
 
 from construction_work.models import (
@@ -41,9 +42,28 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
 class ProjectDetailsSerializer(serializers.ModelSerializer):
     """Project details serializer"""
 
+    # NOTE: remove when frontend has implemented project_id
+    identifier = serializers.CharField(source="project_id")
+    
+    district_name = serializers.SerializerMethodField()
+    source_url = serializers.SerializerMethodField()
+    meter = serializers.SerializerMethodField()
+    strides = serializers.SerializerMethodField()
+
+    # TODO: followers, followed, recent_articles > via relationships with other models
+
     class Meta:
         model = Project
         fields = "__all__"
+
+    def __init__(self, instance=None, data={}, **kwargs):
+        super().__init__(instance, data, **kwargs)
+
+        self.distance = None
+        lat = self.context.get("lat")
+        lon = self.context.get("lon")
+        if lat is not None and lon is not None:
+            self.distance = self.get_distance_from_project(lat, lon, instance)
 
     def get_field_names(self, *args, **kwargs):
         field_names = self.context.get("fields", None)
@@ -51,10 +71,23 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
             return field_names
         return super().get_field_names(*args, **kwargs)
 
-    def get_distance_from_project(self, obj: Project):
-        lat = self.context.get("lat")
-        lon = self.context.get("lon")
+    def get_district_name(self, obj: Project):
+        return DISTRICTS.get(obj.district_id)
 
+    def get_source_url(self, obj: Project):
+        return f"https://amsterdam.nl/@{obj.project_id}/page/?AppIdt=app-pagetype&reload=true"
+
+    def get_meter(self, _):
+        if self.distance:
+            return self.distance.meter
+        return None
+
+    def get_strides(self, _):
+        if self.distance:
+            return self.distance.strides
+        return None
+
+    def get_distance_from_project(self, lat: float, lon: float, obj: Project):
         cords_1 = (float(lat), float(lon))
         cords_2 = (obj.coordinates.get("lat"), obj.coordinates.get("lon"))
         if None in cords_2:
@@ -63,23 +96,6 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
             cords_2 = (None, None)
         distance = GeoPyDistance(cords_1, cords_2)
         return distance
-
-    def to_representation(self, instance: Project):
-        repr = super().to_representation(instance)
-
-        # NOTE: remove when frontend has implemented project_id
-        repr["identifier"] = instance.project_id
-        repr["district_name"] = DISTRICTS.get(instance.district_id)
-        repr["source_url"] = f"https://amsterdam.nl/@{instance.project_id}/page/?AppIdt=app-pagetype&reload=true"
-        
-        distance = self.get_distance_from_project(instance)
-        repr["meters"] = distance.meter
-        repr["strides"] = distance.strides
-
-        # TODO: followers, followed, recent_articles > via relationships with other models
-
-        return repr
-
 
 
 class ArticleSerializer(serializers.ModelSerializer):
