@@ -87,7 +87,6 @@ class TestApiProjectDistance(TestCase):
             ],
         }
         
-        # TODO: fix, so that only requested fields are returned
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(result, expected_result)
 

@@ -74,8 +74,8 @@ class TestData:
             {
                 "project_id": "0000000000",
                 "active": True,
-                "publication_date": datetime.date(1970, 1, 1),
-                "modification_date": datetime.date(1970, 1, 1),
+                "publication_date": "1970-01-01",
+                "modification_date": "1970-01-01",
                 "title": "title",
                 "subtitle": "subtitle",
                 "body": {
@@ -103,8 +103,8 @@ class TestData:
             {
                 "project_id": "0000000001",
                 "active": True,
-                "publication_date": datetime.date(1970, 1, 2),
-                "modification_date": datetime.date(1970, 1, 2),
+                "publication_date": "1970-01-02",
+                "modification_date": "1970-01-02",
                 "title": "title",
                 "subtitle": "subtitle",
                 "body": {

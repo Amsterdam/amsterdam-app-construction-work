@@ -18,12 +18,17 @@ from construction_work.serializers import (
     AssetsSerializer,
     ImageSerializer,
     Notification,
+    ProjectCreateSerializer,
     ProjectManagerSerializer,
     ProjectDetailsSerializer,
     WarningMessagesExternalSerializer,
     WarningMessagesInternalSerializer,
 )
 from construction_work.unit_tests.mock_data import TestData
+from construction_work.generic_functions.generic_logger import Logger
+
+
+logger = Logger()
 
 
 class TestAssetsModel(TestCase):
@@ -118,8 +123,9 @@ class TestProjectsModel(TestCase):
     """unit_tests"""
 
     def __init__(self, *args, **kwargs):
-        super(TestProjectsModel, self).__init__(*args, **kwargs)
         self.data = TestData()
+        self.maxDiff = None
+        super(TestProjectsModel, self).__init__(*args, **kwargs)
 
     def setUp(self):
         """unit_tests db setup"""
@@ -138,19 +144,27 @@ class TestProjectsModel(TestCase):
     def test_projects_get_all(self):
         """test retrieve"""
         project_objects = Project.objects.all()
-        serializer = ProjectDetailsSerializer(project_objects, many=True)
+        # Using create serializer in order to not return any extra data 
+        serializer = ProjectCreateSerializer(instance=project_objects, data=[], many=True, partial=True)
+        is_valid = serializer.is_valid()
+        self.assertTrue(is_valid)
+
         for i in range(0, len(serializer.data), 1):
             self.data.projects[i]["last_seen"] = serializer.data[i]["last_seen"]
 
         self.assertEqual(serializer.data, self.data.projects)
 
-    def test_projects_does_exist(self):
+    def test_project_does_exist(self):
         """test exist"""
-        projects_objects = Project.objects.filter(pk="0000000000").first()
-        serializer = ProjectDetailsSerializer(projects_objects)
-        self.data.projects[0]["last_seen"] = serializer.data["last_seen"]
+        projects_object = Project.objects.filter(pk="0000000000").first()
+        # Using create serializer in order to not return any extra data 
+        serializer = ProjectCreateSerializer(instance=projects_object, data={}, partial=True)
+        is_valid = serializer.is_valid()
+        self.assertTrue(is_valid)
 
-        self.assertEqual(serializer.data, self.data.projects[0])
+        first_project = self.data.projects[0]
+        first_project["last_seen"] = serializer.data["last_seen"]
+        self.assertDictEqual(serializer.data, first_project)
 
     def test_projects_does_not_exist(self):
         """test not exist"""
