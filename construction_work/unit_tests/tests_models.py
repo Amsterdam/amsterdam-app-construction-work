@@ -26,10 +26,6 @@ from construction_work.serializers import (
 from construction_work.unit_tests.mock_data import TestData
 
 
-# TODO: fix
-ProjectDetail = None
-
-
 class TestAssetsModel(TestCase):
     """unit_tests"""
 
@@ -163,60 +159,6 @@ class TestProjectsModel(TestCase):
         self.assertEqual(projects_objects, None)
 
 
-class TestProjectDetailsModel(TestCase):
-    """unit_tests"""
-
-    def __init__(self, *args, **kwargs):
-        super(TestProjectDetailsModel, self).__init__(*args, **kwargs)
-        self.data = TestData()
-
-    def setUp(self):
-        """unit_tests db setup"""
-        Project.objects.all().delete()
-        for project in self.data.projects:
-            Project.objects.create(**project)
-
-        ProjectDetail.objects.all().delete()
-        for project_detail in self.data.project_details:
-            project_detail["identifier"] = Project.objects.filter(pk=project_detail["identifier"]).first()
-            ProjectDetail.objects.create(**project_detail)
-
-    def test_projects_delete(self):
-        """test delete"""
-        ProjectDetail.objects.filter(pk="0000000000").delete()
-        project_objects = ProjectDetail.objects.all()
-        # serializer = ProjectDetailsSerializer(project_objects, many=True)
-
-        # self.assertEqual(len(serializer.data), 1)
-
-    def test_project_details_get_all(self):
-        """test retrieve"""
-        project_objects = ProjectDetail.objects.all()
-        # data = ProjectDetailsSerializer(project_objects, many=True).data
-        data = None
-        for i in range(0, len(data), 1):
-            self.data.project_details[i]["last_seen"] = data[i]["last_seen"]
-        # self.data.project_details = ProjectDetailsSerializer(self.data.project_details, many=True).data
-
-        self.assertEqual(data, self.data.project_details)
-
-    def test_project_details_does_exist(self):
-        """test exist"""
-        project_objects = ProjectDetail.objects.filter(pk="0000000000").first()
-        # data = ProjectDetailsSerializer(project_objects, many=False).data
-        data = None
-        self.data.project_details[0]["last_seen"] = data["last_seen"]
-        # original_data = ProjectDetailsSerializer(self.data.project_details[0], many=False).data
-        original_data = None
-        self.assertEqual(data, original_data)
-
-    def test_project_details_does_not_exist(self):
-        """test not exist"""
-        project_objects = ProjectDetail.objects.filter(pk="does not exist").first()
-
-        self.assertEqual(project_objects, None)
-
-
 class TestNewsModel(TestCase):
     """unit_tests"""
 
@@ -232,12 +174,16 @@ class TestNewsModel(TestCase):
 
         Article.objects.all().delete()
         for news in self.data.article:
-            news["project_identifier"] = Project.objects.filter(pk=news["project_identifier"]).first()
+            news["project_identifier"] = Project.objects.filter(
+                pk=news["project_identifier"]
+            ).first()
             Article.objects.create(**news)
 
     def test_news_delete(self):
         """test delete"""
-        Article.objects.get(identifier="0000000000", project_identifier="0000000000").delete()
+        Article.objects.get(
+            identifier="0000000000", project_identifier="0000000000"
+        ).delete()
         news_objects = Article.objects.all()
         serializer = ArticleSerializer(news_objects, many=True)
 
@@ -252,7 +198,9 @@ class TestNewsModel(TestCase):
 
     def test_news_exists(self):
         """test exist"""
-        news_object = Article.objects.get(identifier="0000000000", project_identifier="0000000000")
+        news_object = Article.objects.get(
+            identifier="0000000000", project_identifier="0000000000"
+        )
         serializer = ArticleSerializer(news_object)
         self.data.article[0]["last_seen"] = serializer.data["last_seen"]
 
@@ -260,7 +208,9 @@ class TestNewsModel(TestCase):
 
     def test_news_does_not_exist(self):
         """test not exist"""
-        news_object = Article.objects.filter(identifier="does not exist", project_identifier="0000000000").first()
+        news_object = Article.objects.filter(
+            identifier="does not exist", project_identifier="0000000000"
+        ).first()
 
         self.assertEqual(news_object, None)
 
@@ -280,7 +230,9 @@ class TestProjectManagerModel(TestCase):
 
     def test_pm_delete(self):
         """test delete"""
-        ProjectManager.objects.get(pk=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")).delete()
+        ProjectManager.objects.get(
+            pk=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+        ).delete()
         pm_objects = ProjectManager.objects.all()
         serializer = ProjectManagerSerializer(pm_objects, many=True)
 
@@ -294,15 +246,21 @@ class TestProjectManagerModel(TestCase):
 
     def test_pm_exists(self):
         """test exist"""
-        pm_objects = ProjectManager.objects.get(pk=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+        pm_objects = ProjectManager.objects.get(
+            pk=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+        )
 
-        self.assertEqual(pm_objects.identifier, uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"))
+        self.assertEqual(
+            pm_objects.identifier, uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+        )
         self.assertEqual(pm_objects.email, "mock0@amsterdam.nl")
         self.assertEqual(pm_objects.projects, ["0000000000"])
 
     def test_pm_does_not_exist(self):
         """test not exist"""
-        pm_object = ProjectManager.objects.filter(pk=uuid.UUID("00000000-0000-0000-0000-000000000000")).first()
+        pm_object = ProjectManager.objects.filter(
+            pk=uuid.UUID("00000000-0000-0000-0000-000000000000")
+        ).first()
 
         self.assertEqual(pm_object, None)
 
@@ -311,7 +269,10 @@ class TestProjectManagerModel(TestCase):
         with self.assertRaises(Exception) as context:
             ProjectManager.objects.create(**self.data.project_manager_invalid)
 
-        self.assertEqual(context.exception.args, ("Invalid email, should be <username>@amsterdam.nl",))
+        self.assertEqual(
+            context.exception.args,
+            ("Invalid email, should be <username>@amsterdam.nl",),
+        )
 
 
 class TestFirebaseTokenModel(TestCase):
@@ -353,7 +314,9 @@ class TestFirebaseTokenModel(TestCase):
 
     def test_fb_does_not_exist(self):
         """test not exist"""
-        fb_object = FirebaseToken.objects.filter(pk="00000000-0000-0000-0000-000000000000").first()
+        fb_object = FirebaseToken.objects.filter(
+            pk="00000000-0000-0000-0000-000000000000"
+        ).first()
 
         self.assertEqual(fb_object, None)
 
@@ -384,7 +347,9 @@ class TestWarningMessagesModel(TestCase):
         warning_message = WarningMessage.objects.create(**self.data.warning_message)
 
         self.assertEqual(type(warning_message.identifier), type(uuid.uuid4()))
-        self.assertEqual(warning_message.author_email, self.data.project_manager[0]["email"])
+        self.assertEqual(
+            warning_message.author_email, self.data.project_manager[0]["email"]
+        )
         self.assertNotEqual(warning_message.publication_date, None)
         self.assertNotEqual(warning_message.modification_date, None)
 
@@ -392,7 +357,9 @@ class TestWarningMessagesModel(TestCase):
         """Test default email on creation"""
         data = dict(self.data.warning_message)
         data["project_manager_id"] = uuid.uuid4()
-        data["project_identifier"] = Project.objects.filter(pk=data["project_identifier"]).first()
+        data["project_identifier"] = Project.objects.filter(
+            pk=data["project_identifier"]
+        ).first()
         warning_message = WarningMessage.objects.create(**data)
 
         self.assertEqual(warning_message.author_email, "redactieprojecten@amsterdam.nl")
@@ -475,7 +442,11 @@ class TestNotificationModel(TestCase):
 
     def test_create_notification(self):
         """Create a notification"""
-        data = {"title": "test", "body": "test", "warning_identifier": self.warning_identifier}
+        data = {
+            "title": "test",
+            "body": "test",
+            "warning_identifier": self.warning_identifier,
+        }
         notification = Notification.objects.create(**data)
         notification.save()
         data = ArticleSerializer(notification, many=False).data
@@ -484,7 +455,11 @@ class TestNotificationModel(TestCase):
 
     def test_serializer(self):
         """Test the serializer for notification messages"""
-        data = {"title": "test", "body": "test", "warning_identifier": self.warning_identifier}
+        data = {
+            "title": "test",
+            "body": "test",
+            "warning_identifier": self.warning_identifier,
+        }
         notification = Notification.objects.create(**data)
         serializer = ArticleSerializer(notification, many=False)
         serializer_data = dict(serializer.data)
