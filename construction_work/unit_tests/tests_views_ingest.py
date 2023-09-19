@@ -1,4 +1,4 @@
-""" unit_tests """
+""" Test ingest views """
 
 import os
 from unittest.mock import patch
@@ -17,18 +17,9 @@ messages = Messages()
 logger = Logger()
 
 
-class TestApiImage(TestCase):
-    """test image api"""
-
+class BaseTestIngestViews(TestCase):
     def setUp(self):
-        """setup test db"""
-        self.test_data = TestData()
-        for asset in self.test_data.assets:
-            Asset.objects.create(**asset)
-
-        for image in self.test_data.images:
-            Image.objects.create(**image)
-
+        """Setup for all ingest view tests"""
         token = AESCipher(
             "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", os.getenv("AES_SECRET")
         ).encrypt()
@@ -36,148 +27,14 @@ class TestApiImage(TestCase):
         self.content_type = "application/json"
         self.client = Client()
 
-    def tearDown(self):
-        Project.objects.all().delete()
-        Asset.objects.all().delete()
-        Image.objects.all().delete()
 
-        return super().tearDown()
+class TestProjectIngestViews(BaseTestIngestViews):
+    """Test project ingest views"""
 
-    def test_image_exist(self):
-        """test image exist"""
-        c = Client()
-        response = c.get(
-            "/api/v1/ingest/image?identifier=0000000000", headers=self.header
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            response.data, {"status": True, "result": {"identifier": "0000000000"}}
-        )
-
-    def test_image_not_exist(self):
-        """test image does not exist"""
-        c = Client()
-        response = c.get("/api/v1/ingest/image?identifier=bogus", headers=self.header)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, {"status": False, "result": None})
-
-    def test_image_ingest_valid(self):
-        """test ingesting valid image"""
-        data = {
-            "identifier": "0000000000",
-            "size": "orig",
-            "url": "mock",
-            "filename": "mock",
-            "description": "mock",
-            "mime_type": "mock",
-            "data": "MHgwMA==",
-        }
-
-        result = self.client.post(
-            "/api/v1/ingest/image",
-            data=data,
-            headers=self.header,
-            content_type="application/json",
-        )
-
-        self.assertEqual(result.status_code, 200)
-        self.assertEqual(result.data, {"status": True, "result": True})
-
-    def test_image_ingest_invalid(self):
-        """test ingesting invalid image"""
-        data = {
-            "identifier": "0000000000",
-            "size": "orig",
-            "url": "mock",
-            "filename": "mock",
-            "description": "mock",
-            "mime_type": "mock",
-            "data": "BOGUS",
-        }
-
-        result = self.client.post(
-            "/api/v1/ingest/image",
-            data=data,
-            headers=self.header,
-            content_type="application/json",
-        )
-
-        self.assertEqual(result.status_code, 500)
-        self.assertEqual(
-            result.data,
-            {
-                "status": False,
-                "result": "Invalid base64-encoded string: number of data characters (5) "
-                "cannot be 1 more than a multiple of 4",
-            },
-        )
-
-    def test_asset_exist(self):
-        """test existing asset"""
-        c = Client()
-        response = c.get(
-            "/api/v1/ingest/asset?identifier=0000000000", headers=self.header
-        )
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(
-            response.data, {"status": True, "result": {"identifier": "0000000000"}}
-        )
-
-    def test_asset_not_exist(self):
-        """test not existing asset"""
-        c = Client()
-        response = c.get("/api/v1/ingest/asset?identifier=bogus", headers=self.header)
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, {"status": False, "result": None})
-
-    def test_asset_ingest_valid(self):
-        """test ingesting valid asset"""
-        data = {
-            "identifier": "0000000000",
-            "url": "mock",
-            "mime_type": "mock",
-            "data": "MHgwMA==",
-        }
-
-        result = self.client.post(
-            "/api/v1/ingest/asset",
-            data=data,
-            headers=self.header,
-            content_type="application/json",
-        )
-
-        self.assertEqual(result.status_code, 200)
-        self.assertEqual(result.data, {"status": True, "result": True})
-
-    def test_asset_ingest_invalid(self):
-        """test ingesting invalid asset"""
-        data = {
-            "identifier": "0000000000",
-            "url": "mock",
-            "mime_type": "mock",
-            "data": "BOGUS",
-        }
-
-        result = self.client.post(
-            "/api/v1/ingest/asset",
-            data=data,
-            headers=self.header,
-            content_type="application/json",
-        )
-
-        self.assertEqual(result.status_code, 500)
-        self.assertEqual(
-            result.data,
-            {
-                "status": False,
-                "result": "Invalid base64-encoded string: number of data characters (5) "
-                "cannot be 1 more than a multiple of 4",
-            },
-        )
+    def setUp(self):
+        """Setup test data"""
+        self.test_data = TestData()
+        super().setUp()
 
     def test_add_new_project_success(self):
         """Test add new project via ingest API"""
@@ -242,6 +99,7 @@ class TestApiImage(TestCase):
         self.assertEqual(result.status_code, 400)
         self.assertEqual(len(db_objects), 0)
 
+    # TODO: still valid?
     def test_projects_get(self):
         """test get project data"""
         project_object = Project(**self.test_data.projects[0])
@@ -263,6 +121,7 @@ class TestApiImage(TestCase):
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.data, {"status": True, "result": None})
 
+    # TODO: still valid?
     def test_projects_post_valid(self):
         """test posting valid project data"""
         result = self.client.post(
@@ -290,6 +149,7 @@ class TestApiImage(TestCase):
         self.assertEqual(result.data, {"status": True, "result": True})
         self.assertEqual(len(project_objects), 1)
 
+    # TODO: still valid?
     def test_projects_post_invalid(self):
         """test posting invalid project data"""
         data = {"bogus": "bogus"}
@@ -305,6 +165,7 @@ class TestApiImage(TestCase):
         self.assertEqual(result.status_code, 500)
         self.assertEqual(len(project_objects), 0)
 
+    # TODO: still valid?
     def test_projects_delete_valid(self):
         """test deleting valid project"""
         project_object = Project(**self.test_data.projects[0])
@@ -339,6 +200,15 @@ class TestApiImage(TestCase):
                 "result": "JSON parse error - Expecting value: line 1 column 1 (char 0)",
             },
         )
+
+
+class TestNewsIngestViews(BaseTestIngestViews):
+    """Test news ingest views"""
+
+    def setUp(self):
+        """Setup test data"""
+        self.test_data = TestData()
+        super().setUp()
 
     def test_news_valid(self):
         """test ingesting valid news"""
@@ -393,6 +263,8 @@ class TestApiImage(TestCase):
         )
         self.assertEqual(len(news_objects), 0)
 
+
+class TestGarbageCollectionView(BaseTestIngestViews):
     def test_garbage_collection(self):
         """test garbage collector"""
 
