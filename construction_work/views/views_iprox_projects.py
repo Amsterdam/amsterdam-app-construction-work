@@ -12,6 +12,7 @@ from django.db.models.functions import Coalesce
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework import status
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.distance import GeoPyDistance
@@ -306,12 +307,15 @@ def project_details(request):
 
     project_obj = Project.objects.filter(pk=project_id, active=True).first()
     if project_obj is None:
-        return Response({"status": False, "result": message.no_record_found}, status=404)
+        return Response({"status": False, "result": message.no_record_found}, status=status.HTTP_404_NOT_FOUND)
 
-    project_serializer = ProjectDetailsSerializer(project_obj, many=False, context={
+    project_serializer = ProjectDetailsSerializer(instance=project_obj, many=False, partial=True, context={
         "lat": lat,
         "lon": lon,
     })
+    if not project_serializer.is_valid():
+        return Response(project_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     project_data = dict(project_serializer.data)
 
     # Get followers
@@ -338,7 +342,7 @@ def project_details(request):
         )
         serializer_warning = WarningMessagesExternalSerializer(warning_articles, many=True)
         project_data["recent_articles"] = news_articles + [x["identifier"] for x in serializer_warning.data]
-    return Response({"status": True, "result": project_data}, status=200)
+    return Response({"status": True, "result": project_data}, status=status.HTTP_200_OK)
 
 
 @swagger_auto_schema(**as_projects_follow_post)

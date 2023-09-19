@@ -7,9 +7,10 @@ from django.test import Client, TestCase
 from construction_work.api_messages import Messages
 from construction_work.models import Project
 from construction_work.unit_tests.mock_data import TestData
+from construction_work.generic_functions.generic_logger import Logger
 
 messages = Messages()
-
+logger = Logger()
 
 class BaseTestApi(TestCase):
     """Abstract base class for API tests"""
@@ -153,7 +154,7 @@ class TestApiProjectsSearch(BaseTestApi):
         result = json.loads(response.content)
         expected_result = {
             "status": True,
-            "result": [{"title": "title", "subtitle": "subtitle", "score": 1.3333333432674408}],
+            "result": [{"title": "title", "subtitle": "subtitle", "score": 1.333}],
             "page": {"number": 1, "size": 1, "totalElements": 2, "totalPages": 2},
             "_links": {
                 "self": {"href": "http://localhost/api/v1/projects/search"},
@@ -222,7 +223,6 @@ class TestApiProjectDetails(BaseTestApi):
         headers = {"HTTP_DEVICEID": "0"}
         response = c.get("/api/v1/project/details", {"id": "0000000000"}, **headers)
         result = json.loads(response.content)
-        # print(result)
 
         expected_result = {
             "status": True,
@@ -289,9 +289,11 @@ class TestApiProjectDetails(BaseTestApi):
                 "strides": None,
             },
         }
-        expected_result["result"]["last_seen"] = result["result"]["last_seen"]
 
+        logger.debug(response.data)
         self.assertEqual(response.status_code, 200)
+        
+        expected_result["result"]["last_seen"] = result["result"]["last_seen"]
         self.assertDictEqual(result, expected_result)
 
     def test_identifier_does_not_exist(self):
