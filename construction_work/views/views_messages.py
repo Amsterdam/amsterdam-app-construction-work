@@ -41,7 +41,7 @@ def warning_messages_get(request):
         projects = Project.objects.all()
         for project in projects:
             if project.active is True:
-                warning_messages_objects += WarningMessage.objects.filter(project_identifier=project.identifier).all()
+                warning_messages_objects += WarningMessage.objects.filter(project_identifier=project.project_id).all()
 
         serializer = WarningMessagesExternalSerializer(warning_messages_objects, many=True)
         result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
