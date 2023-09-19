@@ -313,6 +313,7 @@ def project_details(request):
         "lat": lat,
         "lon": lon,
     })
+    # Validation is required to get data from serializer
     if not project_serializer.is_valid():
         return Response(project_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
