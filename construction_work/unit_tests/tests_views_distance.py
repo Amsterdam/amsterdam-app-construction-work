@@ -11,33 +11,19 @@ from construction_work.unit_tests.mock_functions import address_to_coordinates
 
 messages = Messages()
 
-# TODO: fix
-ProjectDetail = None
-
-
-class SetUp:
-    """Setup test db"""
-
-    def __init__(self):
-        self.data = TestData()
-        for project in self.data.projects:
-            Project.objects.create(**project)
-
-        for project_detail in self.data.project_details:
-            project_detail["identifier"] = Project.objects.filter(pk=project_detail["identifier"]).first()
-            ProjectDetail.objects.create(**project_detail)
-
 
 class TestApiProjectDistance(TestCase):
     """unit_tests"""
 
-    def __init__(self, *args, **kwargs):
-        super(TestApiProjectDistance, self).__init__(*args, **kwargs)
-        self.data = TestData()
+    def __init__(self, methodName: str) -> None:
+        self.maxDiff = None
+        super().__init__(methodName)
 
     def setUp(self):
         """Setup test db"""
-        SetUp()
+        self.data = TestData()
+        for project in self.data.projects:
+            Project.objects.create(**project)
 
     def test_invalid_query(self):
         """Test invalid distance query"""
@@ -60,13 +46,13 @@ class TestApiProjectDistance(TestCase):
     def test_valid_lon_lat(self):
         """Test valid latitude longitude query"""
         c = Client()
-        response = c.get("/api/v1/projects/distance", {"lat": "1.0", "lon": "0.0", "fields": "identifier,title"})
+        response = c.get("/api/v1/projects/distance", {"lat": "1.0", "lon": "0.0", "fields": "project_id,title"})
         result = json.loads(response.content)
         expected_result = {
             "status": True,
             "result": [
-                {"identifier": "0000000001", "title": "title", "meter": 111302, "strides": 150408},
-                {"identifier": "0000000000", "title": "title", "meter": None, "strides": None},
+                {"project_id": "0000000001", "title": "title", "meter": 111302, "strides": 150408},
+                {"project_id": "0000000000", "title": "title", "meter": None, "strides": None},
             ],
         }
         self.assertEqual(response.status_code, 200)
@@ -76,12 +62,12 @@ class TestApiProjectDistance(TestCase):
         """Test valid radius"""
         c = Client()
         response = c.get(
-            "/api/v1/projects/distance", {"lat": "1.0", "lon": "0.1", "radius": 111000, "fields": "identifier,title"}
+            "/api/v1/projects/distance", {"lat": "1.0", "lon": "0.1", "radius": 111000, "fields": "project_id,title"}
         )
         result = json.loads(response.content)
         expected_result = {
             "status": True,
-            "result": [{"identifier": "0000000001", "title": "title", "meter": 100172, "strides": 135367}],
+            "result": [{"project_id": "0000000001", "title": "title", "meter": 100172, "strides": 135367}],
         }
 
         self.assertEqual(response.status_code, 200)
@@ -91,16 +77,17 @@ class TestApiProjectDistance(TestCase):
     def test_by_street(self, _address_to_coordinates):
         """Address to coordinate test"""
         c = Client()
-        response = c.get("/api/v1/projects/distance", {"address": "sesame street 1", "fields": "identifier,title"})
+        response = c.get("/api/v1/projects/distance", {"address": "sesame street 1", "fields": "project_id,title"})
         result = json.loads(response.content)
         expected_result = {
             "status": True,
             "result": [
-                {"identifier": "0000000001", "title": "title", "meter": 10112540, "strides": 13665594},
-                {"identifier": "0000000000", "title": "title", "meter": None, "strides": None},
+                {"project_id": "0000000001", "title": "title", "meter": 10112540, "strides": 13665594},
+                {"project_id": "0000000000", "title": "title", "meter": None, "strides": None},
             ],
         }
-
+        
+        # TODO: fix, so that only requested fields are returned
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(result, expected_result)
 
@@ -113,5 +100,5 @@ class TestApiProjectDistance(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(result["result"]), 2)
-        self.assertEqual(len(result["result"][0]), 16)
-        self.assertEqual(len(result["result"][1]), 16)
+        self.assertEqual(len(result["result"][0]), 19)
+        self.assertEqual(len(result["result"][1]), 19)

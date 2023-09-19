@@ -28,10 +28,11 @@ def distance(request):
 
         if _model_items is not None:
             fields = _model_items.split(",")
-            serializer = ProjectDetailsSerializer(projects_object, context={"fields": fields}, many=False)
+            serializer = ProjectDetailsSerializer(projects_object, context={"fields": fields}, many=False, partial=True)
         else:
-            serializer = ProjectDetailsSerializer(projects_object, many=False)
+            serializer = ProjectDetailsSerializer(projects_object, many=False, partial=True)
 
+        serializer.is_valid()
         result = serializer.data
         result["meter"] = int(_distance.meter) if _distance.meter is not None else None
         result["strides"] = int(_distance.strides) if _distance.strides is not None else None
@@ -61,9 +62,7 @@ def distance(request):
         return Response({"status": False, "result": str(error)}, 500)
 
     results = []
-    # TODO: fix
-    # projects = list(ProjectDetail.objects.filter().all())
-    projects = None
+    projects = list(Project.objects.filter().all())
     for project in projects:
         cords_2 = (project.coordinates["lat"], project.coordinates["lon"])
         if project.coordinates["lat"] is None or project.coordinates["lon"] is None:
@@ -74,12 +73,12 @@ def distance(request):
 
         result = None
         if radius is None:
-            result = get_projects_data(project.identifier_id, model_items, this_distance)
+            result = get_projects_data(project.project_id, model_items, this_distance)
         elif this_distance.meter is not None and this_distance.meter < float(radius):
-            result = get_projects_data(project.identifier_id, model_items, this_distance)
+            result = get_projects_data(project.project_id, model_items, this_distance)
 
         # Append the results
-        if result is not None and result["identifier"] != "":
+        if result is not None and result["project_id"] != "":
             results.append(result)
 
     sorted_results = Sort().list_of_dicts(results, key="meter", sort_order="asc")
