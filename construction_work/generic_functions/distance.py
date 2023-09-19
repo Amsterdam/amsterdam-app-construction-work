@@ -27,6 +27,7 @@ import geopy.distance
 STRIDES_PER_METER = 1 / 0.74
 
 
+# TODO: refactor to only functions
 class GeoPyDistance:
     """Calculate distance between two gps coordinates"""
 
