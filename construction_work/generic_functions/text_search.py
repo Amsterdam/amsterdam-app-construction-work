@@ -98,6 +98,10 @@ class TextSearch:
             all_objects = all_objects + [x for x in objects if x != []]
         sorted_objects = sorted(all_objects, key=lambda x: x.score, reverse=True)
 
+        # Round floats to limited decimals
+        for obj in sorted_objects:
+            obj.score = round(obj.score, 3)
+
         seen = set()
         set_sorted_objects = [
             seen.add(x.pk) or x for x in sorted_objects if x.pk not in seen
