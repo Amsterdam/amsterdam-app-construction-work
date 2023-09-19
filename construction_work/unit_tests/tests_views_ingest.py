@@ -4,12 +4,11 @@ import os
 from unittest.mock import patch
 
 from django.test import Client, TestCase
-from rest_framework import status
 
 from construction_work.api_messages import Messages
 from construction_work.garbage_collector.garbage_collector import GarbageCollector
 from construction_work.generic_functions.aes_cipher import AESCipher
-from construction_work.models import Article, Asset, Image, Project
+from construction_work.models import Article, Project
 from construction_work.unit_tests.mock_data import TestData
 from construction_work.generic_functions.generic_logger import Logger
 
@@ -18,6 +17,7 @@ logger = Logger()
 
 
 class BaseTestIngestViews(TestCase):
+    """Base for ingest view tests"""
     def setUp(self):
         """Setup for all ingest view tests"""
         token = AESCipher(
@@ -163,6 +163,7 @@ class TestNewsIngestViews(BaseTestIngestViews):
 
 
 class TestGarbageCollectionView(BaseTestIngestViews):
+    """Test garbage collection view"""
     def test_garbage_collection(self):
         """test garbage collector"""
 

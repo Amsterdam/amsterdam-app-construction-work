@@ -31,9 +31,9 @@ def project(request):
     serializer = ProjectCreateSerializer(instance=_project, data=data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     serializer.save()
-    
+
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 

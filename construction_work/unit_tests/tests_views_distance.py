@@ -32,7 +32,9 @@ class TestApiProjectDistance(TestCase):
         result = json.loads(response.content)
 
         self.assertEqual(response.status_code, 422)
-        self.assertDictEqual(result, {"status": False, "result": messages.distance_params})
+        self.assertDictEqual(
+            result, {"status": False, "result": messages.distance_params}
+        )
 
     def test_invalid_lon_lat(self):
         """Test invalid latitude longitude query"""
@@ -41,18 +43,34 @@ class TestApiProjectDistance(TestCase):
         result = json.loads(response.content)
 
         self.assertEqual(response.status_code, 500)
-        self.assertDictEqual(result, {"status": False, "result": "could not convert string to float: 'a'"})
+        self.assertDictEqual(
+            result,
+            {"status": False, "result": "could not convert string to float: 'a'"},
+        )
 
     def test_valid_lon_lat(self):
         """Test valid latitude longitude query"""
         c = Client()
-        response = c.get("/api/v1/projects/distance", {"lat": "1.0", "lon": "0.0", "fields": "project_id,title"})
+        response = c.get(
+            "/api/v1/projects/distance",
+            {"lat": "1.0", "lon": "0.0", "fields": "project_id,title"},
+        )
         result = json.loads(response.content)
         expected_result = {
             "status": True,
             "result": [
-                {"project_id": "0000000001", "title": "title", "meter": 111302, "strides": 150408},
-                {"project_id": "0000000000", "title": "title", "meter": None, "strides": None},
+                {
+                    "project_id": "0000000001",
+                    "title": "title",
+                    "meter": 111302,
+                    "strides": 150408,
+                },
+                {
+                    "project_id": "0000000000",
+                    "title": "title",
+                    "meter": None,
+                    "strides": None,
+                },
             ],
         }
         self.assertEqual(response.status_code, 200)
@@ -62,12 +80,25 @@ class TestApiProjectDistance(TestCase):
         """Test valid radius"""
         c = Client()
         response = c.get(
-            "/api/v1/projects/distance", {"lat": "1.0", "lon": "0.1", "radius": 111000, "fields": "project_id,title"}
+            "/api/v1/projects/distance",
+            {
+                "lat": "1.0",
+                "lon": "0.1",
+                "radius": 111000,
+                "fields": "project_id,title",
+            },
         )
         result = json.loads(response.content)
         expected_result = {
             "status": True,
-            "result": [{"project_id": "0000000001", "title": "title", "meter": 100172, "strides": 135367}],
+            "result": [
+                {
+                    "project_id": "0000000001",
+                    "title": "title",
+                    "meter": 100172,
+                    "strides": 135367,
+                }
+            ],
         }
 
         self.assertEqual(response.status_code, 200)
@@ -77,16 +108,29 @@ class TestApiProjectDistance(TestCase):
     def test_by_street(self, _address_to_coordinates):
         """Address to coordinate test"""
         c = Client()
-        response = c.get("/api/v1/projects/distance", {"address": "sesame street 1", "fields": "project_id,title"})
+        response = c.get(
+            "/api/v1/projects/distance",
+            {"address": "sesame street 1", "fields": "project_id,title"},
+        )
         result = json.loads(response.content)
         expected_result = {
             "status": True,
             "result": [
-                {"project_id": "0000000001", "title": "title", "meter": 10112540, "strides": 13665594},
-                {"project_id": "0000000000", "title": "title", "meter": None, "strides": None},
+                {
+                    "project_id": "0000000001",
+                    "title": "title",
+                    "meter": 10112540,
+                    "strides": 13665594,
+                },
+                {
+                    "project_id": "0000000000",
+                    "title": "title",
+                    "meter": None,
+                    "strides": None,
+                },
             ],
         }
-        
+
         self.assertEqual(response.status_code, 200)
         self.assertDictEqual(result, expected_result)
 

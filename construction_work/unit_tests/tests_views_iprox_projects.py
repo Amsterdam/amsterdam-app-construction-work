@@ -12,8 +12,10 @@ from construction_work.generic_functions.generic_logger import Logger
 messages = Messages()
 logger = Logger()
 
+
 class BaseTestApi(TestCase):
     """Abstract base class for API tests"""
+
     def __init__(self, methodName) -> None:
         self.data = TestData()
         self.maxDiff = None
@@ -168,32 +170,55 @@ class TestApiProjectsSearch(BaseTestApi):
     def test_no_text(self):
         """Test search without a string"""
         c = Client()
-        query = {"query_fields": "title,subtitle", "fields": "title,subtitle", "page_size": 1, "page": 1}
+        query = {
+            "query_fields": "title,subtitle",
+            "fields": "title,subtitle",
+            "page_size": 1,
+            "page": 1,
+        }
         response = c.get("/api/v1/projects/search", query)
         result = json.loads(response.content)
 
         self.assertEqual(response.status_code, 422)
-        self.assertDictEqual(result, {"status": False, "result": messages.invalid_query})
+        self.assertDictEqual(
+            result, {"status": False, "result": messages.invalid_query}
+        )
 
     def test_invalid_model_field(self):
         """Test search on invalid model fields"""
         c = Client()
-        query = {"text": "mock", "query_fields": "mock", "fields": "title,subtitle", "page_size": 1, "page": 1}
+        query = {
+            "text": "mock",
+            "query_fields": "mock",
+            "fields": "title,subtitle",
+            "page_size": 1,
+            "page": 1,
+        }
         response = c.get("/api/v1/projects/search", query)
         result = json.loads(response.content)
 
         self.assertEqual(response.status_code, 422)
-        self.assertDictEqual(result, {"status": False, "result": messages.no_such_field_in_model})
+        self.assertDictEqual(
+            result, {"status": False, "result": messages.no_such_field_in_model}
+        )
 
     def test_invalid_model_return_field(self):
         """Test search on invalid return fields"""
         c = Client()
-        query = {"text": "mock", "query_fields": "title,subtitle", "fields": "mock", "page_size": 1, "page": 1}
+        query = {
+            "text": "mock",
+            "query_fields": "title,subtitle",
+            "fields": "mock",
+            "page_size": 1,
+            "page": 1,
+        }
         response = c.get("/api/v1/projects/search", query)
         result = json.loads(response.content)
 
         self.assertEqual(response.status_code, 422)
-        self.assertDictEqual(result, {"status": False, "result": messages.no_such_field_in_model})
+        self.assertDictEqual(
+            result, {"status": False, "result": messages.no_such_field_in_model}
+        )
 
 
 class TestApiProjectDetails(BaseTestApi):
@@ -215,7 +240,9 @@ class TestApiProjectDetails(BaseTestApi):
         response = c.get("/api/v1/project/details", **headers)
 
         self.assertEqual(response.status_code, 422)
-        self.assertEqual(response.data, {"status": False, "result": messages.invalid_query})
+        self.assertEqual(
+            response.data, {"status": False, "result": messages.invalid_query}
+        )
 
     def test_identifier_does_exist(self):
         """Invalid identifier"""
@@ -292,7 +319,7 @@ class TestApiProjectDetails(BaseTestApi):
 
         logger.debug(response.data)
         self.assertEqual(response.status_code, 200)
-        
+
         expected_result["result"]["last_seen"] = result["result"]["last_seen"]
         self.assertDictEqual(result, expected_result)
 
@@ -303,4 +330,6 @@ class TestApiProjectDetails(BaseTestApi):
         response = c.get("/api/v1/project/details", {"id": "does not exist"}, **headers)
 
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data, {"status": False, "result": messages.no_record_found})
+        self.assertEqual(
+            response.data, {"status": False, "result": messages.no_record_found}
+        )

@@ -144,8 +144,10 @@ class TestProjectsModel(TestCase):
     def test_projects_get_all(self):
         """test retrieve"""
         project_objects = Project.objects.all()
-        # Using create serializer in order to not return any extra data 
-        serializer = ProjectCreateSerializer(instance=project_objects, data=[], many=True, partial=True)
+        # Using create serializer in order to not return any extra data
+        serializer = ProjectCreateSerializer(
+            instance=project_objects, data=[], many=True, partial=True
+        )
         is_valid = serializer.is_valid()
         self.assertTrue(is_valid)
 
@@ -157,8 +159,10 @@ class TestProjectsModel(TestCase):
     def test_project_does_exist(self):
         """test exist"""
         projects_object = Project.objects.filter(pk="0000000000").first()
-        # Using create serializer in order to not return any extra data 
-        serializer = ProjectCreateSerializer(instance=projects_object, data={}, partial=True)
+        # Using create serializer in order to not return any extra data
+        serializer = ProjectCreateSerializer(
+            instance=projects_object, data={}, partial=True
+        )
         is_valid = serializer.is_valid()
         self.assertTrue(is_valid)
 

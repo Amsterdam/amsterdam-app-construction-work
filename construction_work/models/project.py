@@ -106,7 +106,7 @@ class Project(models.Model):
 
     title = models.CharField(max_length=1000, blank=True, default="", db_index=True)
     subtitle = models.CharField(max_length=1000, null=True, db_index=True)
-    # TODO: strip content into seperate fields?
+    # NOTE: strip content into seperate fields?
     body = models.JSONField(null=True, default=list)
     content_html = models.TextField()
     district_id = models.IntegerField(default=None)
@@ -115,7 +115,7 @@ class Project(models.Model):
 
     contacts = models.JSONField(null=True, default=list)
 
-    # TODO: setup relation with Article model?
+    # NOTE: setup relation with Article model
     news = models.JSONField(null=True, default=list)
     # news = models.ManyToManyField(Article)
 

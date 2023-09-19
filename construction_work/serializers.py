@@ -1,6 +1,5 @@
 """ Serializers for DB models """
 from rest_framework import serializers
-from rest_framework.fields import empty
 from construction_work.generic_functions.distance import GeoPyDistance
 
 from construction_work.models import (
@@ -44,13 +43,13 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
 
     # NOTE: remove when frontend has implemented project_id
     identifier = serializers.CharField(source="project_id")
-    
+
     district_name = serializers.SerializerMethodField()
     source_url = serializers.SerializerMethodField()
     meter = serializers.SerializerMethodField()
     strides = serializers.SerializerMethodField()
 
-    # TODO: followers, followed, recent_articles > via relationships with other models
+    # NOTE: followers, followed, recent_articles > via relationships with other models
 
     class Meta:
         model = Project
@@ -72,22 +71,27 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
         return super().get_field_names(*args, **kwargs)
 
     def get_district_name(self, obj: Project):
+        """Get district name by district id"""
         return DISTRICTS.get(obj.district_id)
 
     def get_source_url(self, obj: Project):
+        """Build source url with project id"""
         return f"https://amsterdam.nl/@{obj.project_id}/page/?AppIdt=app-pagetype&reload=true"
 
     def get_meter(self, _):
+        """Get meters from distance obj"""
         if self.distance:
             return self.distance.meter
         return None
 
     def get_strides(self, _):
+        """Get strides from distance obj"""
         if self.distance:
             return self.distance.strides
         return None
 
     def get_distance_from_project(self, lat: float, lon: float, obj: Project):
+        """Get distance from project"""
         cords_1 = (float(lat), float(lon))
         cords_2 = (obj.coordinates.get("lat"), obj.coordinates.get("lon"))
         if None in cords_2:

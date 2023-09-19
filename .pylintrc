@@ -435,7 +435,8 @@ disable=raw-checker-failed,
         consider-using-enumerate,
         super-with-arguments,
         too-many-locals,
-        too-many-branches
+        too-many-branches,
+        dangerous-default-value
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
