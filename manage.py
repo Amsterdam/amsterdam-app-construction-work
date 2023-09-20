@@ -34,6 +34,7 @@ def set_fcm_credentials_location():
 def main():
     """Run administrative tasks."""
     is_testing = "test" in sys.argv
+    is_runserver = "runserver" in sys.argv
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "main_application.settings")
 
@@ -42,7 +43,8 @@ def main():
     os.environ["DJANGO_DEVELOPMENT"] = "true"
 
     # When running from manage.py use locally available env vars
-    source_environment()
+    if is_testing or is_runserver:
+        source_environment()
 
     try:
         from django.core.management import execute_from_command_line
