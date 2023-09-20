@@ -30,6 +30,7 @@ from construction_work.generic_functions.generic_logger import Logger
 
 logger = Logger()
 
+# NOTE: properly test CRUD of models with serializers
 
 class TestAssetsModel(TestCase):
     """unit_tests"""
