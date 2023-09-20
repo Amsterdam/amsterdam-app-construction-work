@@ -13,27 +13,47 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Get random secret key from environment variable
 SECRET_KEY = os.getenv("SECRET_KEY")
 
+# When developing DJANGO_DEVELOPMENT is used to remove security
+DJANGO_DEVELOPMENT = os.getenv("DJANGO_DEVELOPMENT", "false").lower() == "true"
+if not DJANGO_DEVELOPMENT:
+    print("Django runs in PRODUCTION mode")
+else:
+    print("Django runs in DEVELOPMENT mode")
+
 # Whether to use a secure cookie for the CSRF cookie. If this is set to True, the cookie will be marked as “secure”,
 # which means browsers may ensure that the cookie is only sent with an HTTPS connection.
-CSRF_COOKIE_SECURE = os.getenv("DEBUG", "false").lower() != "true"
+CSRF_COOKIE_SECURE = True
+if DJANGO_DEVELOPMENT:
+    CSRF_COOKIE_SECURE = False
 
 # If this is set to True, the cookie will be marked as “secure”, which means browsers may ensure that the cookie is only
 # sent under an HTTPS connection.
-SESSION_COOKIE_SECURE = os.getenv("DEBUG", "false").lower() != "true"
+SESSION_COOKIE_SECURE = True
+if DJANGO_DEVELOPMENT:
+    SESSION_COOKIE_SECURE = False
 
 # Whether to expire the session when the user closes their browser.
-SESSION_EXPIRE_AT_BROWSER_CLOSE = os.getenv("DEBUG", "false").lower() != "true"
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+if DJANGO_DEVELOPMENT:
+    SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+# In Django, ALLOWED_HOSTS is a list of strings representing
+# the host/domain names that the Django application can serve.
+# This is a security measure to prevent HTTP Host header attacks.
+allowed_hosts_all = ["*"]
+allowed_hosts_limited = [
+    "api-backend.app-amsterdam.nl",
+    "api-test-backend.app-amsterdam.nl",
+    "api-dev-backend.app-amsterdam.nl",
+]
+ALLOWED_HOSTS = allowed_hosts_limited
+if DJANGO_DEVELOPMENT:
+    ALLOWED_HOSTS = allowed_hosts_all
 
 # Enable/Disable DEBUG mode
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"
-if not DEBUG:
-    print("Django runs in PRODUCTION mode")
-    print("You can enable DEBUG mode by setting the environment parameter DEBUG=true")
-else:
-    print("Django runs in DEBUG mode")
-    print("You can disable DEBUG mode by removing the environment parameter DEBUG=true")
-
-ALLOWED_HOSTS = ["*"]
+if DEBUG:
+    print("This app is running in DEBUG mode")
 
 # NGINX reverse-proxy: X_FORWARDED_FOR will tell swagger the point of origin and adjusts its links accordingly
 USE_X_FORWARDED_HOST = True

@@ -34,10 +34,16 @@ def set_fcm_credentials_location():
 def main():
     """Run administrative tasks."""
     is_testing = "test" in sys.argv
-    if is_testing:
-        os.environ["DEBUG"] = "true"
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "main_application.settings")
+
+    # In production this app is always started via uWSGI
+    # When running manage.py runserver or test, this development mode is enabled
+    os.environ["DJANGO_DEVELOPMENT"] = "true"
+
+    # When running from manage.py use locally available env vars
+    source_environment()
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -47,11 +53,7 @@ def main():
             "forget to activate a virtual environment?"
         ) from exc
 
-    # Source environment file (DB settings) if DEBUG=true
-    if os.getenv("DEBUG", "false") == "true":
-        source_environment()
-
-    # print friendly message for easy access to apidocs
+    # Give developer easy access to API docs
     print("API documentation: http://0.0.0.0:8000/api/v1/apidocs")
 
     if is_testing:

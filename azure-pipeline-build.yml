@@ -38,11 +38,11 @@ steps:
   displayName: 'Build docker image'
 
 - script: |
-    mkdir $(Agent.BuildDirectory)/database
     export fcm_credential_path=$(fcm_credentials.secureFilePath)
     export env_path=$(Build.SourcesDirectory)/.env-unittest
+    mkdir $(Agent.BuildDirectory)/database
     export database_path=$(Agent.BuildDirectory)/database
-    docker-compose -f docker-compose-unittest.yml --env-file $(Build.SourcesDirectory)/.env-unittest run --rm $(imageName) && echo "##vso[task.setvariable variable=unittestPassed;]true"
+    docker-compose -f docker-compose-unittest.yml --env-file ${env_path} run --rm $(imageName) && echo "##vso[task.setvariable variable=unittestPassed;]true"
   displayName: 'Run UnitTests'
 
 # Handling the  result needs to be in a different step because only then variable wil be expanded
