@@ -32,4 +32,7 @@ fcm_credentials.json
 data
 data/db
 
+# Coverage report
+.coverage
+
 environment.sh

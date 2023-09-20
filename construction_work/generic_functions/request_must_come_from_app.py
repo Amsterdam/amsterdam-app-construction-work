@@ -5,8 +5,11 @@ import os
 
 from django.http.response import HttpResponseForbidden
 
-from construction_work.generic_functions.aes_cipher import AESCipher
+from construction_work.generic_functions.aes_cipher import AESCipher, AESException
+from construction_work.generic_functions.generic_logger import Logger
 
+
+logger = Logger()
 valid_app_token = os.getenv("APP_TOKEN")
 
 
@@ -45,7 +48,9 @@ class RequestMustComeFromApp:
         if encrypted_token is None:
             return False
         aes_secret = os.getenv("AES_SECRET")
-        token = AESCipher(encrypted_token, aes_secret).decrypt()
-        if valid_app_token != token:
+        try:
+            AESCipher(encrypted_token, aes_secret).decrypt()
+        except AESException as e:
+            logger.error(e)
             return False
         return True

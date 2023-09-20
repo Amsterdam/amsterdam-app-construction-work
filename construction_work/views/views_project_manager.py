@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from construction_work.api_messages import Messages
-from construction_work.generic_functions.is_authorized import IsAuthorized, get_jwtauthorization, is_valid_JWT_token
+from construction_work.generic_functions.is_authorized import IsAuthorized, get_jwt_auth_token, is_valid_jwt_token
 from construction_work.models import Project, ProjectManager
 from construction_work.serializers import ProjectManagerSerializer
 from construction_work.swagger.swagger_views_project_manager import (as_project_manager_delete, as_project_manager_get,
@@ -40,8 +40,8 @@ def get(request):
     """Get one or all project managers from database"""
     identifier = request.GET.get("id", None)
     if identifier is None:
-        jwt_token = get_jwtauthorization(request)
-        if is_valid_JWT_token(jwt_encrypted_token=jwt_token):
+        jwt_token = get_jwt_auth_token(request)
+        if is_valid_jwt_token(jwt_encrypted_token=jwt_token):
             project_manager_objects = ProjectManager.objects.all()
             serializer = ProjectManagerSerializer(project_manager_objects, many=True)
             return {
