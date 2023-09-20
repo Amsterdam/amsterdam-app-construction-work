@@ -32,6 +32,10 @@ fcm_credentials.json
 data
 data/db
 
+# VSCode
 .vscode
+
+# Coverage report
+.coverage
 
 environment.sh
