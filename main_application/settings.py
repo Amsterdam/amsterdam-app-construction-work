@@ -42,6 +42,7 @@ if DJANGO_DEVELOPMENT:
 # This is a security measure to prevent HTTP Host header attacks.
 allowed_hosts_all = ["*"]
 allowed_hosts_limited = [
+    "construction-work",  # Host within docker realm
     "api-backend.app-amsterdam.nl",
     "api-test-backend.app-amsterdam.nl",
     "api-dev-backend.app-amsterdam.nl",
