@@ -312,19 +312,13 @@ def project_details(request):
     project_serializer = ProjectDetailsSerializer(instance=project_obj, many=False, partial=True, context={
         "lat": lat,
         "lon": lon,
+        "device_id": deviceid,
     })
     # Validation is required to get data from serializer
     if not project_serializer.is_valid():
         return Response(project_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     project_data = dict(project_serializer.data)
-
-    # Get followers
-    count = FollowedProject.objects.filter(projectid=project_id).count()
-    followed = FollowedProject.objects.filter(deviceid=deviceid, projectid=project_id).first()
-
-    project_data["followers"] = count
-    project_data["followed"] = bool(followed is not None)
 
     # Get recent articles
     if articles_max_age is not None:

@@ -49,7 +49,10 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
     meter = serializers.SerializerMethodField()
     strides = serializers.SerializerMethodField()
 
-    # NOTE: followers, followed, recent_articles > via relationships with other models
+    followers = serializers.SerializerMethodField()
+    followed = serializers.SerializerMethodField()
+
+    # NOTE: recent_articles > via relationships with other models
 
     class Meta:
         model = Project
@@ -89,6 +92,18 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
         if self.distance:
             return self.distance.strides
         return None
+
+    def get_followers(self, obj: Project):
+        return obj.device_set.count()
+
+    def get_followed(self, obj: Project):
+        device_id = self.context.get("device_id")
+        project_followed = False
+        if device_id is not None:
+            device = obj.device_set.filter(device_id=device_id).first()
+            if device is not None:
+                project_followed = True
+        return project_followed
 
     def get_distance_from_project(self, lat: float, lon: float, obj: Project):
         """Get distance from project"""
