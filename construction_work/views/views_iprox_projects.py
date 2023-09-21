@@ -359,8 +359,7 @@ def projects_follow(request):
     if request.method == "POST":
         project_id = request.data.get("project_id", None)
         if project_id is not None:
-            # project = ProjectDetail.objects.filter(identifier=project_id).first()
-            project = None
+            project = Project.objects.filter(project_id=project_id).first()
             if project is None:
                 return Response({"status": False, "result": message.no_record_found}, status=404)
         try:
