@@ -6,3 +6,4 @@ from .mobile_phone import FirebaseToken, MobilePhoneAccessLog
 from .project import Project
 from .project_manager import ProjectManager
 from .warning_and_notification import Notification, WarningMessage
+from .device import Device
