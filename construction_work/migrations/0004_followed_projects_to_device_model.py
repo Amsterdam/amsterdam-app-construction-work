@@ -17,19 +17,22 @@ def translate_followed_projects_to_device_model(apps, _):
         if device is None:
             device = Device(device_id=fp.deviceid)
             device.save()
-    
+
         device.followed_projects.add(project)
 
-    
 
 def reverse_device_model_to_followed_projects(apps, _):
     pass
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("construction_work", "0003_device"),
     ]
 
-    operations = [migrations.RunPython(translate_followed_projects_to_device_model, reverse_device_model_to_followed_projects)]
+    operations = [
+        migrations.RunPython(
+            translate_followed_projects_to_device_model,
+            reverse_device_model_to_followed_projects,
+        )
+    ]
