@@ -81,3 +81,31 @@ def garbage_collector(request):
     result = collector.collect_iprox()
 
     return Response({"status": True, "result": result}, status=200)
+
+
+@IsAuthorized
+@api_view(["POST"])
+def iprox_project(request):
+    iprox_data = request.data
+
+    project_data = {
+        "project_id": iprox_data.get("id"),
+        "publication_date": iprox_data.get("publicationDate").split("T")[0],
+        "modification_date": iprox_data.get("modified").split("T")[0],
+        "title": iprox_data.get("title"),
+        "subtitle": iprox_data.get("subtitle"),
+        "body": iprox_data.get("sections"),
+        "content_html": "<html/>",
+        "district_id": 1,
+        "coordinates": iprox_data.get("coordinates"),
+        "images": iprox_data.get("images"),
+        "contacts": iprox_data.get("contacts"),
+        "news": [],
+    }
+
+    serializer = ProjectCreateSerializer(data=project_data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    serializer.save()
+
+    return Response(serializer.data, status=status.HTTP_200_OK)

@@ -59,6 +59,7 @@ urlpatterns = [
     path("ingest/garbagecollector", csrf_exempt(views_ingest.garbage_collector)),
     path("ingest/project", csrf_exempt(views_ingest.project)),
     path("ingest/article", csrf_exempt(views_ingest.article)),
+    path("ingest/iprox_project", csrf_exempt(views_ingest.iprox_project)),
     # Image & Assets
     path("image", csrf_exempt(views_generic.image)),
     path("asset", csrf_exempt(views_generic.asset)),
