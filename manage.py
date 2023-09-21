@@ -34,16 +34,16 @@ def set_fcm_credentials_location():
 def main():
     """Run administrative tasks."""
     is_testing = "test" in sys.argv
-    is_runserver = "runserver" in sys.argv
-
+    
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "main_application.settings")
 
     # In production this app is always started via uWSGI
     # When running manage.py runserver or test, this development mode is enabled
     os.environ["DJANGO_DEVELOPMENT"] = "true"
 
-    # When running from manage.py use locally available env vars
-    if is_testing or is_runserver:
+    # Locally run commands should read local env var file
+    should_source = ["test", "runserver", "makemigrations", "migrate"]
+    if any(arg in sys.argv for arg in should_source):
         source_environment()
 
     try:
