@@ -86,6 +86,7 @@ def garbage_collector(request):
 @IsAuthorized
 @api_view(["POST"])
 def iprox_project(request):
+    """View for directly importing raw iprox data"""
     iprox_data = request.data
 
     project_data = {

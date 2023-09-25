@@ -34,7 +34,7 @@ def set_fcm_credentials_location():
 def main():
     """Run administrative tasks."""
     is_testing = "test" in sys.argv
-    
+
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "main_application.settings")
 
     # In production this app is always started via uWSGI

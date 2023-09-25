@@ -27,10 +27,10 @@
             "justMyCode": true
         },
         {
-            "name": "Django: Test Current File",
+            "name": "Django: test current file",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/manage.py", // Adjust the path to your manage.py file
+            "program": "${workspaceFolder}/manage.py",
             "args": [
                 "test",
                 "${relativeFile}",

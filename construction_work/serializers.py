@@ -11,6 +11,7 @@ from construction_work.models import (
     ProjectManager,
     WarningMessage,
 )
+from construction_work.models.device import Device
 from construction_work.models.project import DISTRICTS
 
 
@@ -94,9 +95,11 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
         return None
 
     def get_followers(self, obj: Project):
+        """Get amount of followers of project"""
         return obj.device_set.count()
 
     def get_followed(self, obj: Project):
+        """Check if project is being followed by given device"""
         device_id = self.context.get("device_id")
         project_followed = False
         if device_id is not None:
@@ -154,4 +157,12 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Notification
+        fields = "__all__"
+
+
+class DeviceSerializer(serializers.ModelSerializer):
+    """Device serializer"""
+
+    class Meta:
+        model = Device
         fields = "__all__"
