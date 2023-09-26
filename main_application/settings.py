@@ -165,9 +165,15 @@ DATABASES = {
     }
 }
 
-# The lifetime of a database connection, as an integer of seconds. Use 0 to close database connections at the end of
-# each request — Django’s historical behavior — and None for unlimited persistent connections.
-CONN_MAX_AGE = 0
+# To enable persistent connections, set CONN_MAX_AGE to a positive integer of seconds.
+# For unlimited persistent connections, set it to None.
+CONN_MAX_AGE = None
+# If set to True, existing persistent database connections will be health checked,
+# before they are reused in each request performing database access.
+# If the health check fails, the connection will be reestablished without failing the request,
+# when the connection is no longer usable but the database server is ready to accept
+# and serve new connections (e.g. after database server restart closing existing connections).
+CONN_HEALTH_CHECKS = True
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
