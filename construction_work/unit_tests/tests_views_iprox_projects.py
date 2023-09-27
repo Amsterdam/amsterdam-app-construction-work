@@ -454,7 +454,7 @@ class TestApiProjectFollow(BaseTestApi):
         )
         self.assertEqual(response.status_code, 404)
 
-    def test_unfollow_project_device_is_not_following(self):
+    def test_unfollow_project_that_device_is_not_following(self):
         """Test unfollow existing project with existing device"""
         # Setup device and follow project
         project = Project.objects.first()

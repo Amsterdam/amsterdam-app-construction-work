@@ -3,7 +3,8 @@ import firebase_admin
 from firebase_admin import credentials, messaging
 
 from construction_work.generic_functions.generic_logger import Logger
-from construction_work.models import FirebaseToken, FollowedProject, Notification
+from construction_work.models import FirebaseToken, Notification
+from construction_work.models.project import Project
 from main_application.settings import BASE_DIR
 
 BATCH_SIZE = 500
@@ -61,9 +62,13 @@ class SendNotification:
 
     def create_subscribed_device_batches(self):
         """Create batches of subscribers"""
-        followers = [x.deviceid for x in list(FollowedProject.objects.filter(projectid=self.project_identifier).all())]
-        filtered_devices = [x.firebasetoken for x in list(FirebaseToken.objects.filter(deviceid__in=followers).all())]
-        return [filtered_devices[x : x + self.batch_size] for x in range(0, len(filtered_devices), self.batch_size)]
+        # followers = [x.deviceid for x in list(FollowedProject.objects.filter(projectid=self.project_identifier).all())]
+        
+        project = Project.objects.filter(project_id=self.project_identifier).first()
+        devices = project.device_set.all()
+
+        firebase_tokens = [x.firebase_token for x in list(FirebaseToken.objects.filter(device__in=devices).all())]
+        return [firebase_tokens[x : x + self.batch_size] for x in range(0, len(firebase_tokens), self.batch_size)]
 
     def send_multicast_and_handle_errors(self):
         """Send message to subscribers"""

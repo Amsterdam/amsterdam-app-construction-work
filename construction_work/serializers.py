@@ -12,6 +12,7 @@ from construction_work.models import (
     WarningMessage,
 )
 from construction_work.models.device import Device
+from construction_work.models.firebase_token import FirebaseToken
 from construction_work.models.project import DISTRICTS
 
 
@@ -165,4 +166,12 @@ class DeviceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Device
+        fields = "__all__"
+
+
+class FirebaseTokenSerializer(serializers.ModelSerializer):
+    """Device serializer"""
+
+    class Meta:
+        model = FirebaseToken
         fields = "__all__"

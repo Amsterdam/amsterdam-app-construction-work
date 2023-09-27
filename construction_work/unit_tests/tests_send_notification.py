@@ -7,11 +7,21 @@ from unittest.mock import call, patch
 from django.test import TestCase
 
 from construction_work.api_messages import Messages
-from construction_work.models import (Article, FirebaseToken, FollowedProject, Notification, Project, ProjectManager,
-                                      WarningMessage)
+from construction_work.models import (
+    Article,
+    FirebaseToken,
+    FollowedProject,
+    Notification,
+    Project,
+    ProjectManager,
+    WarningMessage,
+)
+from construction_work.models.device import Device
 from construction_work.push_notifications.send_notification import SendNotification
 from construction_work.unit_tests.mock_data import TestData
-from construction_work.unit_tests.mock_functions import firebase_admin_messaging_send_multicast
+from construction_work.unit_tests.mock_functions import (
+    firebase_admin_messaging_send_multicast,
+)
 
 messages = Messages()
 
@@ -30,8 +40,10 @@ class TestSendNotification(TestCase):
     def setUp(self):
         """Setup test db"""
         Project.objects.all().delete()
+        projects = []
         for project in self.data.projects:
-            Project.objects.create(**project)
+            new_project = Project.objects.create(**project)
+            projects.append(new_project)
 
         ProjectManager.objects.all().delete()
         for project_manager in self.data.project_manager:
@@ -45,7 +57,7 @@ class TestSendNotification(TestCase):
 
         warning_message_data1 = {
             "title": "title",
-            "project_identifier": Project.objects.filter(pk="0000000000").first(),
+            "project_identifier": projects[0],
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             "body": {"preface": "short text", "content": "long text"},
             "images": [],
@@ -53,7 +65,7 @@ class TestSendNotification(TestCase):
 
         warning_message_data2 = {
             "title": "title",
-            "project_identifier": Project.objects.filter(pk="0000000001").first(),
+            "project_identifier": projects[1],
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             "body": {"preface": "short text", "content": "long text"},
             "images": [],
@@ -66,9 +78,21 @@ class TestSendNotification(TestCase):
         self.warning_identifier1 = str(warning_message1.identifier)
         self.warning_identifier2 = str(warning_message2.identifier)
 
-        notification_message_data1 = {"title": "title", "body": "text", "warning_identifier": self.warning_identifier1}
-        notification_message_data2 = {"title": "title", "body": "text", "warning_identifier": self.warning_identifier2}
-        notification_message_data3 = {"title": "title", "body": "text", "news_identifier": self.news_identifier}
+        notification_message_data1 = {
+            "title": "title",
+            "body": "text",
+            "warning_identifier": self.warning_identifier1,
+        }
+        notification_message_data2 = {
+            "title": "title",
+            "body": "text",
+            "warning_identifier": self.warning_identifier2,
+        }
+        notification_message_data3 = {
+            "title": "title",
+            "body": "text",
+            "news_identifier": self.news_identifier,
+        }
 
         notification1 = Notification.objects.create(**notification_message_data1)
         notification2 = Notification.objects.create(**notification_message_data2)
@@ -78,25 +102,27 @@ class TestSendNotification(TestCase):
         self.notification_identifier2 = str(notification2.identifier)
         self.notification_identifier3 = str(notification3.identifier)
 
+        device_data = [
+            {"device_id": "device_a"},
+            {"device_id": "device_b"},
+        ]
+        devices = []
+        for device in device_data:
+            new_device = Device.objects.create(**device)
+            new_device.followed_projects.add(projects[0])
+            devices.append(new_device)
+
         firebase_tokens = [
-            {"firebasetoken": "0000000000", "os": "ios", "deviceid": "0000000000"},
-            {"firebasetoken": "0000000001", "os": "ios", "deviceid": "0000000001"},
-            {"firebasetoken": "0000000002", "os": "ios", "deviceid": "0000000002"},
-            {"firebasetoken": "0000000003", "os": "ios", "deviceid": "0000000003"},
+            {"firebase_token": "fbtoken_a", "os": "ios", "device": devices[0]},
+            {"firebase_token": "fbtoken_b", "os": "ios", "device": devices[1]},
         ]
         for token in firebase_tokens:
             FirebaseToken.objects.create(**token)
 
-        followed_projects = [
-            {"projectid": "0000000000", "deviceid": "0000000000"},
-            {"projectid": "0000000000", "deviceid": "0000000001"},
-            {"projectid": "0000000001", "deviceid": "0000000002"},
-            {"projectid": "0000000001", "deviceid": "0000000003"},
-        ]
-        for project in followed_projects:
-            FollowedProject.objects.create(**project)
-
-    @patch("firebase_admin.messaging.send_each_for_multicast", side_effect=firebase_admin_messaging_send_multicast)
+    @patch(
+        "firebase_admin.messaging.send_each_for_multicast",
+        side_effect=firebase_admin_messaging_send_multicast,
+    )
     def test_send_warning(self, _firebase_admin_messaging_send_multicast):
         """First message should always fail in the mocked send_multicast mock!!!
         Send warning message
@@ -104,19 +130,26 @@ class TestSendNotification(TestCase):
         debug = os.environ.get("DEBUG", "")
         os.environ["DEBUG"] = "false"
 
-        mock_logging = logging.getLogger("construction_work.generic_functions.generic_logger")
+        mock_logging = logging.getLogger(
+            "construction_work.generic_functions.generic_logger"
+        )
         with patch.object(mock_logging, "error") as mocked_log:
             send_notification = SendNotification(self.notification_identifier1)
             send_notification.send_multicast_and_handle_errors()
 
-            assert mocked_log.call_args_list == [call("List of tokens that caused failures: ['0000000000']")]
+            assert mocked_log.call_args_list == [
+                call("List of tokens that caused failures: ['fbtoken_a']")
+            ]
             self.assertEqual(len(send_notification.subscribed_device_batches), 1)
             self.assertEqual(len(send_notification.subscribed_device_batches[0]), 2)
 
         # reset environment
         os.environ["DEBUG"] = debug
 
-    @patch("firebase_admin.messaging.send_each_for_multicast", side_effect=firebase_admin_messaging_send_multicast)
+    @patch(
+        "firebase_admin.messaging.send_each_for_multicast",
+        side_effect=firebase_admin_messaging_send_multicast,
+    )
     def test_send_unknown_notification(self, _firebase_admin_messaging_send_multicast):
         """First message should always fail in the mocked send_multicast mock!!!
         Send non-existing notification
@@ -124,7 +157,9 @@ class TestSendNotification(TestCase):
         debug = os.environ.get("DEBUG", "")
         os.environ["DEBUG"] = "false"
 
-        mock_logging = logging.getLogger("construction_work.generic_functions.generic_logger")
+        mock_logging = logging.getLogger(
+            "construction_work.generic_functions.generic_logger"
+        )
         with patch.object(mock_logging, "error") as mocked_log:
             send_notification = SendNotification(str(uuid.uuid4()))
             send_notification.send_multicast_and_handle_errors()
@@ -144,7 +179,10 @@ class TestSendNotification(TestCase):
         # reset environment
         os.environ["DEBUG"] = debug
 
-    @patch("firebase_admin.messaging.send_each_for_multicast", side_effect=firebase_admin_messaging_send_multicast)
+    @patch(
+        "firebase_admin.messaging.send_each_for_multicast",
+        side_effect=firebase_admin_messaging_send_multicast,
+    )
     def test_send_news(self, _firebase_admin_messaging_send_multicast):
         """First message should always fail in the mocked send_multicast mock!!!
         Send news item as notification
@@ -152,12 +190,16 @@ class TestSendNotification(TestCase):
         debug = os.environ.get("DEBUG", "")
         os.environ["DEBUG"] = "false"
 
-        mock_logging = logging.getLogger("construction_work.generic_functions.generic_logger")
+        mock_logging = logging.getLogger(
+            "construction_work.generic_functions.generic_logger"
+        )
         with patch.object(mock_logging, "error") as mocked_log:
             send_notification = SendNotification(self.notification_identifier3)
             send_notification.send_multicast_and_handle_errors()
 
-            assert mocked_log.call_args_list == [call("List of tokens that caused failures: ['0000000000']")]
+            assert mocked_log.call_args_list == [
+                call("List of tokens that caused failures: ['fbtoken_a']")
+            ]
             self.assertEqual(len(send_notification.subscribed_device_batches), 1)
             self.assertEqual(len(send_notification.subscribed_device_batches[0]), 2)
 

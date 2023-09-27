@@ -1,6 +1,7 @@
 # pylint: disable=unnecessary-lambda-assignment,expression-not-assigned
 """ Views for iprox project pages """
 import json
+from typing import List
 import urllib.parse
 from datetime import datetime, timedelta
 from math import ceil
@@ -451,30 +452,38 @@ def projects_follow(request):
     )
 
 
+# TODO: change view when article gets remodelled
+# TODO: write unit tests
 @swagger_auto_schema(**as_projects_followed_articles)
 @api_view(["GET"])
 def projects_followed_articles(request):
     """Get articles for followed projects"""
-    deviceid = request.META.get("HTTP_DEVICEID", None)
+    device_id = request.META.get("HTTP_DEVICEID", None)
     article_max_age = int(request.GET.get("article-max-age", 3))
-    if deviceid is None:
+    if device_id is None:
         return Response(
-            {"status": False, "result": message.invalid_headers}, status=422
+            {"status": False, "result": message.invalid_headers},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
-    followed_projects = list(
-        FollowedProject.objects.filter(deviceid=deviceid).values("projectid").all()
-    )
-    project_identifiers = [x["projectid"] for x in followed_projects]
+    device = Device.objects.filter(device_id=device_id).first()
+    if device is None:
+        return Response(
+            {"status": False, "result": message.no_record_found},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    followed_projects: List[Project] = device.followed_projects.all()
+    project_identifiers = [x.project_id for x in followed_projects]
 
     result = {}
     # Get recent articles
-    for identifier in project_identifiers:
+    for project_id in project_identifiers:
         start_date = datetime.now() - timedelta(days=article_max_age)
         end_date = datetime.now()
         start_date_str = start_date.strftime("%Y-%m-%d")
         news_articles_all = list(
-            Article.objects.filter(project_identifier=identifier).all()
+            Article.objects.filter(project_identifier=project_id).all()
         )
         serializer_news = ArticleSerializer(news_articles_all, many=True)
         news_articles = [
@@ -484,10 +493,10 @@ def projects_followed_articles(request):
         ]
         warning_articles = list(
             WarningMessage.objects.filter(
-                project_identifier=identifier,
+                project_identifier=project_id,
                 publication_date__range=[start_date, end_date],
             ).all()
         )
-        result[identifier] = news_articles + [x.identifier for x in warning_articles]
+        result[project_id] = news_articles + [x.identifier for x in warning_articles]
 
     return Response({"status": True, "result": {"projects": result}})
