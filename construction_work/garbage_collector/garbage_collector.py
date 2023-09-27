@@ -4,6 +4,7 @@ from datetime import timedelta
 from construction_work.models import Article, Project
 
 
+# TODO: add logic to remove devices after e.g. 365 days
 class GarbageCollector:
     """Remove old scraped data from database if upstream has removed it too."""
 
