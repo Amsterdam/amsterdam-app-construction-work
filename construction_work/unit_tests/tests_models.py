@@ -13,6 +13,7 @@ from construction_work.models import (
     ProjectManager,
     WarningMessage,
 )
+from construction_work.models.device import Device
 from construction_work.serializers import (
     ArticleSerializer,
     AssetsSerializer,
@@ -297,22 +298,27 @@ class TestProjectManagerModel(TestCase):
 class TestFirebaseTokenModel(TestCase):
     """unit_tests"""
 
-    def __init__(self, *args, **kwargs):
-        super(TestFirebaseTokenModel, self).__init__(*args, **kwargs)
-        self.data = [
-            {"deviceid": "0", "firebasetoken": "0", "os": "ios"},
-            {"deviceid": "1", "firebasetoken": "1", "os": "ios"},
-        ]
-
     def setUp(self):
         """unit_tests db setup"""
+        devices = []
+        for i in range(1, 3):
+            device = Device(device_id=f"foobar{i}")
+            device.save()
+            devices.append(device)
+            
+
+        self.data = [
+            {"device": devices[0], "firebase_token": "0", "os": "ios"},
+            {"device": devices[1], "firebase_token": "1", "os": "ios"},
+        ]
+
         FirebaseToken.objects.all().delete()
         for token in self.data:
             FirebaseToken.objects.create(**token)
 
     def test_fb_delete(self):
         """test delete"""
-        FirebaseToken.objects.get(pk="0").delete()
+        FirebaseToken.objects.get(firebase_token="0").delete()
         fb_objects = FirebaseToken.objects.all()
 
         self.assertEqual(len(fb_objects), 1)
@@ -325,16 +331,16 @@ class TestFirebaseTokenModel(TestCase):
 
     def test_fb_exists(self):
         """test exist"""
-        fb_objects = FirebaseToken.objects.get(pk="0")
+        fb_objects = FirebaseToken.objects.get(firebase_token="0")
 
-        self.assertEqual(fb_objects.firebasetoken, "0")
+        self.assertEqual(fb_objects.firebase_token, "0")
         self.assertEqual(fb_objects.os, "ios")
-        self.assertEqual(fb_objects.deviceid, "0")
+        self.assertEqual(fb_objects.device.device_id, "foobar1")
 
     def test_fb_does_not_exist(self):
         """test not exist"""
         fb_object = FirebaseToken.objects.filter(
-            pk="00000000-0000-0000-0000-000000000000"
+            firebase_token="2"
         ).first()
 
         self.assertEqual(fb_object, None)

@@ -1711,9 +1711,14 @@ class TestData:
             "projects": ["0000000000", "0000000001"],
         }
 
-        self.mobile_devices = [
-            {"deviceid": "0", "firebasetoken": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "os": "android"},
-            {"deviceid": "1", "firebasetoken": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "os": "ios"},
+        self.devices = [
+            {"device_id": "foobar_device1"},
+            {"device_id": "foobar_device2"}
+        ]
+
+        self.firebase_tokens = [
+            {"firebase_token": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "os": "android"},
+            {"firebase_token": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "os": "ios"},
         ]
 
         self.followed_projects = [

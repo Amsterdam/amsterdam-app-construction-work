@@ -9,6 +9,7 @@ from django.test import Client, TestCase
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.aes_cipher import AESCipher
 from construction_work.models import FirebaseToken, FollowedProject, Project, ProjectManager, WarningMessage
+from construction_work.models.device import Device
 from construction_work.unit_tests.mock_data import TestData
 from construction_work.unit_tests.mock_functions import firebase_admin_messaging_send_multicast
 
@@ -51,10 +52,16 @@ class TestApiNotification(TestCase):
     @patch("firebase_admin.messaging.send_multicast", side_effect=firebase_admin_messaging_send_multicast)
     def test_post_notification(self, _firebase_admin_messaging_send_multicast):
         """Test post notification"""
-        FirebaseToken.objects.all().delete()
-        for device in self.data.mobile_devices:
-            FirebaseToken.objects.create(**device)
+        Device.objects.all().delete()
+        devices = []
+        for device in self.data.devices:
+            device = Device.objects.create(**device)
+            devices.append(device)
 
+        FirebaseToken.objects.all().delete()
+        for i, token in enumerate(self.data.firebase_tokens):
+            FirebaseToken.objects.create(device=devices[i], **token)
+        
         FollowedProject.objects.all().delete()
         for project in self.data.followed_projects:
             FollowedProject.objects.create(**project)
@@ -109,9 +116,16 @@ class TestApiNotification(TestCase):
     @patch("firebase_admin.messaging.send_multicast", side_effect=firebase_admin_messaging_send_multicast)
     def test_get_notification(self, _firebase_admin_messaging_send_multicast):
         """Get notifications from db"""
+        
+        Device.objects.all().delete()
+        devices = []
+        for device in self.data.devices:
+            device = Device.objects.create(**device)
+            devices.append(device)
+
         FirebaseToken.objects.all().delete()
-        for device in self.data.mobile_devices:
-            FirebaseToken.objects.create(**device)
+        for i, token in enumerate(self.data.firebase_tokens):
+            FirebaseToken.objects.create(device=devices[i], **token)
 
         FollowedProject.objects.all().delete()
         for project in self.data.followed_projects:
@@ -147,9 +161,15 @@ class TestApiNotification(TestCase):
     @patch("firebase_admin.messaging.send_multicast", side_effect=firebase_admin_messaging_send_multicast)
     def test_get_notification_inactive_project(self, _firebase_admin_messaging_send_multicast):
         """Get notifications on inactive projects"""
+        Device.objects.all().delete()
+        devices = []
+        for device in self.data.devices:
+            device = Device.objects.create(**device)
+            devices.append(device)
+
         FirebaseToken.objects.all().delete()
-        for device in self.data.mobile_devices:
-            FirebaseToken.objects.create(**device)
+        for i, token in enumerate(self.data.firebase_tokens):
+            FirebaseToken.objects.create(device=devices[i], **token)
 
         FollowedProject.objects.all().delete()
         for project in self.data.followed_projects:
