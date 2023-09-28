@@ -7,7 +7,6 @@ from django.test import TestCase
 from construction_work.models import (
     Article,
     Asset,
-    FirebaseToken,
     Image,
     Project,
     ProjectManager,
@@ -30,6 +29,8 @@ from construction_work.generic_functions.generic_logger import Logger
 
 
 logger = Logger()
+
+# TODO: unit tests for Device model
 
 # NOTE: properly test CRUD of models with serializers
 
@@ -293,57 +294,6 @@ class TestProjectManagerModel(TestCase):
             context.exception.args,
             ("Invalid email, should be <username>@amsterdam.nl",),
         )
-
-
-class TestFirebaseTokenModel(TestCase):
-    """unit_tests"""
-
-    def setUp(self):
-        """unit_tests db setup"""
-        devices = []
-        for i in range(1, 3):
-            device = Device(device_id=f"foobar{i}")
-            device.save()
-            devices.append(device)
-            
-
-        self.data = [
-            {"device": devices[0], "firebase_token": "0", "os": "ios"},
-            {"device": devices[1], "firebase_token": "1", "os": "ios"},
-        ]
-
-        FirebaseToken.objects.all().delete()
-        for token in self.data:
-            FirebaseToken.objects.create(**token)
-
-    def test_fb_delete(self):
-        """test delete"""
-        FirebaseToken.objects.get(firebase_token="0").delete()
-        fb_objects = FirebaseToken.objects.all()
-
-        self.assertEqual(len(fb_objects), 1)
-
-    def test_fb_get_all(self):
-        """test retrieve"""
-        fb_objects = FirebaseToken.objects.all()
-
-        self.assertEqual(len(fb_objects), 2)
-
-    def test_fb_exists(self):
-        """test exist"""
-        fb_objects = FirebaseToken.objects.get(firebase_token="0")
-
-        self.assertEqual(fb_objects.firebase_token, "0")
-        self.assertEqual(fb_objects.os, "ios")
-        self.assertEqual(fb_objects.device.device_id, "foobar1")
-
-    def test_fb_does_not_exist(self):
-        """test not exist"""
-        fb_object = FirebaseToken.objects.filter(
-            firebase_token="2"
-        ).first()
-
-        self.assertEqual(fb_object, None)
 
 
 class TestWarningMessagesModel(TestCase):

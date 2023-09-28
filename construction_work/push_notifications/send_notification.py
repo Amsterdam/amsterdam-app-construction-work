@@ -3,7 +3,7 @@ import firebase_admin
 from firebase_admin import credentials, messaging
 
 from construction_work.generic_functions.generic_logger import Logger
-from construction_work.models import FirebaseToken, Notification
+from construction_work.models import Notification
 from construction_work.models.project import Project
 from main_application.settings import BASE_DIR
 
@@ -61,13 +61,11 @@ class SendNotification:
             return None
 
     def create_subscribed_device_batches(self):
-        """Create batches of subscribers"""
-        # followers = [x.deviceid for x in list(FollowedProject.objects.filter(projectid=self.project_identifier).all())]
-        
+        """Create batches of subscribers"""       
         project = Project.objects.filter(project_id=self.project_identifier).first()
         devices = project.device_set.all()
 
-        firebase_tokens = [x.firebase_token for x in list(FirebaseToken.objects.filter(device__in=devices).all())]
+        firebase_tokens = [x.firebase_token for x in devices]
         return [firebase_tokens[x : x + self.batch_size] for x in range(0, len(firebase_tokens), self.batch_size)]
 
     def send_multicast_and_handle_errors(self):

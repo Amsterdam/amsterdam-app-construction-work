@@ -6,7 +6,7 @@ from django.test import Client, TestCase
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.aes_cipher import AESCipher
-from construction_work.models import FirebaseToken, Project, firebase_token
+from construction_work.models import Project
 from construction_work.models.device import Device
 from construction_work.unit_tests.mock_data import TestData
 
@@ -28,7 +28,7 @@ class TestApiDeviceRegistration(TestCase):
         self.token = AESCipher(app_token, aes_secret).encrypt()
 
     def tearDown(self) -> None:
-        FirebaseToken.objects.all().delete()
+        Device.objects.all().delete()
         return super().tearDown()
 
     def test_registration_ok(self):
@@ -47,24 +47,20 @@ class TestApiDeviceRegistration(TestCase):
         # Silent discard second call
         second_result = c.post(self.url, data, **headers)
 
-        self.assertEqual(second_result.status_code, 409)
+        self.assertEqual(second_result.status_code, 200)
         self.assertEqual(
             second_result.data.get("firebase_token"), data.get("firebase_token")
         )
         self.assertEqual(second_result.data.get("os"), data.get("os"))
 
         # Assert only one record in db
-        devices = list(FirebaseToken.objects.all())
-        self.assertEqual(len(devices), 1)
+        devices_with_token = list(Device.objects.filter(firebase_token__isnull=False).all())
+        self.assertEqual(len(devices_with_token), 1)
 
     def test_delete_registration(self):
         """Test removing a device registration"""
-        new_device = Device(device_id="foobar_device")
+        new_device = Device(device_id="foobar_device", firebase_token="foobar_token", os="os")
         new_device.save()
-        new_token = FirebaseToken(
-            firebase_token="foobar_token", os="ios", device=new_device
-        )
-        new_token.save()
 
         # Delete registration
         c = Client()
@@ -80,8 +76,8 @@ class TestApiDeviceRegistration(TestCase):
         )
 
         # Expect no records in db
-        devices = list(FirebaseToken.objects.all())
-        self.assertEqual(len(devices), 0)
+        devices_with_token = list(Device.objects.filter(firebase_token__isnull=False).all())
+        self.assertEqual(len(devices_with_token), 0)
 
         # Silently discard not existing registration delete
         second_result = c.delete(self.url, **headers)

@@ -10,9 +10,8 @@ from construction_work.api_messages import Messages
 from construction_work.generic_functions.request_must_come_from_app import (
     RequestMustComeFromApp,
 )
-from construction_work.models import FirebaseToken
 from construction_work.models.device import Device
-from construction_work.serializers import DeviceSerializer, FirebaseTokenSerializer
+from construction_work.serializers import DeviceSerializer
 from construction_work.swagger.swagger_views_devices import (
     as_device_register_delete,
     as_device_register_post,
@@ -51,24 +50,16 @@ def device_register(request):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        if device is None:
-            device_serializer = DeviceSerializer(data={"device_id": device_id})
-            if not device_serializer.is_valid():
-                return Response(device_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            device_serializer.save()
-            device = Device.objects.get(device_id=device_serializer.data.get("device_id"))
-
-        # TODO: discuss with Robert, what to do when device already has token?
-        token = FirebaseToken.objects.filter(device=device).first()
-        if token:
-            return Response(model_to_dict(token), status=status.HTTP_409_CONFLICT)
-
-        token_serializer = FirebaseTokenSerializer(data={"firebase_token": firebase_token, "device": device.pk, "os": os})
-        if not token_serializer.is_valid():
-            return Response(token_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        token_serializer.save()
-        token = FirebaseToken.objects.get(id=token_serializer.data.get("id"))
-        return Response(token_serializer.data, status=status.HTTP_200_OK)
+        device_serializer = DeviceSerializer(
+            instance=device,
+            data={"device_id": device_id, "firebase_token": firebase_token, "os": os},
+        )
+        if not device_serializer.is_valid():
+            return Response(
+                device_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+        device_serializer.save()
+        return Response(device_serializer.data, status=status.HTTP_200_OK)
 
     # request.method == 'DELETE':
     if device is None:
@@ -77,8 +68,7 @@ def device_register(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    token = FirebaseToken.objects.filter(device=device).first()
-    if token:
-        token.delete()
+    device.firebase_token = None
+    device.save()
 
     return Response({"status": False, "result": "Registration removed"}, status=200)

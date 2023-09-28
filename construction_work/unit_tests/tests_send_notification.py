@@ -9,7 +9,6 @@ from django.test import TestCase
 from construction_work.api_messages import Messages
 from construction_work.models import (
     Article,
-    FirebaseToken,
     FollowedProject,
     Notification,
     Project,
@@ -102,22 +101,10 @@ class TestSendNotification(TestCase):
         self.notification_identifier2 = str(notification2.identifier)
         self.notification_identifier3 = str(notification3.identifier)
 
-        device_data = [
-            {"device_id": "device_a"},
-            {"device_id": "device_b"},
-        ]
-        devices = []
-        for device in device_data:
+        Device.objects.all().delete()
+        for device in self.data.devices:
             new_device = Device.objects.create(**device)
             new_device.followed_projects.add(projects[0])
-            devices.append(new_device)
-
-        firebase_tokens = [
-            {"firebase_token": "fbtoken_a", "os": "ios", "device": devices[0]},
-            {"firebase_token": "fbtoken_b", "os": "ios", "device": devices[1]},
-        ]
-        for token in firebase_tokens:
-            FirebaseToken.objects.create(**token)
 
     @patch(
         "firebase_admin.messaging.send_each_for_multicast",
@@ -138,7 +125,7 @@ class TestSendNotification(TestCase):
             send_notification.send_multicast_and_handle_errors()
 
             assert mocked_log.call_args_list == [
-                call("List of tokens that caused failures: ['fbtoken_a']")
+                call("List of tokens that caused failures: ['foobar_token1']")
             ]
             self.assertEqual(len(send_notification.subscribed_device_batches), 1)
             self.assertEqual(len(send_notification.subscribed_device_batches[0]), 2)
@@ -198,7 +185,7 @@ class TestSendNotification(TestCase):
             send_notification.send_multicast_and_handle_errors()
 
             assert mocked_log.call_args_list == [
-                call("List of tokens that caused failures: ['fbtoken_a']")
+                call("List of tokens that caused failures: ['foobar_token1']")
             ]
             self.assertEqual(len(send_notification.subscribed_device_batches), 1)
             self.assertEqual(len(send_notification.subscribed_device_batches[0]), 2)

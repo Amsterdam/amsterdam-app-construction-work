@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("construction_work", "0005_delete_mobilephoneaccesslog_and_more"),
+        ("construction_work", "0004_followed_projects_to_device_model"),
     ]
 
     operations = [

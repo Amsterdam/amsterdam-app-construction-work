@@ -10,7 +10,9 @@
             "request": "launch",
             "program": "${workspaceFolder}/manage.py",
             "args": [
-                "migrate"
+                "migrate",
+                // "construction_work",
+                // "0004_followed_projects_to_device_model",
             ],
             "django": true,
             "justMyCode": true

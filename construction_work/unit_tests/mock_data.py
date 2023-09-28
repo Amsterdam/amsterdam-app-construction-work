@@ -1712,13 +1712,8 @@ class TestData:
         }
 
         self.devices = [
-            {"device_id": "foobar_device1"},
-            {"device_id": "foobar_device2"}
-        ]
-
-        self.firebase_tokens = [
-            {"firebase_token": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "os": "android"},
-            {"firebase_token": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "os": "ios"},
+            {"device_id": "foobar_device1", "firebase_token": "foobar_token1", "os": "ios"},
+            {"device_id": "foobar_device2", "firebase_token": "foobar_token2", "os": "android"}
         ]
 
         self.followed_projects = [
