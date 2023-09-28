@@ -31,6 +31,7 @@ from construction_work.generic_functions.generic_logger import Logger
 logger = Logger()
 
 # TODO: unit tests for Device model
+# what is the function of these tests? just test the Django ORM? added value?
 
 # NOTE: properly test CRUD of models with serializers
 

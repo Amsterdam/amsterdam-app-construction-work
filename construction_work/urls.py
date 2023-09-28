@@ -60,6 +60,7 @@ urlpatterns = [
     path("ingest/project", csrf_exempt(views_ingest.project)),
     path("ingest/article", csrf_exempt(views_ingest.article)),
     path("ingest/iprox_project", csrf_exempt(views_ingest.iprox_project)),
+    path("ingest/iprox_article", csrf_exempt(views_ingest.iprox_article)),
     # Image & Assets
     path("image", csrf_exempt(views_generic.image)),
     path("asset", csrf_exempt(views_generic.asset)),

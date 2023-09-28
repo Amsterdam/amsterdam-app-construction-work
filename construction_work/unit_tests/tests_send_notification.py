@@ -52,7 +52,7 @@ class TestSendNotification(TestCase):
             pk=self.data.article[0]["project_identifier"]
         ).first()
         news = Article.objects.create(**self.data.article[0])
-        self.news_identifier = news.identifier
+        self.news_identifier = news.article_id
 
         warning_message_data1 = {
             "title": "title",

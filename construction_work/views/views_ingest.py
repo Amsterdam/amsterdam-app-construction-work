@@ -12,7 +12,7 @@ from construction_work.generic_functions.generic_logger import Logger
 from construction_work.generic_functions.is_authorized import IsAuthorized
 
 from construction_work.models import Article, Project
-from construction_work.serializers import ProjectCreateSerializer
+from construction_work.serializers import ArticleSerializer, ProjectCreateSerializer
 from construction_work.swagger.swagger_views_ingestion import as_garbage_collector
 
 message = Messages()
@@ -105,6 +105,35 @@ def iprox_project(request):
     }
 
     serializer = ProjectCreateSerializer(data=project_data)
+    if not serializer.is_valid():
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    serializer.save()
+
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# @IsAuthorized
+@api_view(["POST"])
+def iprox_article(request):
+    """View for directly importing raw iprox data"""
+    iprox_data = request.data
+
+    article_data = {
+        "article_id": iprox_data.get("id"),
+        "projects": iprox_data.get("projectIds"),
+        "title": iprox_data.get("title"),
+        "intro": iprox_data.get("intro"),
+        "body": iprox_data.get("body"),
+        "image": iprox_data.get("image"),
+        "type": iprox_data.get("type"),
+        "url": iprox_data.get("url"),
+        "creation_date": iprox_data.get("created"),
+        "modification_date": iprox_data.get("modified"),
+        "publication_date": iprox_data.get("publicationDate"),
+        "expiration_date": iprox_data.get("expirationDate"),
+    }
+
+    serializer = ArticleSerializer(data=article_data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     serializer.save()
