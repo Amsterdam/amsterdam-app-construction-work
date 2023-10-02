@@ -20,7 +20,7 @@ from construction_work.generic_functions.memoize import Memoize
 from construction_work.generic_functions.request_must_come_from_app import (
     RequestMustComeFromApp,
 )
-from construction_work.generic_functions.static_data import StaticData
+from construction_work.generic_functions.static_data import DEFAULT_ARTICLE_MAX_AGE, StaticData
 from construction_work.generic_functions.text_search import TextSearch
 from construction_work.models import Article, FollowedProject, Project, WarningMessage
 from construction_work.models.device import Device
@@ -330,6 +330,13 @@ def project_details(request):
         return Response({"status": False, "result": message.invalid_query}, status=422)
 
     articles_max_age = request.GET.get("articles_max_age", None)
+    if articles_max_age is not None and articles_max_age.isdigit() is False:
+        return Response({"status": False, "result": message.invalid_query}, status=400)
+    
+    if articles_max_age is None:
+        articles_max_age = DEFAULT_ARTICLE_MAX_AGE
+    else:
+        articles_max_age = int(articles_max_age)
 
     lat = request.GET.get("lat", None)
     lon = request.GET.get("lon", None)
@@ -360,6 +367,7 @@ def project_details(request):
             "lat": lat,
             "lon": lon,
             "device_id": deviceid,
+            "articles_max_age": articles_max_age,
         },
     )
     # Validation is required to get data from serializer
@@ -373,16 +381,6 @@ def project_details(request):
         articles_max_age = int(articles_max_age)
         start_date = datetime.now() - timedelta(days=articles_max_age)
         end_date = datetime.now()
-        start_date_str = start_date.strftime("%Y-%m-%d")
-        news_articles_all = list(
-            Article.objects.filter(project_identifier=project_id, active=True).all()
-        )
-        serializer_news = ArticleSerializer(news_articles_all, many=True)
-        news_articles = [
-            x["identifier"]
-            for x in serializer_news.data
-            if x["publication_date"] >= start_date_str
-        ]
         warning_articles = list(
             WarningMessage.objects.filter(
                 project_identifier=project_id,
@@ -392,7 +390,7 @@ def project_details(request):
         serializer_warning = WarningMessagesExternalSerializer(
             warning_articles, many=True
         )
-        project_data["recent_articles"] = news_articles + [
+        project_data["recent_articles"] = [
             x["identifier"] for x in serializer_warning.data
         ]
     return Response({"status": True, "result": project_data}, status=status.HTTP_200_OK)

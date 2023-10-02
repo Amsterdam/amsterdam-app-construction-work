@@ -1,6 +1,10 @@
 """ Class file for 'magic' -numbers, -data, -urls etc... """
 
+# Maximum age for articles to be retrieved with project
+DEFAULT_ARTICLE_MAX_AGE = 60
 
+
+# NOTE: clean up. not SOLID.
 class StaticData:
     """Magic static data class methods"""
 

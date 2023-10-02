@@ -26,7 +26,10 @@
                 "runserver"
             ],
             "django": true,
-            "justMyCode": true
+            "justMyCode": true,
+            "env": {
+                "DEBUG": "true",
+            },
         },
         {
             "name": "Django: test current file",

@@ -1,4 +1,5 @@
 """ Serializers for DB models """
+from datetime import datetime, timedelta
 from rest_framework import serializers
 from construction_work.generic_functions.distance import GeoPyDistance
 
@@ -54,6 +55,7 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
     followed = serializers.SerializerMethodField()
 
     # NOTE: recent_articles > via relationships with other models
+    recent_articles = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
@@ -74,31 +76,31 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
             return field_names
         return super().get_field_names(*args, **kwargs)
 
-    def get_district_name(self, obj: Project):
+    def get_district_name(self, obj: Project) -> str:
         """Get district name by district id"""
         return DISTRICTS.get(obj.district_id)
 
-    def get_source_url(self, obj: Project):
+    def get_source_url(self, obj: Project) -> str:
         """Build source url with project id"""
         return f"https://amsterdam.nl/@{obj.project_id}/page/?AppIdt=app-pagetype&reload=true"
 
-    def get_meter(self, _):
+    def get_meter(self, _) -> int:
         """Get meters from distance obj"""
         if self.distance:
             return self.distance.meter
         return None
 
-    def get_strides(self, _):
+    def get_strides(self, _) -> int:
         """Get strides from distance obj"""
         if self.distance:
             return self.distance.strides
         return None
 
-    def get_followers(self, obj: Project):
+    def get_followers(self, obj: Project) -> int:
         """Get amount of followers of project"""
         return obj.device_set.count()
 
-    def get_followed(self, obj: Project):
+    def get_followed(self, obj: Project) -> bool:
         """Check if project is being followed by given device"""
         device_id = self.context.get("device_id")
         project_followed = False
@@ -107,6 +109,19 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
             if device is not None:
                 project_followed = True
         return project_followed
+
+    def get_recent_articles(self, obj: Project) -> dict:
+        all_articles = []
+
+        articles_max_age = self.context.get("articles_max_age")
+        start_date = datetime.now() - timedelta(days=int(articles_max_age))
+        end_date = datetime.now()
+        articles = obj.article_set.filter(publication_date__range=[start_date, end_date]).all()
+
+        article_serializer = ArticleSerializer(articles, many=True)
+        all_articles.extend(article_serializer.data)
+        
+        return all_articles
 
     def get_distance_from_project(self, lat: float, lon: float, obj: Project):
         """Get distance from project"""
