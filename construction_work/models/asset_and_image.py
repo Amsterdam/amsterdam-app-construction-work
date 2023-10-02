@@ -1,5 +1,6 @@
 """ Assets and Images db models """
 
+from warnings import WarningMessage
 from django.db import models
 
 
@@ -21,7 +22,8 @@ class Image(models.Model):
 
     identifier = models.CharField(max_length=100, blank=False, unique=True, primary_key=True)
     size = models.CharField(max_length=10, blank=False, unique=False)
-    url = models.CharField(max_length=1000, blank=False, unique=True)
+    # TODO: move url to image serializer
+    # url = models.CharField(max_length=1000, blank=False, unique=True)
     filename = models.CharField(max_length=1000, blank=False, unique=False)
     description = models.CharField(max_length=1000, blank=True, unique=False, default="")
     mime_type = models.CharField(max_length=100, blank=False, default="image/jpg")

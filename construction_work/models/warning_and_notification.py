@@ -44,11 +44,11 @@
     }
 """
 
-import datetime
 import uuid
 
-from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from construction_work.generic_functions.static_data import DEFAULT_WARNING_MESSAGE_EMAIL
+from construction_work.models.asset_and_image import Image
 
 from construction_work.models.project import Project
 
@@ -67,28 +67,18 @@ class WarningMessage(models.Model):
     equivalent: CASCADE.
     """
 
-    identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    title = models.CharField(max_length=1000, unique=False, db_index=True)
-    body = models.CharField(max_length=1000, unique=False)
-    project_identifier = models.OneToOneField(
-        Project,
-        blank=False,
-        default="",
-        on_delete=models.CASCADE,
-        unique=False,
-        db_index=True,
-        db_column="project_identifier",
-    )
-    project_manager_id = models.CharField(max_length=100, blank=False, unique=False)
-    images = ArrayField(models.JSONField(null=True, default=dict), blank=False)
-    publication_date = models.DateTimeField(auto_now_add=True, blank=True)
-    modification_date = models.DateTimeField(auto_now_add=True, blank=True)
+    title = models.CharField(max_length=1000, db_index=True)
+    body = models.TextField()
+    project = models.ForeignKey(Project, on_delete=models.CASCADE)
+    project_manager = models.ForeignKey(ProjectManager, on_delete=models.PROTECT)
+    images = models.ManyToManyField(Image, blank=True)
+    publication_date = models.DateTimeField(auto_now_add=True)
+    modification_date = models.DateTimeField(auto_now=True)
     author_email = models.EmailField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        project_manager = ProjectManager.objects.filter(pk=self.project_manager_id).first()
-        self.author_email = project_manager.email if project_manager is not None else "redactieprojecten@amsterdam.nl"
-        self.modification_date = datetime.datetime.now()
+        # project_manager = ProjectManager.objects.filter(pk=self.project_manager_id).first()
+        self.author_email = self.project_manager.email if self.project_manager is not None else DEFAULT_WARNING_MESSAGE_EMAIL
         super(WarningMessage, self).save(*args, **kwargs)
 
 

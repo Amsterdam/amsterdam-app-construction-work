@@ -22,7 +22,7 @@ from construction_work.serializers import (
     ProjectManagerSerializer,
     ProjectDetailsSerializer,
     WarningMessagesExternalSerializer,
-    WarningMessagesInternalSerializer,
+    WarningMessageSerializer,
 )
 from construction_work.unit_tests.mock_data import TestData
 from construction_work.generic_functions.generic_logger import Logger
@@ -357,7 +357,7 @@ class TestWarningMessagesModel(TestCase):
             pk=self.data.warning_message["project_identifier"]
         ).first()
         warning_message = WarningMessage.objects.create(**self.data.warning_message)
-        serializer = WarningMessagesInternalSerializer(warning_message, many=False)
+        serializer = WarningMessageSerializer(warning_message, many=False)
         data = dict(serializer.data)
         expected_result = {
             "identifier": data["identifier"],

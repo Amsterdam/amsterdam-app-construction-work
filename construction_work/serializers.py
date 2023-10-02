@@ -151,20 +151,19 @@ class ProjectManagerSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class WarningMessagesInternalSerializer(serializers.ModelSerializer):
+class WarningMessageSerializer(serializers.ModelSerializer):
     """warning messages (internal VUE) serializer"""
 
     class Meta:
         model = WarningMessage
         fields = "__all__"
 
-
 class WarningMessagesExternalSerializer(serializers.ModelSerializer):
     """warning messages (external) serializer"""
 
     class Meta:
         model = WarningMessage
-        exclude = ["project_manager_id"]
+        exclude = ["project_manager"]
 
 
 class NotificationSerializer(serializers.ModelSerializer):
