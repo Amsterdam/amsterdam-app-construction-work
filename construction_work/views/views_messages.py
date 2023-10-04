@@ -237,7 +237,7 @@ def warning_message_post(request):
     if project_id not in project_manager.projects:
         return {
             "result": {"status": False, "result": messages.no_record_found},
-            "status_code": status.HTTP_404_NOT_FOUND,
+            "status_code": status.HTTP_403_FORBIDDEN,
         }
 
     serializer = WarningMessageSerializer(
@@ -358,26 +358,28 @@ def notification_get(request):
 def warning_messages_image_upload(request):
     """Upload image for warning message"""
     image_data = request.data.get("image", None)
-    project_warning_id = request.data.get("project_warning_id", None)
-    if None in [image_data, project_warning_id]:
-        return Response({"status": False, "result": messages.invalid_query}, status=422)
+    warning_id = request.data.get("project_warning_id", None)
 
-    if WarningMessage.objects.filter(pk=project_warning_id).first() is None:
+    if None in [image_data, warning_id]:
+        return Response({"status": False, "result": messages.invalid_query}, status=status.HTTP_400_BAD_REQUEST)
+
+    warning_message = WarningMessage.objects.filter(pk=warning_id).first()
+    if warning_message is None:
         return Response(
-            {"status": False, "result": messages.no_record_found}, status=404
+            {"status": False, "result": messages.no_record_found}, status=status.HTTP_404_NOT_FOUND
         )
 
     if "main" not in image_data:
-        return Response({"status": False, "result": messages.invalid_query}, status=422)
-
-    if image_data.get("data", None) is None:
-        return Response({"status": False, "result": messages.invalid_query}, status=422)
+        return Response({"status": False, "result": messages.invalid_query}, status=status.HTTP_400_BAD_REQUEST)
 
     # Make sure we've got a boolean not a string
     image_data["main"] = bool(image_data["main"] in ["True", "true", True])
 
+    if image_data.get("data") is None:
+        return Response({"status": False, "result": messages.invalid_query}, status=status.HTTP_400_BAD_REQUEST)
+
     # Get description
-    description = image_data.get("description", "Warning Message")
+    description = image_data.get("description", f"Warning Message {warning_id}")
 
     # Get image data and run ImageConversion
     data = base64.b64decode(image_data.get("data"))
@@ -427,7 +429,7 @@ def warning_messages_image_upload(request):
         "sources": sources,  # list; created earlier
     }
 
-    warning_message = WarningMessage.objects.filter(pk=project_warning_id).first()
+    warning_message = WarningMessage.objects.filter(pk=warning_id).first()
     warning_message.images.append(warning_message_image)
     warning_message.save()
 

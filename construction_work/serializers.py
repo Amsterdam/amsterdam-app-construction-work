@@ -26,6 +26,8 @@ class AssetsSerializer(serializers.ModelSerializer):
 
 class ImageSerializer(serializers.ModelSerializer):
     """Image serializer (iprox images)"""
+    
+    # TODO: url, size, landscape
 
     class Meta:
         model = Image
@@ -158,8 +160,11 @@ class WarningMessageSerializer(serializers.ModelSerializer):
         model = WarningMessage
         fields = "__all__"
 
+
 class WarningMessagesExternalSerializer(serializers.ModelSerializer):
     """warning messages (external) serializer"""
+
+    # TODO: add warning image data as dict
 
     class Meta:
         model = WarningMessage

@@ -44,9 +44,9 @@
     }
 """
 
-import uuid
-
 from django.db import models
+from django.core.exceptions import ValidationError
+
 from construction_work.generic_functions.static_data import DEFAULT_WARNING_MESSAGE_EMAIL
 from construction_work.models.asset_and_image import Image
 
@@ -77,9 +77,24 @@ class WarningMessage(models.Model):
     author_email = models.EmailField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        # project_manager = ProjectManager.objects.filter(pk=self.project_manager_id).first()
-        self.author_email = self.project_manager.email if self.project_manager is not None else DEFAULT_WARNING_MESSAGE_EMAIL
-        super(WarningMessage, self).save(*args, **kwargs)
+        self.author_email = DEFAULT_WARNING_MESSAGE_EMAIL
+        if self.project_manager is not None:
+            self.author_email = self.project_manager.email
+            
+        super().save(*args, **kwargs)
+
+
+class WarningImage(models.Model):
+    warning = models.ForeignKey(WarningMessage, on_delete=models.CASCADE)
+    is_main = models.BooleanField(default=False)
+    images = models.ManyToManyField(Image)
+
+    def delete(self, *args, **kwargs):
+        # Delete associated images before deleting the warning
+        for image in self.images.all():
+            image.delete()
+
+        super().delete(*args, **kwargs)
 
 
 class Notification(models.Model):
@@ -93,22 +108,21 @@ class Notification(models.Model):
     equivalent: CASCADE.
     """
 
-    identifier = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    title = models.CharField(max_length=1000, unique=False)
-    body = models.CharField(max_length=1000, unique=False)
-    project_identifier = models.ForeignKey(
-        Project, default="", on_delete=models.CASCADE, unique=False, db_index=False, db_column="project_identifier"
-    )
-    news_identifier = models.CharField(null=True, max_length=100, unique=False)
-    warning_identifier = models.UUIDField(null=True, unique=False)
+    title = models.CharField(max_length=1000)
+    body = models.TextField()
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, blank=True, null=False)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, blank=True, null=True)
+    warning = models.ForeignKey(WarningMessage, on_delete=models.CASCADE, blank=True, null=True)
     publication_date = models.DateTimeField(auto_now_add=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if self.warning_identifier is not None:
-            message = WarningMessage.objects.filter(pk=self.warning_identifier).first()
-        else:
-            message = Article.objects.filter(identifier=self.news_identifier).first()
+        if self.article is None and self.warning is None:
+            raise ValidationError("Either article or warning has to be set")
 
-        if message is not None:
-            self.project_identifier = message.project_identifier
-            super(Notification, self).save(*args, **kwargs)
+        if self.project is None:
+            if self.article is not None:
+                self.project = self.article.project
+            elif self.warning is not None:
+                self.project = self.warning.project
+        
+        super().save(*args, **kwargs)

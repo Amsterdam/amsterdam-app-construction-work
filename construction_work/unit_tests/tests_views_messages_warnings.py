@@ -4,7 +4,6 @@ import base64
 import json
 import os
 import uuid
-from django.forms import model_to_dict
 
 from django.test import Client, TestCase
 
@@ -49,6 +48,23 @@ class TestApiProjectWarning(TestCase):
         WarningMessage.objects.all().delete()
         Project.objects.all().delete()
         ProjectManager.objects.all().delete()
+
+    def create_message_from_data(self, data, project_active=True) -> WarningMessage:
+        project = Project.objects.get(project_id=data.get("project_identifier"))
+        project.active = project_active
+        project.save()
+
+        project_manager = ProjectManager.objects.get(pk=data.get("project_manager_id"))
+
+        new_message = WarningMessage(
+            title=data.get("title"),
+            body=data.get("body"),
+            project=project,
+            project_manager=project_manager,
+        )
+        new_message.save()
+        return new_message
+
 
     def test_post_warning_message_valid(self):
         """Test posting valid warning message"""
@@ -138,16 +154,7 @@ class TestApiProjectWarning(TestCase):
             "project_identifier": "0000000000",
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
         }
-        project = Project.objects.get(project_id=data.get("project_identifier"))
-        project_manager = ProjectManager.objects.get(pk=data.get("project_manager_id"))
-
-        new_message = WarningMessage(
-            title=data.get("title"),
-            body=data.get("body"),
-            project=project,
-            project_manager=project_manager,
-        )
-        new_message.save()
+        new_message = self.create_message_from_data(data)
 
         result = self.client.get(f"{self.url}?id={new_message.pk}")
         self.assertEqual(result.status_code, 200)
@@ -172,19 +179,7 @@ class TestApiProjectWarning(TestCase):
             "project_identifier": "0000000000",
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
         }
-        project = Project.objects.get(project_id=data.get("project_identifier"))
-        project.active = False
-        project.save()
-
-        project_manager = ProjectManager.objects.get(pk=data.get("project_manager_id"))
-
-        new_message = WarningMessage(
-            title=data.get("title"),
-            body=data.get("body"),
-            project=project,
-            project_manager=project_manager,
-        )
-        new_message.save()
+        new_message = self.create_message_from_data(data, project_active=False)
 
         result = self.client.get(f"{self.url}?id={new_message.pk}")
         self.assertEqual(result.status_code, 404)
@@ -194,92 +189,56 @@ class TestApiProjectWarning(TestCase):
         result = self.client.get(f"{self.url}")
         self.assertEqual(result.status_code, 400)
 
-    def test_get_warning_message_invalid_identifier(self):
-        """test get warning message with invalid identifier"""
+    def test_get_warning_message_invalid_id(self):
+        """Test get warning message with invalid identifier"""
         result = self.client.get(f"{self.url}?id=9999")
         self.assertEqual(result.status_code, 404)
         self.assertDictEqual(result.data, {"status": False, "result": "No record found"})
 
-    def test_get_warning_message_project_identifier_does_not_exist(self):
-        """test get warning message but identifier does not exist"""
+    def test_get_warning_message_project_id_does_not_exist(self):
+        """Test get warning message but identifier does not exist"""
         result = self.client.get(f"{self.url}?id=1111111111")
 
         self.assertEqual(result.status_code, 404)
         self.assertDictEqual(result.data, {"status": False, "result": messages.no_record_found})
 
-    # def test_get_warning_messages_no_project_identifier(self):
-    #     """test get warning message but project identifier is missing"""
-    #     data = {
-    #         "title": "foobar title",
-    #         "body": "foobar body",
-    #         "project_identifier": "0000000000",
-    #         "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-    #     }
-    #     project = Project.objects.get(project_id=data.get("project_identifier"))
-    #     project.active = False
-    #     project.save()
+    def test_post_warning_message_image_upload(self):
+        """Test uploading image for warning message"""
+        data = {
+            "title": "foobar title",
+            "body": "foobar body",
+            "project_identifier": "0000000000",
+            "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        }
+        warning_message = self.create_message_from_data(data)
 
-    #     project_manager = ProjectManager.objects.get(pk=data.get("project_manager_id"))
+        path = "{cwd}/construction_work/unit_tests/image_data/portrait.jpg".format(cwd=os.getcwd())
+        base64_image_data = base64.b64encode(self.read_file(path)).decode("utf-8")
 
-    #     new_message = WarningMessage(
-    #         title=data.get("title"),
-    #         body=data.get("body"),
-    #         project=project,
-    #         project_manager=project_manager,
-    #     )
-    #     new_message.save()
+        image_data = {
+            "image": {"main": "true", "data": base64_image_data, "description": "unittest"},
+            "project_warning_id": str(warning_message.identifier),
+        }
 
-    #     result = self.client.get("{url}".format(url=self.url_warnings_get))
-    #     self.assertEqual(result.status_code, 200)
+        result = self.client.post(
+            "{url}/image".format(url=self.url),
+            json.dumps(image_data),
+            headers=self.headers,
+            content_type=self.content_type,
+        )
 
-    #     result_data = json.loads(result.content.decode("utf-8"))
-    #     self.assertEqual(len(result_data["result"]), 1)
+        self.assertEqual(result.status_code, 200)
+        self.assertDictEqual(result.data, {"status": True, "result": "Images stored in database"})
 
-    # def test_post_warning_message_image_upload(self):
-    #     """test uploading image for warning message"""
-    #     data = {
-    #         "title": "title",
-    #         "project_identifier": "0000000000",
-    #         "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-    #         "body": "Body text",
-    #     }
-
-    #     result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
-
-    #     warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
-
-    #     self.assertEqual(result.status_code, 200)
-    #     self.assertDictEqual(
-    #         result.data, {"status": True, "result": {"warning_identifier": str(warning_message.identifier)}}
-    #     )
-
-    #     path = "{cwd}/construction_work/unit_tests/image_data/portrait.jpg".format(cwd=os.getcwd())
-    #     base64_image_data = base64.b64encode(self.read_file(path)).decode("utf-8")
-
-    #     image_data = {
-    #         "image": {"main": "true", "data": base64_image_data, "description": "unittest"},
-    #         "project_warning_id": str(warning_message.identifier),
-    #     }
-
-    #     result = self.client.post(
-    #         "{url}/image".format(url=self.url),
-    #         json.dumps(image_data),
-    #         headers=self.headers,
-    #         content_type=self.content_type,
-    #     )
-
-    #     self.assertEqual(result.status_code, 200)
-    #     self.assertDictEqual(result.data, {"status": True, "result": "Images stored in database"})
-
-    #     warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
-    #     self.assertEqual(len(warning_message.images), 1)
-    #     sources = warning_message.images[0]["sources"]
-    #     self.assertEqual(len(sources), 5)
-    #     for source in sources:
-    #         image = Image.objects.filter(pk=source["image_id"]).first()
-    #         self.assertEqual(image.url, "db://construction_work.warning_message/{id}".format(id=source["image_id"]))
-    #         self.assertEqual(image.mime_type, source["mime_type"])
-    #         self.assertEqual(image.size, "{width}x{height}".format(width=source["width"], height=source["height"]))
+        warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
+        self.assertEqual(len(warning_message.images), 1)
+        sources = warning_message.images[0]["sources"]
+        self.assertEqual(len(sources), 5)
+        for source in sources:
+            image = Image.objects.filter(pk=source["image_id"]).first()
+            self.assertEqual(image.url, "db://construction_work.warning_message/{id}".format(id=source["image_id"]))
+            self.assertEqual(image.mime_type, source["mime_type"])
+            self.assertEqual(image.size, "{width}x{height}".format(width=source["width"], height=source["height"]))
 
     # def test_post_warning_message_unsupported_image_upload(self):
     #     """test uploading an unsupported image format"""
