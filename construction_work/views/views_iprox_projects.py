@@ -28,7 +28,7 @@ from construction_work.serializers import (
     ArticleSerializer,
     DeviceSerializer,
     ProjectDetailsSerializer,
-    WarningMessagesExternalSerializer,
+    WarningMessagePublicSerializer,
 )
 from construction_work.swagger.swagger_views_iprox_projects import (
     as_project_details,
@@ -387,7 +387,7 @@ def project_details(request):
                 publication_date__range=[start_date, end_date],
             ).all()
         )
-        serializer_warning = WarningMessagesExternalSerializer(
+        serializer_warning = WarningMessagePublicSerializer(
             warning_articles, many=True
         )
         project_data["recent_articles"] = [

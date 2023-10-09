@@ -1,4 +1,5 @@
 """ Serializers for DB models """
+from ast import List
 from datetime import datetime, timedelta
 from rest_framework import serializers
 from construction_work.generic_functions.distance import GeoPyDistance
@@ -27,7 +28,7 @@ class AssetsSerializer(serializers.ModelSerializer):
 
 class ImageSerializer(serializers.ModelSerializer):
     """Image serializer (iprox images)"""
-    
+
     # TODO: url, size, landscape
 
     class Meta:
@@ -119,11 +120,13 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
         articles_max_age = self.context.get("articles_max_age")
         start_date = datetime.now() - timedelta(days=int(articles_max_age))
         end_date = datetime.now()
-        articles = obj.article_set.filter(publication_date__range=[start_date, end_date]).all()
+        articles = obj.article_set.filter(
+            publication_date__range=[start_date, end_date]
+        ).all()
 
         article_serializer = ArticleSerializer(articles, many=True)
         all_articles.extend(article_serializer.data)
-        
+
         return all_articles
 
     def get_distance_from_project(self, lat: float, lon: float, obj: Project):
@@ -162,18 +165,48 @@ class WarningMessageSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class WarningMessagesExternalSerializer(serializers.ModelSerializer):
+class WarningMessagePublicSerializer(serializers.ModelSerializer):
     """warning messages (external) serializer"""
 
     # TODO: add warning image data as dict
+    images = serializers.SerializerMethodField()
 
     class Meta:
         model = WarningMessage
         exclude = ["project_manager"]
 
+    def get_images(self, obj: WarningMessage):
+        base_url = self.context.get("base_url")
+        warning_images: List[WarningImage] = obj.warningimage_set.all()
+
+        images = []
+        for warning_image in warning_images:
+            sources = []
+            first_image = warning_image.images.first()
+            for source_image in warning_image.images.all():
+                source = {
+                    "width": source_image.width,
+                    "height": source_image.height,
+                    "image_id": source_image.pk,
+                    "mime_type": source_image.mime_type,
+                    "url": f"{base_url}image?id={source_image.pk}",
+                }
+                sources.append(source)
+
+            image = {
+                "main": warning_image.is_main,
+                "sources": sources,
+                "landscape": bool(first_image.width > first_image.height),
+                "coordinates": first_image.coordinates,
+                "description": first_image.description,
+                "aspect_ratio": first_image.aspect_ratio,
+            }
+            images.append(image)
+
+        return images
+
 
 class WarningImageSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = WarningImage
         fields = "__all__"

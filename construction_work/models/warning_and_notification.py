@@ -46,8 +46,12 @@
 
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.dispatch import receiver
+from django.db.models.signals import pre_delete
 
-from construction_work.generic_functions.static_data import DEFAULT_WARNING_MESSAGE_EMAIL
+from construction_work.generic_functions.static_data import (
+    DEFAULT_WARNING_MESSAGE_EMAIL,
+)
 from construction_work.models.asset_and_image import Image
 
 from construction_work.models.project import Project
@@ -79,7 +83,7 @@ class WarningMessage(models.Model):
         self.author_email = DEFAULT_WARNING_MESSAGE_EMAIL
         if self.project_manager is not None:
             self.author_email = self.project_manager.email
-            
+
         super().save(*args, **kwargs)
 
 
@@ -88,12 +92,11 @@ class WarningImage(models.Model):
     is_main = models.BooleanField(default=False)
     images = models.ManyToManyField(Image)
 
-    def delete(self, *args, **kwargs):
-        # Delete associated images before deleting the warning
-        for image in self.images.all():
-            image.delete()
 
-        super().delete(*args, **kwargs)
+@receiver(pre_delete, sender=WarningImage)
+def remove_images_for_warning_message(sender, instance, **kwargs):
+    for image in instance.images.all():
+        image.delete()
 
 
 class Notification(models.Model):
@@ -109,9 +112,15 @@ class Notification(models.Model):
 
     title = models.CharField(max_length=1000)
     body = models.TextField()
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, blank=True, null=False)
-    article = models.ForeignKey(Article, on_delete=models.CASCADE, blank=True, null=True)
-    warning = models.ForeignKey(WarningMessage, on_delete=models.CASCADE, blank=True, null=True)
+    project = models.ForeignKey(
+        Project, on_delete=models.CASCADE, blank=True, null=False
+    )
+    article = models.ForeignKey(
+        Article, on_delete=models.CASCADE, blank=True, null=True
+    )
+    warning = models.ForeignKey(
+        WarningMessage, on_delete=models.CASCADE, blank=True, null=True
+    )
     publication_date = models.DateTimeField(auto_now_add=True, blank=True)
 
     def save(self, *args, **kwargs):
@@ -123,5 +132,5 @@ class Notification(models.Model):
                 self.project = self.article.project
             elif self.warning is not None:
                 self.project = self.warning.project
-        
+
         super().save(*args, **kwargs)

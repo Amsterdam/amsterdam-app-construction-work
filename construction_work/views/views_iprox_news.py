@@ -8,7 +8,7 @@ from construction_work.generic_functions.set_filter import SetFilter
 from construction_work.generic_functions.sort import Sort
 from construction_work.generic_functions.static_data import StaticData
 from construction_work.models import Article, WarningMessage
-from construction_work.serializers import ArticleSerializer, WarningMessagesExternalSerializer
+from construction_work.serializers import ArticleSerializer, WarningMessagePublicSerializer
 from construction_work.swagger.swagger_views_iprox_news import as_article, as_articles_get, as_news_by_project_id
 
 message = Messages()
@@ -95,12 +95,12 @@ def articles(request):
 
             warning_objects = list(WarningMessage.objects.filter(project_identifier=project_identifier).all())
             for warning_object in warning_objects:
-                result += filtering([WarningMessagesExternalSerializer(warning_object, many=False).data], "warning")
+                result += filtering([WarningMessagePublicSerializer(warning_object, many=False).data], "warning")
     else:
         news_objects = Article.objects.all()
         news_serializer = ArticleSerializer(news_objects, many=True)
         warning_objects = WarningMessage.objects.all()
-        warning_serializer = WarningMessagesExternalSerializer(warning_objects, many=True)
+        warning_serializer = WarningMessagePublicSerializer(warning_objects, many=True)
         result += filtering(news_serializer.data, "news")
         result += filtering(warning_serializer.data, "warning")
 

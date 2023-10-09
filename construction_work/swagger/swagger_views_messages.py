@@ -6,7 +6,7 @@
 from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
-from construction_work.serializers import NotificationSerializer, WarningMessagesExternalSerializer
+from construction_work.serializers import NotificationSerializer, WarningMessagePublicSerializer
 
 message = Messages()
 
@@ -166,7 +166,7 @@ as_warning_messages_get = {
     "responses": {
         200: openapi.Response(
             "application/json",
-            WarningMessagesExternalSerializer,
+            WarningMessagePublicSerializer,
             examples={"application/json": {"status": True, "result": []}},
         ),
         404: openapi.Response("Error: Not Found"),
@@ -191,7 +191,7 @@ as_warning_message_get = {
     "responses": {
         200: openapi.Response(
             "application/json",
-            WarningMessagesExternalSerializer,
+            WarningMessagePublicSerializer,
             examples={"application/json": {"status": True, "result": {}}},
         ),
         404: openapi.Response("Error: Not Found"),

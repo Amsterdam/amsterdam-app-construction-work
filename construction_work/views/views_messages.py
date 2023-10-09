@@ -1,6 +1,5 @@
 """ Views for news, articles and warning messages """
 import base64
-import uuid
 
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
@@ -14,20 +13,18 @@ from construction_work.generic_functions.sort import Sort
 from construction_work.generic_functions.static_data import StaticData
 from construction_work.models import (
     Article,
-    Image,
     Notification,
     Project,
     ProjectManager,
     WarningMessage,
 )
-from construction_work.models.warning_and_notification import WarningImage
 from construction_work.push_notifications.send_notification import SendNotification
 from construction_work.serializers import (
     ImageSerializer,
     NotificationSerializer,
     WarningImageSerializer,
     WarningMessageSerializer,
-    WarningMessagesExternalSerializer,
+    WarningMessagePublicSerializer,
 )
 from construction_work.swagger.swagger_views_messages import (
     as_notification_get,
@@ -60,9 +57,7 @@ def warning_messages_get(request):
                     project_identifier=project.project_id
                 ).all()
 
-        serializer = WarningMessagesExternalSerializer(
-            warning_messages, many=True
-        )
+        serializer = WarningMessagePublicSerializer(warning_messages, many=True)
         result = Sort().list_of_dicts(
             serializer.data, key=sort_by, sort_order=sort_order
         )
@@ -77,9 +72,7 @@ def warning_messages_get(request):
         warning_messages = WarningMessage.objects.filter(
             project_identifier=project_id
         ).all()
-        serializer = WarningMessagesExternalSerializer(
-            warning_messages, many=True
-        )
+        serializer = WarningMessagePublicSerializer(warning_messages, many=True)
         result = Sort().list_of_dicts(
             serializer.data, key=sort_by, sort_order=sort_order
         )
@@ -147,18 +140,10 @@ def warning_message_get(request):
             "status_code": status.HTTP_404_NOT_FOUND,
         }
 
-    serializer = WarningMessagesExternalSerializer(message, many=False)
-    message_data = serializer.data
+    serializer = WarningMessagePublicSerializer(
+        message, many=False, context={"base_url": base_url}
+    )
 
-    # TODO: move this to serializer
-    for i in range(0, len(message_data["images"])):
-        for j in range(0, len(message_data["images"][i]["sources"])):
-            if "url" not in message_data["images"][i]["sources"][j]:
-                image_id = message_data["images"][i]["sources"][j]["image_id"]
-                message_data["images"][i]["sources"][j][
-                    "url"
-                ] = f"{base_url}image?id={image_id}"
-    
     return {
         "result": serializer.data,
         "status_code": status.HTTP_200_OK,
@@ -191,13 +176,17 @@ def warning_message_patch(request):
             "status_code": status.HTTP_404_NOT_FOUND,
         }
 
-    serializer = WarningMessageSerializer(instance=message, partial=True, data={
-        "title": title,
-        "body": body,
-    })
+    serializer = WarningMessageSerializer(
+        instance=message,
+        partial=True,
+        data={
+            "title": title,
+            "body": body,
+        },
+    )
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     serializer.save()
     return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -253,7 +242,7 @@ def warning_message_post(request):
     )
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
     serializer.save()
     return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -261,17 +250,17 @@ def warning_message_post(request):
 @IsAuthorized
 def warning_message_delete(request):
     """Delete warning message"""
-    identifier = request.GET.get("id", None)
-    if identifier is None:
+    message_id = request.GET.get("id", None)
+    if message_id is None:
         return {
             "result": {"status": False, "result": messages.invalid_query},
-            "status_code": 422,
+            "status_code": status.HTTP_400_BAD_REQUEST,
         }
 
-    WarningMessage.objects.filter(identifier=identifier).delete()
+    WarningMessage.objects.filter(pk=message_id).delete()
     return {
         "result": {"status": False, "result": "Message deleted"},
-        "status_code": 200,
+        "status_code": status.HTTP_200_OK,
     }
 
 
@@ -364,22 +353,32 @@ def warning_messages_image_upload(request):
     warning_id = request.data.get("project_warning_id", None)
 
     if None in [image_data, warning_id]:
-        return Response({"status": False, "result": messages.invalid_query}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"status": False, "result": messages.invalid_query},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     warning_message = WarningMessage.objects.filter(pk=warning_id).first()
     if warning_message is None:
         return Response(
-            {"status": False, "result": messages.no_record_found}, status=status.HTTP_404_NOT_FOUND
+            {"status": False, "result": messages.no_record_found},
+            status=status.HTTP_404_NOT_FOUND,
         )
 
     if "main" not in image_data:
-        return Response({"status": False, "result": messages.invalid_query}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"status": False, "result": messages.invalid_query},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     # Make sure we've got a boolean not a string
     image_data["main"] = bool(image_data["main"] in ["True", "true", True])
 
     if image_data.get("data") is None:
-        return Response({"status": False, "result": messages.invalid_query}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"status": False, "result": messages.invalid_query},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     # Get description
     description = image_data.get("description", f"Warning Message {warning_id}")
@@ -390,7 +389,8 @@ def warning_messages_image_upload(request):
     result = image_conversion.run()
     if result is False:
         return Response(
-            {"status": False, "result": messages.unsupported_image_format}, status=status.HTTP_400_BAD_REQUEST
+            {"status": False, "result": messages.unsupported_image_format},
+            status=status.HTTP_400_BAD_REQUEST,
         )
 
     # Store images into DB and build warning-messages images list
@@ -398,29 +398,38 @@ def warning_messages_image_upload(request):
     for key in image_conversion.images:  # pylint: disable=consider-using-dict-items
         # Build image object and save to database
         image = image_conversion.images[key]
-        image_serializer = ImageSerializer(data={
-            "data": image["data"],
-            "description": description,
-            "width": image["width"],
-            "height": image["height"],
-            "aspect_ratio": image_conversion.aspect_ratio,
-            "coordinates": image_conversion.gps_info,
-            "mime_type": image["mime_type"],
-        })
+        image_serializer = ImageSerializer(
+            data={
+                "data": image["data"],
+                "description": description,
+                "width": image["width"],
+                "height": image["height"],
+                "aspect_ratio": image_conversion.aspect_ratio,
+                "coordinates": image_conversion.gps_info,
+                "mime_type": image["mime_type"],
+            }
+        )
         if not image_serializer.is_valid():
             return Response(image_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         image_object = image_serializer.save()
         sources.append(image_object)
 
     image_ids = [image.pk for image in sources]
-    warning_image_serializer = WarningImageSerializer(data={
-        "warning": warning_message.pk,
-        "is_main": image_data["main"],
-        "images": image_ids,
-    })
+    warning_image_serializer = WarningImageSerializer(
+        data={
+            "warning": warning_message.pk,
+            "is_main": image_data["main"],
+            "images": image_ids,
+        }
+    )
 
     if not warning_image_serializer.is_valid():
-        return Response(warning_image_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            warning_image_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+        )
     warning_image_serializer.save()
 
-    return Response({"status": True, "result": "Images stored in database"}, status=status.HTTP_200_OK)
+    return Response(
+        {"status": True, "result": "Images stored in database"},
+        status=status.HTTP_200_OK,
+    )
