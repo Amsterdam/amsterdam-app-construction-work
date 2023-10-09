@@ -14,6 +14,7 @@ from construction_work.models import (
 )
 from construction_work.models.device import Device
 from construction_work.models.project import DISTRICTS
+from construction_work.models.warning_and_notification import WarningImage
 
 
 class AssetsSerializer(serializers.ModelSerializer):
@@ -169,6 +170,13 @@ class WarningMessagesExternalSerializer(serializers.ModelSerializer):
     class Meta:
         model = WarningMessage
         exclude = ["project_manager"]
+
+
+class WarningImageSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = WarningImage
+        fields = "__all__"
 
 
 class NotificationSerializer(serializers.ModelSerializer):

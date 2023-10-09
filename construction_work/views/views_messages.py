@@ -20,9 +20,12 @@ from construction_work.models import (
     ProjectManager,
     WarningMessage,
 )
+from construction_work.models.warning_and_notification import WarningImage
 from construction_work.push_notifications.send_notification import SendNotification
 from construction_work.serializers import (
+    ImageSerializer,
     NotificationSerializer,
+    WarningImageSerializer,
     WarningMessageSerializer,
     WarningMessagesExternalSerializer,
 )
@@ -387,7 +390,7 @@ def warning_messages_image_upload(request):
     result = image_conversion.run()
     if result is False:
         return Response(
-            {"status": False, "result": messages.unsupported_image_format}, status=422
+            {"status": False, "result": messages.unsupported_image_format}, status=status.HTTP_400_BAD_REQUEST
         )
 
     # Store images into DB and build warning-messages images list
@@ -395,42 +398,29 @@ def warning_messages_image_upload(request):
     for key in image_conversion.images:  # pylint: disable=consider-using-dict-items
         # Build image object and save to database
         image = image_conversion.images[key]
-        identifier = uuid.uuid4().hex
-        image_object = Image(
-            identifier=identifier,
-            size="{width}x{height}".format(
-                width=image["width"], height=image["height"]
-            ),
-            url="db://construction_work.warning_message/{identifier}".format(
-                identifier=identifier
-            ),
-            filename=image["filename"],
-            description=description,
-            mime_type=image["mime_type"],
-            data=image["data"],
-        )
-        image_object.save()
-        sources.append(
-            {
-                "image_id": identifier,
-                "mime_type": image["mime_type"],
-                "width": image["width"],
-                "height": image["height"],
-            }
-        )
+        image_serializer = ImageSerializer(data={
+            "data": image["data"],
+            "description": description,
+            "width": image["width"],
+            "height": image["height"],
+            "aspect_ratio": image_conversion.aspect_ratio,
+            "coordinates": image_conversion.gps_info,
+            "mime_type": image["mime_type"],
+        })
+        if not image_serializer.is_valid():
+            return Response(image_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        image_object = image_serializer.save()
+        sources.append(image_object)
 
-    # Update warning-message with new images
-    warning_message_image = {
-        "main": image_data.get("main"),
-        "aspect_ratio": image_conversion.aspect_ratio,
-        "description": description,
-        "coordinates": image_conversion.gps_info,
-        "landscape": image_conversion.landscape,
-        "sources": sources,  # list; created earlier
-    }
+    image_ids = [image.pk for image in sources]
+    warning_image_serializer = WarningImageSerializer(data={
+        "warning": warning_message.pk,
+        "is_main": image_data["main"],
+        "images": image_ids,
+    })
 
-    warning_message = WarningMessage.objects.filter(pk=warning_id).first()
-    warning_message.images.append(warning_message_image)
-    warning_message.save()
+    if not warning_image_serializer.is_valid():
+        return Response(warning_image_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    warning_image_serializer.save()
 
-    return Response({"status": True, "result": "Images stored in database"}, status=200)
+    return Response({"status": True, "result": "Images stored in database"}, status=status.HTTP_200_OK)
