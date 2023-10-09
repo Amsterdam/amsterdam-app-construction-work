@@ -71,7 +71,6 @@ class WarningMessage(models.Model):
     body = models.TextField()
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     project_manager = models.ForeignKey(ProjectManager, on_delete=models.PROTECT)
-    images = models.ManyToManyField(Image, blank=True)
     publication_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True)
     author_email = models.EmailField(null=True, blank=True)
