@@ -89,6 +89,11 @@ def iprox_project(request):
     """View for directly importing raw iprox data"""
     iprox_data = request.data
 
+    # if iprox_data.get("created") is None:
+    #     iprox_data["created"] = datetime.now()
+    if iprox_data.get("modified") is None:
+        iprox_data["modified"] = iprox_data["publicationDate"]
+
     project_data = {
         "project_id": iprox_data.get("id"),
         "publication_date": iprox_data.get("publicationDate").split("T")[0],
@@ -112,7 +117,7 @@ def iprox_project(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-# @IsAuthorized
+@IsAuthorized
 @api_view(["POST"])
 def iprox_article(request):
     """View for directly importing raw iprox data"""
