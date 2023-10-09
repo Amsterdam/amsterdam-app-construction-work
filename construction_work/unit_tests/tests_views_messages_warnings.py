@@ -10,6 +10,7 @@ from django.test import Client, TestCase
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.aes_cipher import AESCipher
 from construction_work.models import Image, Project, ProjectManager, WarningMessage, project
+from construction_work.serializers import WarningMessagePublicSerializer, WarningMessageSerializer
 from construction_work.unit_tests.mock_data import TestData
 
 messages = Messages()
@@ -217,7 +218,7 @@ class TestApiProjectWarning(TestCase):
 
         image_data = {
             "image": {"main": "true", "data": base64_image_data, "description": "unittest"},
-            "project_warning_id": str(warning_message.identifier),
+            "project_warning_id": str(warning_message.pk),
         }
 
         result = self.client.post(
@@ -230,15 +231,25 @@ class TestApiProjectWarning(TestCase):
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(result.data, {"status": True, "result": "Images stored in database"})
 
-        warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
-        self.assertEqual(len(warning_message.images), 1)
-        sources = warning_message.images[0]["sources"]
+        warning_message = WarningMessage.objects.filter(project__project_id="0000000000").first()
+        self.assertEqual(len(warning_message.warningimage_set.all()), 1)
+
+        warning_message_serializer = WarningMessagePublicSerializer(instance=warning_message)
+        warning_message_serializer.data
+
+        warning_image = warning_message_serializer.data.get("images")[0]
+        sources = warning_image.get("sources")
         self.assertEqual(len(sources), 5)
         for source in sources:
             image = Image.objects.filter(pk=source["image_id"]).first()
-            self.assertEqual(image.url, "db://construction_work.warning_message/{id}".format(id=source["image_id"]))
+            self.assertEqual(image.description, warning_image["description"])
+            self.assertEqual(image.aspect_ratio, warning_image["aspect_ratio"])
+            self.assertEqual(image.coordinates, warning_image["coordinates"])
+
+            self.assertEqual(image.width, source["width"])
+            self.assertEqual(image.height, source["height"])
             self.assertEqual(image.mime_type, source["mime_type"])
-            self.assertEqual(image.size, "{width}x{height}".format(width=source["width"], height=source["height"]))
+
 
     # def test_post_warning_message_unsupported_image_upload(self):
     #     """test uploading an unsupported image format"""
