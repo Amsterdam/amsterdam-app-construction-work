@@ -2,29 +2,23 @@
 import base64
 
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.image_conversion import ImageConversion
 from construction_work.generic_functions.is_authorized import IsAuthorized
 from construction_work.generic_functions.sort import Sort
 from construction_work.generic_functions.static_data import StaticData
-from construction_work.models import (
-    Article,
-    Notification,
-    Project,
-    ProjectManager,
-    WarningMessage,
-)
+from construction_work.models import Article, Notification, Project, ProjectManager, WarningMessage
 from construction_work.push_notifications.send_notification import SendNotification
 from construction_work.serializers import (
     ImageSerializer,
     NotificationSerializer,
     WarningImageSerializer,
-    WarningMessageSerializer,
     WarningMessagePublicSerializer,
+    WarningMessageSerializer,
 )
 from construction_work.swagger.swagger_views_messages import (
     as_notification_get,
@@ -53,14 +47,10 @@ def warning_messages_get(request):
         projects = Project.objects.all()
         for project in projects:
             if project.active is True:
-                warning_messages += WarningMessage.objects.filter(
-                    project_identifier=project.project_id
-                ).all()
+                warning_messages += WarningMessage.objects.filter(project_identifier=project.project_id).all()
 
         serializer = WarningMessagePublicSerializer(warning_messages, many=True)
-        result = Sort().list_of_dicts(
-            serializer.data, key=sort_by, sort_order=sort_order
-        )
+        result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
         return Response({"status": True, "result": result}, 200)
 
     project = Project.objects.filter(pk=project_id).first()
@@ -69,13 +59,9 @@ def warning_messages_get(request):
 
     result = []
     if project.active is True:
-        warning_messages = WarningMessage.objects.filter(
-            project_identifier=project_id
-        ).all()
+        warning_messages = WarningMessage.objects.filter(project_identifier=project_id).all()
         serializer = WarningMessagePublicSerializer(warning_messages, many=True)
-        result = Sort().list_of_dicts(
-            serializer.data, key=sort_by, sort_order=sort_order
-        )
+        result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
     return Response({"status": True, "result": result}, 200)
 
 
@@ -140,9 +126,7 @@ def warning_message_get(request):
             "status_code": status.HTTP_404_NOT_FOUND,
         }
 
-    serializer = WarningMessagePublicSerializer(
-        message, many=False, context={"base_url": base_url}
-    )
+    serializer = WarningMessagePublicSerializer(message, many=False, context={"base_url": base_url})
 
     return {
         "result": serializer.data,
@@ -157,7 +141,7 @@ def warning_message_patch(request):
     body = request.data.get("body", None)
     message_id = request.data.get("identifier", None)
 
-    if None in [title, message_id]:
+    if None in [title, message_id] or not isinstance(message_id, int):
         return {
             "result": {"status": False, "result": messages.invalid_query},
             "status_code": status.HTTP_400_BAD_REQUEST,
@@ -188,7 +172,10 @@ def warning_message_patch(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     serializer.save()
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    return {
+        "result": {"status": True, "result": "Message patched"},
+        "status_code": status.HTTP_200_OK,
+    }
 
 
 @IsAuthorized
@@ -244,7 +231,10 @@ def warning_message_post(request):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     serializer.save()
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    return {
+        "result": serializer.data,
+        "status_code": status.HTTP_200_OK,
+    }
 
 
 @IsAuthorized
@@ -280,21 +270,11 @@ def notification_post(request):
     if news_identifier is None and warning_identifier is None:
         return Response({"status": False, "result": messages.invalid_query}, status=422)
 
-    if (
-        news_identifier is not None
-        and Article.objects.filter(identifier=news_identifier).first() is None
-    ):
-        return Response(
-            {"status": False, "result": messages.no_record_found}, status=404
-        )
+    if news_identifier is not None and Article.objects.filter(identifier=news_identifier).first() is None:
+        return Response({"status": False, "result": messages.no_record_found}, status=404)
 
-    if (
-        warning_identifier is not None
-        and WarningMessage.objects.filter(pk=warning_identifier).first() is None
-    ):
-        return Response(
-            {"status": False, "result": messages.no_record_found}, status=404
-        )
+    if warning_identifier is not None and WarningMessage.objects.filter(pk=warning_identifier).first() is None:
+        return Response({"status": False, "result": messages.no_record_found}, status=404)
 
     notification = Notification(
         title=title,
@@ -311,9 +291,7 @@ def notification_post(request):
     notification_services.send_multicast_and_handle_errors()
 
     # Send response to end-user
-    return Response(
-        {"status": True, "result": "push-notification accepted"}, status=200
-    )
+    return Response({"status": True, "result": "push-notification accepted"}, status=200)
 
 
 @swagger_auto_schema(**as_notification_get)
@@ -331,15 +309,11 @@ def notification_get(request):
     for project_identifier in project_identifiers:
         project = Project.objects.filter(pk=project_identifier).first()
         if project is not None and project.active is True:
-            notifications += list(
-                Notification.objects.filter(project_identifier=project_identifier).all()
-            )
+            notifications += list(Notification.objects.filter(project_identifier=project_identifier).all())
 
     serializer = NotificationSerializer(notifications, many=True)
     if len(serializer.data) != 0:
-        result = Sort().list_of_dicts(
-            serializer.data, key=sort_by, sort_order=sort_order
-        )
+        result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
         return Response({"status": True, "result": result}, status=200)
     return Response({"status": False, "result": messages.no_record_found}, status=404)
 
@@ -352,7 +326,7 @@ def warning_messages_image_upload(request):
     image_data = request.data.get("image", None)
     warning_id = request.data.get("project_warning_id", None)
 
-    if None in [image_data, warning_id]:
+    if None in [image_data, warning_id] or not isinstance(warning_id, int):
         return Response(
             {"status": False, "result": messages.invalid_query},
             status=status.HTTP_400_BAD_REQUEST,
@@ -424,9 +398,7 @@ def warning_messages_image_upload(request):
     )
 
     if not warning_image_serializer.is_valid():
-        return Response(
-            warning_image_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-        )
+        return Response(warning_image_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     warning_image_serializer.save()
 
     return Response(

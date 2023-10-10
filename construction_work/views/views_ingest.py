@@ -1,16 +1,16 @@
 """ Views for ingestion routes """
+import json
 from datetime import datetime
 
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
 
 from construction_work.api_messages import Messages
 from construction_work.garbage_collector.garbage_collector import GarbageCollector
 from construction_work.generic_functions.generic_logger import Logger
 from construction_work.generic_functions.is_authorized import IsAuthorized
-
 from construction_work.models import Article, Project
 from construction_work.serializers import ArticleSerializer, ProjectCreateSerializer
 from construction_work.swagger.swagger_views_ingestion import as_garbage_collector
@@ -51,19 +51,13 @@ def article(request):
         ).first()
         if news_item_object is None:
             data["project_identifier"] = _project
-            news_item_object = Article(
-                **data
-            )  # Update last scrape time is done implicitly
+            news_item_object = Article(**data)  # Update last scrape time is done implicitly
             news_item_object.save()
-            return Response(
-                {"status": True, "result": f"{_type} item saved"}, status=200
-            )
+            return Response({"status": True, "result": f"{_type} item saved"}, status=200)
 
         # Else...
         data["last_seen"] = datetime.now()  # Update last scrape time
-        Article.objects.filter(
-            identifier=data.get("identifier"), project_identifier=_project
-        ).update(**data)
+        Article.objects.filter(identifier=data.get("identifier"), project_identifier=_project).update(**data)
         return Response({"status": True, "result": f"{_type} item updated"}, status=200)
     except Exception as error:
         logger.error("ingest/news: {error}".format(error=error))
@@ -87,19 +81,24 @@ def garbage_collector(request):
 @api_view(["POST"])
 def iprox_project(request):
     """View for directly importing raw iprox data"""
-    iprox_data = request.data
+    iprox_raw_data = request.data
+    iprox_data = json.loads(iprox_raw_data)
 
-    # if iprox_data.get("created") is None:
-    #     iprox_data["created"] = datetime.now()
+    if iprox_data.get("created") is None:
+        iprox_data["created"] = datetime.now()
     if iprox_data.get("modified") is None:
-        iprox_data["modified"] = iprox_data["publicationDate"]
+        iprox_data["modified"] = iprox_data["created"]
+
+    title_and_subtitle = iprox_data.get("title", "").split(": ")
+    title = title_and_subtitle[0]
+    subtitle = "" if len(title_and_subtitle) == 1 else title_and_subtitle[1]
 
     project_data = {
         "project_id": iprox_data.get("id"),
         "publication_date": iprox_data.get("publicationDate").split("T")[0],
         "modification_date": iprox_data.get("modified").split("T")[0],
-        "title": iprox_data.get("title"),
-        "subtitle": iprox_data.get("subtitle"),
+        "title": title,
+        "subtitle": subtitle,
         "body": iprox_data.get("sections"),
         "content_html": "<html/>",
         "district_id": 1,
