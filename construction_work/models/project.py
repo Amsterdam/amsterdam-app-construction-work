@@ -109,10 +109,10 @@ class Project(models.Model):
     image = models.JSONField(blank=True, null=True, default=dict)
     images = models.JSONField(blank=True, null=True, default=list)
     url = models.URLField(max_length=2048, blank=True, null=True)
-    creation_date = models.DateField(default=timezone.now)  # If no date is provided use the current date
-    modification_date = models.DateField(default=timezone.now)  # If no date is provided use the current date
-    publication_date = models.DateField(default=None, null=True)
-    expiration_date = models.DateField(default=None, null=True)
+    creation_date = models.DateTimeField(default=timezone.now)  # If no date is provided use the current date
+    modification_date = models.DateTimeField(default=timezone.now)  # If no date is provided use the current date
+    publication_date = models.DateTimeField(default=None, null=True)
+    expiration_date = models.DateTimeField(default=None, null=True)
 
     class Meta:
         ordering = ["title"]
