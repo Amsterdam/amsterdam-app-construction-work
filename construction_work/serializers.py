@@ -1,20 +1,12 @@
 """ Serializers for DB models """
 from ast import List
 from datetime import datetime, timedelta
-from rest_framework import serializers
-from construction_work.generic_functions.distance import GeoPyDistance
 
-from construction_work.models import (
-    Article,
-    Asset,
-    Image,
-    Notification,
-    Project,
-    ProjectManager,
-    WarningMessage,
-)
+from rest_framework import serializers
+
+from construction_work.generic_functions.distance import GeoPyDistance
+from construction_work.models import Article, Asset, Image, Notification, Project, ProjectManager, WarningMessage
 from construction_work.models.device import Device
-from construction_work.models.project import DISTRICTS
 from construction_work.models.warning_and_notification import WarningImage
 
 
@@ -47,11 +39,6 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
 class ProjectDetailsSerializer(serializers.ModelSerializer):
     """Project details serializer"""
 
-    # NOTE: remove when frontend has implemented project_id
-    identifier = serializers.CharField(source="project_id")
-
-    district_name = serializers.SerializerMethodField()
-    source_url = serializers.SerializerMethodField()
     meter = serializers.SerializerMethodField()
     strides = serializers.SerializerMethodField()
 
@@ -65,14 +52,15 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
         model = Project
         fields = "__all__"
 
-    def __init__(self, instance=None, data={}, **kwargs):
+    def __init__(self, instance=None, data=None, **kwargs):
         super().__init__(instance, data, **kwargs)
 
+        if data is None:
+            data = {}
         self.distance = None
         lat = self.context.get("lat")
         lon = self.context.get("lon")
-        if lat is not None and lon is not None:
-            self.distance = self.get_distance_from_project(lat, lon, instance)
+        self.distance = self.get_distance_from_project(lat, lon, instance)
 
     def get_field_names(self, *args, **kwargs):
         field_names = self.context.get("fields", None)
@@ -80,25 +68,13 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
             return field_names
         return super().get_field_names(*args, **kwargs)
 
-    def get_district_name(self, obj: Project) -> str:
-        """Get district name by district id"""
-        return DISTRICTS.get(obj.district_id)
-
-    def get_source_url(self, obj: Project) -> str:
-        """Build source url with project id"""
-        return f"https://amsterdam.nl/@{obj.project_id}/page/?AppIdt=app-pagetype&reload=true"
-
     def get_meter(self, _) -> int:
         """Get meters from distance obj"""
-        if self.distance:
-            return self.distance.meter
-        return None
+        return self.distance.meter
 
     def get_strides(self, _) -> int:
         """Get strides from distance obj"""
-        if self.distance:
-            return self.distance.strides
-        return None
+        return self.distance.strides
 
     def get_followers(self, obj: Project) -> int:
         """Get amount of followers of project"""
@@ -120,9 +96,7 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
         articles_max_age = self.context.get("articles_max_age")
         start_date = datetime.now() - timedelta(days=int(articles_max_age))
         end_date = datetime.now()
-        articles = obj.article_set.filter(
-            publication_date__range=[start_date, end_date]
-        ).all()
+        articles = obj.article_set.filter(publication_date__range=[start_date, end_date]).all()
 
         article_serializer = ArticleSerializer(articles, many=True)
         all_articles.extend(article_serializer.data)
@@ -131,7 +105,8 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
 
     def get_distance_from_project(self, lat: float, lon: float, obj: Project):
         """Get distance from project"""
-        cords_1 = (float(lat), float(lon))
+        # NOTE: Check if None check is needed
+        cords_1 = lat, lon
         cords_2 = (obj.coordinates.get("lat"), obj.coordinates.get("lon"))
         if None in cords_2:
             cords_2 = (None, None)

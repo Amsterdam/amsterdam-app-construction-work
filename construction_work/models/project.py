@@ -81,22 +81,11 @@ from datetime import datetime
 from django.db import models
 from django.utils import timezone
 
-DISTRICTS = {
-    5398: "Centrum",
-    5520: "Nieuw-West",
-    5565: "Noord",
-    5399: "Oost",
-    7196: "Weesp",
-    5397: "West",
-    5396: "Zuid",
-    5393: "Zuidoost",
-}
-
 
 class Project(models.Model):
     """Projects db model"""
 
-    project_id = models.IntegerField(blank=False, unique=True, null=False)
+    project_id = models.BigIntegerField(blank=False, unique=True, null=False)
 
     active = models.BooleanField(default=True, blank=True)
     last_seen = models.DateTimeField(null=True, blank=True)
