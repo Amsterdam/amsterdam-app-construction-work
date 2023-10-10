@@ -66,7 +66,6 @@ class TestApiProjectWarning(TestCase):
         new_message.save()
         return new_message
 
-
     def test_post_warning_message_valid(self):
         """Test posting valid warning message"""
         data = {
@@ -218,7 +217,7 @@ class TestApiProjectWarning(TestCase):
 
         image_data = {
             "image": {"main": "true", "data": base64_image_data, "description": "unittest"},
-            "project_warning_id": str(warning_message.pk),
+            "project_warning_id": warning_message.pk,
         }
 
         result = self.client.post(
@@ -235,7 +234,6 @@ class TestApiProjectWarning(TestCase):
         self.assertEqual(len(warning_message.warningimage_set.all()), 1)
 
         warning_message_serializer = WarningMessagePublicSerializer(instance=warning_message)
-        warning_message_serializer.data
 
         warning_image = warning_message_serializer.data.get("images")[0]
         sources = warning_image.get("sources")
@@ -250,281 +248,258 @@ class TestApiProjectWarning(TestCase):
             self.assertEqual(image.height, source["height"])
             self.assertEqual(image.mime_type, source["mime_type"])
 
+    def test_post_warning_message_unsupported_image_upload(self):
+        """test uploading an unsupported image format"""
+        data = {
+            "title": "title",
+            "project_identifier": "0000000000",
+            "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            "body": "Body text",
+        }
+        warning_message = self.create_message_from_data(data)
 
-    # def test_post_warning_message_unsupported_image_upload(self):
-    #     """test uploading an unsupported image format"""
-    #     data = {
-    #         "title": "title",
-    #         "project_identifier": "0000000000",
-    #         "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-    #         "body": "Body text",
-    #     }
+        base64_image_data = base64.b64encode(b"0xff").decode("utf-8")
 
-    #     result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+        image_data = {
+            "image": {"main": "true", "data": base64_image_data, "description": "unittest"},
+            "project_warning_id": warning_message.pk,
+        }
 
-    #     warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
+        result = self.client.post(
+            "{url}/image".format(url=self.url),
+            json.dumps(image_data),
+            headers=self.headers,
+            content_type=self.content_type,
+        )
 
-    #     self.assertEqual(result.status_code, 200)
-    #     self.assertDictEqual(
-    #         result.data, {"status": True, "result": {"warning_identifier": str(warning_message.identifier)}}
-    #     )
+        self.assertEqual(result.status_code, 400)
+        self.assertDictEqual(result.data, {"status": False, "result": messages.unsupported_image_format})
 
-    #     base64_image_data = base64.b64encode(b"0xff").decode("utf-8")
+        warning_message = WarningMessage.objects.filter(project__project_id="0000000000").first()
+        self.assertEqual(len(warning_message.warningimage_set.all()), 0)
 
-    #     image_data = {
-    #         "image": {"main": "true", "data": base64_image_data, "description": "unittest"},
-    #         "project_warning_id": str(warning_message.identifier),
-    #     }
+    def test_post_warning_message_image_upload_no_data(self):
+        """test uploading an image without any data"""
+        data = {
+            "title": "title",
+            "project_identifier": "0000000000",
+            "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            "body": "Body text",
+        }
 
-    #     result = self.client.post(
-    #         "{url}/image".format(url=self.url),
-    #         json.dumps(image_data),
-    #         headers=self.headers,
-    #         content_type=self.content_type,
-    #     )
+        warning_message = self.create_message_from_data(data)
 
-    #     self.assertEqual(result.status_code, 422)
-    #     self.assertDictEqual(result.data, {"status": False, "result": messages.unsupported_image_format})
+        image_data = {"image": {"main": "true"}, "project_warning_id": warning_message.pk}
 
-    #     warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
-    #     self.assertEqual(len(warning_message.images), 0)
+        result = self.client.post(
+            "{url}/image".format(url=self.url),
+            json.dumps(image_data),
+            headers=self.headers,
+            content_type=self.content_type,
+        )
 
-    # def test_post_warning_message_image_upload_no_data(self):
-    #     """test uploading an image without any data"""
-    #     data = {
-    #         "title": "title",
-    #         "project_identifier": "0000000000",
-    #         "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-    #         "body": "Body text",
-    #     }
+        self.assertEqual(result.status_code, 400)
+        self.assertDictEqual(result.data, {"status": False, "result": messages.invalid_query})
 
-    #     result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
-    #     warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
+    def test_post_warning_message_image_upload_no_main(self):
+        """test posting an image upload without 'main''"""
+        data = {
+            "title": "title",
+            "project_identifier": "0000000000",
+            "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            "body": "Body text",
+        }
+        warning_message = self.create_message_from_data(data)
 
-    #     self.assertEqual(result.status_code, 200)
-    #     self.assertDictEqual(
-    #         result.data, {"status": True, "result": {"warning_identifier": str(warning_message.identifier)}}
-    #     )
+        image_data = {
+            "image": {
+                "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg=="  # pylint: disable=line-too-long
+            },
+            "project_warning_id": warning_message.pk,
+        }
 
-    #     image_data = {"image": {"main": "true"}, "project_warning_id": str(warning_message.identifier)}
+        result = self.client.post(
+            "{url}/image".format(url=self.url),
+            json.dumps(image_data),
+            headers=self.headers,
+            content_type=self.content_type,
+        )
 
-    #     result = self.client.post(
-    #         "{url}/image".format(url=self.url),
-    #         json.dumps(image_data),
-    #         headers=self.headers,
-    #         content_type=self.content_type,
-    #     )
+        self.assertEqual(result.status_code, 400)
+        self.assertDictEqual(result.data, {"status": False, "result": messages.invalid_query})
 
-    #     self.assertEqual(result.status_code, 422)
-    #     self.assertDictEqual(result.data, {"status": False, "result": messages.invalid_query})
+    def test_post_warning_message_image_upload_no_warning_message(self):
+        """test uploading warning image without a warning message"""
+        image_data = {
+            "image": {
+                "main": "true",
+                "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg==",  # pylint: disable=line-too-long
+            },
+            "project_warning_id": 4096,
+        }
 
-    # def test_post_warning_message_image_upload_no_type(self):
-    #     """test posting an image upload without any type"""
-    #     data = {
-    #         "title": "title",
-    #         "project_identifier": "0000000000",
-    #         "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-    #         "body": "Body text",
-    #     }
+        result = self.client.post(
+            "{url}/image".format(url=self.url),
+            json.dumps(image_data),
+            headers=self.headers,
+            content_type=self.content_type,
+        )
 
-    #     result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
-    #     warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
+        self.assertEqual(result.status_code, 404)
+        self.assertDictEqual(result.data, {"status": False, "result": messages.no_record_found})
 
-    #     self.assertEqual(result.status_code, 200)
-    #     self.assertDictEqual(
-    #         result.data, {"status": True, "result": {"warning_identifier": str(warning_message.identifier)}}
-    #     )
+    def test_post_warning_message_image_project_warning_id_should_not_be_string(self):
+        """test warning_id should not be a string but an integer"""
+        image_data = {
+            "image": {"main": "true", "data": ""},
+            "project_warning_id": "1",
+        }
 
-    #     image_data = {
-    #         "image": {
-    #             "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg=="  # pylint: disable=line-too-long
-    #         },
-    #         "project_warning_id": str(warning_message.identifier),
-    #     }
+        result = self.client.post(
+            "{url}/image".format(url=self.url),
+            json.dumps(image_data),
+            headers=self.headers,
+            content_type=self.content_type,
+        )
 
-    #     result = self.client.post(
-    #         "{url}/image".format(url=self.url),
-    #         json.dumps(image_data),
-    #         headers=self.headers,
-    #         content_type=self.content_type,
-    #     )
+        self.assertEqual(result.status_code, 400)
+        self.assertDictEqual(result.data, {"status": False, "result": messages.invalid_query})
 
-    #     self.assertEqual(result.status_code, 422)
-    #     self.assertDictEqual(result.data, {"status": False, "result": messages.invalid_query})
+    def test_post_warning_message_image_upload_no_image_and_project_warning_id(self):
+        """test posting a warning message without image and project id"""
+        image_data = {}
+        result = self.client.post(
+            "{url}/image".format(url=self.url),
+            json.dumps(image_data),
+            headers=self.headers,
+            content_type=self.content_type,
+        )
 
-    # def test_post_warning_message_image_upload_no_warning_message(self):
-    #     """test uploading warning image without a warning message"""
-    #     image_data = {
-    #         "image": {
-    #             "main": "true",
-    #             "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg==",  # pylint: disable=line-too-long
-    #         },
-    #         "project_warning_id": str(uuid.uuid4()),
-    #     }
+        self.assertEqual(result.status_code, 400)
+        self.assertDictEqual(result.data, {"status": False, "result": messages.invalid_query})
 
-    #     result = self.client.post(
-    #         "{url}/image".format(url=self.url),
-    #         json.dumps(image_data),
-    #         headers=self.headers,
-    #         content_type=self.content_type,
-    #     )
+    def test_patch_warning_message_valid(self):
+        """test patching a warning message"""
+        data = {
+            "title": "title",
+            "project_identifier": "0000000000",
+            "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            "body": "body text",
+        }
+        warning_message = self.create_message_from_data(data)
 
-    #     self.assertEqual(result.status_code, 404)
-    #     self.assertDictEqual(result.data, {"status": False, "result": messages.no_record_found})
+        patch_data = {
+            "title": "new title",
+            "body": "new body text",
+            "identifier": warning_message.pk,
+        }
 
-    # def test_post_warning_message_image_upload_no_image_and_project_warning_id(self):
-    #     """test posting a warning message without image and project id"""
-    #     image_data = {}
-    #     result = self.client.post(
-    #         "{url}/image".format(url=self.url),
-    #         json.dumps(image_data),
-    #         headers=self.headers,
-    #         content_type=self.content_type,
-    #     )
+        result = self.client.patch(
+            self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type
+        )
+        warning_message.refresh_from_db()
 
-    #     self.assertEqual(result.status_code, 422)
-    #     self.assertDictEqual(result.data, {"status": False, "result": messages.invalid_query})
+        self.assertEqual(result.status_code, 200)
+        self.assertDictEqual(result.data, {"status": True, "result": "Message patched"})
+        self.assertEqual(warning_message.body, patch_data["body"])
+        self.assertEqual(warning_message.title, patch_data["title"])
 
-    # def test_patch_warning_message_valid(self):
-    #     """test patching a warning message"""
-    #     data = {
-    #         "title": "title",
-    #         "project_identifier": "0000000000",
-    #         "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-    #         "body": "body text",
-    #     }
+    def test_patch_warning_message_missing_title(self):
+        """test pathing a missing title in warning message"""
+        data = {
+            "title": "title",
+            "project_identifier": "0000000000",
+            "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            "body": "Body text",
+        }
+        warning_message = self.create_message_from_data(data)
 
-    #     result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+        patch_data = {"body": "New body text", "identifier": warning_message.pk}
 
-    #     warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
+        result = self.client.patch(
+            self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type
+        )
+        warning_message.refresh_from_db()
 
-    #     patch_data = {
-    #         "title": "new title",
-    #         "body": "new body text",
-    #         "identifier": str(warning_message.identifier),
-    #     }
+        self.assertEqual(result.status_code, 400)
+        self.assertDictEqual(result.data, {"status": False, "result": messages.invalid_query})
+        self.assertEqual(warning_message.body, data["body"])
+        self.assertEqual(warning_message.title, data["title"])
 
-    #     result = self.client.patch(
-    #         self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type
-    #     )
-    #     patched_warning_message = WarningMessage.objects.filter(identifier=warning_message.identifier).first()
+    def test_patch_warning_message_missing_content(self):
+        """test pathing a warning message with missing content"""
+        data = {
+            "title": "title",
+            "project_identifier": "0000000000",
+            "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            "body": "Body text",
+        }
+        warning_message = self.create_message_from_data(data)
 
-    #     self.assertEqual(result.status_code, 200)
-    #     self.assertDictEqual(result.data, {"status": True, "result": "Message patched"})
-    #     self.assertEqual(patched_warning_message.body, "new body text")
-    #     self.assertEqual(patched_warning_message.title, patch_data["title"])
+        patch_data = {"title": "new title", "identifier": warning_message.pk}
 
-    # def test_patch_warning_message_missing_title(self):
-    #     """test pathing a missing title in warning message"""
-    #     data = {
-    #         "title": "title",
-    #         "project_identifier": "0000000000",
-    #         "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-    #         "body": "Body text",
-    #     }
+        result = self.client.patch(
+            self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type
+        )
+        warning_message.refresh_from_db()
 
-    #     self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+        self.assertEqual(result.status_code, 400)
+        self.assertDictEqual(result.data, {"status": False, "result": messages.invalid_query})
+        self.assertEqual(warning_message.body, data["body"])
+        self.assertEqual(warning_message.title, data["title"])
 
-    #     warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
+    def test_patch_warning_message_missing_message(self):
+        """test pathing a warning message with missing message"""
+        patch_data = {"title": "new title", "body": "", "identifier": 4096}
 
-    #     patch_data = {"body": "New body text", "identifier": str(warning_message.identifier)}
+        result = self.client.patch(
+            self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type
+        )
 
-    #     result = self.client.patch(
-    #         self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type
-    #     )
-    #     patched_warning_message = WarningMessage.objects.filter(identifier=warning_message.identifier).first()
+        self.assertEqual(result.status_code, 404)
+        self.assertDictEqual(result.data, {"status": False, "result": messages.no_record_found})
 
-    #     self.assertEqual(result.status_code, 422)
-    #     self.assertDictEqual(result.data, {"status": False, "result": messages.invalid_query})
-    #     self.assertEqual(patched_warning_message.body, data["body"])
-    #     self.assertEqual(patched_warning_message.title, data["title"])
+    def test_patch_warning_message_unauthorized(self):
+        """test pathing without authorization"""
+        result = self.client.patch(self.url, content_type=self.content_type)
 
-    # def test_patch_warning_message_missing_content(self):
-    #     """test pathing a warning message with missing content"""
-    #     data = {
-    #         "title": "title",
-    #         "project_identifier": "0000000000",
-    #         "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-    #         "body": "Body text",
-    #     }
+        self.assertEqual(result.status_code, 403)
+        self.assertEqual(result.reason_phrase, "Forbidden")
 
-    #     self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+    def test_delete_warning_message(self):
+        """test deleting a warning message"""
+        data = {
+            "title": "title",
+            "project_identifier": "0000000000",
+            "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            "body": "Body text",
+        }
+        warning_message = self.create_message_from_data(data)
 
-    #     warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
+        result = self.client.delete(
+            "{url}?id={identifier}".format(url=self.url, identifier=warning_message.pk),
+            headers=self.headers,
+            content_type=self.content_type,
+        )
 
-    #     patch_data = {"title": "new title", "identifier": str(warning_message.identifier)}
+        patched_warning_message = WarningMessage.objects.filter(pk=warning_message.pk).first()
 
-    #     result = self.client.patch(
-    #         self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type
-    #     )
-    #     patched_warning_message = WarningMessage.objects.filter(identifier=warning_message.identifier).first()
+        self.assertEqual(result.status_code, 200)
+        self.assertDictEqual(result.data, {"status": False, "result": "Message deleted"})
+        self.assertEqual(patched_warning_message, None)
 
-    #     self.assertEqual(result.status_code, 422)
-    #     self.assertDictEqual(result.data, {"status": False, "result": messages.invalid_query})
-    #     self.assertEqual(patched_warning_message.body, data["body"])
-    #     self.assertEqual(patched_warning_message.title, data["title"])
+    def test_delete_warning_message_missing_identifier(self):
+        """test deleting a warning message with missing identifier"""
+        result = self.client.delete(self.url, headers=self.headers, content_type=self.content_type)
 
-    # def test_patch_warning_message_missing_message(self):
-    #     """test pathing a warning message with missing message"""
-    #     patch_data = {"title": "new title", "body": "", "identifier": str(uuid.uuid4())}
+        self.assertEqual(result.status_code, 400)
+        self.assertDictEqual(result.data, {"status": False, "result": messages.invalid_query})
 
-    #     result = self.client.patch(
-    #         self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type
-    #     )
+    def test_delete_warning_message_unauthorized(self):
+        """test deleting a warning message without authorization"""
+        result = self.client.delete(
+            "{url}?id={identifier}".format(url=self.url, identifier=str(uuid.uuid4())), content_type=self.content_type
+        )
 
-    #     self.assertEqual(result.status_code, 404)
-    #     self.assertDictEqual(result.data, {"status": False, "result": messages.no_record_found})
-
-    # def test_patch_warning_message_unauthorized(self):
-    #     """test pathing without authorization"""
-    #     patch_data = {
-    #         "title": "new title",
-    #         "body": "body text",
-    #         "identifier": str(uuid.uuid4()),
-    #     }
-
-    #     result = self.client.patch(self.url, json.dumps(patch_data), content_type=self.content_type)
-
-    #     self.assertEqual(result.status_code, 403)
-    #     self.assertEqual(result.reason_phrase, "Forbidden")
-
-    # def test_delete_warning_message(self):
-    #     """test deleting a warning message"""
-    #     data = {
-    #         "title": "title",
-    #         "project_identifier": "0000000000",
-    #         "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-    #         "body": "Body text",
-    #     }
-
-    #     self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
-
-    #     warning_message = WarningMessage.objects.filter(project_identifier="0000000000").first()
-
-    #     result = self.client.delete(
-    #         "{url}?id={identifier}".format(url=self.url, identifier=warning_message.identifier),
-    #         headers=self.headers,
-    #         content_type=self.content_type,
-    #     )
-
-    #     patched_warning_message = WarningMessage.objects.filter(identifier=warning_message.identifier).first()
-
-    #     self.assertEqual(result.status_code, 200)
-    #     self.assertDictEqual(result.data, {"status": False, "result": "Message deleted"})
-    #     self.assertEqual(patched_warning_message, None)
-
-    # def test_delete_warning_message_missing_identifier(self):
-    #     """test deleting a warning message with missing identifier"""
-    #     result = self.client.delete(self.url, headers=self.headers, content_type=self.content_type)
-
-    #     self.assertEqual(result.status_code, 422)
-    #     self.assertDictEqual(result.data, {"status": False, "result": messages.invalid_query})
-
-    # def test_delete_warning_message_unauthorized(self):
-    #     """test deleting a warning message without authorization"""
-    #     result = self.client.delete(
-    #         "{url}?id={identifier}".format(url=self.url, identifier=str(uuid.uuid4())), content_type=self.content_type
-    #     )
-
-    #     self.assertEqual(result.status_code, 403)
-    #     self.assertEqual(result.reason_phrase, "Forbidden")
+        self.assertEqual(result.status_code, 403)
+        self.assertEqual(result.reason_phrase, "Forbidden")

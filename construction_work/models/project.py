@@ -79,7 +79,7 @@
 from datetime import datetime
 
 from django.db import models
-
+from django.utils import timezone
 
 DISTRICTS = {
     5398: "Centrum",
@@ -92,32 +92,27 @@ DISTRICTS = {
     5393: "Zuidoost",
 }
 
+
 class Project(models.Model):
     """Projects db model"""
 
-    # NOTE: renamed from identifier
-    project_id = models.CharField(
-        max_length=100, blank=False, unique=True, primary_key=True
-    )
-    active = models.BooleanField(default=True, blank=True, db_index=True)
+    project_id = models.IntegerField(blank=False, unique=True, null=False)
+
+    active = models.BooleanField(default=True, blank=True)
     last_seen = models.DateTimeField(null=True, blank=True)
-    publication_date = models.DateField(default=None)
-    modification_date = models.DateField(default=None)
 
-    title = models.CharField(max_length=1000, blank=True, default="", db_index=True)
-    subtitle = models.CharField(max_length=1000, null=True, db_index=True)
-    # NOTE: strip content into seperate fields?
-    body = models.JSONField(null=True, default=list)
-    content_html = models.TextField()
-    district_id = models.IntegerField(default=None)
-    coordinates = models.JSONField(null=True, default=dict)
-    images = models.JSONField(null=True, default=list)
-
-    contacts = models.JSONField(null=True, default=list)
-
-    # NOTE: setup relation with Article model
-    news = models.JSONField(null=True, default=list)
-    # news = models.ManyToManyField(Article)
+    title = models.CharField(max_length=1000, blank=True, null=True, default="", db_index=True)
+    subtitle = models.CharField(max_length=1000, blank=True, null=True, db_index=True)
+    sections = models.JSONField(blank=True, null=True, default=dict)
+    contacts = models.JSONField(blank=True, null=True, default=list)
+    timeline = models.JSONField(blank=True, null=True, default=dict)
+    image = models.JSONField(blank=True, null=True, default=dict)
+    images = models.JSONField(blank=True, null=True, default=list)
+    url = models.URLField(max_length=2048, blank=True, null=True)
+    creation_date = models.DateField(default=timezone.now)  # If no date is provided use the current date
+    modification_date = models.DateField(default=timezone.now)  # If no date is provided use the current date
+    publication_date = models.DateField(default=None, null=True)
+    expiration_date = models.DateField(default=None, null=True)
 
     class Meta:
         ordering = ["title"]
