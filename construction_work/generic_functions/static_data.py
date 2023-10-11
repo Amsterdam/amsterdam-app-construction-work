@@ -3,6 +3,8 @@
 # Maximum age for articles to be retrieved with project
 DEFAULT_ARTICLE_MAX_AGE = 60
 DEFAULT_WARNING_MESSAGE_EMAIL = "redactieprojecten@amsterdam.nl"
+DEFAULT_NOTIFICATION_BATCH_SIZE = 500
+
 
 # NOTE: clean up. not SOLID.
 class StaticData:

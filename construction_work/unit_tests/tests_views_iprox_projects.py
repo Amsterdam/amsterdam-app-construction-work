@@ -7,10 +7,10 @@ from django.test import Client, TestCase
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.aes_cipher import AESCipher
+from construction_work.generic_functions.generic_logger import Logger
 from construction_work.models import Project
 from construction_work.models.device import Device
 from construction_work.unit_tests.mock_data import TestData
-from construction_work.generic_functions.generic_logger import Logger
 
 messages = Messages()
 logger = Logger()
@@ -183,9 +183,7 @@ class TestApiProjectsSearch(BaseTestApi):
         result = json.loads(response.content)
 
         self.assertEqual(response.status_code, 422)
-        self.assertDictEqual(
-            result, {"status": False, "result": messages.invalid_query}
-        )
+        self.assertDictEqual(result, {"status": False, "result": messages.invalid_query})
 
     def test_invalid_model_field(self):
         """Test search on invalid model fields"""
@@ -201,9 +199,7 @@ class TestApiProjectsSearch(BaseTestApi):
         result = json.loads(response.content)
 
         self.assertEqual(response.status_code, 422)
-        self.assertDictEqual(
-            result, {"status": False, "result": messages.no_such_field_in_model}
-        )
+        self.assertDictEqual(result, {"status": False, "result": messages.no_such_field_in_model})
 
     def test_invalid_model_return_field(self):
         """Test search on invalid return fields"""
@@ -219,9 +215,7 @@ class TestApiProjectsSearch(BaseTestApi):
         result = json.loads(response.content)
 
         self.assertEqual(response.status_code, 422)
-        self.assertDictEqual(
-            result, {"status": False, "result": messages.no_such_field_in_model}
-        )
+        self.assertDictEqual(result, {"status": False, "result": messages.no_such_field_in_model})
 
 
 class TestApiProjectDetails(BaseTestApi):
@@ -243,9 +237,7 @@ class TestApiProjectDetails(BaseTestApi):
         response = c.get("/api/v1/project/details", **headers)
 
         self.assertEqual(response.status_code, 422)
-        self.assertEqual(
-            response.data, {"status": False, "result": messages.invalid_query}
-        )
+        self.assertEqual(response.data, {"status": False, "result": messages.invalid_query})
 
     def test_identifier_does_exist(self):
         """Invalid identifier"""
@@ -333,13 +325,12 @@ class TestApiProjectDetails(BaseTestApi):
         response = c.get("/api/v1/project/details", {"id": "does not exist"}, **headers)
 
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(
-            response.data, {"status": False, "result": messages.no_record_found}
-        )
+        self.assertEqual(response.data, {"status": False, "result": messages.no_record_found})
 
 
 class TestApiProjectFollow(BaseTestApi):
     """Test follow project endpoint"""
+
     def setUp(self):
         super().setUp()
 
@@ -352,7 +343,7 @@ class TestApiProjectFollow(BaseTestApi):
         """Test missing device id"""
         c = Client()
         project = Project.objects.first()
-        project_id = project.project_id
+        project_id = project.article_id
 
         headers = {
             "HTTP_DEVICEAUTHORIZATION": self.token,
@@ -389,7 +380,7 @@ class TestApiProjectFollow(BaseTestApi):
         """Test new device follows existing project"""
         c = Client()
         project = Project.objects.first()
-        project_id = project.project_id
+        project_id = project.article_id
 
         # Test if device did not yet exist
         new_device_id = "foobar"
@@ -415,7 +406,7 @@ class TestApiProjectFollow(BaseTestApi):
         # Setup device and follow project
         device_id = "foobar"
         project = Project.objects.first()
-        project_id = project.project_id
+        project_id = project.article_id
         device = Device(device_id=device_id)
         device.save()
         device.followed_projects.add(project)
@@ -427,9 +418,7 @@ class TestApiProjectFollow(BaseTestApi):
             "HTTP_DEVICEID": device_id,
         }
         data = {"project_id": project_id}
-        response = c.delete(
-            self.api_url, data=data, content_type="application/json", **headers
-        )
+        response = c.delete(self.api_url, data=data, content_type="application/json", **headers)
         self.assertEqual(response.status_code, 200)
 
         # Project should not be part of device followed projects
@@ -449,16 +438,14 @@ class TestApiProjectFollow(BaseTestApi):
             "HTTP_DEVICEID": device_id,
         }
         data = {"project_id": "foobar"}
-        response = c.delete(
-            self.api_url, data=data, content_type="application/json", **headers
-        )
+        response = c.delete(self.api_url, data=data, content_type="application/json", **headers)
         self.assertEqual(response.status_code, 404)
 
     def test_unfollow_project_that_device_is_not_following(self):
         """Test unfollow existing project with existing device"""
         # Setup device and follow project
         project = Project.objects.first()
-        project_id = project.project_id
+        project_id = project.article_id
 
         device_id = "foobar"
         device = Device(device_id=device_id)
@@ -471,9 +458,7 @@ class TestApiProjectFollow(BaseTestApi):
             "HTTP_DEVICEID": device_id,
         }
         data = {"project_id": project_id}
-        response = c.delete(
-            self.api_url, data=data, content_type="application/json", **headers
-        )
+        response = c.delete(self.api_url, data=data, content_type="application/json", **headers)
         self.assertEqual(response.status_code, 200)
 
         # Device should have no followed projects

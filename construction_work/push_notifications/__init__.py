@@ -1,2 +1,2 @@
 """ init as python module """
-from .send_notification import SendNotification
+from .send_notification import NotificationService

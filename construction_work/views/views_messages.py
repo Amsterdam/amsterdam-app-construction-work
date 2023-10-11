@@ -12,7 +12,7 @@ from construction_work.generic_functions.is_authorized import IsAuthorized
 from construction_work.generic_functions.sort import Sort
 from construction_work.generic_functions.static_data import StaticData
 from construction_work.models import Article, Notification, Project, ProjectManager, WarningMessage
-from construction_work.push_notifications.send_notification import SendNotification
+from construction_work.push_notifications.send_notification import NotificationService
 from construction_work.serializers import (
     ImageSerializer,
     NotificationSerializer,
@@ -184,13 +184,20 @@ def warning_message_post(request):
     title = request.data.get("title", None)
     body = request.data.get("body", None)
     project_id = request.data.get("project_identifier", None)
-    project_manager_id = request.data.get("project_manager_id", None)
+    project_manager_key = request.data.get("project_manager_id", None)
 
-    if None in [title, project_id, project_manager_id]:
+    if None in [title, project_id, project_manager_key]:
         return {
             "result": {"status": False, "result": messages.invalid_query},
             "status_code": status.HTTP_400_BAD_REQUEST,
         }
+
+    if not project_id.isdigit():
+        return {
+            "result": {"status": False, "result": messages.invalid_query},
+            "status_code": status.HTTP_400_BAD_REQUEST,
+        }
+    project_id = int(project_id)
 
     if not isinstance(body, str):
         return {
@@ -198,7 +205,7 @@ def warning_message_post(request):
             "status_code": status.HTTP_400_BAD_REQUEST,
         }
 
-    project = Project.objects.filter(pk=project_id).first()
+    project = Project.objects.filter(project_id=project_id).first()
     if project is None:
         return {
             "result": {"status": False, "result": messages.no_record_found},
@@ -206,14 +213,15 @@ def warning_message_post(request):
         }
 
     # Check if the project manager exists and is entitled for sending a message for this project
-    project_manager = ProjectManager.objects.filter(pk=project_manager_id).first()
+    project_manager = ProjectManager.objects.filter(manager_key=project_manager_key).first()
     if project_manager is None:
         return {
             "result": {"status": False, "result": messages.no_record_found},
             "status_code": status.HTTP_404_NOT_FOUND,
         }
 
-    if project_id not in project_manager.projects:
+    project_manager_project_ids = list(project_manager.projects.values_list("project_id", flat=True))
+    if project_id not in project_manager_project_ids:
         return {
             "result": {"status": False, "result": messages.no_record_found},
             "status_code": status.HTTP_403_FORBIDDEN,
@@ -261,37 +269,30 @@ def notification_post(request):
     """Post Notification message"""
     title = request.data.get("title", None)
     body = request.data.get("body", None)
-    news_identifier = request.data.get("news_identifier", None)
-    warning_identifier = request.data.get("warning_identifier", None)
+    warning_id = request.data.get("warning_identifier", None)
 
-    if None in [title, body]:
-        return Response({"status": False, "result": messages.invalid_query}, status=422)
+    if None in [title, body, warning_id]:
+        return Response({"status": False, "result": messages.invalid_query}, status=status.HTTP_400_BAD_REQUEST)
 
-    if news_identifier is None and warning_identifier is None:
-        return Response({"status": False, "result": messages.invalid_query}, status=422)
+    warning_message = WarningMessage.objects.filter(pk=warning_id).first()
+    if warning_message is None:
+        return Response({"status": False, "result": messages.no_record_found}, status=status.HTTP_404_NOT_FOUND)
 
-    if news_identifier is not None and Article.objects.filter(identifier=news_identifier).first() is None:
-        return Response({"status": False, "result": messages.no_record_found}, status=404)
-
-    if warning_identifier is not None and WarningMessage.objects.filter(pk=warning_identifier).first() is None:
-        return Response({"status": False, "result": messages.no_record_found}, status=404)
-
-    notification = Notification(
-        title=title,
-        body=body,
-        news_identifier=news_identifier,
-        warning_identifier=warning_identifier,
-    )
-    notification.save()
+    # Store notification in database
+    notification_serializer = NotificationSerializer(data={"title": title, "body": body, "warning": warning_message.pk})
+    if not notification_serializer.is_valid():
+        return Response({"status": False, "result": notification_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+    notification_object = notification_serializer.save()
 
     # Trigger the push notification services
-    notification_services = SendNotification(notification.identifier)
-    if not notification_services.valid_notification:
-        return Response(notification_services.setup_result, 422)
-    notification_services.send_multicast_and_handle_errors()
+    notification_service = NotificationService(notification_object)
+    result = notification_service.setup()
+    if result is False:
+        return Response({"status": result, "result": notification_service.setup_result}, status=status.HTTP_200_OK)
+    notification_service.send_multicast_and_handle_errors()
 
     # Send response to end-user
-    return Response({"status": True, "result": "push-notification accepted"}, status=200)
+    return Response({"status": True, "result": "push-notification accepted"}, status=status.HTTP_200_OK)
 
 
 @swagger_auto_schema(**as_notification_get)
@@ -303,19 +304,19 @@ def notification_get(request):
     sort_order = request.GET.get("sort-order", "desc")
 
     if query_params is None:
-        return Response({"status": False, "result": messages.invalid_query}, status=422)
-    project_identifiers = query_params.split(",")
-    notifications = []
-    for project_identifier in project_identifiers:
-        project = Project.objects.filter(pk=project_identifier).first()
-        if project is not None and project.active is True:
-            notifications += list(Notification.objects.filter(project_identifier=project_identifier).all())
+        return Response({"status": False, "result": messages.invalid_query}, status=status.HTTP_400_BAD_REQUEST)
+    project_ids = query_params.split(",")
 
-    serializer = NotificationSerializer(notifications, many=True)
-    if len(serializer.data) != 0:
-        result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
-        return Response({"status": True, "result": result}, status=200)
-    return Response({"status": False, "result": messages.no_record_found}, status=404)
+    notifications = Notification.objects.filter(
+        warning__project__project_id__in=project_ids, warning__project__active=True
+    ).all()
+
+    notification_serializer = NotificationSerializer(notifications, many=True)
+    if not len(notification_serializer.data):
+        return Response({"status": False, "result": messages.no_record_found}, status=status.HTTP_404_NOT_FOUND)
+
+    result = Sort().list_of_dicts(notification_serializer.data, key=sort_by, sort_order=sort_order)
+    return Response({"status": True, "result": result}, status=status.HTTP_200_OK)
 
 
 @swagger_auto_schema(**as_warning_message_image_post)

@@ -4,9 +4,9 @@ import urllib.parse
 
 import requests
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.distance import GeoPyDistance
@@ -29,22 +29,16 @@ def distance(request):
 
         if _model_items is not None:
             fields = _model_items.split(",")
-            serializer = ProjectDetailsSerializer(
-                projects_object, context={"fields": fields}, many=False, partial=True
-            )
+            serializer = ProjectDetailsSerializer(projects_object, context={"fields": fields}, many=False, partial=True)
         else:
-            serializer = ProjectDetailsSerializer(
-                projects_object, many=False, partial=True
-            )
+            serializer = ProjectDetailsSerializer(projects_object, many=False, partial=True)
 
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         result = serializer.data
         result["meter"] = int(_distance.meter) if _distance.meter is not None else None
-        result["strides"] = (
-            int(_distance.strides) if _distance.strides is not None else None
-        )
+        result["strides"] = int(_distance.strides) if _distance.strides is not None else None
         return result
 
     lat = request.GET.get("lat", None)
@@ -55,9 +49,7 @@ def distance(request):
 
     if address is not None:
         apis = StaticData.urls()
-        url = "{api}{address}".format(
-            api=apis["address_to_gps"], address=urllib.parse.quote_plus(address)
-        )
+        url = "{api}{address}".format(api=apis["address_to_gps"], address=urllib.parse.quote_plus(address))
         result = requests.get(url=url, timeout=1)
         data = json.loads(result.content)
         if len(data["results"]) == 1:

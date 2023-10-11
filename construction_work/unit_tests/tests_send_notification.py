@@ -7,20 +7,11 @@ from unittest.mock import call, patch
 from django.test import TestCase
 
 from construction_work.api_messages import Messages
-from construction_work.models import (
-    Article,
-    FollowedProject,
-    Notification,
-    Project,
-    ProjectManager,
-    WarningMessage,
-)
+from construction_work.models import Article, Notification, Project, ProjectManager, WarningMessage
 from construction_work.models.device import Device
-from construction_work.push_notifications.send_notification import SendNotification
+from construction_work.push_notifications.send_notification import NotificationService
 from construction_work.unit_tests.mock_data import TestData
-from construction_work.unit_tests.mock_functions import (
-    firebase_admin_messaging_send_multicast,
-)
+from construction_work.unit_tests.mock_functions import firebase_admin_messaging_send_multicast
 
 messages = Messages()
 
@@ -117,16 +108,12 @@ class TestSendNotification(TestCase):
         debug = os.environ.get("DEBUG", "")
         os.environ["DEBUG"] = "false"
 
-        mock_logging = logging.getLogger(
-            "construction_work.generic_functions.generic_logger"
-        )
+        mock_logging = logging.getLogger("construction_work.generic_functions.generic_logger")
         with patch.object(mock_logging, "error") as mocked_log:
-            send_notification = SendNotification(self.notification_identifier1)
+            send_notification = NotificationService(self.notification_identifier1)
             send_notification.send_multicast_and_handle_errors()
 
-            assert mocked_log.call_args_list == [
-                call("List of tokens that caused failures: ['foobar_token1']")
-            ]
+            assert mocked_log.call_args_list == [call("List of tokens that caused failures: ['foobar_token1']")]
             self.assertEqual(len(send_notification.subscribed_device_batches), 1)
             self.assertEqual(len(send_notification.subscribed_device_batches[0]), 2)
 
@@ -144,15 +131,13 @@ class TestSendNotification(TestCase):
         debug = os.environ.get("DEBUG", "")
         os.environ["DEBUG"] = "false"
 
-        mock_logging = logging.getLogger(
-            "construction_work.generic_functions.generic_logger"
-        )
+        mock_logging = logging.getLogger("construction_work.generic_functions.generic_logger")
         with patch.object(mock_logging, "error") as mocked_log:
-            send_notification = SendNotification(str(uuid.uuid4()))
+            send_notification = NotificationService(str(uuid.uuid4()))
             send_notification.send_multicast_and_handle_errors()
 
-            self.assertEqual(send_notification.notification, None)
-            self.assertEqual(send_notification.project_identifier, None)
+            self.assertEqual(send_notification.firebase_notification, None)
+            self.assertEqual(send_notification.project_id, None)
             self.assertEqual(send_notification.subscribed_device_batches, None)
             self.assertEqual(send_notification.valid_notification, False)
             expected_result = [
@@ -177,16 +162,12 @@ class TestSendNotification(TestCase):
         debug = os.environ.get("DEBUG", "")
         os.environ["DEBUG"] = "false"
 
-        mock_logging = logging.getLogger(
-            "construction_work.generic_functions.generic_logger"
-        )
+        mock_logging = logging.getLogger("construction_work.generic_functions.generic_logger")
         with patch.object(mock_logging, "error") as mocked_log:
-            send_notification = SendNotification(self.notification_identifier3)
+            send_notification = NotificationService(self.notification_identifier3)
             send_notification.send_multicast_and_handle_errors()
 
-            assert mocked_log.call_args_list == [
-                call("List of tokens that caused failures: ['foobar_token1']")
-            ]
+            assert mocked_log.call_args_list == [call("List of tokens that caused failures: ['foobar_token1']")]
             self.assertEqual(len(send_notification.subscribed_device_batches), 1)
             self.assertEqual(len(send_notification.subscribed_device_batches[0]), 2)
 
