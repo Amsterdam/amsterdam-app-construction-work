@@ -42,9 +42,10 @@ def main():
     os.environ["DJANGO_DEVELOPMENT"] = "true"
 
     # Locally run commands should read local env var file
-    should_source = ["test", "runserver", "makemigrations", "migrate"]
-    if any(arg in sys.argv for arg in should_source):
-        source_environment()
+    # should_source = ["test", "runserver", "makemigrations", "migrate"]
+    # if any(arg in sys.argv for arg in should_source):
+    #     source_environment()
+    source_environment()  # Should this always be sources???
 
     try:
         from django.core.management import execute_from_command_line

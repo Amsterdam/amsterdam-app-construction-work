@@ -84,28 +84,24 @@ def iprox_project(request):
     iprox_raw_data = request.data
     iprox_data = json.loads(iprox_raw_data)
 
-    if iprox_data.get("created") is None:
-        iprox_data["created"] = datetime.now()
-    if iprox_data.get("modified") is None:
-        iprox_data["modified"] = iprox_data["created"]
-
     title_and_subtitle = iprox_data.get("title", "").split(": ")
     title = title_and_subtitle[0]
     subtitle = "" if len(title_and_subtitle) == 1 else title_and_subtitle[1]
 
     project_data = {
-        "project_id": iprox_data.get("id"),
-        "publication_date": iprox_data.get("publicationDate").split("T")[0],
-        "modification_date": iprox_data.get("modified").split("T")[0],
         "title": title,
         "subtitle": subtitle,
-        "body": iprox_data.get("sections"),
-        "content_html": "<html/>",
-        "district_id": 1,
-        "coordinates": iprox_data.get("coordinates"),
-        "images": iprox_data.get("images"),
+        "sections": iprox_data.get("sections"),
         "contacts": iprox_data.get("contacts"),
-        "news": [],
+        "timeline": iprox_data.get("timeline"),
+        "image": iprox_data.get("image"),
+        "images": iprox_data.get("images"),
+        "url": iprox_data.get("url"),
+        "project_id": iprox_data.get("id"),
+        "creation_date": iprox_data.get("created"),
+        "modification_date": iprox_data.get("modified"),
+        "publication_date": iprox_data.get("publicationDate"),
+        "expiration_date": iprox_data.get("expirationDate"),
     }
 
     serializer = ProjectCreateSerializer(data=project_data)
