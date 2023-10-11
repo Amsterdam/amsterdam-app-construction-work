@@ -44,7 +44,6 @@
     }
 """
 
-from django.core.exceptions import ValidationError
 from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
@@ -53,20 +52,11 @@ from construction_work.generic_functions.static_data import DEFAULT_WARNING_MESS
 from construction_work.models.asset_and_image import Image
 from construction_work.models.project import Project
 
-from .article import Article
 from .project_manager import ProjectManager
 
 
 class WarningMessage(models.Model):
-    """Warning message db model
-
-    Note on 'project_identifier': (fields.W342) Setting unique=True on a ForeignKey has the same effect as using a
-    OneToOneField. ForeignKey(unique=True) is usually better served by a OneToOneField.
-
-    Note on 'on_delete=Models.CASCADE' When the referenced object is deleted, also delete the objects that have
-    references to it (when you remove a Project for instance, you might want to delete ProjectDetails as well). SQL
-    equivalent: CASCADE.
-    """
+    """Warning message db model"""
 
     title = models.CharField(max_length=1000, db_index=True)
     body = models.TextField()
@@ -85,6 +75,8 @@ class WarningMessage(models.Model):
 
 
 class WarningImage(models.Model):
+    """Warning image db model"""
+
     warning = models.ForeignKey(WarningMessage, on_delete=models.CASCADE)
     is_main = models.BooleanField(default=False)
     images = models.ManyToManyField(Image)
@@ -92,36 +84,15 @@ class WarningImage(models.Model):
 
 @receiver(pre_delete, sender=WarningImage)
 def remove_images_for_warning_message(sender, instance, **kwargs):
+    """Delete images for warning messages"""
     for image in instance.images.all():
         image.delete()
 
 
 class Notification(models.Model):
-    """Notifications db model
+    """Notifications db model"""
 
-    Note on 'project_identifier': (fields.W342) Setting unique=True on a ForeignKey has the same effect as using a
-    OneToOneField. ForeignKey(unique=True) is usually better served by a OneToOneField.
-
-    Note on 'on_delete=Models.CASCADE' When the referenced object is deleted, also delete the objects that have
-    references to it (when you remove a Project for instance, you might want to delete ProjectDetails as well). SQL
-    equivalent: CASCADE.
-    """
-
-    title = models.CharField(max_length=1000)
-    body = models.TextField()
-    project = models.ForeignKey(Project, on_delete=models.CASCADE, blank=True, null=False)
-    article = models.ForeignKey(Article, on_delete=models.CASCADE, blank=True, null=True)
-    warning = models.ForeignKey(WarningMessage, on_delete=models.CASCADE, blank=True, null=True)
+    title = models.CharField(max_length=1000, blank=False, null=False)
+    body = models.TextField(blank=True, null=True)
+    warning = models.ForeignKey(WarningMessage, on_delete=models.CASCADE, blank=False, null=False)
     publication_date = models.DateTimeField(auto_now_add=True, blank=True)
-
-    def save(self, *args, **kwargs):
-        if self.article is None and self.warning is None:
-            raise ValidationError("Either article or warning has to be set")
-
-        if self.project is None:
-            if self.article is not None:
-                self.project = self.article.project
-            elif self.warning is not None:
-                self.project = self.warning.project
-
-        super().save(*args, **kwargs)
