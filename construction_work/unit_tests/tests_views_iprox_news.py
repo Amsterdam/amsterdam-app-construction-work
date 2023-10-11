@@ -25,7 +25,7 @@ class SetUp:
             Project.objects.create(**project)
 
         for news in self.data.article:
-            news["project_identifier"] = Project.objects.filter(pk=news["project_identifier"]).first()
+            news["project_id"] = Project.objects.filter(pk=news["project_id"]).first()
             news_item = Article.objects.create(**news)
             news_item.save()
             self.identifiers.append(news_item.article_id)

@@ -19,56 +19,13 @@ message = Messages()
 logger = Logger()
 
 
-@IsAuthorized
-@api_view(["POST"])
-def project(request):
-    """Create or update a project"""
-    data = request.data
-    project_id = data.get("project_id")
-    _project = Project.objects.filter(pk=project_id).first()
-
-    data["last_seen"] = datetime.now()
-    serializer = ProjectCreateSerializer(instance=_project, data=data)
-    if not serializer.is_valid():
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    serializer.save()
-
-    return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-@IsAuthorized
-@api_view(["GET", "POST", "DELETE"])
-def article(request):
-    """Article ingestion point (news and roadworks)"""
-    try:
-        data = dict(request.data)
-        data["active"] = True
-        _type = data["type"]
-        _project = Project.objects.filter(pk=data.get("project_identifier")).first()
-        news_item_object = Article.objects.filter(
-            identifier=data.get("identifier"), project_identifier=_project
-        ).first()
-        if news_item_object is None:
-            data["project_identifier"] = _project
-            news_item_object = Article(**data)  # Update last scrape time is done implicitly
-            news_item_object.save()
-            return Response({"status": True, "result": f"{_type} item saved"}, status=200)
-
-        # Else...
-        data["last_seen"] = datetime.now()  # Update last scrape time
-        Article.objects.filter(identifier=data.get("identifier"), project_identifier=_project).update(**data)
-        return Response({"status": True, "result": f"{_type} item updated"}, status=200)
-    except Exception as error:
-        logger.error("ingest/news: {error}".format(error=error))
-        return Response({"status": False, "result": str(error)}, status=500)
-
-
 @swagger_auto_schema(**as_garbage_collector)
 @api_view(["GET"])
 @IsAuthorized
 def garbage_collector(request):
     """Garbage collector"""
+
+    # NOTE: Wellicht autonoom maken via een 'scrape' table met een last-scraped erin...
     date = request.GET.get("date", str(datetime.now()))
     last_scrape_time = datetime.strptime(date, "%Y-%m-%d %H:%M:%S.%f")
     collector = GarbageCollector(last_scrape_time=last_scrape_time)
@@ -84,9 +41,13 @@ def iprox_project(request):
     iprox_raw_data = request.data
     iprox_data = json.loads(iprox_raw_data)
 
+    project_id = iprox_data.get("id")
     title_and_subtitle = iprox_data.get("title", "").split(": ")
     title = title_and_subtitle[0]
-    subtitle = "" if len(title_and_subtitle) == 1 else title_and_subtitle[1]
+    subtitle = None if len(title_and_subtitle) == 1 else title_and_subtitle[1]
+
+    # Try to get an article with the provided article_id
+    project_instance = Project.objects.filter(project_id=project_id).first()
 
     project_data = {
         "title": title,
@@ -104,11 +65,11 @@ def iprox_project(request):
         "expiration_date": iprox_data.get("expirationDate"),
     }
 
-    serializer = ProjectCreateSerializer(data=project_data)
+    # Use the instance parameter to update the existing article or create a new one
+    serializer = ProjectCreateSerializer(instance=project_instance, data=project_data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     serializer.save()
-
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -116,11 +77,19 @@ def iprox_project(request):
 @api_view(["POST"])
 def iprox_article(request):
     """View for directly importing raw iprox data"""
-    iprox_data = request.data
+    iprox_data_raw = request.data
+    iprox_data = json.loads(iprox_data_raw)
+
+    article_id = iprox_data.get("id")
+    project_ids_iprox = [Project.objects.get(project_id=x) for x in iprox_data.get("projectIds")]
+    project_ids = [x.pk for x in project_ids_iprox]
+
+    # Try to get an article with the provided article_id
+    article_instance = Article.objects.filter(article_id=article_id).first()
 
     article_data = {
         "article_id": iprox_data.get("id"),
-        "projects": iprox_data.get("projectIds"),
+        "projects": project_ids,
         "title": iprox_data.get("title"),
         "intro": iprox_data.get("intro"),
         "body": iprox_data.get("body"),
@@ -133,9 +102,9 @@ def iprox_article(request):
         "expiration_date": iprox_data.get("expirationDate"),
     }
 
-    serializer = ArticleSerializer(data=article_data)
+    # Use the instance parameter to update the existing article or create a new one
+    serializer = ArticleSerializer(instance=article_instance, data=article_data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     serializer.save()
-
     return Response(serializer.data, status=status.HTTP_200_OK)

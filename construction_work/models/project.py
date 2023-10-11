@@ -88,7 +88,7 @@ class Project(models.Model):
     project_id = models.BigIntegerField(blank=False, unique=True, null=False)
 
     active = models.BooleanField(default=True, blank=True)
-    last_seen = models.DateTimeField(null=True, blank=True)
+    last_seen = models.DateTimeField(auto_now=True)
 
     title = models.CharField(max_length=1000, blank=True, null=True, default="", db_index=True)
     subtitle = models.CharField(max_length=1000, blank=True, null=True, db_index=True)

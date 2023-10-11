@@ -5,6 +5,7 @@
 """
 
 from django.db import models
+from django.utils import timezone
 
 from construction_work.models.project import Project
 
@@ -18,22 +19,21 @@ class Article(models.Model):
     Note on 'on_delete=Models.CASCADE' When the referenced object is deleted, also delete the objects that have
     references to it (when you remove a Project for instance, you might want to delete ProjectDetails as well). SQL
     equivalent: CASCADE.
-    """ 
+    """
 
     article_id = models.BigIntegerField(blank=False, null=False, unique=True)
-    projects = models.ManyToManyField(Project, blank=False)
-    title = models.TextField(blank=True, null=True, default=None)
+
+    active = models.BooleanField(default=True)
+    last_seen = models.DateTimeField(auto_now=True)
+
+    title = models.CharField(max_length=1000, blank=True, null=True, default="", db_index=True)
     intro = models.TextField(blank=True, null=True, default=None)
     body = models.TextField(blank=True, null=True, default=None)
     image = models.JSONField(blank=True, null=True, default=None)
-    # To be expected e.g.: news or work
     type = models.CharField(max_length=30, blank=True, null=True, default=None)
-    url = models.CharField(max_length=1000, blank=True, null=True, default=None)
-
-    creation_date = models.DateTimeField(blank=True, null=True, default=None)
-    modification_date = models.DateTimeField(blank=True, null=True, default=None)
-    publication_date = models.DateTimeField(blank=True, null=True, default=None)
-    expiration_date = models.DateTimeField(blank=True, null=True, default=None)
-    
-    last_seen = models.DateTimeField(auto_now=True)
-    active = models.BooleanField(default=True)
+    projects = models.ManyToManyField(Project, blank=False)
+    url = models.URLField(max_length=2048, blank=True, null=True)
+    creation_date = models.DateTimeField(default=timezone.now)  # If no date is provided use the current date
+    modification_date = models.DateTimeField(default=timezone.now)  # If no date is provided use the current date
+    publication_date = models.DateTimeField(default=None, null=True)
+    expiration_date = models.DateTimeField(default=None, null=True)

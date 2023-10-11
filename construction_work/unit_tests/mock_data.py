@@ -129,10 +129,9 @@ class TestData:
             {
                 "last_seen": datetime.datetime.strptime("1970-01-01T00:00:00.000000", "%Y-%d-%mT%H:%M:%S.000000"),
                 "active": True,
-                "project_type": "kade",
                 "type": "work",
-                "identifier": "0000000000",
-                "project_identifier": "0000000000",
+                "identifier": 0,
+                "project_identifier": 1,
                 "url": "https://localhost/news0",
                 "title": "title0",
                 "publication_date": "1970-01-01",
@@ -1713,7 +1712,7 @@ class TestData:
 
         self.devices = [
             {"device_id": "foobar_device1", "firebase_token": "foobar_token1", "os": "ios"},
-            {"device_id": "foobar_device2", "firebase_token": "foobar_token2", "os": "android"}
+            {"device_id": "foobar_device2", "firebase_token": "foobar_token2", "os": "android"},
         ]
 
         self.followed_projects = [
