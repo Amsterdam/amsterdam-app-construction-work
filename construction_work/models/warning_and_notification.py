@@ -44,16 +44,13 @@
     }
 """
 
-from django.db import models
 from django.core.exceptions import ValidationError
-from django.dispatch import receiver
+from django.db import models
 from django.db.models.signals import pre_delete
+from django.dispatch import receiver
 
-from construction_work.generic_functions.static_data import (
-    DEFAULT_WARNING_MESSAGE_EMAIL,
-)
+from construction_work.generic_functions.static_data import DEFAULT_WARNING_MESSAGE_EMAIL
 from construction_work.models.asset_and_image import Image
-
 from construction_work.models.project import Project
 
 from .article import Article
@@ -112,15 +109,9 @@ class Notification(models.Model):
 
     title = models.CharField(max_length=1000)
     body = models.TextField()
-    project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, blank=True, null=False
-    )
-    article = models.ForeignKey(
-        Article, on_delete=models.CASCADE, blank=True, null=True
-    )
-    warning = models.ForeignKey(
-        WarningMessage, on_delete=models.CASCADE, blank=True, null=True
-    )
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, blank=True, null=False)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, blank=True, null=True)
+    warning = models.ForeignKey(WarningMessage, on_delete=models.CASCADE, blank=True, null=True)
     publication_date = models.DateTimeField(auto_now_add=True, blank=True)
 
     def save(self, *args, **kwargs):
