@@ -1,5 +1,4 @@
 """ unit_tests """
-
 import uuid
 
 from django.test import TestCase
@@ -12,7 +11,12 @@ from construction_work.models import (
     ProjectManager,
     WarningMessage,
 )
-from construction_work.models.device import Device
+from construction_work.models.article import Article
+from construction_work.models.asset_and_image import Asset, Image
+from construction_work.models.project import Project
+from construction_work.models.project_manager import ProjectManager
+from construction_work.models.warning_and_notification import WarningMessage
+
 from construction_work.serializers import (
     ArticleSerializer,
     AssetsSerializer,
@@ -92,44 +96,44 @@ class TestImageModel(TestCase):
 
     def test_image_delete(self):
         """test delete"""
-        Image.objects.get(pk="0000000000").delete()
+        Image.objects.all().first().delete()
         image_objects = Image.objects.all()
         serializer = ImageSerializer(image_objects, many=True)
 
-        self.assertEqual(len(serializer.data), 1)
+        self.assertEqual(len(serializer.data), 2)
 
     def test_image_get_all(self):
         """test retrieve"""
         image_objects = Image.objects.all()
 
-        self.assertEqual(len(image_objects), 2)
+        self.assertEqual(len(image_objects), 3)
 
     def test_image_exists(self):
         """test exist"""
-        image_object = Image.objects.get(pk="0000000000")
+        image_object = Image.objects.all().first()
 
-        self.assertEqual(image_object.identifier, "0000000000")
-        self.assertEqual(image_object.size, "orig")
-        self.assertEqual(image_object.url, "https://localhost/image0.jpg")
-        self.assertEqual(image_object.filename, "image.jpg")
-        self.assertEqual(image_object.description, "")
-        self.assertEqual(image_object.mime_type, "image/jpg")
         self.assertEqual(image_object.data, b"")
+        self.assertEqual(image_object.description, "square image")
+        self.assertEqual(image_object.width, 10)
+        self.assertEqual(image_object.height, 10)
+        self.assertEqual(image_object.aspect_ratio, 1)
+        self.assertEqual(image_object.coordinates, {"lat": 0.0, "lon": 0.0})
+        self.assertEqual(image_object.mime_type, "image/jpg")
 
     def test_image_does_not_exist(self):
         """test not exist"""
-        image = Image.objects.filter(pk="does not exist").first()
+        image = Image.objects.filter(pk=999).first()
 
         self.assertEqual(image, None)
 
 
-class TestProjectsModel(TestCase):
+class TestProjectModel(TestCase):
     """unit_tests"""
 
     def __init__(self, *args, **kwargs):
         self.data = TestData()
         self.maxDiff = None
-        super(TestProjectsModel, self).__init__(*args, **kwargs)
+        super(TestProjectModel, self).__init__(*args, **kwargs)
 
     def setUp(self):
         """unit_tests db setup"""
@@ -139,9 +143,9 @@ class TestProjectsModel(TestCase):
 
     def test_projects_delete(self):
         """test delete"""
-        Project.objects.filter(pk="0000000000").delete()
-        project_objects = Project.objects.all()
-        serializer = ProjectDetailsSerializer(project_objects, many=True)
+        Project.objects.all().first().delete()
+        project_objects = list(Project.objects.all())
+        serializer = ProjectCreateSerializer(project_objects, many=True)
 
         self.assertEqual(len(serializer.data), 1)
 
@@ -155,14 +159,17 @@ class TestProjectsModel(TestCase):
         is_valid = serializer.is_valid()
         self.assertTrue(is_valid)
 
-        for i in range(0, len(serializer.data), 1):
-            self.data.projects[i]["last_seen"] = serializer.data[i]["last_seen"]
+        expected_data = self.data.projects
 
-        self.assertEqual(serializer.data, self.data.projects)
+        for i in range(0, len(serializer.data), 1):
+            expected_data[i]["id"] = serializer.data[i]["id"]
+            expected_data[i]["last_seen"] = serializer.data[i]["last_seen"]
+
+        self.assertEqual(serializer.data, expected_data)
 
     def test_project_does_exist(self):
         """test exist"""
-        projects_object = Project.objects.filter(pk="0000000000").first()
+        projects_object = Project.objects.filter(project_id=2048).first()
         # Using create serializer in order to not return any extra data
         serializer = ProjectCreateSerializer(
             instance=projects_object, data={}, partial=True
@@ -171,12 +178,14 @@ class TestProjectsModel(TestCase):
         self.assertTrue(is_valid)
 
         first_project = self.data.projects[0]
+        first_project["id"] = serializer.data["id"]
         first_project["last_seen"] = serializer.data["last_seen"]
+
         self.assertDictEqual(serializer.data, first_project)
 
     def test_projects_does_not_exist(self):
         """test not exist"""
-        projects_objects = Project.objects.filter(pk="does not exist").first()
+        projects_objects = Project.objects.filter(project_id=9999).first()
 
         self.assertEqual(projects_objects, None)
 

@@ -107,7 +107,10 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
         """Get distance from project"""
         # NOTE: Check if None check is needed
         cords_1 = lat, lon
-        cords_2 = (obj.coordinates.get("lat"), obj.coordinates.get("lon"))
+        project_coordinates = obj.coordinates
+        if project_coordinates is None:
+            project_coordinates = {"lat": None, "lon": None}
+        cords_2 = (project_coordinates.get("lat"), project_coordinates.get("lon"))
         if None in cords_2:
             cords_2 = (None, None)
         elif (0, 0) == cords_2:

@@ -24,104 +24,68 @@ class TestData:
 
         self.images = [
             {
-                "identifier": "0000000000",
-                "size": "orig",
-                "url": "https://localhost/image0.jpg",
-                "filename": "image.jpg",
-                "description": "",
-                "mime_type": "image/jpg",
                 "data": b"",
-            },
-            {
-                "identifier": "0000000001",
-                "size": "orig",
-                "url": "https://localhost/image1.jpg",
-                "filename": "image.jpg",
-                "description": "",
+                "description": "square image",
+                "width": 10,
+                "height": 10,
+                "aspect_ratio": 1,
+                "coordinates": {"lat": 0.0, "lon": 0.0},
                 "mime_type": "image/jpg",
+            },
+            {
                 "data": b"",
-            },
-        ]
-
-        self.project_images = [
-            {
-                "type": "banner",
-                "sources": {
-                    "orig": {
-                        "url": "https://localhost/image.jpg",
-                        "size": "orig",
-                        "filename": "image.jpg",
-                        "image_id": "0000000000",
-                        "description": "",
-                    }
-                },
+                "description": "landscape image",
+                "width": 100,
+                "height": 10,
+                "aspect_ratio": 0.1,
+                "coordinates": {"lat": 1.0, "lon": 1.0},
+                "mime_type": "image/jpg",
             },
             {
-                "type": "additional",
-                "sources": {
-                    "orig": {
-                        "url": "https://localhost/image.jpg",
-                        "size": "orig",
-                        "filename": "image.jpg",
-                        "image_id": "0000000001",
-                        "description": "",
-                    }
-                },
+                "data": b"",
+                "description": "portrait image",
+                "width": 10,
+                "height": 100,
+                "aspect_ratio": 10,
+                "coordinates": {"lat": 2.0, "lon": 2.0},
+                "mime_type": "image/jpg",
             },
         ]
 
         self.projects = [
             {
-                "project_id": "0000000000",
+                "project_id": 2048,
                 "active": True,
-                "publication_date": "1970-01-01",
-                "modification_date": "1970-01-01",
-                "title": "title",
-                "subtitle": "subtitle",
-                "body": {
-                    "what": [{"html": "html content", "title": "title"}],
-                    "when": [{"html": "html content", "title": "title"}],
-                    "work": [{"html": "html content", "title": "title"}],
-                    "where": [{"html": "html content", "title": "title"}],
-                    "contact": [{"html": "html content", "title": "title"}],
-                    "timeline": {},
-                    "more-info": [{"html": "html content", "title": "title"}],
-                },
-                "content_html": "html content",
-                "district_id": 5398,
-                "coordinates": {"lat": 0.0, "lon": 0.0},
-                "images": self.project_images,
-                "contacts": [],
-                "news": [
-                    {
-                        "url": "https://localhost/news/0",
-                        "identifier": "00000000000",
-                        "project_identifier": "00000000000",
-                    }
-                ],
+                "title": "title first project",
+                "subtitle": "subtitle first project",
+                "coordinates": {"lat": 1.0, "lon": 1.0},
+                "sections": {},
+                "contacts": {},
+                "timeline": {},
+                "image": {},
+                "images": [],
+                "url": "https://www.amsterdam.nl/foobar",
+                "creation_date": "2023-01-01T00:00:00",
+                "modification_date": "2023-01-20T00:00:00",
+                "publication_date": "2023-01-01T00:00:00",
+                "expiration_date": "2023-02-01T00:00:00",
             },
             {
-                "project_id": "0000000001",
+                "project_id": 4096,
                 "active": True,
-                "publication_date": "1970-01-02",
-                "modification_date": "1970-01-02",
-                "title": "title",
-                "subtitle": "subtitle",
-                "body": {
-                    "what": [{"html": "html content", "title": "title"}],
-                    "when": [{"html": "html content", "title": "title"}],
-                    "work": [{"html": "html content", "title": "title"}],
-                    "where": [{"html": "html content", "title": "title"}],
-                    "contact": [{"html": "html content", "title": "title"}],
-                    "timeline": {},
-                    "more-info": [{"html": "html content", "title": "title"}],
-                },
-                "content_html": "html content",
-                "district_id": 5520,
-                "coordinates": {"lat": 1.0, "lon": 1.0},
-                "images": self.project_images,
-                "contacts": [],
-                "news": [],
+                "title": "title second project",
+                "subtitle": "subtitle second project",
+                "coordinates": None,
+                "sections": {},
+                "contacts": {},
+                "timeline": {},
+                "image": {},
+                "images": [],
+                "url": "https://www.amsterdam.nl/fizzbuzz",
+                "creation_date": "2023-01-01T00:00:00",
+                "modification_date": "2023-01-20T00:00:00",
+                "publication_date": "2023-01-01T00:00:00",
+                "expiration_date": "2023-02-01T00:00:00",
             },
         ]
 
@@ -140,7 +104,6 @@ class TestData:
                     "preface": {"html": "html content", "text": "text content"},
                     "summary": {"html": "html content", "text": "text content"},
                 },
-                "images": self.project_images,
                 "assets": [
                     {
                         "url": "https://localhost/test0.pdf",
@@ -166,7 +129,6 @@ class TestData:
                     "preface": {"html": "html content", "text": "text content"},
                     "summary": {"html": "html content", "text": "text content"},
                 },
-                "images": self.project_images,
                 "assets": [
                     {
                         "url": "https://localhost/test1.pdf",

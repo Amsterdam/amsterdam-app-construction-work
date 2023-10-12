@@ -4,7 +4,7 @@
     "python.testing.pytestEnabled": false,
     "python.testing.unittestEnabled": true,
     "python.testing.unittestArgs": [
-        "DJANGO_SETTING_MODULE=main_application.settings",
+        "DJANGO_SETTINGS_MODULE=main_application.settings",
         "-v",
         "-s",
         "./construction_work",

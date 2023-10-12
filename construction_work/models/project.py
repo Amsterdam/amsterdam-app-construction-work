@@ -92,6 +92,7 @@ class Project(models.Model):
 
     title = models.CharField(max_length=1000, blank=True, null=True, default="", db_index=True)
     subtitle = models.CharField(max_length=1000, blank=True, null=True, db_index=True)
+    coordinates = models.JSONField(blank=True, null=True, default=None)
     sections = models.JSONField(blank=True, null=True, default=dict)
     contacts = models.JSONField(blank=True, null=True, default=list)
     timeline = models.JSONField(blank=True, null=True, default=dict)
