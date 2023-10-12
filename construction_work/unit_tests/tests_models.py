@@ -24,7 +24,6 @@ from construction_work.serializers import (
     Notification,
     ProjectCreateSerializer,
     ProjectManagerSerializer,
-    ProjectDetailsSerializer,
     WarningMessagePublicSerializer,
     WarningMessageSerializer,
 )
@@ -190,58 +189,60 @@ class TestProjectModel(TestCase):
         self.assertEqual(projects_objects, None)
 
 
-class TestNewsModel(TestCase):
+class TestArticleModel(TestCase):
     """unit_tests"""
 
     def __init__(self, *args, **kwargs):
-        super(TestNewsModel, self).__init__(*args, **kwargs)
+        super(TestArticleModel, self).__init__(*args, **kwargs)
         self.data = TestData()
 
     def setUp(self):
         """unit_tests db setup"""
-        Project.objects.all().delete()
+        
         for project in self.data.projects:
             Project.objects.create(**project)
 
-        Article.objects.all().delete()
-        for news in self.data.article:
-            news["project_identifier"] = Project.objects.filter(
-                pk=news["project_identifier"]
-            ).first()
-            Article.objects.create(**news)
+        for article in self.data.article:
+            Article.objects.create(**article)
 
-    def test_news_delete(self):
+        all_articles = list(Article.objects.all())
+        all_projects = list(Project.objects.all())
+        all_articles[0].projects.set(all_projects[:1])
+        all_articles[1].projects.set(all_projects)
+        all_articles
+
+    def tearDown(self) -> None:
+        Project.objects.all().delete()
+        Article.objects.all().delete()
+
+        return super().tearDown()
+
+    def test_article_delete(self):
         """test delete"""
-        Article.objects.get(
-            identifier="0000000000", project_identifier="0000000000"
-        ).delete()
+        Article.objects.first().delete()
         news_objects = Article.objects.all()
         serializer = ArticleSerializer(news_objects, many=True)
 
         self.assertEqual(len(serializer.data), 1)
 
-    def test_news_get_all(self):
+    def test_article_get_all(self):
         """test retrieve"""
         news_objects = Article.objects.all()
         serializer = ArticleSerializer(news_objects, many=True)
 
         self.assertEqual(len(serializer.data), 2)
 
-    def test_news_exists(self):
+    def test_article_exists(self):
         """test exist"""
-        news_object = Article.objects.get(
-            identifier="0000000000", project_identifier="0000000000"
-        )
+        news_object = Article.objects.get(article_id=128)
         serializer = ArticleSerializer(news_object)
         self.data.article[0]["last_seen"] = serializer.data["last_seen"]
 
         self.assertEqual(self.data.article[0]["active"], True)
 
-    def test_news_does_not_exist(self):
+    def test_article_does_not_exist(self):
         """test not exist"""
-        news_object = Article.objects.filter(
-            identifier="does not exist", project_identifier="0000000000"
-        ).first()
+        news_object = Article.objects.filter(article_id=9999).first()
 
         self.assertEqual(news_object, None)
 
@@ -255,15 +256,26 @@ class TestProjectManagerModel(TestCase):
 
     def setUp(self):
         """unit_tests db setup"""
-        ProjectManager.objects.all().delete()
+        for project in self.data.projects:
+            Project.objects.create(**project)
+
         for pm in self.data.project_manager:
             ProjectManager.objects.create(**pm)
 
+        all_project_managers = list(ProjectManager.objects.all())
+        all_projects = list(Project.objects.all())
+        all_project_managers[0].projects.set(all_projects[:1])
+        all_project_managers[1].projects.set(all_projects)
+        all_project_managers
+
+    def tearDown(self) -> None:
+        ProjectManager.objects.all().delete()
+
+        return super().tearDown()
+
     def test_pm_delete(self):
         """test delete"""
-        ProjectManager.objects.get(
-            pk=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
-        ).delete()
+        ProjectManager.objects.first.delete()
         pm_objects = ProjectManager.objects.all()
         serializer = ProjectManagerSerializer(pm_objects, many=True)
 
