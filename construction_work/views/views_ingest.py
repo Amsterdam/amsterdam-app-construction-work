@@ -12,7 +12,7 @@ from construction_work.garbage_collector.garbage_collector import GarbageCollect
 from construction_work.generic_functions.generic_logger import Logger
 from construction_work.generic_functions.is_authorized import IsAuthorized
 from construction_work.models import Article, Project
-from construction_work.serializers import ArticleSerializer, ProjectCreateSerializer
+from construction_work.serializers import ArticleSerializer, ProjectCreateSerializer, ProjectDetailsSerializer
 from construction_work.swagger.swagger_views_ingestion import as_garbage_collector
 
 message = Messages()
@@ -35,8 +35,21 @@ def garbage_collector(request):
 
 
 @IsAuthorized
-@api_view(["POST"])
+@api_view(["GET", "POST"])
 def iprox_project(request):
+    if request.method == "GET":
+        return iprox_project_get()
+    if request.method == "POST":
+        return iprox_project_post(request)
+
+
+def iprox_project_get():
+    projects = list(Project.objects.all().values_list("project_id", "modification_date"))
+    result = {str(x[0]): {"modification_date": str(x[1])} for x in projects}
+    return Response(result, status=status.HTTP_200_OK)
+
+
+def iprox_project_post(request):
     """View for directly importing raw iprox data"""
     iprox_raw_data = request.data
     iprox_data = json.loads(iprox_raw_data)
@@ -74,8 +87,21 @@ def iprox_project(request):
 
 
 @IsAuthorized
-@api_view(["POST"])
+@api_view(["GET", "POST"])
 def iprox_article(request):
+    if request.method == "GET":
+        return iprox_article_get()
+    if request.method == "POST":
+        return iprox_article_post(request)
+
+
+def iprox_article_get():
+    articles = list(Article.objects.all().values_list("article_id", "modification_date"))
+    result = {str(x[0]): {"modification_date": str(x[1])} for x in articles}
+    return Response(result, status=status.HTTP_200_OK)
+
+
+def iprox_article_post(request):
     """View for directly importing raw iprox data"""
     iprox_data_raw = request.data
     iprox_data = json.loads(iprox_data_raw)
