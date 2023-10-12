@@ -40,13 +40,9 @@ class NotificationService:
 
     def create_subscribed_device_batches(self):
         """Create batches of subscribers"""
-        project_id = self.notification_object.warning.project.pk
-        # devices = list(Device.objects.filter(followed_projects__=project_id).all())
-
-        devices = self.notification_object.warning.project.device_set.all()
-        if not devices.exists():
+        firebase_tokens = self.notification_object.warning.project.device_set.values_list("firebase_token", flat=True)
+        if not firebase_tokens.exists():
             return []
-        firebase_tokens = [x.firebase_token for x in devices]
         return [firebase_tokens[x : x + self.batch_size] for x in range(0, len(firebase_tokens), self.batch_size)]
 
     def send_multicast_and_handle_errors(self):
