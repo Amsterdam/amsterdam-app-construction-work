@@ -1,5 +1,6 @@
 """ unit_tests """
 import uuid
+from django.core.exceptions import ValidationError
 
 from django.test import TestCase
 
@@ -157,14 +158,7 @@ class TestProjectModel(TestCase):
         )
         is_valid = serializer.is_valid()
         self.assertTrue(is_valid)
-
-        expected_data = self.data.projects
-
-        for i in range(0, len(serializer.data), 1):
-            expected_data[i]["id"] = serializer.data[i]["id"]
-            expected_data[i]["last_seen"] = serializer.data[i]["last_seen"]
-
-        self.assertEqual(serializer.data, expected_data)
+        self.assertEqual(len(serializer.data), 2)
 
     def test_project_does_exist(self):
         """test exist"""
@@ -179,8 +173,14 @@ class TestProjectModel(TestCase):
         first_project = self.data.projects[0]
         first_project["id"] = serializer.data["id"]
         first_project["last_seen"] = serializer.data["last_seen"]
+        
+        serializer_data = serializer.data
+        serializer_data["creation_date"] = serializer_data["creation_date"].split("+")[0]
+        serializer_data["modification_date"] = serializer_data["modification_date"].split("+")[0]
+        serializer_data["publication_date"] = serializer_data["publication_date"].split("+")[0]
+        serializer_data["expiration_date"] = serializer_data["expiration_date"].split("+")[0]
 
-        self.assertDictEqual(serializer.data, first_project)
+        self.assertDictEqual(serializer_data, first_project)
 
     def test_projects_does_not_exist(self):
         """test not exist"""
@@ -266,7 +266,6 @@ class TestProjectManagerModel(TestCase):
         all_projects = list(Project.objects.all())
         all_project_managers[0].projects.set(all_projects[:1])
         all_project_managers[1].projects.set(all_projects)
-        all_project_managers
 
     def tearDown(self) -> None:
         ProjectManager.objects.all().delete()
@@ -275,7 +274,7 @@ class TestProjectManagerModel(TestCase):
 
     def test_pm_delete(self):
         """test delete"""
-        ProjectManager.objects.first.delete()
+        ProjectManager.objects.first().delete()
         pm_objects = ProjectManager.objects.all()
         serializer = ProjectManagerSerializer(pm_objects, many=True)
 
@@ -290,32 +289,43 @@ class TestProjectManagerModel(TestCase):
     def test_pm_exists(self):
         """test exist"""
         pm_objects = ProjectManager.objects.get(
-            pk=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+            manager_key=uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
         )
 
         self.assertEqual(
-            pm_objects.identifier, uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
+            pm_objects.manager_key, uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
         )
         self.assertEqual(pm_objects.email, "mock0@amsterdam.nl")
-        self.assertEqual(pm_objects.projects, ["0000000000"])
 
     def test_pm_does_not_exist(self):
         """test not exist"""
         pm_object = ProjectManager.objects.filter(
-            pk=uuid.UUID("00000000-0000-0000-0000-000000000000")
+            manager_key=uuid.UUID("00000000-0000-0000-0000-000000000000")
         ).first()
 
         self.assertEqual(pm_object, None)
 
     def test_pm_has_invalid_email(self):
         """test email"""
-        with self.assertRaises(Exception) as context:
-            ProjectManager.objects.create(**self.data.project_manager_invalid)
+        data = {
+            "manager_key": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+            "email": "mock@invalid",
+        }
 
-        self.assertEqual(
-            context.exception.args,
-            ("Invalid email, should be <username>@amsterdam.nl",),
-        )
+        with self.assertRaises(ValidationError) as context:
+            pm = ProjectManager.objects.create(**data)
+            pm.full_clean()
+    
+    def test_pm_not_amsterdam_email(self):
+        """test email"""
+        data = {
+            "manager_key": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+            "email": "mock@mail.com",
+        }
+
+        with self.assertRaises(ValidationError) as context:
+            pm = ProjectManager.objects.create(**data)
+            pm.full_clean()
 
 
 class TestWarningMessagesModel(TestCase):

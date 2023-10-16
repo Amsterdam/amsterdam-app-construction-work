@@ -155,12 +155,6 @@ class TestData:
             },
         ]
 
-        self.project_manager_invalid = {
-            "email": "mock@invalid.domain",
-            "identifier": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-            "projects": ["0000000000", "0000000001"],
-        }
-
         self.devices = [
             {"device_id": "foobar_device1", "firebase_token": "foobar_token1", "os": "ios"},
             {"device_id": "foobar_device2", "firebase_token": "foobar_token2", "os": "android"},
