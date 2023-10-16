@@ -15,9 +15,10 @@ variables:
 steps:
 - script: |
     export PYTHONPATH=$(Build.SourcesDirectory)
-    python3 -m venv venv && source venv/bin/activate && \
-    python3 -m pip install pylint pylint_django typing-extensions>=4.0.0 && \
-    python3 -m pip install -r requirements.txt && \
+    python3 -m venv venv
+    source venv/bin/activate
+    python3 -m pip install pylint pylint_django typing-extensions>=4.0.0
+    python3 -m pip install -r requirements.txt
     pylint --rcfile ./.pylintrc $(find . -name '*.py' | grep -v -e venv -e migrations -e kladblok) && echo "##vso[task.setvariable variable=pylintPassed;]true"
   displayName: 'Running pylint'
 
