@@ -22,7 +22,7 @@ steps:
     echo "Activating virtual environment"
     . venv/bin/activate
     echo "Installing extra python packages (besides the requirements.txt)"
-    python -m pip install pylint pylint_django
+    python -m pip install typing-extensions==4.7.1 pylint pylint_django
     echo "Installing extra python packages"
     python -m pip install -r requirements.txt
     echo "Starting pylinter"
