@@ -2,6 +2,8 @@
     "python.envFile": "${workspaceFolder}/env",
     "python.testing.cwd": "${workspaceFolder}",
     "python.testing.pytestEnabled": false,
+    // Not working with Django testing suite
+    // Does not create test_* database, when running test from vscode
     "python.testing.unittestEnabled": true,
     "python.testing.unittestArgs": [
         "-v",
