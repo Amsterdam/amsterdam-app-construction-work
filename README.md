@@ -3,26 +3,36 @@
 
 # Technical Architecture
 
+
+#### Application overview
 The Construction-Work application boasts a robust technical architecture to efficiently manage and disseminate information about construction projects in Amsterdam. Key technologies used include Python and the Django framework for the backend, and Vue.js for the frontend. Let's delve deeper into the various components:
 
-Backend (Python/Django): The backend of the Construction-Work application is built using Python, a versatile programming language, and Django, a powerful web framework. Django provides a standardized structure for developing web applications, including built-in security layers, ORM (Object-Relational Mapping), and an easy way to define API endpoints. This forms the foundation for data processing and application logic.
+#### Backend frameworks
+The backend of the Construction-Work application is built using Python, a versatile programming language, and Django, a powerful web framework. Django provides a standardized structure for developing web applications, including built-in security layers, ORM (Object-Relational Mapping), and an easy way to define API endpoints. This forms the foundation for data processing and application logic.
 
-Database: The application employs a relational database, such as PostgreSQL, to store data related to construction projects. Django's ORM allows developers to interact efficiently with the database, simplifying project data management.
+#### Database
+The application employs a relational database, such as PostgreSQL, to store data related to construction projects. Django's ORM allows developers to interact efficiently with the database, simplifying project data management.
 
-APIs: The backend offers a set of RESTful APIs that supply the Amsterdam-App with relevant information. These APIs serve as the bridge between the database and the application's frontend. They enable the frontend to fetch data, update project information, and post messages.
+#### APIs
+The backend offers a set of RESTful APIs that supply the Amsterdam-App with relevant information. These APIs serve as the bridge between the database and the application's frontend. They enable the frontend to fetch data, update project-information, and post messages.
 
-Frontend (Vue.js): The Construction-Work application's frontend is developed using Vue.js, a progressive JavaScript framework. Vue.js enables the creation of dynamic and interactive user interfaces. The frontend is responsible for displaying project information, managing user profiles, and presenting notifications to users.
+#### Frontend (Vue.js)
+The Construction-Work application's frontend is developed using Vue.js, a progressive JavaScript framework. Vue.js enables the creation of dynamic and interactive user interfaces. The frontend is responsible for displaying project-information, managing user-profiles, and presenting notifications to users.
 
-Environment Manager Module: The environment manager module is a crucial part of the application. Here, authorized users such as environment managers can input and update specific information about construction projects. This includes posting messages, tracking project status changes, and sharing updates with the community.
+#### MBS
+The environment manager module (mbs) is a crucial part of the application. Here, authorized users such as environment managers can input and update specific information about construction projects. This includes posting messages, tracking project status changes, and sharing updates with the community.
 
-Push Notification System: The push notification system is integrated into the Amsterdam-App and utilizes mobile platform notification services (e.g., Firebase Cloud Messaging for Android). Users can opt to receive push notifications when there are updates for the projects they are following.
+#### Notifications
+The push notification system is integrated into the Amsterdam-App and utilizes mobile platform notification services (e.g., Firebase Cloud Messaging for Android). Users can opt to receive push notifications when there are updates for the projects they are following.
 
-Moderator Interface (Vue.js): The moderation interface is developed using Vue.js and provides administrators with the ability to view, approve, or moderate messages posted by environment managers. This ensures that the shared information remains accurate and relevant to the Amsterdam community.
+#### Moderator interface
+The moderation interface is developed using Vue.js and provides administrators with the ability to view, approve, or moderate messages posted by environment managers. This ensures that the shared information remains accurate and relevant to the Amsterdam community.
 
-Data Flow
+### Data Flow
 
-The data flow within the Construction-Work application starts with IPROX, Amsterdam's content management system, where data about construction projects is collected and stored. These data are retrieved via APIs and loaded into the application's backend. Environment managers can post messages and update project information through the environment manager module, which is then displayed in the Amsterdam-App. Users can choose to receive push notifications on their mobile devices when there are updates.
+The data flow within the Construction-Work application starts with IPROX, Amsterdam's content management system, where data about construction projects is collected and stored. This data is retrieved via APIs and loaded into the application's backend. Environment managers can post messages and update project information through the environment manager module, which is then displayed in the Amsterdam-App. Users can choose to receive push notifications on their mobile devices when there are updates.
 
+#### Summary
 In summary, the Construction-Work application is an advanced technological system that streamlines communication and information sharing regarding construction projects in Amsterdam. It leverages modern web technologies and frameworks to provide a seamless experience for both project managers and the Amsterdam community. The Vue.js interface, in this case, is specifically designed for creating environment manager accounts and moderating their messages.
 
 
