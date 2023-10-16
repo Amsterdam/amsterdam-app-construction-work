@@ -17,8 +17,8 @@ steps:
     export PYTHONPATH=$(Build.SourcesDirectory)
     echo "$(Build.SourcesDirectory)"
     cd $(Build.SourcesDirectory)
-    echo "`whoami`"
-    sudo apt install pylint3
+    echo "Whoami? `whoami`"
+    sudo apt get update && sudo apt install pylint3
     echo "Create virtual environment"
     python3 -m venv venv
     echo "Activating virtual environment"
