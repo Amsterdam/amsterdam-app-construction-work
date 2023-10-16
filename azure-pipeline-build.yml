@@ -18,7 +18,7 @@ steps:
     echo "$(Build.SourcesDirectory)"
     cd $(Build.SourcesDirectory)
     echo "`whoami`"
-    apt install pylint3
+    sudo apt install pylint3
     echo "Create virtual environment"
     python3 -m venv venv
     echo "Activating virtual environment"
