@@ -65,10 +65,10 @@ class TestData:
                 "image": {},
                 "images": [],
                 "url": "https://www.amsterdam.nl/foobar",
-                "creation_date": "2023-01-01T00:00:00",
-                "modification_date": "2023-01-20T00:00:00",
-                "publication_date": "2023-01-01T00:00:00",
-                "expiration_date": "2023-02-01T00:00:00",
+                "creation_date": "2023-01-01T00:00:00+00:00",
+                "modification_date": "2023-01-20T00:00:00+00:00",
+                "publication_date": "2023-01-01T00:00:00+00:00",
+                "expiration_date": "2023-02-01T00:00:00+00:00",
             },
             {
                 "project_id": 4096,
@@ -82,10 +82,10 @@ class TestData:
                 "image": {},
                 "images": [],
                 "url": "https://www.amsterdam.nl/fizzbuzz",
-                "creation_date": "2023-01-01T00:00:00",
-                "modification_date": "2023-01-20T00:00:00",
-                "publication_date": "2023-01-01T00:00:00",
-                "expiration_date": "2023-02-01T00:00:00",
+                "creation_date": "2023-01-01T00:00:00+00:00",
+                "modification_date": "2023-01-20T00:00:00+00:00",
+                "publication_date": "2023-01-01T00:00:00+00:00",
+                "expiration_date": "2023-02-01T00:00:00+00:00",
             },
         ]
 
@@ -93,7 +93,9 @@ class TestData:
             {
                 "article_id": 128,
                 "active": True,
-                "last_seen": datetime.datetime.strptime("2023-01-01T00:00:00", "%Y-%d-%mT%H:%M:%S"),
+                "last_seen": datetime.datetime.strptime(
+                    "2023-01-01T00:00:00", "%Y-%d-%mT%H:%M:%S"
+                ),
                 "title": "title of first article",
                 "intro": "intro for first article",
                 "body": {
@@ -104,15 +106,17 @@ class TestData:
                 "image": {},
                 "type": "work",
                 "url": "https://www.amsterdam.nl/foobar-article",
-                "creation_date": "2023-01-01T00:00:00",
-                "modification_date": "2023-01-20T00:00:00",
-                "publication_date": "2023-01-01T00:00:00",
-                "expiration_date": "2023-02-01T00:00:00",
+                "creation_date": "2023-01-01T00:00:00+00:00",
+                "modification_date": "2023-01-20T00:00:00+00:00",
+                "publication_date": "2023-01-01T00:00:00+00:00",
+                "expiration_date": "2023-02-01T00:00:00+00:00",
             },
             {
                 "article_id": 256,
                 "active": True,
-                "last_seen": datetime.datetime.strptime("2023-01-01T00:00:00", "%Y-%d-%mT%H:%M:%S"),
+                "last_seen": datetime.datetime.strptime(
+                    "2023-01-01T00:00:00", "%Y-%d-%mT%H:%M:%S"
+                ),
                 "title": "title of second article",
                 "intro": "intro for second article",
                 "body": {
@@ -123,16 +127,28 @@ class TestData:
                 "image": {},
                 "type": "work",
                 "url": "https://www.amsterdam.nl/fizzbuzz-article",
-                "creation_date": "2023-01-01T00:00:00",
-                "modification_date": "2023-01-20T00:00:00",
-                "publication_date": "2023-01-01T00:00:00",
-                "expiration_date": "2023-02-01T00:00:00",
+                "creation_date": "2023-01-01T00:00:00+00:00",
+                "modification_date": "2023-01-20T00:00:00+00:00",
+                "publication_date": "2023-01-01T00:00:00+00:00",
+                "expiration_date": "2023-02-01T00:00:00+00:00",
             },
         ]
 
         self.image_download_jobs = [
-            {"url": "valid_url", "image_id": "0", "filename": "mock0.jpg", "description": "", "size": "orig"},
-            {"url": "invalid_url", "image_id": "1", "filename": "mock1.jpg", "description": "", "size": "orig"},
+            {
+                "url": "valid_url",
+                "image_id": "0",
+                "filename": "mock0.jpg",
+                "description": "",
+                "size": "orig",
+            },
+            {
+                "url": "invalid_url",
+                "image_id": "1",
+                "filename": "mock1.jpg",
+                "description": "",
+                "size": "orig",
+            },
         ]
 
         self.iprox_recursion = {
@@ -156,8 +172,16 @@ class TestData:
         ]
 
         self.devices = [
-            {"device_id": "foobar_device1", "firebase_token": "foobar_token1", "os": "ios"},
-            {"device_id": "foobar_device2", "firebase_token": "foobar_token2", "os": "android"},
+            {
+                "device_id": "foobar_device1",
+                "firebase_token": "foobar_token1",
+                "os": "ios",
+            },
+            {
+                "device_id": "foobar_device2",
+                "firebase_token": "foobar_token2",
+                "os": "android",
+            },
         ]
 
         self.followed_projects = [
@@ -167,9 +191,8 @@ class TestData:
         ]
 
         self.warning_message = {
-            "title": "title",
-            "body": "Body text",
-            "project_identifier": "0000000000",
-            "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-            "images": [],
+            "title": "warning message title",
+            "body": "warning message subtitle",
+            "publication_date": "2023-10-10",
+            "modification_date": "2023-10-11",
         }
