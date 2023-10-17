@@ -166,17 +166,25 @@ class TestProjectModel(TestCase):
         first_project = self.data.projects[0]
         first_project["id"] = serializer.data["id"]
         first_project["last_seen"] = serializer.data["last_seen"]
-        
+
         def translate_timezone(date_str, target_tz_date_str) -> str:
             target_tz = datetime.fromisoformat(target_tz_date_str)
             tmp_date = datetime.fromisoformat(date_str)
             tmp_date = tmp_date.astimezone(target_tz.tzinfo)
             return tmp_date.isoformat()
 
-        first_project["creation_date"] = translate_timezone(first_project["creation_date"], serializer.data["creation_date"])
-        first_project["modification_date"] = translate_timezone(first_project["modification_date"], serializer.data["modification_date"])
-        first_project["publication_date"] = translate_timezone(first_project["publication_date"], serializer.data["publication_date"])
-        first_project["expiration_date"] = translate_timezone(first_project["expiration_date"], serializer.data["expiration_date"])
+        first_project["creation_date"] = translate_timezone(
+            first_project["creation_date"], serializer.data["creation_date"]
+        )
+        first_project["modification_date"] = translate_timezone(
+            first_project["modification_date"], serializer.data["modification_date"]
+        )
+        first_project["publication_date"] = translate_timezone(
+            first_project["publication_date"], serializer.data["publication_date"]
+        )
+        first_project["expiration_date"] = translate_timezone(
+            first_project["expiration_date"], serializer.data["expiration_date"]
+        )
 
         self.assertDictEqual(serializer.data, first_project)
 
@@ -192,7 +200,7 @@ class TestArticleModel(TestCase):
 
     def setUp(self):
         self.data = TestData()
-        
+
         for project in self.data.projects:
             Project.objects.create(**project)
 
@@ -307,7 +315,7 @@ class TestProjectManagerModel(TestCase):
         with self.assertRaises(ValidationError) as context:
             pm = ProjectManager.objects.create(**data)
             pm.full_clean()
-    
+
     def test_pm_not_amsterdam_email(self):
         """test email"""
         data = {
@@ -337,7 +345,7 @@ class TestWarningMessagesModel(TestCase):
         WarningMessage.objects.all().delete()
         ProjectManager.objects.all().delete()
         return super().tearDown()
-    
+
     def create_message(self):
         message_data = self.data.warning_message
         message_data["project_id"] = Project.objects.first().pk
@@ -370,7 +378,9 @@ class TestWarningMessagesModel(TestCase):
         """Purpose: test if project_manager_id is present in serializer"""
         warning_message = self.create_message()
 
-        serializer = WarningMessagePublicSerializer(instance=warning_message, data={}, partial=True)
+        serializer = WarningMessagePublicSerializer(
+            instance=warning_message, data={}, partial=True
+        )
         self.assertTrue(serializer.is_valid())
         serializer.data
 
@@ -418,7 +428,7 @@ class TestNotificationModel(TestCase):
         }
         notification = Notification.objects.create(**data)
         notification.save()
-        
+
         self.assertEqual(len(Notification.objects.all()), 1)
 
     def test_serializer(self):
@@ -437,7 +447,7 @@ class TestNotificationModel(TestCase):
             "title": data["title"],
             "body": data["body"],
             "warning": self.warning_message.pk,
-            "publication_date": serializer.data["publication_date"]
+            "publication_date": serializer.data["publication_date"],
         }
 
         self.assertDictEqual(serializer.data, expected_result)
@@ -447,15 +457,18 @@ class TestDeviceModel(TestCase):
     "Test device model"
 
     def setUp(self) -> None:
+        """Set up test data"""
         self.data = TestData()
-    
+
     def test_create_devices(self):
+        """Test creating new devices"""
         for device in self.data.devices:
             Device.objects.create(**device)
-        
+
         self.assertEqual(len(Device.objects.all()), 2)
 
     def test_device_id_not_unique(self):
+        """Test of device id uniqueness"""
         first_device_data = self.data.devices[0]
         Device.objects.create(**first_device_data)
 
@@ -463,10 +476,11 @@ class TestDeviceModel(TestCase):
         second_device_data["device_id"] = first_device_data["device_id"]
         with self.assertRaises(IntegrityError) as context:
             Device.objects.create(**second_device_data)
-        
+
         self.assertIn("device_id", context.exception.args[0])
 
     def test_firebase_token_not_unique(self):
+        """Test firebase token uniqueness"""
         first_device_data = self.data.devices[0]
         Device.objects.create(**first_device_data)
 
@@ -478,6 +492,7 @@ class TestDeviceModel(TestCase):
         self.assertIn("firebase_token", context.exception.args[0])
 
     def test_firebase_token_can_be_null(self):
+        """Test that firebasetoken can be null"""
         first_device_data = self.data.devices[0]
         first_device_data["firebase_token"] = None
         Device.objects.create(**first_device_data)
@@ -485,6 +500,7 @@ class TestDeviceModel(TestCase):
         self.assertEqual(len(Device.objects.all()), 1)
 
     def test_last_access_is_updated(self):
+        """Test that last access is updated"""
         first_device_data = self.data.devices[0]
         device = Device.objects.create(**first_device_data)
         initial_access_date = device.last_access
@@ -495,9 +511,10 @@ class TestDeviceModel(TestCase):
         self.assertNotEqual(initial_access_date, updated_access_date)
 
     def test_add_and_remove_followed_project(self):
+        """Test if project can added and removed"""
         first_project = self.data.projects[0]
         project = Project.objects.create(**first_project)
-        
+
         first_device_data = self.data.devices[0]
         device = Device.objects.create(**first_device_data)
         device.followed_projects.add(project)
