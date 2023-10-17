@@ -192,7 +192,7 @@ def warning_message_post(request):
             "status_code": status.HTTP_400_BAD_REQUEST,
         }
 
-    if not project_id.isdigit():
+    if not str(project_id).isdigit():
         return {
             "result": {"status": False, "result": messages.invalid_query},
             "status_code": status.HTTP_400_BAD_REQUEST,

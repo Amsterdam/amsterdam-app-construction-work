@@ -1,6 +1,7 @@
 """ unit_tests """
 
 import base64
+from datetime import datetime
 import json
 import os
 import uuid
@@ -9,6 +10,7 @@ from django.test import Client, TestCase
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.aes_cipher import AESCipher
+from construction_work.generic_functions.date_translation import translate_timezone
 from construction_work.models import Image, Project, ProjectManager, WarningMessage, project
 from construction_work.serializers import WarningMessagePublicSerializer, WarningMessageSerializer
 from construction_work.unit_tests.mock_data import TestData
@@ -55,7 +57,8 @@ class TestApiProjectWarning(TestCase):
         project.active = project_active
         project.save()
 
-        project_manager = ProjectManager.objects.get(pk=data.get("project_manager_id"))
+        project_manager = ProjectManager.objects.get(manager_key=data.get("project_manager_id"))
+        project_manager.projects.add(project)
 
         new_message = WarningMessage(
             title=data.get("title"),
@@ -71,14 +74,18 @@ class TestApiProjectWarning(TestCase):
         data = {
             "title": "foobar title",
             "body": "foobar body",
-            "project_identifier": "0000000000",
+            "project_identifier": 2048,
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
         }
+
+        project = Project.objects.get(project_id=data.get("project_identifier"))
+        project_manager = ProjectManager.objects.get(manager_key=data.get("project_manager_id"))
+        project_manager.projects.add(project)
 
         result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
         self.assertEqual(result.status_code, 200)
 
-        warning_message = WarningMessage.objects.filter(project__project_id="0000000000").first()
+        warning_message = WarningMessage.objects.filter(project__project_id=2048).first()
         self.assertEqual(result.data.get("id"), warning_message.id)
 
     def test_post_warning_message_invalid_project_id(self):
@@ -86,7 +93,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             "title": "foobar title",
             "body": "foobar body",
-            "project_identifier": "foobar",
+            "project_identifier": 9999,
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
         }
 
@@ -100,7 +107,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             "title": "foobar title",
             "body": "foobar body",
-            "project_identifier": "0000000000",
+            "project_identifier": 2048,
             "project_manager_id": str(uuid.uuid4()),
         }
 
@@ -114,7 +121,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             # "title": "foobar title",
             "body": "foobar body",
-            "project_identifier": "0000000000",
+            "project_identifier": 2048,
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
         }
 
@@ -128,7 +135,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             "title": "foobar title",
             # "body": foobar body,
-            "project_identifier": "0000000000",
+            "project_identifier": 2048,
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
         }
 
@@ -151,22 +158,25 @@ class TestApiProjectWarning(TestCase):
         data = {
             "title": "foobar title",
             "body": "foobar body",
-            "project_identifier": "0000000000",
+            "project_identifier": 2048,
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
         }
         new_message = self.create_message_from_data(data)
 
         result = self.client.get(f"{self.url}?id={new_message.pk}")
         self.assertEqual(result.status_code, 200)
+        
+        target_dt = datetime.fromisoformat(result.data["publication_date"])
 
         expected_result = {
             "id": new_message.pk,
             "title": "foobar title",
             "body": "foobar body",
-            "project": "0000000000",
+            "project_id": "2048",
+            "project_manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             "images": [],
-            "publication_date": str(new_message.publication_date).replace(" ", "T"),
-            "modification_date": str(new_message.modification_date).replace(" ", "T"),
+            "publication_date": translate_timezone(str(new_message.publication_date), target_dt.tzinfo),
+            "modification_date": translate_timezone(str(new_message.modification_date), target_dt.tzinfo),
             "author_email": "mock0@amsterdam.nl",
         }
         self.assertDictEqual(result.data, expected_result)
@@ -176,7 +186,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             "title": "foobar title",
             "body": "foobar body",
-            "project_identifier": "0000000000",
+            "project_identifier": 2048,
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
         }
         new_message = self.create_message_from_data(data, project_active=False)
@@ -207,7 +217,7 @@ class TestApiProjectWarning(TestCase):
         data = {
             "title": "foobar title",
             "body": "foobar body",
-            "project_identifier": "0000000000",
+            "project_identifier": 2048,
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
         }
         warning_message = self.create_message_from_data(data)
@@ -230,7 +240,7 @@ class TestApiProjectWarning(TestCase):
         self.assertEqual(result.status_code, 200)
         self.assertDictEqual(result.data, {"status": True, "result": "Images stored in database"})
 
-        warning_message = WarningMessage.objects.filter(project__project_id="0000000000").first()
+        warning_message = WarningMessage.objects.filter(project__project_id=2048).first()
         self.assertEqual(len(warning_message.warningimage_set.all()), 1)
 
         warning_message_serializer = WarningMessagePublicSerializer(instance=warning_message)
@@ -252,7 +262,7 @@ class TestApiProjectWarning(TestCase):
         """test uploading an unsupported image format"""
         data = {
             "title": "title",
-            "project_identifier": "0000000000",
+            "project_identifier": 2048,
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             "body": "Body text",
         }
@@ -275,14 +285,14 @@ class TestApiProjectWarning(TestCase):
         self.assertEqual(result.status_code, 400)
         self.assertDictEqual(result.data, {"status": False, "result": messages.unsupported_image_format})
 
-        warning_message = WarningMessage.objects.filter(project__project_id="0000000000").first()
+        warning_message = WarningMessage.objects.filter(project__project_id=2048).first()
         self.assertEqual(len(warning_message.warningimage_set.all()), 0)
 
     def test_post_warning_message_image_upload_no_data(self):
         """test uploading an image without any data"""
         data = {
             "title": "title",
-            "project_identifier": "0000000000",
+            "project_identifier": 2048,
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             "body": "Body text",
         }
@@ -305,7 +315,7 @@ class TestApiProjectWarning(TestCase):
         """test posting an image upload without 'main''"""
         data = {
             "title": "title",
-            "project_identifier": "0000000000",
+            "project_identifier": 2048,
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             "body": "Body text",
         }
@@ -382,7 +392,7 @@ class TestApiProjectWarning(TestCase):
         """test patching a warning message"""
         data = {
             "title": "title",
-            "project_identifier": "0000000000",
+            "project_identifier": 2048,
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             "body": "body text",
         }
@@ -408,7 +418,7 @@ class TestApiProjectWarning(TestCase):
         """test pathing a missing title in warning message"""
         data = {
             "title": "title",
-            "project_identifier": "0000000000",
+            "project_identifier": 2048,
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             "body": "Body text",
         }
@@ -430,7 +440,7 @@ class TestApiProjectWarning(TestCase):
         """test pathing a warning message with missing content"""
         data = {
             "title": "title",
-            "project_identifier": "0000000000",
+            "project_identifier": 2048,
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             "body": "Body text",
         }
@@ -470,7 +480,7 @@ class TestApiProjectWarning(TestCase):
         """test deleting a warning message"""
         data = {
             "title": "title",
-            "project_identifier": "0000000000",
+            "project_identifier": 2048,
             "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             "body": "Body text",
         }

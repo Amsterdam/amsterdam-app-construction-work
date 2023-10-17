@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
 from django.test import TestCase
+from construction_work.generic_functions.date_translation import translate_timezone
 
 from construction_work.models import (
     Article,
@@ -167,23 +168,19 @@ class TestProjectModel(TestCase):
         first_project["id"] = serializer.data["id"]
         first_project["last_seen"] = serializer.data["last_seen"]
 
-        def translate_timezone(date_str, target_tz_date_str) -> str:
-            target_tz = datetime.fromisoformat(target_tz_date_str)
-            tmp_date = datetime.fromisoformat(date_str)
-            tmp_date = tmp_date.astimezone(target_tz.tzinfo)
-            return tmp_date.isoformat()
+        target_dt = datetime.fromisoformat(serializer.data["creation_date"])
 
         first_project["creation_date"] = translate_timezone(
-            first_project["creation_date"], serializer.data["creation_date"]
+            first_project["creation_date"], target_dt.tzinfo
         )
         first_project["modification_date"] = translate_timezone(
-            first_project["modification_date"], serializer.data["modification_date"]
+            first_project["modification_date"], target_dt.tzinfo
         )
         first_project["publication_date"] = translate_timezone(
-            first_project["publication_date"], serializer.data["publication_date"]
+            first_project["publication_date"], target_dt.tzinfo
         )
         first_project["expiration_date"] = translate_timezone(
-            first_project["expiration_date"], serializer.data["expiration_date"]
+            first_project["expiration_date"], target_dt.tzinfo
         )
 
         self.assertDictEqual(serializer.data, first_project)
