@@ -45,8 +45,10 @@ def main():
     # should_source = ["test", "runserver", "makemigrations", "migrate"]
     # if any(arg in sys.argv for arg in should_source):
     #     source_environment()
-    source_environment()  # Should this always be sources???
 
+    # Always read environment variables via manage.py
+    source_environment()
+    
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -59,7 +61,9 @@ def main():
     # Give developer easy access to API docs
     print("API documentation: http://0.0.0.0:8000/api/v1/apidocs")
 
-    if is_testing:
+    no_coverage = os.getenv("NO_COVERAGE", "false").lower() in ("true", "1")
+
+    if is_testing and no_coverage is False:
         os.environ["AES_SECRET"] = "aes_mock_secret"
         os.environ["APP_TOKEN"] = "app_mock_token"
 
