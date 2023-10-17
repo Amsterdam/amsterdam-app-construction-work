@@ -397,7 +397,7 @@ def projects_follow(request):
     # Follow flow
     if request.method == "POST":
         if device is None:
-            serializer = DeviceSerializer(data={"device_id": device_id, "followed_projects": [project.project_id]})
+            serializer = DeviceSerializer(data={"device_id": device_id, "followed_projects": [project.pk]})
             if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             serializer.save()
