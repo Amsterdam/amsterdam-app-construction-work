@@ -1,6 +1,6 @@
 """A device represent a mobile device that is running the Amsterdam App frontend"""
 
-from sqlite3 import IntegrityError
+from django.db import IntegrityError
 from django.db import models
 
 from construction_work.models.project import Project

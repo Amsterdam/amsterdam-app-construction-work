@@ -146,12 +146,14 @@ class WarningMessageSerializer(serializers.ModelSerializer):
 class WarningMessagePublicSerializer(serializers.ModelSerializer):
     """warning messages (external) serializer"""
 
-    # TODO: add warning image data as dict
+    project_id = serializers.CharField(source="project.project_id")
+    project_manager_key = serializers.CharField(source="project_manager.manager_key")
+
     images = serializers.SerializerMethodField()
 
     class Meta:
         model = WarningMessage
-        exclude = ["project_manager"]
+        exclude = ["project", "project_manager"]
 
     def get_images(self, obj: WarningMessage):
         base_url = self.context.get("base_url")

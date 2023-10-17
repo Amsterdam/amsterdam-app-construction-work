@@ -42,7 +42,7 @@ class TestApiProjectWarning(TestCase):
         for project in self.data.projects:
             Project.objects.create(**project)
 
-        for project_manager in self.data.project_manager:
+        for project_manager in self.data.project_managers:
             ProjectManager.objects.create(**project_manager)
 
     def tearDown(self):

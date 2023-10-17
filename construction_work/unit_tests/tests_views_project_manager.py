@@ -33,7 +33,7 @@ class TestApiProjectManager(TestCase):
         self.headers = {"HTTP_AUTHORIZATION": response.data["access"]}
 
         ProjectManager.objects.all().delete()
-        for project_manager in self.data.project_manager:
+        for project_manager in self.data.project_managers:
             ProjectManager.objects.create(**project_manager)
 
         Project.objects.all().delete()
@@ -48,7 +48,7 @@ class TestApiProjectManager(TestCase):
         response = c.get(self.url, **self.headers)
 
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(response.data, {"status": True, "result": self.data.project_manager})
+        self.assertDictEqual(response.data, {"status": True, "result": self.data.project_managers})
 
     def test_get_single_project_manager_not_exist(self):
         """Get a single project manager that does not exist"""

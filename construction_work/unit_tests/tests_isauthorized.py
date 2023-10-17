@@ -36,7 +36,7 @@ class TestIsAuthorized(TestCase):
 
         self.factory = RequestFactory()
         ProjectManager.objects.all().delete()
-        for project_manager in self.data.project_manager:
+        for project_manager in self.data.project_managers:
             ProjectManager.objects.create(**project_manager)
 
     def test_valid_token(self):

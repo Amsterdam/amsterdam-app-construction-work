@@ -38,7 +38,7 @@ class TestApiNotification(TestCase):
             Project.objects.create(**project)
 
         ProjectManager.objects.all().delete()
-        for project_manager in self.data.project_manager:
+        for project_manager in self.data.project_managers:
             ProjectManager.objects.create(**project_manager)
 
         data = {

@@ -21,12 +21,12 @@ class TestGarbageCollector(TestCase):
         for project in self.data.projects:
             Project.objects.create(**project)
 
-        for news in self.data.article:
+        for news in self.data.articles:
             project = Project.objects.filter(pk=news["project_identifier"]).first()
             news["project_identifier"] = project
             Article.objects.create(**news)
 
-        for project_manager in self.data.project_manager:
+        for project_manager in self.data.project_managers:
             ProjectManager.objects.create(**project_manager)
 
     def tearDown(self) -> None:

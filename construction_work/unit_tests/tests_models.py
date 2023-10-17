@@ -2,6 +2,7 @@
 from datetime import datetime
 import uuid
 from django.core.exceptions import ValidationError
+from django.db import IntegrityError
 
 from django.test import TestCase
 
@@ -15,6 +16,7 @@ from construction_work.models import (
 )
 from construction_work.models.article import Article
 from construction_work.models.asset_and_image import Asset, Image
+from construction_work.models.device import Device
 from construction_work.models.project import Project
 from construction_work.models.project_manager import ProjectManager
 from construction_work.models.warning_and_notification import WarningMessage
@@ -24,10 +26,10 @@ from construction_work.serializers import (
     AssetsSerializer,
     ImageSerializer,
     Notification,
+    NotificationSerializer,
     ProjectCreateSerializer,
     ProjectManagerSerializer,
     WarningMessagePublicSerializer,
-    WarningMessageSerializer,
 )
 from construction_work.unit_tests.mock_data import TestData
 from construction_work.generic_functions.generic_logger import Logger
@@ -35,13 +37,9 @@ from construction_work.generic_functions.generic_logger import Logger
 
 logger = Logger()
 
-# TODO: unit tests for Device model
-# what is the function of these tests? just test the Django ORM? added value?
 
-# NOTE: properly test CRUD of models with serializers
-
-class TestAssetsModel(TestCase):
-    """unit_tests"""
+class TestAssetModel(TestCase):
+    """Test asset model"""
 
     def setUp(self):
         """UNITTEST DB setup"""
@@ -81,7 +79,7 @@ class TestAssetsModel(TestCase):
 
 
 class TestImageModel(TestCase):
-    """unit_tests"""
+    """Test image model"""
 
     def setUp(self):
         """unit_tests setup"""
@@ -125,7 +123,7 @@ class TestImageModel(TestCase):
 
 
 class TestProjectModel(TestCase):
-    """unit_tests"""
+    """Test project model"""
 
     def setUp(self):
         """unit_tests db setup"""
@@ -190,7 +188,7 @@ class TestProjectModel(TestCase):
 
 
 class TestArticleModel(TestCase):
-    """unit_tests"""
+    """Test article model"""
 
     def setUp(self):
         self.data = TestData()
@@ -198,7 +196,7 @@ class TestArticleModel(TestCase):
         for project in self.data.projects:
             Project.objects.create(**project)
 
-        for article in self.data.article:
+        for article in self.data.articles:
             Article.objects.create(**article)
 
         all_articles = list(Article.objects.all())
@@ -232,9 +230,9 @@ class TestArticleModel(TestCase):
         """test exist"""
         news_object = Article.objects.get(article_id=128)
         serializer = ArticleSerializer(news_object)
-        self.data.article[0]["last_seen"] = serializer.data["last_seen"]
+        self.data.articles[0]["last_seen"] = serializer.data["last_seen"]
 
-        self.assertEqual(self.data.article[0]["active"], True)
+        self.assertEqual(self.data.articles[0]["active"], True)
 
     def test_article_does_not_exist(self):
         """test not exist"""
@@ -244,7 +242,7 @@ class TestArticleModel(TestCase):
 
 
 class TestProjectManagerModel(TestCase):
-    """unit_tests"""
+    """Test project manager model"""
 
     def setUp(self):
         """unit_tests db setup"""
@@ -253,7 +251,7 @@ class TestProjectManagerModel(TestCase):
         for project in self.data.projects:
             Project.objects.create(**project)
 
-        for pm in self.data.project_manager:
+        for pm in self.data.project_managers:
             ProjectManager.objects.create(**pm)
 
         all_project_managers = list(ProjectManager.objects.all())
@@ -323,7 +321,7 @@ class TestProjectManagerModel(TestCase):
 
 
 class TestWarningMessagesModel(TestCase):
-    """unit_tests"""
+    """Test warning message model"""
 
     def setUp(self):
         """Setup test db"""
@@ -331,7 +329,7 @@ class TestWarningMessagesModel(TestCase):
         for project in self.data.projects:
             Project.objects.create(**project)
 
-        for project_manager in self.data.project_manager:
+        for project_manager in self.data.project_managers:
             ProjectManager.objects.create(**project_manager)
 
     def tearDown(self) -> None:
@@ -339,145 +337,172 @@ class TestWarningMessagesModel(TestCase):
         WarningMessage.objects.all().delete()
         ProjectManager.objects.all().delete()
         return super().tearDown()
-
-    def test_create_message(self):
-        """Test create warning message"""
+    
+    def create_message(self):
         message_data = self.data.warning_message
         message_data["project_id"] = Project.objects.first().pk
         message_data["project_manager_id"] = ProjectManager.objects.first().pk
 
         warning_message = WarningMessage.objects.create(**message_data)
+        return warning_message
+
+    def test_create_message(self):
+        """Test create warning message"""
+        warning_message = self.create_message()
 
         self.assertEqual(
-            warning_message.author_email, self.data.project_manager[0]["email"]
+            warning_message.author_email, self.data.project_managers[0]["email"]
         )
-        self.assertNotEqual(warning_message.publication_date, None)
-        self.assertNotEqual(warning_message.modification_date, None)
+        self.assertIsNotNone(warning_message.publication_date)
+        self.assertIsNotNone(warning_message.modification_date)
 
-    # def test_default_email(self):
-    #     """Test default email on creation"""
-    #     data = dict(self.data.warning_message)
-    #     data["project_manager_id"] = uuid.uuid4()
-    #     data["project_identifier"] = Project.objects.filter(
-    #         pk=data["project_identifier"]
-    #     ).first()
-    #     warning_message = WarningMessage.objects.create(**data)
+    def test_modification_date(self):
+        """test modification date on changing a message"""
+        warning_message = self.create_message()
 
-    #     self.assertEqual(warning_message.author_email, "redactieprojecten@amsterdam.nl")
+        original_date = warning_message.modification_date
+        warning_message.save()
+        updateded_date = warning_message.modification_date
 
-    # def test_modification_date(self):
-    #     """test modification date on changing a message"""
-    #     self.data.warning_message["project_identifier"] = Project.objects.filter(
-    #         pk=self.data.warning_message["project_identifier"]
-    #     ).first()
-    #     warning_message = WarningMessage.objects.create(**self.data.warning_message)
-    #     date = warning_message.modification_date
-    #     warning_message.save()
+        self.assertNotEqual(original_date, updateded_date)
 
-    #     self.assertNotEqual(warning_message.modification_date, date)
+    def test_serializer_internal(self):
+        """Purpose: test if project_manager_id is present in serializer"""
+        warning_message = self.create_message()
 
-    # def test_serializer_internal(self):
-    #     """Purpose: test if project_manager_id is present in serializer"""
-    #     self.data.warning_message["project_identifier"] = Project.objects.filter(
-    #         pk=self.data.warning_message["project_identifier"]
-    #     ).first()
-    #     warning_message = WarningMessage.objects.create(**self.data.warning_message)
-    #     serializer = WarningMessageSerializer(warning_message, many=False)
-    #     data = dict(serializer.data)
-    #     expected_result = {
-    #         "identifier": data["identifier"],
-    #         "title": "title",
-    #         "body": "Body text",
-    #         "project_identifier": "0000000000",
-    #         "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-    #         "images": [],
-    #         "publication_date": data["publication_date"],
-    #         "modification_date": data["modification_date"],
-    #         "author_email": "mock0@amsterdam.nl",
-    #     }
+        serializer = WarningMessagePublicSerializer(instance=warning_message, data={}, partial=True)
+        self.assertTrue(serializer.is_valid())
+        serializer.data
 
-    #     self.assertDictEqual(data, expected_result)
+        expected_result = {
+            "id": serializer.data["id"],
+            "title": "warning message title",
+            "body": "warning message body",
+            "project_id": "2048",
+            "project_manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            "publication_date": serializer.data["publication_date"],
+            "modification_date": serializer.data["modification_date"],
+            "author_email": "mock0@amsterdam.nl",
+            "images": [],
+        }
 
-    # def test_serializer_external(self):
-    #     """Purpose: test if project_manager_id is NOT present in serializer"""
-    #     self.data.warning_message["project_identifier"] = Project.objects.filter(
-    #         pk=self.data.warning_message["project_identifier"]
-    #     ).first()
-    #     warning_message = WarningMessage.objects.create(**self.data.warning_message)
-    #     serializer = WarningMessagePublicSerializer(warning_message, many=False)
-    #     data = dict(serializer.data)
-    #     expected_result = {
-    #         "identifier": data["identifier"],
-    #         "title": "title",
-    #         "body": "Body text",
-    #         "project_identifier": "0000000000",
-    #         "images": [],
-    #         "publication_date": data["publication_date"],
-    #         "modification_date": data["modification_date"],
-    #         "author_email": "mock0@amsterdam.nl",
-    #     }
-
-    #     self.assertDictEqual(data, expected_result)
+        self.assertDictEqual(serializer.data, expected_result)
 
 
 class TestNotificationModel(TestCase):
-    """unit_tests"""
-
-    def __init__(self, *args, **kwargs):
-        super(TestNotificationModel, self).__init__(*args, **kwargs)
-        self.data = TestData()
-        self.warning_identifier = None
+    """Test notification model"""
 
     def setUp(self):
         """Setup test db"""
-        Project.objects.all().delete()
-        for project in self.data.projects:
-            Project.objects.create(**project)
+        self.data = TestData()
+        project = Project.objects.create(**self.data.projects[0])
+        project_manager = ProjectManager.objects.create(**self.data.project_managers[0])
 
+        message_data = self.data.warning_message
+        message_data["project_id"] = project.pk
+        message_data["project_manager_id"] = project_manager.pk
+        self.warning_message = WarningMessage.objects.create(**message_data)
+
+    def tearDown(self) -> None:
+        Project.objects.all().delete()
         WarningMessage.objects.all().delete()
-        self.data.warning_message["project_identifier"] = Project.objects.filter(
-            pk=self.data.warning_message["project_identifier"]
-        ).first()
-        warning_message = WarningMessage.objects.create(**self.data.warning_message)
-        self.warning_identifier = warning_message.identifier
+
+        return super().tearDown()
 
     def test_create_notification(self):
         """Create a notification"""
         data = {
-            "title": "test",
-            "body": "test",
-            "warning_identifier": self.warning_identifier,
+            "title": "notification title",
+            "body": "notification subtitle",
+            "warning": self.warning_message,
         }
         notification = Notification.objects.create(**data)
         notification.save()
-        data = ArticleSerializer(notification, many=False).data
-
-        self.assertEqual(data["project_identifier"], "0000000000")
+        
+        self.assertEqual(len(Notification.objects.all()), 1)
 
     def test_serializer(self):
         """Test the serializer for notification messages"""
         data = {
-            "title": "test",
-            "body": "test",
-            "warning_identifier": self.warning_identifier,
+            "title": "notification title",
+            "body": "notification body",
+            "warning": self.warning_message.pk,
         }
-        notification = Notification.objects.create(**data)
-        serializer = ArticleSerializer(notification, many=False)
-        serializer_data = dict(serializer.data)
+        serializer = NotificationSerializer(data=data)
+        self.assertTrue(serializer.is_valid())
+        serializer.save()
 
         expected_result = {
-            "identifier": str(notification.identifier),
-            "project_identifier": "0000000000",
-            "title": "test",
-            "publication_date": str(notification.publication_date),
-            "body": "test",
-            "images": None,
-            "assets": None,
-            "last_seen": None,
+            "id": serializer.data["id"],
+            "title": data["title"],
+            "body": data["body"],
+            "warning": self.warning_message.pk,
+            "publication_date": serializer.data["publication_date"]
         }
 
-        self.assertDictEqual(serializer_data, expected_result)
+        self.assertDictEqual(serializer.data, expected_result)
 
 
 class TestDeviceModel(TestCase):
-    pass
+    "Test device model"
+
+    def setUp(self) -> None:
+        self.data = TestData()
+    
+    def test_create_devices(self):
+        for device in self.data.devices:
+            Device.objects.create(**device)
+        
+        self.assertEqual(len(Device.objects.all()), 2)
+
+    def test_device_id_not_unique(self):
+        first_device_data = self.data.devices[0]
+        Device.objects.create(**first_device_data)
+
+        second_device_data = self.data.devices[1]
+        second_device_data["device_id"] = first_device_data["device_id"]
+        with self.assertRaises(IntegrityError) as context:
+            Device.objects.create(**second_device_data)
+        
+        self.assertIn("device_id", context.exception.args[0])
+
+    def test_firebase_token_not_unique(self):
+        first_device_data = self.data.devices[0]
+        Device.objects.create(**first_device_data)
+
+        second_device_data = self.data.devices[1]
+        second_device_data["firebase_token"] = first_device_data["firebase_token"]
+        with self.assertRaises(IntegrityError) as context:
+            Device.objects.create(**second_device_data)
+
+        self.assertIn("firebase_token", context.exception.args[0])
+
+    def test_firebase_token_can_be_null(self):
+        first_device_data = self.data.devices[0]
+        first_device_data["firebase_token"] = None
+        Device.objects.create(**first_device_data)
+
+        self.assertEqual(len(Device.objects.all()), 1)
+
+    def test_last_access_is_updated(self):
+        first_device_data = self.data.devices[0]
+        device = Device.objects.create(**first_device_data)
+        initial_access_date = device.last_access
+
+        device.save()
+        updated_access_date = device.last_access
+
+        self.assertNotEqual(initial_access_date, updated_access_date)
+
+    def test_add_and_remove_followed_project(self):
+        first_project = self.data.projects[0]
+        project = Project.objects.create(**first_project)
+        
+        first_device_data = self.data.devices[0]
+        device = Device.objects.create(**first_device_data)
+        device.followed_projects.add(project)
+        self.assertEqual(len(device.followed_projects.all()), 1)
+
+        device.followed_projects.remove(project)
+
+        self.assertEqual(len(device.followed_projects.all()), 0)

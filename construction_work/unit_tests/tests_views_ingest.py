@@ -116,7 +116,7 @@ class TestNewsIngestViews(BaseTestIngestViews):
 
         result = self.client.post(
             "/api/v1/ingest/article",
-            data=self.test_data.article[0],
+            data=self.test_data.articles[0],
             headers=self.header,
             content_type="application/json",
         )
@@ -129,7 +129,7 @@ class TestNewsIngestViews(BaseTestIngestViews):
         # Update existing record
         result = self.client.post(
             "/api/v1/ingest/article",
-            data=self.test_data.article[0],
+            data=self.test_data.articles[0],
             headers=self.header,
             content_type="application/json",
         )

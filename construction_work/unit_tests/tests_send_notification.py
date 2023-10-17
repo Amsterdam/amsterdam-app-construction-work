@@ -36,13 +36,13 @@ class TestSendNotification(TestCase):
             projects.append(new_project)
 
         ProjectManager.objects.all().delete()
-        for project_manager in self.data.project_manager:
+        for project_manager in self.data.project_managers:
             ProjectManager.objects.create(**project_manager)
 
-        self.data.article[0]["project_identifier"] = Project.objects.filter(
-            pk=self.data.article[0]["project_identifier"]
+        self.data.articles[0]["project_identifier"] = Project.objects.filter(
+            pk=self.data.articles[0]["project_identifier"]
         ).first()
-        news = Article.objects.create(**self.data.article[0])
+        news = Article.objects.create(**self.data.articles[0])
         self.news_identifier = news.article_id
 
         warning_message_data1 = {

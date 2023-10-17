@@ -89,7 +89,7 @@ class TestData:
             },
         ]
 
-        self.article = [
+        self.articles = [
             {
                 "article_id": 128,
                 "active": True,
@@ -160,7 +160,7 @@ class TestData:
             ],
         }
 
-        self.project_manager = [
+        self.project_managers = [
             {
                 "manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
                 "email": "mock0@amsterdam.nl",
@@ -192,7 +192,7 @@ class TestData:
 
         self.warning_message = {
             "title": "warning message title",
-            "body": "warning message subtitle",
+            "body": "warning message body",
             "publication_date": "2023-10-10",
             "modification_date": "2023-10-11",
         }
