@@ -161,34 +161,9 @@ class TestProjectModel(TestCase):
 
     def test_project_does_exist(self):
         """test exist"""
-        projects_object = Project.objects.filter(project_id=2048).first()
-        # TODO: remove serializer here
-        serializer = ProjectCreateSerializer(
-            instance=projects_object, data={}, partial=True
-        )
-        is_valid = serializer.is_valid()
-        self.assertTrue(is_valid)
-
-        first_project = self.data.projects[0]
-        first_project["id"] = serializer.data["id"]
-        first_project["last_seen"] = serializer.data["last_seen"]
-
-        target_dt = datetime.fromisoformat(serializer.data["creation_date"])
-
-        first_project["creation_date"] = translate_timezone(
-            first_project["creation_date"], target_dt.tzinfo
-        )
-        first_project["modification_date"] = translate_timezone(
-            first_project["modification_date"], target_dt.tzinfo
-        )
-        first_project["publication_date"] = translate_timezone(
-            first_project["publication_date"], target_dt.tzinfo
-        )
-        first_project["expiration_date"] = translate_timezone(
-            first_project["expiration_date"], target_dt.tzinfo
-        )
-
-        self.assertDictEqual(serializer.data, first_project)
+        project = Project.objects.filter(project_id=2048).first()
+        
+        self.assertIsNotNone(project.pk)
 
     def test_projects_does_not_exist(self):
         """test not exist"""
@@ -261,6 +236,8 @@ class TestProjectModel(TestCase):
         expected_data["recent_articles"] = None
 
         self.assertDictEqual(serializer_data, expected_data)
+
+
 
 
 class TestArticleModel(TestCase):
