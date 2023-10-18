@@ -13,6 +13,7 @@ from construction_work.swagger.swagger_views_iprox_news import as_article, as_ar
 
 message = Messages()
 
+# TODO: are these endpoint ever used?
 
 @swagger_auto_schema(**as_news_by_project_id)
 @api_view(["GET"])

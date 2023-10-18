@@ -61,7 +61,7 @@ class TestProjectIngestViews(BaseTestIngestViews):
 
         new_date = "2023-10-01"
         data = {
-            "project_id": "0000000000",
+            "foreign_id": "0000000000",
             "modification_date": new_date,
             "content_html": "<html />",
         }

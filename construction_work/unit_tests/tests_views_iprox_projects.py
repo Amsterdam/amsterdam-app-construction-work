@@ -257,7 +257,7 @@ class TestApiProjectDetails(BaseTestApi):
         expected_result = {
             "status": True,
             "result": {
-                "project_id": "0000000000",
+                "foreign_id": "0000000000",
                 "identifier": "0000000000",
                 "district_name": "Centrum",
                 "source_url": "https://amsterdam.nl/@0000000000/page/?AppIdt=app-pagetype&reload=true",
@@ -353,17 +353,17 @@ class TestApiProjectFollow(BaseTestApi):
         """Test missing device id"""
         c = Client()
         project = Project.objects.first()
-        project_id = project.project_id
+        foreign_id = project.foreign_id
 
         headers = {
             "HTTP_DEVICEAUTHORIZATION": self.token,
         }
-        data = {"project_id": project_id}
+        data = {"foreign_id": foreign_id}
         response = c.post(self.api_url, data, **headers)
         self.assertEqual(response.status_code, 400)
 
-    def test_missing_project_id(self):
-        """Test missing project id"""
+    def test_missing_foreign_id(self):
+        """Test missing foreign id"""
         c = Client()
 
         headers = {
@@ -382,7 +382,7 @@ class TestApiProjectFollow(BaseTestApi):
             "HTTP_DEVICEAUTHORIZATION": self.token,
             "HTTP_DEVICEID": "foobar",
         }
-        data = {"project_id": 9999}
+        data = {"foreign_id": 9999}
         response = c.post(self.api_url, data, **headers)
         self.assertEqual(response.status_code, 404)
 
@@ -390,7 +390,7 @@ class TestApiProjectFollow(BaseTestApi):
         """Test new device follows existing project"""
         c = Client()
         project = Project.objects.first()
-        project_id = project.project_id
+        foreign_id = project.foreign_id
 
         # Test if device did not yet exist
         new_device_id = "foobar"
@@ -402,7 +402,7 @@ class TestApiProjectFollow(BaseTestApi):
             "HTTP_DEVICEAUTHORIZATION": self.token,
             "HTTP_DEVICEID": new_device_id,
         }
-        data = {"project_id": project_id}
+        data = {"foreign_id": foreign_id}
         response = c.post(self.api_url, data, **headers)
         self.assertEqual(response.status_code, 200)
 
@@ -416,7 +416,7 @@ class TestApiProjectFollow(BaseTestApi):
         # Setup device and follow project
         device_id = "foobar"
         project = Project.objects.first()
-        project_id = project.project_id
+        foreign_id = project.foreign_id
         device = Device(device_id=device_id)
         device.save()
         device.followed_projects.add(project)
@@ -427,7 +427,7 @@ class TestApiProjectFollow(BaseTestApi):
             "HTTP_DEVICEAUTHORIZATION": self.token,
             "HTTP_DEVICEID": device_id,
         }
-        data = {"project_id": project_id}
+        data = {"foreign_id": foreign_id}
         response = c.delete(
             self.api_url, data=data, content_type="application/json", **headers
         )
@@ -449,7 +449,7 @@ class TestApiProjectFollow(BaseTestApi):
             "HTTP_DEVICEAUTHORIZATION": self.token,
             "HTTP_DEVICEID": device_id,
         }
-        data = {"project_id": 9999}
+        data = {"foreign_id": 9999}
         response = c.delete(
             self.api_url, data=data, content_type="application/json", **headers
         )
@@ -459,7 +459,7 @@ class TestApiProjectFollow(BaseTestApi):
         """Test unfollow existing project with existing device"""
         # Setup device and follow project
         project = Project.objects.first()
-        project_id = project.project_id
+        foreign_id = project.foreign_id
 
         device_id = "foobar"
         device = Device(device_id=device_id)
@@ -471,7 +471,7 @@ class TestApiProjectFollow(BaseTestApi):
             "HTTP_DEVICEAUTHORIZATION": self.token,
             "HTTP_DEVICEID": device_id,
         }
-        data = {"project_id": project_id}
+        data = {"foreign_id": foreign_id}
         response = c.delete(
             self.api_url, data=data, content_type="application/json", **headers
         )

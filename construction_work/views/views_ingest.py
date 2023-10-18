@@ -38,7 +38,7 @@ def garbage_collector(request):
     # Update last_seen and active state for all projects
     projects = Project.objects.all()
     for project in projects:
-        if project.project_id in project_foreign_ids:
+        if project.foreign_id in project_foreign_ids:
             serializer = ProjectCreateSerializer(project, data={"active": False}, partial=True)
             gc_status["projects"]["inactive"] += 1
         else:
@@ -73,7 +73,7 @@ def iprox_project(request):
 
 
 def iprox_project_get():
-    projects = list(Project.objects.all().values_list("project_id", "modification_date"))
+    projects = list(Project.objects.all().values_list("foreign_id", "modification_date"))
     result = {str(x[0]): {"modification_date": str(x[1])} for x in projects}
     return Response(result, status=status.HTTP_200_OK)
 
@@ -83,12 +83,12 @@ def iprox_project_post(request):
     iprox_raw_data = request.data
     iprox_data = json.loads(iprox_raw_data)
 
-    project_id = iprox_data.get("id")
+    foreign_id = iprox_data.get("id")
     title_and_subtitle = iprox_data.get("title", "").split(": ")
     title = title_and_subtitle[0]
     subtitle = None if len(title_and_subtitle) == 1 else title_and_subtitle[1]
 
-    project_instance = Project.objects.filter(project_id=project_id).first()
+    project_instance = Project.objects.filter(foreign_id=foreign_id).first()
 
     project_data = {
         "title": title,
@@ -99,7 +99,7 @@ def iprox_project_post(request):
         "image": iprox_data.get("image"),
         "images": iprox_data.get("images"),
         "url": iprox_data.get("url"),
-        "project_id": iprox_data.get("id"),
+        "foreign_id": iprox_data.get("id"),
         "creation_date": iprox_data.get("created"),
         "modification_date": iprox_data.get("modified"),
         "publication_date": iprox_data.get("publicationDate"),
@@ -134,11 +134,11 @@ def iprox_article_post(request):
     iprox_data_raw = request.data
     iprox_data = json.loads(iprox_data_raw)
 
-    foreign_id = iprox_data.get("id")
-    project_ids_iprox = [Project.objects.get(project_id=x) for x in iprox_data.get("projectIds")]
-    project_ids = [x.pk for x in project_ids_iprox]
+    article_foreign_id = iprox_data.get("id")
+    project_foreign_ids = [Project.objects.get(foreign_id=x) for x in iprox_data.get("projectIds")]
+    project_ids = [x.pk for x in project_foreign_ids]
 
-    article_instance = Article.objects.filter(foreign_id=foreign_id).first()
+    article_instance = Article.objects.filter(foreign_id=article_foreign_id).first()
     
     article_data = {
         "foreign_id": iprox_data.get("id"),

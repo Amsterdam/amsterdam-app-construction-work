@@ -149,7 +149,7 @@ class WarningMessageSerializer(serializers.ModelSerializer):
 class WarningMessagePublicSerializer(serializers.ModelSerializer):
     """warning messages (external) serializer"""
 
-    # project_id = serializers.CharField(source="project.project_id")
+    # project_foreign_id = serializers.CharField(source="project.foreign_id")
     # project_manager_key = serializers.CharField(source="project_manager.manager_key")
 
     images = serializers.SerializerMethodField()

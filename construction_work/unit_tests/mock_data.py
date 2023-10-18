@@ -54,7 +54,7 @@ class TestData:
 
         self.projects = [
             {
-                "project_id": 2048,
+                "foreign_id": 2048,
                 "active": True,
                 "title": "title first project",
                 "subtitle": "subtitle first project",
@@ -71,7 +71,7 @@ class TestData:
                 "expiration_date": "2023-02-01T00:00:00+00:00",
             },
             {
-                "project_id": 4096,
+                "foreign_id": 4096,
                 "active": True,
                 "title": "title second project",
                 "subtitle": "subtitle second project",

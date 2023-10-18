@@ -34,32 +34,33 @@ from construction_work.swagger.swagger_views_messages import (
 messages = Messages()
 
 
+# TODO: refactor, used by vue app?
 @swagger_auto_schema(**as_warning_messages_get)
 @api_view(["GET"])
 def warning_messages_get(request):
     """Warning messages"""
-    project_id = request.GET.get("id", None)
+    project_foreign_id = request.GET.get("foreign_id", None)
     sort_by = request.GET.get("sort-by", "modification_date")
     sort_order = request.GET.get("sort-order", None)
 
     warning_messages = []
-    if project_id is None:
+    if project_foreign_id is None:
         projects = Project.objects.all()
         for project in projects:
             if project.active is True:
-                warning_messages += WarningMessage.objects.filter(project_identifier=project.project_id).all()
+                warning_messages += WarningMessage.objects.filter(project_identifier=project.foreign_id).all()
 
         serializer = WarningMessagePublicSerializer(warning_messages, many=True)
         result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
         return Response({"status": True, "result": result}, 200)
 
-    project = Project.objects.filter(pk=project_id).first()
+    project = Project.objects.filter(foreign_id=project_foreign_id).first()
     if project is None:
         return Response({"status": False, "result": messages.no_record_found}, 404)
 
     result = []
     if project.active is True:
-        warning_messages = WarningMessage.objects.filter(project_identifier=project_id).all()
+        warning_messages = WarningMessage.objects.filter(project_identifier=project_foreign_id).all()
         serializer = WarningMessagePublicSerializer(warning_messages, many=True)
         result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
     return Response({"status": True, "result": result}, 200)
@@ -183,21 +184,21 @@ def warning_message_post(request):
     """Post a warning message. Only warnings by a valid Project manager for a valid project are allowed."""
     title = request.data.get("title", None)
     body = request.data.get("body", None)
-    project_id = request.data.get("project_identifier", None)
-    project_manager_key = request.data.get("project_manager_id", None)
+    project_foreign_id = request.data.get("project_foreign_id", None)
+    project_manager_key = request.data.get("project_manager_key", None)
 
-    if None in [title, project_id, project_manager_key]:
+    if None in [title, project_foreign_id, project_manager_key]:
         return {
             "result": {"status": False, "result": messages.invalid_query},
             "status_code": status.HTTP_400_BAD_REQUEST,
         }
 
-    if not str(project_id).isdigit():
+    if not str(project_foreign_id).isdigit():
         return {
             "result": {"status": False, "result": messages.invalid_query},
             "status_code": status.HTTP_400_BAD_REQUEST,
         }
-    project_id = int(project_id)
+    project_foreign_id = int(project_foreign_id)
 
     if not isinstance(body, str):
         return {
@@ -205,7 +206,7 @@ def warning_message_post(request):
             "status_code": status.HTTP_400_BAD_REQUEST,
         }
 
-    project = Project.objects.filter(project_id=project_id).first()
+    project = Project.objects.filter(foreign_id=project_foreign_id).first()
     if project is None:
         return {
             "result": {"status": False, "result": messages.no_record_found},
@@ -220,8 +221,8 @@ def warning_message_post(request):
             "status_code": status.HTTP_404_NOT_FOUND,
         }
 
-    project_manager_project_ids = list(project_manager.projects.values_list("project_id", flat=True))
-    if project_id not in project_manager_project_ids:
+    project_manager_project_ids = list(project_manager.projects.values_list("foreign_id", flat=True))
+    if project_foreign_id not in project_manager_project_ids:
         return {
             "result": {"status": False, "result": messages.no_record_found},
             "status_code": status.HTTP_403_FORBIDDEN,

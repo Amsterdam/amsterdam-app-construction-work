@@ -159,13 +159,13 @@ class TestProjectModel(TestCase):
 
     def test_project_does_exist(self):
         """test exist"""
-        project = Project.objects.filter(project_id=2048).first()
+        project = Project.objects.filter(foreign_id=2048).first()
 
         self.assertIsNotNone(project.pk)
 
     def test_projects_does_not_exist(self):
         """test not exist"""
-        projects_objects = Project.objects.filter(project_id=9999).first()
+        projects_objects = Project.objects.filter(foreign_id=9999).first()
 
         self.assertEqual(projects_objects, None)
 
@@ -226,7 +226,7 @@ class TestProjectModel(TestCase):
             "followers": 1,
             "followed": True,
             "recent_articles": [],
-            "project_id": project.project_id,
+            "foreign_id": project.foreign_id,
             "active": project.active,
             "last_seen": project.last_seen.astimezone(last_seen_dt.tzinfo).isoformat(),
             "title": project.title,
@@ -469,7 +469,7 @@ class TestWarningMessagesModel(TestCase):
             "id": serializer.data["id"],
             "title": "warning message title",
             "body": "warning message body",
-            # "project_id": "2048",
+            # "project_foreign_id": "2048",
             # "project_manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             "publication_date": serializer.data["publication_date"],
             "modification_date": serializer.data["modification_date"],

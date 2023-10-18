@@ -303,8 +303,8 @@ def project_details(request):
 
     # TODO: check if device exists: if not, create it, if it does, update last_access by save()
 
-    project_id = request.GET.get("id", None)
-    if project_id is None:
+    foreign_id = request.GET.get("id", None)
+    if foreign_id is None:
         return Response({"status": False, "result": message.invalid_query}, status=status.HTTP_400_BAD_REQUEST)
 
     articles_max_age = request.GET.get("articles_max_age", None)
@@ -328,7 +328,7 @@ def project_details(request):
             lon = data["results"][0]["centroid"][0]
             lat = data["results"][0]["centroid"][1]
 
-    project_obj = Project.objects.filter(pk=project_id, active=True).first()
+    project_obj = Project.objects.filter(foreign_id=foreign_id, active=True).first()
     if project_obj is None:
         return Response(
             {"status": False, "result": message.no_record_found},
@@ -365,14 +365,14 @@ def projects_follow(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    project_id = request.data.get("project_id", None)
-    if project_id is None:
+    foreign_id = request.data.get("foreign_id", None)
+    if foreign_id is None:
         return Response(
             {"status": False, "result": message.invalid_parameters},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    project = Project.objects.filter(project_id=project_id).first()
+    project = Project.objects.filter(foreign_id=foreign_id).first()
     if project is None:
         return Response(
             {"status": False, "result": message.no_record_found},
@@ -424,7 +424,7 @@ def projects_followed_articles(request):
         )
 
     followed_projects: List[Project] = device.followed_projects.all()
-    project_identifiers = [x.project_id for x in followed_projects]
+    project_identifiers = [x.foreign_id for x in followed_projects]
 
     result = {}
     # Get recent articles

@@ -79,12 +79,12 @@ def distance(request):
 
         result = None
         if radius is None:
-            result = get_projects_data(project.project_id, model_items, this_distance)
+            result = get_projects_data(project.foreign_id, model_items, this_distance)
         elif this_distance.meter is not None and this_distance.meter < float(radius):
-            result = get_projects_data(project.project_id, model_items, this_distance)
+            result = get_projects_data(project.foreign_id, model_items, this_distance)
 
         # Append the results
-        if result is not None and result["project_id"] != "":
+        if result is not None and result["foreign_id"] != "":
             results.append(result)
 
     sorted_results = Sort().list_of_dicts(results, key="meter", sort_order="asc")

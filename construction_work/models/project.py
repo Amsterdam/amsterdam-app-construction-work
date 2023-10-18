@@ -85,7 +85,7 @@ from django.utils import timezone
 class Project(models.Model):
     """Projects db model"""
 
-    project_id = models.BigIntegerField(blank=False, unique=True, null=False)
+    foreign_id = models.BigIntegerField(blank=False, unique=True, null=False)
 
     active = models.BooleanField(default=True, blank=True)
     last_seen = models.DateTimeField(auto_now=True)
