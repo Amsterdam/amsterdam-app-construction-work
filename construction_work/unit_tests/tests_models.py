@@ -39,44 +39,45 @@ from construction_work.generic_functions.generic_logger import Logger
 logger = Logger()
 
 
-class TestAssetModel(TestCase):
-    """Test asset model"""
+# DEPRECATED
+# class TestAssetModel(TestCase):
+#     """Test asset model"""
 
-    def setUp(self):
-        """UNITTEST DB setup"""
-        self.data = TestData()
+#     def setUp(self):
+#         """UNITTEST DB setup"""
+#         self.data = TestData()
 
-        Asset.objects.all().delete()
-        for asset in self.data.assets:
-            Asset.objects.create(**asset)
+#         Asset.objects.all().delete()
+#         for asset in self.data.assets:
+#             Asset.objects.create(**asset)
 
-    def test_asset_delete(self):
-        """test delete"""
-        Asset.objects.get(pk="0000000000").delete()
-        asset_objects = Asset.objects.all()
-        serializer = AssetsSerializer(asset_objects, many=True)
+#     def test_asset_delete(self):
+#         """test delete"""
+#         Asset.objects.get(pk="0000000000").delete()
+#         asset_objects = Asset.objects.all()
+#         serializer = AssetsSerializer(asset_objects, many=True)
 
-        self.assertEqual(len(serializer.data), 1)
+#         self.assertEqual(len(serializer.data), 1)
 
-    def test_asset_get_all(self):
-        """test retrieve"""
-        asset_objects = Asset.objects.all()
-        self.assertEqual(len(asset_objects), 2)
+#     def test_asset_get_all(self):
+#         """test retrieve"""
+#         asset_objects = Asset.objects.all()
+#         self.assertEqual(len(asset_objects), 2)
 
-    def test_asset_exists(self):
-        """test exist"""
-        asset = Asset.objects.get(pk="0000000000")
+#     def test_asset_exists(self):
+#         """test exist"""
+#         asset = Asset.objects.get(pk="0000000000")
 
-        self.assertEqual(asset.identifier, "0000000000")
-        self.assertEqual(asset.url, "https://localhost/test0.pdf")
-        self.assertEqual(asset.mime_type, "application/pdf")
-        self.assertEqual(asset.data, b"")
+#         self.assertEqual(asset.identifier, "0000000000")
+#         self.assertEqual(asset.url, "https://localhost/test0.pdf")
+#         self.assertEqual(asset.mime_type, "application/pdf")
+#         self.assertEqual(asset.data, b"")
 
-    def test_asset_does_not_exist(self):
-        """test not exist"""
-        asset = Asset.objects.filter(pk="not-there").first()
+#     def test_asset_does_not_exist(self):
+#         """test not exist"""
+#         asset = Asset.objects.filter(pk="not-there").first()
 
-        self.assertEqual(asset, None)
+#         self.assertEqual(asset, None)
 
 
 class TestImageModel(TestCase):
@@ -86,9 +87,19 @@ class TestImageModel(TestCase):
         """unit_tests setup"""
         self.data = TestData()
 
-        Image.objects.all().delete()
         for image in self.data.images:
             Image.objects.create(**image)
+
+    def tearDown(self) -> None:
+        Image.objects.all().delete()
+
+        return super().tearDown()
+
+    def test_image_get_all(self):
+        """test retrieve"""
+        image_objects = Image.objects.all()
+
+        self.assertEqual(len(image_objects), 3)
 
     def test_image_delete(self):
         """test delete"""
@@ -97,12 +108,6 @@ class TestImageModel(TestCase):
         serializer = ImageSerializer(image_objects, many=True)
 
         self.assertEqual(len(serializer.data), 2)
-
-    def test_image_get_all(self):
-        """test retrieve"""
-        image_objects = Image.objects.all()
-
-        self.assertEqual(len(image_objects), 3)
 
     def test_image_exists(self):
         """test exist"""
@@ -131,17 +136,13 @@ class TestProjectModel(TestCase):
         self.data = TestData()
         self.maxDiff = None
 
-        Project.objects.all().delete()
         for project in self.data.projects:
             Project.objects.create(**project)
 
-    def test_projects_delete(self):
-        """test delete"""
-        Project.objects.all().first().delete()
-        project_objects = list(Project.objects.all())
-        serializer = ProjectCreateSerializer(project_objects, many=True)
+    def tearDown(self) -> None:
+        Project.objects.all().delete()
 
-        self.assertEqual(len(serializer.data), 1)
+        return super().tearDown()
 
     def test_projects_get_all(self):
         """test retrieve"""
@@ -153,6 +154,14 @@ class TestProjectModel(TestCase):
         is_valid = serializer.is_valid()
         self.assertTrue(is_valid)
         self.assertEqual(len(serializer.data), 2)
+
+    def test_projects_delete(self):
+        """test delete"""
+        Project.objects.all().first().delete()
+        project_objects = list(Project.objects.all())
+        serializer = ProjectCreateSerializer(project_objects, many=True)
+
+        self.assertEqual(len(serializer.data), 1)
 
     def test_project_does_exist(self):
         """test exist"""
@@ -191,6 +200,7 @@ class TestProjectModel(TestCase):
 
         self.assertEqual(projects_objects, None)
 
+    # TODO: create test for serializer
 
 class TestArticleModel(TestCase):
     """Test article model"""
@@ -216,6 +226,13 @@ class TestArticleModel(TestCase):
 
         return super().tearDown()
 
+    def test_article_get_all(self):
+        """test retrieve"""
+        news_objects = Article.objects.all()
+        serializer = ArticleSerializer(news_objects, many=True)
+
+        self.assertEqual(len(serializer.data), 2)
+
     def test_article_delete(self):
         """test delete"""
         Article.objects.first().delete()
@@ -223,13 +240,6 @@ class TestArticleModel(TestCase):
         serializer = ArticleSerializer(news_objects, many=True)
 
         self.assertEqual(len(serializer.data), 1)
-
-    def test_article_get_all(self):
-        """test retrieve"""
-        news_objects = Article.objects.all()
-        serializer = ArticleSerializer(news_objects, many=True)
-
-        self.assertEqual(len(serializer.data), 2)
 
     def test_article_exists(self):
         """test exist"""
@@ -265,9 +275,16 @@ class TestProjectManagerModel(TestCase):
         all_project_managers[1].projects.set(all_projects)
 
     def tearDown(self) -> None:
+        Project.objects.all().delete()
         ProjectManager.objects.all().delete()
 
         return super().tearDown()
+
+    def test_pm_get_all(self):
+        """test retrieve"""
+        pm_objects = ProjectManager.objects.all()
+
+        self.assertEqual(len(pm_objects), 2)
 
     def test_pm_delete(self):
         """test delete"""
@@ -276,12 +293,6 @@ class TestProjectManagerModel(TestCase):
         serializer = ProjectManagerSerializer(pm_objects, many=True)
 
         self.assertEqual(len(serializer.data), 1)
-
-    def test_pm_get_all(self):
-        """test retrieve"""
-        pm_objects = ProjectManager.objects.all()
-
-        self.assertEqual(len(pm_objects), 2)
 
     def test_pm_exists(self):
         """test exist"""
@@ -341,6 +352,7 @@ class TestWarningMessagesModel(TestCase):
         Project.objects.all().delete()
         WarningMessage.objects.all().delete()
         ProjectManager.objects.all().delete()
+
         return super().tearDown()
 
     def create_message(self):
