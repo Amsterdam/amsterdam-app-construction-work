@@ -61,13 +61,12 @@ class WarningMessage(models.Model):
     title = models.CharField(max_length=1000, db_index=True)
     body = models.TextField()
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    project_manager = models.ForeignKey(ProjectManager, on_delete=models.PROTECT)
+    project_manager = models.ForeignKey(ProjectManager, blank=True, null=True, on_delete=models.PROTECT)
     publication_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True)
     author_email = models.EmailField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        # TODO: manager is required, so unused flow?
         self.author_email = DEFAULT_WARNING_MESSAGE_EMAIL
         if self.project_manager is not None:
             self.author_email = self.project_manager.email

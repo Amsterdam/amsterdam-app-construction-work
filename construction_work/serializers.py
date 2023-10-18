@@ -95,10 +95,14 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
         articles_max_age = self.context.get("articles_max_age")
         start_date = datetime.now().astimezone() - timedelta(days=int(articles_max_age))
         end_date = datetime.now().astimezone()
+        
         articles = obj.article_set.filter(publication_date__range=[start_date, end_date]).all()
-
         article_serializer = ArticleSerializer(articles, many=True)
         all_articles.extend(article_serializer.data)
+
+        warning_messages = obj.warningmessage_set.filter(publication_date__range=[start_date, end_date]).all()
+        warning_message_serializer = WarningMessagePublicSerializer(warning_messages, many=True)
+        all_articles.extend(warning_message_serializer.data)
 
         return all_articles
 
@@ -145,8 +149,8 @@ class WarningMessageSerializer(serializers.ModelSerializer):
 class WarningMessagePublicSerializer(serializers.ModelSerializer):
     """warning messages (external) serializer"""
 
-    project_id = serializers.CharField(source="project.project_id")
-    project_manager_key = serializers.CharField(source="project_manager.manager_key")
+    # project_id = serializers.CharField(source="project.project_id")
+    # project_manager_key = serializers.CharField(source="project_manager.manager_key")
 
     images = serializers.SerializerMethodField()
 

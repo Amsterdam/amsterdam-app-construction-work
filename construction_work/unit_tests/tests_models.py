@@ -182,6 +182,19 @@ class TestProjectModel(TestCase):
         article.publication_date = datetime.now().astimezone()
         article.save()
         article.projects.add(project)
+
+        project_manager = ProjectManager.objects.create(**self.data.project_managers[0])
+        project_manager.projects.add(project)
+
+        warning_message_data = self.data.warning_message
+        warning_message_data["project"] = project
+        warning_message_data["project_manager"] = project_manager
+
+        warning_message = WarningMessage.objects.create(**warning_message_data)
+        warning_message.publication_date = datetime.now().astimezone()
+        warning_message.project = project
+        warning_message.save()
+
         project.refresh_from_db()
 
         device = Device.objects.create(**self.data.devices[0])
@@ -199,7 +212,6 @@ class TestProjectModel(TestCase):
             instance=project, data={}, context=context, partial=True
         )
         self.assertTrue(serializer.is_valid())
-        serializer.data
 
         last_seen_dt = datetime.fromisoformat(serializer.data["last_seen"])
         creation_date_dt = datetime.fromisoformat(serializer.data["creation_date"])
@@ -240,7 +252,7 @@ class TestProjectModel(TestCase):
             ).isoformat(),
         }
 
-        self.assertEqual(len(serializer.data["recent_articles"]), 1)
+        self.assertEqual(len(serializer.data["recent_articles"]), 2)
 
         serializer_data = serializer.data
         serializer_data["recent_articles"] = None
@@ -430,6 +442,15 @@ class TestWarningMessagesModel(TestCase):
 
         self.assertNotEqual(original_date, updateded_date)
 
+    def test_remove_related_project_manager(self):
+        # TODO!
+        # warning_message = self.create_message()
+        pass
+
+    def test_author_email_set_to_manager_email(self):
+        # TODO!
+        pass
+
     def test_public_serializer(self):
         """Purpose: test if project_manager_id is present in serializer"""
         warning_message = self.create_message()
@@ -444,8 +465,8 @@ class TestWarningMessagesModel(TestCase):
             "id": serializer.data["id"],
             "title": "warning message title",
             "body": "warning message body",
-            "project_id": "2048",
-            "project_manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            # "project_id": "2048",
+            # "project_manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
             "publication_date": serializer.data["publication_date"],
             "modification_date": serializer.data["modification_date"],
             "author_email": "mock0@amsterdam.nl",

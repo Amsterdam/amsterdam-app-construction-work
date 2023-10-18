@@ -296,17 +296,20 @@ def project_details(request):
     """
     Get details for a project by identifier
     """
+    # NOTE: why get device id from header not from parameters?
     deviceid = request.META.get("HTTP_DEVICEID", None)
     if deviceid is None:
-        return Response({"status": False, "result": message.invalid_headers}, status=422)
+        return Response({"status": False, "result": message.invalid_headers}, status=status.HTTP_400_BAD_REQUEST)
+
+    # TODO: check if device exists: if not, create it, if it does, update last_access by save()
 
     project_id = request.GET.get("id", None)
     if project_id is None:
-        return Response({"status": False, "result": message.invalid_query}, status=422)
+        return Response({"status": False, "result": message.invalid_query}, status=status.HTTP_400_BAD_REQUEST)
 
     articles_max_age = request.GET.get("articles_max_age", None)
     if articles_max_age is not None and articles_max_age.isdigit() is False:
-        return Response({"status": False, "result": message.invalid_query}, status=400)
+        return Response({"status": False, "result": message.invalid_query}, status=status.HTTP_400_BAD_REQUEST)
 
     if articles_max_age is None:
         articles_max_age = DEFAULT_ARTICLE_MAX_AGE
@@ -334,7 +337,6 @@ def project_details(request):
 
     project_serializer = ProjectDetailsSerializer(
         instance=project_obj,
-        many=False,
         partial=True,
         context={
             "lat": lat,
@@ -347,22 +349,7 @@ def project_details(request):
     if not project_serializer.is_valid():
         return Response(project_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    project_data = dict(project_serializer.data)
-
-    # Get recent articles
-    if articles_max_age is not None:
-        articles_max_age = int(articles_max_age)
-        start_date = datetime.now() - timedelta(days=articles_max_age)
-        end_date = datetime.now()
-        warning_articles = list(
-            WarningMessage.objects.filter(
-                project_identifier=project_id,
-                publication_date__range=[start_date, end_date],
-            ).all()
-        )
-        serializer_warning = WarningMessagePublicSerializer(warning_articles, many=True)
-        project_data["recent_articles"] = [x["identifier"] for x in serializer_warning.data]
-    return Response({"status": True, "result": project_data}, status=status.HTTP_200_OK)
+    return Response(data=project_serializer.data, status=status.HTTP_200_OK)
 
 
 @swagger_auto_schema(**as_projects_follow_post)
