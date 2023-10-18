@@ -21,7 +21,7 @@ from construction_work.models.asset_and_image import Asset, Image
 from construction_work.models.device import Device
 from construction_work.models.project import Project
 from construction_work.models.project_manager import ProjectManager
-from construction_work.models.warning_and_notification import WarningMessage
+from construction_work.models.warning_and_notification import WarningImage, WarningMessage
 
 from construction_work.serializers import (
     ArticleSerializer,
@@ -29,7 +29,6 @@ from construction_work.serializers import (
     ImageSerializer,
     Notification,
     NotificationSerializer,
-    ProjectCreateSerializer,
     ProjectDetailsSerializer,
     ProjectManagerSerializer,
     WarningMessagePublicSerializer,
@@ -162,7 +161,7 @@ class TestProjectModel(TestCase):
     def test_project_does_exist(self):
         """test exist"""
         project = Project.objects.filter(project_id=2048).first()
-        
+
         self.assertIsNotNone(project.pk)
 
     def test_projects_does_not_exist(self):
@@ -197,7 +196,9 @@ class TestProjectModel(TestCase):
             "device_id": device.device_id,
             "articles_max_age": DEFAULT_ARTICLE_MAX_AGE,
         }
-        serializer = ProjectDetailsSerializer(instance=project, data={}, context=context, partial=True)
+        serializer = ProjectDetailsSerializer(
+            instance=project, data={}, context=context, partial=True
+        )
         self.assertTrue(serializer.is_valid())
         serializer.data
 
@@ -223,10 +224,18 @@ class TestProjectModel(TestCase):
             "image": project.image,
             "images": project.images,
             "url": project.url,
-            "creation_date": project.creation_date.astimezone(creation_date_dt.tzinfo).isoformat(),
-            "modification_date": project.modification_date.astimezone(creation_date_dt.tzinfo).isoformat(),
-            "publication_date": project.publication_date.astimezone(creation_date_dt.tzinfo).isoformat(),
-            "expiration_date": project.expiration_date.astimezone(creation_date_dt.tzinfo).isoformat(),
+            "creation_date": project.creation_date.astimezone(
+                creation_date_dt.tzinfo
+            ).isoformat(),
+            "modification_date": project.modification_date.astimezone(
+                creation_date_dt.tzinfo
+            ).isoformat(),
+            "publication_date": project.publication_date.astimezone(
+                creation_date_dt.tzinfo
+            ).isoformat(),
+            "expiration_date": project.expiration_date.astimezone(
+                creation_date_dt.tzinfo
+            ).isoformat(),
         }
 
         self.assertEqual(len(serializer.data["recent_articles"]), 1)
@@ -236,8 +245,6 @@ class TestProjectModel(TestCase):
         expected_data["recent_articles"] = None
 
         self.assertDictEqual(serializer_data, expected_data)
-
-
 
 
 class TestArticleModel(TestCase):
@@ -444,6 +451,53 @@ class TestWarningMessagesModel(TestCase):
         }
 
         self.assertDictEqual(serializer.data, expected_result)
+
+
+class TestWarningImageModel(TestCase):
+    """Test warning image model"""
+
+    def setUp(self) -> None:
+        """Setup test db"""
+        self.data = TestData()
+
+        project = Project.objects.create(**self.data.projects[0])
+        manager = ProjectManager.objects.create(**self.data.project_managers[0])
+        message_data = self.data.warning_message
+        message_data["project_id"] = project.pk
+        message_data["project_manager_id"] = manager.pk
+        self.warning_message = WarningMessage.objects.create(**message_data)
+
+        for image in self.data.images:
+            Image.objects.create(**image)
+
+    def create_warning_image(self, is_main=None):
+        data = {
+            "warning": self.warning_message,
+        }
+        if is_main is not None:
+            data["is_main"] = is_main
+
+        warning_image = WarningImage.objects.create(**data)
+        images = Image.objects.all()
+        warning_image.images.set(images)
+
+        return warning_image
+
+    def test_create_warning_image(self):
+        self.create_warning_image(is_main=True)
+
+        self.assertEqual(len(WarningImage.objects.all()), 1)
+
+    def test_without_is_main_should_make_main_false(self):
+        warning_image = self.create_warning_image(is_main=None)
+
+        self.assertFalse(warning_image.is_main)
+
+    def test_remove_message_should_remove_image(self):
+        self.create_warning_image()
+        self.warning_message.delete()
+
+        self.assertEqual(len(WarningImage.objects.all()), 0)
 
 
 class TestNotificationModel(TestCase):
