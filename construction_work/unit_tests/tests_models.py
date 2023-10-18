@@ -302,7 +302,7 @@ class TestArticleModel(TestCase):
 
     def test_article_exists(self):
         """test exist"""
-        news_object = Article.objects.get(article_id=128)
+        news_object = Article.objects.get(foreign_id=128)
         serializer = ArticleSerializer(news_object)
         self.data.articles[0]["last_seen"] = serializer.data["last_seen"]
 
@@ -310,7 +310,7 @@ class TestArticleModel(TestCase):
 
     def test_article_does_not_exist(self):
         """test not exist"""
-        news_object = Article.objects.filter(article_id=9999).first()
+        news_object = Article.objects.filter(foreign_id=9999).first()
 
         self.assertEqual(news_object, None)
 

@@ -28,7 +28,7 @@ class SetUp:
             news["project_id"] = Project.objects.filter(pk=news["project_id"]).first()
             news_item = Article.objects.create(**news)
             news_item.save()
-            self.identifiers.append(news_item.article_id)
+            self.identifiers.append(news_item.foreign_id)
 
         WarningMessage.objects.all().delete()
 

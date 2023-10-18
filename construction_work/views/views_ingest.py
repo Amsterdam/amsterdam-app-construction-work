@@ -29,8 +29,8 @@ def garbage_collector(request):
 
     etl_epoch_string = data.get("etl_epoch_string")
     etl_epoch = datetime.strptime(etl_epoch_string, "%Y-%m-%d %H:%M:%S.%f")
-    project_ids = data.get("project_ids", [])
-    article_ids = data.get("article_ids", [])
+    project_foreign_ids = data.get("project_ids", [])
+    article_foreign_ids = data.get("article_ids", [])
 
     # Skeleton status report
     gc_status = {"projects": {"active": 0, "inactive": 0}, "articles": {"deleted": 0, "active": 0}}
@@ -38,7 +38,7 @@ def garbage_collector(request):
     # Update last_seen and active state for all projects
     projects = Project.objects.all()
     for project in projects:
-        if project.project_id in project_ids:
+        if project.project_id in project_foreign_ids:
             serializer = ProjectCreateSerializer(project, data={"active": False}, partial=True)
             gc_status["projects"]["inactive"] += 1
         else:
@@ -51,8 +51,8 @@ def garbage_collector(request):
         serializer.save()
 
     # Remove all un-seen articles from database
-    Article.objects.filter(article_id__in=article_ids).delete()
-    gc_status["articles"]["deleted"] = len(article_ids)
+    Article.objects.filter(foreign_id__in=article_foreign_ids).delete()
+    gc_status["articles"]["deleted"] = len(article_foreign_ids)
     gc_status["articles"]["active"] = Article.objects.all().count()
 
     # Cleanup inactive projects
@@ -88,7 +88,6 @@ def iprox_project_post(request):
     title = title_and_subtitle[0]
     subtitle = None if len(title_and_subtitle) == 1 else title_and_subtitle[1]
 
-    # Try to get an article with the provided article_id
     project_instance = Project.objects.filter(project_id=project_id).first()
 
     project_data = {
@@ -125,7 +124,7 @@ def iprox_article(request):
 
 
 def iprox_article_get():
-    articles = list(Article.objects.all().values_list("article_id", "modification_date"))
+    articles = list(Article.objects.all().values_list("foreign_id", "modification_date"))
     result = {str(x[0]): {"modification_date": str(x[1])} for x in articles}
     return Response(result, status=status.HTTP_200_OK)
 
@@ -135,15 +134,14 @@ def iprox_article_post(request):
     iprox_data_raw = request.data
     iprox_data = json.loads(iprox_data_raw)
 
-    article_id = iprox_data.get("id")
+    foreign_id = iprox_data.get("id")
     project_ids_iprox = [Project.objects.get(project_id=x) for x in iprox_data.get("projectIds")]
     project_ids = [x.pk for x in project_ids_iprox]
 
-    # Try to get an article with the provided article_id
-    article_instance = Article.objects.filter(article_id=article_id).first()
-
+    article_instance = Article.objects.filter(foreign_id=foreign_id).first()
+    
     article_data = {
-        "article_id": iprox_data.get("id"),
+        "foreign_id": iprox_data.get("id"),
         "projects": project_ids,
         "title": iprox_data.get("title"),
         "intro": iprox_data.get("intro"),

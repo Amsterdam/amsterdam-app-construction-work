@@ -21,7 +21,7 @@ class Article(models.Model):
     equivalent: CASCADE.
     """
 
-    article_id = models.BigIntegerField(blank=False, null=False, unique=True)
+    foreign_id = models.BigIntegerField(blank=False, null=False, unique=True)
 
     active = models.BooleanField(default=True)
     last_seen = models.DateTimeField(auto_now=True)

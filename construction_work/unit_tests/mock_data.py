@@ -91,7 +91,7 @@ class TestData:
 
         self.articles = [
             {
-                "article_id": 128,
+                "foreign_id": 128,
                 "active": True,
                 "last_seen": datetime.datetime.strptime(
                     "2023-01-01T00:00:00", "%Y-%d-%mT%H:%M:%S"
@@ -112,7 +112,7 @@ class TestData:
                 "expiration_date": "2023-02-01T00:00:00+00:00",
             },
             {
-                "article_id": 256,
+                "foreign_id": 256,
                 "active": True,
                 "last_seen": datetime.datetime.strptime(
                     "2023-01-01T00:00:00", "%Y-%d-%mT%H:%M:%S"
