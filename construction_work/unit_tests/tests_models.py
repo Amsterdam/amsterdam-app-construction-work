@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
 from django.test import TestCase
-from construction_work.generic_functions.date_translation import translate_timezone
 from construction_work.generic_functions.static_data import DEFAULT_ARTICLE_MAX_AGE
 
 from construction_work.models import (
@@ -205,10 +204,13 @@ class TestProjectModel(TestCase):
         last_seen_dt = datetime.fromisoformat(serializer.data["last_seen"])
         creation_date_dt = datetime.fromisoformat(serializer.data["creation_date"])
 
+        distance_amstel_1_central_station_meters = 1282
+        distance_amstel_1_central_station_strides = 1732
+
         expected_data = {
             "id": serializer.data["id"],
-            "meter": 1282,
-            "strides": 1732,
+            "meter": distance_amstel_1_central_station_meters,
+            "strides": distance_amstel_1_central_station_strides,
             "followers": 1,
             "followed": True,
             "recent_articles": [],
