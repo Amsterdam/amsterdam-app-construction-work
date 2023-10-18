@@ -6,6 +6,7 @@ from django.db import IntegrityError
 
 from django.test import TestCase
 from construction_work.generic_functions.date_translation import translate_timezone
+from construction_work.generic_functions.static_data import DEFAULT_ARTICLE_MAX_AGE
 
 from construction_work.models import (
     Article,
@@ -29,6 +30,7 @@ from construction_work.serializers import (
     Notification,
     NotificationSerializer,
     ProjectCreateSerializer,
+    ProjectDetailsSerializer,
     ProjectManagerSerializer,
     WarningMessagePublicSerializer,
 )
@@ -147,26 +149,20 @@ class TestProjectModel(TestCase):
     def test_projects_get_all(self):
         """test retrieve"""
         project_objects = Project.objects.all()
-        # Using create serializer in order to not return any extra data
-        serializer = ProjectCreateSerializer(
-            instance=project_objects, data=[], many=True, partial=True
-        )
-        is_valid = serializer.is_valid()
-        self.assertTrue(is_valid)
-        self.assertEqual(len(serializer.data), 2)
+
+        self.assertEqual(len(project_objects), 2)
 
     def test_projects_delete(self):
         """test delete"""
         Project.objects.all().first().delete()
         project_objects = list(Project.objects.all())
-        serializer = ProjectCreateSerializer(project_objects, many=True)
 
-        self.assertEqual(len(serializer.data), 1)
+        self.assertEqual(len(project_objects), 1)
 
     def test_project_does_exist(self):
         """test exist"""
         projects_object = Project.objects.filter(project_id=2048).first()
-        # Using create serializer in order to not return any extra data
+        # TODO: remove serializer here
         serializer = ProjectCreateSerializer(
             instance=projects_object, data={}, partial=True
         )
@@ -200,7 +196,72 @@ class TestProjectModel(TestCase):
 
         self.assertEqual(projects_objects, None)
 
-    # TODO: create test for serializer
+    def test_detail_serializer(self):
+        project = Project.objects.first()
+        lat_lon_adam_central = (52.3791315, 4.8953957)
+        project.coordinates = {
+            "lat": lat_lon_adam_central[0],
+            "lon": lat_lon_adam_central[1],
+        }
+        project.save()
+
+        article = Article.objects.create(**self.data.articles[0])
+        article.publication_date = datetime.now().astimezone()
+        article.save()
+        article.projects.add(project)
+        project.refresh_from_db()
+
+        device = Device.objects.create(**self.data.devices[0])
+        device.followed_projects.add(project)
+
+        lat_lon_amstel_1 = (52.3676379, 4.8968271)
+
+        context = {
+            "lat": lat_lon_amstel_1[0],
+            "lon": lat_lon_amstel_1[1],
+            "device_id": device.device_id,
+            "articles_max_age": DEFAULT_ARTICLE_MAX_AGE,
+        }
+        serializer = ProjectDetailsSerializer(instance=project, data={}, context=context, partial=True)
+        self.assertTrue(serializer.is_valid())
+        serializer.data
+
+        last_seen_dt = datetime.fromisoformat(serializer.data["last_seen"])
+        creation_date_dt = datetime.fromisoformat(serializer.data["creation_date"])
+
+        expected_data = {
+            "id": serializer.data["id"],
+            "meter": 1282,
+            "strides": 1732,
+            "followers": 1,
+            "followed": True,
+            "recent_articles": [],
+            "project_id": project.project_id,
+            "active": project.active,
+            "last_seen": project.last_seen.astimezone(last_seen_dt.tzinfo).isoformat(),
+            "title": project.title,
+            "subtitle": project.subtitle,
+            "coordinates": project.coordinates,
+            "sections": project.sections,
+            "contacts": project.contacts,
+            "timeline": project.timeline,
+            "image": project.image,
+            "images": project.images,
+            "url": project.url,
+            "creation_date": project.creation_date.astimezone(creation_date_dt.tzinfo).isoformat(),
+            "modification_date": project.modification_date.astimezone(creation_date_dt.tzinfo).isoformat(),
+            "publication_date": project.publication_date.astimezone(creation_date_dt.tzinfo).isoformat(),
+            "expiration_date": project.expiration_date.astimezone(creation_date_dt.tzinfo).isoformat(),
+        }
+
+        self.assertEqual(len(serializer.data["recent_articles"]), 1)
+
+        serializer_data = serializer.data
+        serializer_data["recent_articles"] = None
+        expected_data["recent_articles"] = None
+
+        self.assertDictEqual(serializer_data, expected_data)
+
 
 class TestArticleModel(TestCase):
     """Test article model"""
@@ -383,7 +444,7 @@ class TestWarningMessagesModel(TestCase):
 
         self.assertNotEqual(original_date, updateded_date)
 
-    def test_serializer_internal(self):
+    def test_public_serializer(self):
         """Purpose: test if project_manager_id is present in serializer"""
         warning_message = self.create_message()
 

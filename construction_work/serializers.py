@@ -45,7 +45,6 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
     followers = serializers.SerializerMethodField()
     followed = serializers.SerializerMethodField()
 
-    # NOTE: recent_articles > via relationships with other models
     recent_articles = serializers.SerializerMethodField()
 
     class Meta:
@@ -94,8 +93,8 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
         all_articles = []
 
         articles_max_age = self.context.get("articles_max_age")
-        start_date = datetime.now() - timedelta(days=int(articles_max_age))
-        end_date = datetime.now()
+        start_date = datetime.now().astimezone() - timedelta(days=int(articles_max_age))
+        end_date = datetime.now().astimezone()
         articles = obj.article_set.filter(publication_date__range=[start_date, end_date]).all()
 
         article_serializer = ArticleSerializer(articles, many=True)
