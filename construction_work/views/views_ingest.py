@@ -2,13 +2,13 @@
 import json
 from datetime import datetime
 
+from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from construction_work.api_messages import Messages
-from construction_work.garbage_collector.garbage_collector import GarbageCollector
 from construction_work.generic_functions.generic_logger import Logger
 from construction_work.generic_functions.is_authorized import IsAuthorized
 from construction_work.models import Article, Project
@@ -20,18 +20,47 @@ logger = Logger()
 
 
 @swagger_auto_schema(**as_garbage_collector)
-@api_view(["GET"])
+@api_view(["POST"])
 @IsAuthorized
 def garbage_collector(request):
     """Garbage collector"""
+    raw_data = request.data
+    data = json.loads(raw_data)
 
-    # NOTE: Wellicht autonoom maken via een 'scrape' table met een last-scraped erin...
-    date = request.GET.get("date", str(datetime.now()))
-    last_scrape_time = datetime.strptime(date, "%Y-%m-%d %H:%M:%S.%f")
-    collector = GarbageCollector(last_scrape_time=last_scrape_time)
-    result = collector.collect_iprox()
+    etl_epoch_string = data.get("etl_epoch_string")
+    etl_epoch = datetime.strptime(etl_epoch_string, "%Y-%m-%d %H:%M:%S.%f")
+    project_ids = data.get("project_ids", [])
+    article_ids = data.get("article_ids", [])
 
-    return Response({"status": True, "result": result}, status=200)
+    # Skeleton status report
+    gc_status = {"projects": {"active": 0, "inactive": 0}, "articles": {"deleted": 0, "active": 0}}
+
+    # Update last_seen and active state for all projects
+    projects = Project.objects.all()
+    for project in projects:
+        if project.project_id in project_ids:
+            serializer = ProjectCreateSerializer(project, data={"active": False}, partial=True)
+            gc_status["projects"]["inactive"] += 1
+        else:
+            serializer = ProjectCreateSerializer(project, data={"last_seen": etl_epoch, "active": True}, partial=True)
+            gc_status["projects"]["active"] += 1
+
+        # Check if the data is valid and save the changes
+        if not serializer.is_valid():
+            Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.save()
+
+    # Remove all un-seen articles from database
+    Article.objects.filter(article_id__in=article_ids).delete()
+    gc_status["articles"]["deleted"] = len(article_ids)
+    gc_status["articles"]["active"] = Article.objects.all().count()
+
+    # Cleanup inactive projects
+    five_days_ago = timezone.now() - timezone.timedelta(days=5)
+    Project.objects.filter(last_seen__lt=five_days_ago, active=False).delete()
+
+    # Return Response
+    return Response(gc_status, status=200)
 
 
 @IsAuthorized
