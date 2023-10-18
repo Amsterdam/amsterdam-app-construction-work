@@ -443,9 +443,13 @@ class TestWarningMessagesModel(TestCase):
         self.assertNotEqual(original_date, updateded_date)
 
     def test_remove_related_project_manager(self):
-        # TODO!
-        # warning_message = self.create_message()
-        pass
+        warning_message = self.create_message()
+        self.assertIsNotNone(warning_message.project_manager)
+
+        warning_message.project_manager.delete()
+        warning_message.refresh_from_db()
+        self.assertIsNone(warning_message.project_manager)
+
 
     def test_author_email_set_to_manager_email(self):
         # TODO!

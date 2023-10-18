@@ -61,7 +61,7 @@ class WarningMessage(models.Model):
     title = models.CharField(max_length=1000, db_index=True)
     body = models.TextField()
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    project_manager = models.ForeignKey(ProjectManager, blank=True, null=True, on_delete=models.PROTECT)
+    project_manager = models.ForeignKey(ProjectManager, blank=True, null=True, on_delete=models.SET_NULL)
     publication_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True)
     author_email = models.EmailField(null=True, blank=True)
