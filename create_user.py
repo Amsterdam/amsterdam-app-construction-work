@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "main_application.settings")
 django.setup()
 
-
+# NOTE: move to management commands
 def create_users():
     """Create web and team account in  django app"""
     model = get_user_model()

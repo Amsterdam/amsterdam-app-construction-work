@@ -433,7 +433,7 @@ class TestWarningMessagesModel(TestCase):
         self.assertIsNotNone(warning_message.modification_date)
 
     def test_modification_date(self):
-        """test modification date on changing a message"""
+        """Test modification date on changing a message"""
         warning_message = self.create_message()
 
         original_date = warning_message.modification_date
@@ -443,17 +443,32 @@ class TestWarningMessagesModel(TestCase):
         self.assertNotEqual(original_date, updateded_date)
 
     def test_remove_related_project_manager(self):
+        """Test removing related project manager"""
         warning_message = self.create_message()
+
+        # Message has project manager to start with
         self.assertIsNotNone(warning_message.project_manager)
 
+        # After deleting project manager, message should still exsist
         warning_message.project_manager.delete()
         warning_message.refresh_from_db()
         self.assertIsNone(warning_message.project_manager)
 
-
     def test_author_email_set_to_manager_email(self):
-        # TODO!
-        pass
+        """Test changing author email of warning message"""
+        warning_message = self.create_message()
+
+        # Manager email should be different to start with
+        new_email = "test@amsterdam.com"
+        self.assertNotEqual(warning_message.project_manager.email, new_email)
+
+        # Author email message should not yet be changed at this point
+        warning_message.project_manager.email = new_email
+        self.assertNotEqual(warning_message.project_manager.email, warning_message.author_email)
+
+        # After save, author email should be updated to manager email 
+        warning_message.save()
+        self.assertEqual(warning_message.project_manager.email, warning_message.author_email)
 
     def test_public_serializer(self):
         """Purpose: test if project_manager_id is present in serializer"""
