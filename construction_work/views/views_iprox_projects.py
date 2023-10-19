@@ -383,6 +383,8 @@ def projects_follow(request):
 
     # Follow flow
     if request.method == "POST":
+        # TODO: if device is not none: add project to followed projects of device
+
         if device is None:
             serializer = DeviceSerializer(data={"device_id": device_id, "followed_projects": [project.pk]})
             if not serializer.is_valid():
