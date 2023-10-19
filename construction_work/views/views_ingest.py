@@ -1,5 +1,4 @@
 """ Views for ingestion routes """
-import json
 from datetime import datetime
 
 from django.utils import timezone
@@ -12,8 +11,13 @@ from construction_work.api_messages import Messages
 from construction_work.generic_functions.generic_logger import Logger
 from construction_work.generic_functions.is_authorized import IsAuthorized
 from construction_work.models import Article, Project
-from construction_work.serializers import ArticleSerializer, ProjectSerializer, ProjectDetailsSerializer
-from construction_work.swagger.swagger_views_ingestion import as_garbage_collector
+from construction_work.serializers import ArticleSerializer, ProjectSerializer
+from construction_work.swagger.swagger_views_ingestion import (
+    as_etl_article_post,
+    as_etl_get,
+    as_etl_project_post,
+    as_garbage_collector,
+)
 
 message = Messages()
 logger = Logger()
@@ -24,8 +28,7 @@ logger = Logger()
 @IsAuthorized
 def garbage_collector(request):
     """Garbage collector"""
-    raw_data = request.data
-    data = json.loads(raw_data)
+    data = request.data
 
     etl_epoch_string = data.get("etl_epoch_string")
     etl_epoch = datetime.strptime(etl_epoch_string, "%Y-%m-%d %H:%M:%S.%f")
@@ -63,28 +66,31 @@ def garbage_collector(request):
     return Response(gc_status, status=200)
 
 
+@swagger_auto_schema(**as_etl_get)
+@swagger_auto_schema(**as_etl_project_post)
 @IsAuthorized
 @api_view(["GET", "POST"])
-def iprox_project(request):
+def etl_project(request):
+    """Discriminate on request method"""
     if request.method == "GET":
-        return iprox_project_get()
+        return etl_project_get()
     if request.method == "POST":
-        return iprox_project_post(request)
+        return etl_project_post(request)
 
 
-def iprox_project_get():
+def etl_project_get():
+    """Get all project_id with their modification date"""
     projects = list(Project.objects.all().values_list("foreign_id", "modification_date"))
     result = {str(x[0]): {"modification_date": str(x[1])} for x in projects}
     return Response(result, status=status.HTTP_200_OK)
 
 
-def iprox_project_post(request):
-    """View for directly importing raw iprox data"""
-    iprox_raw_data = request.data
-    iprox_data = json.loads(iprox_raw_data)
+def etl_project_post(request):
+    """Import etl (iprox) data"""
+    etl_iprox_data = request.data
 
-    foreign_id = iprox_data.get("id")
-    title_and_subtitle = iprox_data.get("title", "").split(": ")
+    foreign_id = etl_iprox_data.get("foreign_id")
+    title_and_subtitle = etl_iprox_data.get("title", "").split(": ")
     title = title_and_subtitle[0]
     subtitle = None if len(title_and_subtitle) == 1 else title_and_subtitle[1]
 
@@ -93,17 +99,17 @@ def iprox_project_post(request):
     project_data = {
         "title": title,
         "subtitle": subtitle,
-        "sections": iprox_data.get("sections"),
-        "contacts": iprox_data.get("contacts"),
-        "timeline": iprox_data.get("timeline"),
-        "image": iprox_data.get("image"),
-        "images": iprox_data.get("images"),
-        "url": iprox_data.get("url"),
-        "foreign_id": iprox_data.get("id"),
-        "creation_date": iprox_data.get("created"),
-        "modification_date": iprox_data.get("modified"),
-        "publication_date": iprox_data.get("publicationDate"),
-        "expiration_date": iprox_data.get("expirationDate"),
+        "sections": etl_iprox_data.get("sections"),
+        "contacts": etl_iprox_data.get("contacts"),
+        "timeline": etl_iprox_data.get("timeline"),
+        "image": etl_iprox_data.get("image"),
+        "images": etl_iprox_data.get("images"),
+        "url": etl_iprox_data.get("url"),
+        "foreign_id": foreign_id,
+        "creation_date": etl_iprox_data.get("created"),
+        "modification_date": etl_iprox_data.get("modified"),
+        "publication_date": etl_iprox_data.get("publicationDate"),
+        "expiration_date": etl_iprox_data.get("expirationDate"),
     }
 
     # Use the instance parameter to update the existing article or create a new one
@@ -114,34 +120,37 @@ def iprox_project_post(request):
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
+@swagger_auto_schema(**as_etl_get)
+@swagger_auto_schema(**as_etl_article_post)
 @IsAuthorized
 @api_view(["GET", "POST"])
-def iprox_article(request):
+def etl_article(request):
+    """Discriminate on request method"""
     if request.method == "GET":
-        return iprox_article_get()
+        return etl_article_get()
     if request.method == "POST":
-        return iprox_article_post(request)
+        return etl_article_post(request)
 
 
-def iprox_article_get():
+def etl_article_get():
+    """Get all article_id with their modification date"""
     articles = list(Article.objects.all().values_list("foreign_id", "modification_date"))
     result = {str(x[0]): {"modification_date": str(x[1])} for x in articles}
     return Response(result, status=status.HTTP_200_OK)
 
 
-def iprox_article_post(request):
-    """View for directly importing raw iprox data"""
-    iprox_data_raw = request.data
-    iprox_data = json.loads(iprox_data_raw)
+def etl_article_post(request):
+    """Import etl (iprox) data"""
+    iprox_data = request.data
 
-    article_foreign_id = iprox_data.get("id")
+    article_foreign_id = iprox_data.get("foreign_id")
     project_foreign_ids = [Project.objects.get(foreign_id=x) for x in iprox_data.get("projectIds")]
     project_ids = [x.pk for x in project_foreign_ids]
 
     article_instance = Article.objects.filter(foreign_id=article_foreign_id).first()
-    
+
     article_data = {
-        "foreign_id": iprox_data.get("id"),
+        "foreign_id": article_foreign_id,
         "projects": project_ids,
         "title": iprox_data.get("title"),
         "intro": iprox_data.get("intro"),
