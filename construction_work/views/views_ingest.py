@@ -12,7 +12,7 @@ from construction_work.api_messages import Messages
 from construction_work.generic_functions.generic_logger import Logger
 from construction_work.generic_functions.is_authorized import IsAuthorized
 from construction_work.models import Article, Project
-from construction_work.serializers import ArticleSerializer, ProjectCreateSerializer, ProjectDetailsSerializer
+from construction_work.serializers import ArticleSerializer, ProjectSerializer, ProjectDetailsSerializer
 from construction_work.swagger.swagger_views_ingestion import as_garbage_collector
 
 message = Messages()
@@ -39,10 +39,10 @@ def garbage_collector(request):
     projects = Project.objects.all()
     for project in projects:
         if project.foreign_id in project_foreign_ids:
-            serializer = ProjectCreateSerializer(project, data={"active": False}, partial=True)
+            serializer = ProjectSerializer(project, data={"active": False}, partial=True)
             gc_status["projects"]["inactive"] += 1
         else:
-            serializer = ProjectCreateSerializer(project, data={"last_seen": etl_epoch, "active": True}, partial=True)
+            serializer = ProjectSerializer(project, data={"last_seen": etl_epoch, "active": True}, partial=True)
             gc_status["projects"]["active"] += 1
 
         # Check if the data is valid and save the changes
@@ -107,7 +107,7 @@ def iprox_project_post(request):
     }
 
     # Use the instance parameter to update the existing article or create a new one
-    serializer = ProjectCreateSerializer(instance=project_instance, data=project_data)
+    serializer = ProjectSerializer(instance=project_instance, data=project_data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     serializer.save()

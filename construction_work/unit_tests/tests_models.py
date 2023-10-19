@@ -200,7 +200,7 @@ class TestProjectModel(TestCase):
         device = Device.objects.create(**self.data.devices[0])
         device.followed_projects.add(project)
 
-        lat_lon_amstel_1 = (52.3676379, 4.8968271)
+        lat_lon_amstel_1 = (52.36763697623352, 4.89940424884927)
 
         context = {
             "lat": lat_lon_amstel_1[0],
@@ -216,8 +216,8 @@ class TestProjectModel(TestCase):
         last_seen_dt = datetime.fromisoformat(serializer.data["last_seen"])
         creation_date_dt = datetime.fromisoformat(serializer.data["creation_date"])
 
-        distance_amstel_1_central_station_meters = 1282
-        distance_amstel_1_central_station_strides = 1732
+        distance_amstel_1_central_station_meters = 1307
+        distance_amstel_1_central_station_strides = 1766
 
         expected_data = {
             "id": serializer.data["id"],

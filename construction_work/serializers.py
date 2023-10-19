@@ -28,7 +28,7 @@ class ImageSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ProjectCreateSerializer(serializers.ModelSerializer):
+class ProjectSerializer(serializers.ModelSerializer):
     """Project create serializer"""
 
     class Meta:
@@ -36,16 +36,50 @@ class ProjectCreateSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ProjectDetailsSerializer(serializers.ModelSerializer):
+class ProjectListSerializer(serializers.ModelSerializer):
+    """Project list serializer"""
+
+    followed = serializers.SerializerMethodField()
+    recent_articles = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Project
+        fields = "__all__"
+
+    def get_followed(self, obj: Project) -> bool:
+        """Check if project is being followed by given device"""
+        device_id = self.context.get("device_id")
+        project_followed = False
+        if device_id is not None:
+            device = obj.device_set.filter(device_id=device_id).first()
+            if device is not None:
+                project_followed = True
+        return project_followed
+
+    def get_recent_articles(self, obj: Project) -> dict:
+        all_articles = []
+
+        articles_max_age = self.context.get("articles_max_age")
+        start_date = datetime.now().astimezone() - timedelta(days=int(articles_max_age))
+        end_date = datetime.now().astimezone()
+        
+        articles = obj.article_set.filter(publication_date__range=[start_date, end_date]).all()
+        article_serializer = ArticleSerializer(articles, many=True)
+        all_articles.extend(article_serializer.data)
+
+        warning_messages = obj.warningmessage_set.filter(publication_date__range=[start_date, end_date]).all()
+        warning_message_serializer = WarningMessagePublicSerializer(warning_messages, many=True)
+        all_articles.extend(warning_message_serializer.data)
+
+        return all_articles
+
+
+class ProjectDetailsSerializer(ProjectListSerializer):
     """Project details serializer"""
 
     meter = serializers.SerializerMethodField()
     strides = serializers.SerializerMethodField()
-
     followers = serializers.SerializerMethodField()
-    followed = serializers.SerializerMethodField()
-
-    recent_articles = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
@@ -78,33 +112,6 @@ class ProjectDetailsSerializer(serializers.ModelSerializer):
     def get_followers(self, obj: Project) -> int:
         """Get amount of followers of project"""
         return obj.device_set.count()
-
-    def get_followed(self, obj: Project) -> bool:
-        """Check if project is being followed by given device"""
-        device_id = self.context.get("device_id")
-        project_followed = False
-        if device_id is not None:
-            device = obj.device_set.filter(device_id=device_id).first()
-            if device is not None:
-                project_followed = True
-        return project_followed
-
-    def get_recent_articles(self, obj: Project) -> dict:
-        all_articles = []
-
-        articles_max_age = self.context.get("articles_max_age")
-        start_date = datetime.now().astimezone() - timedelta(days=int(articles_max_age))
-        end_date = datetime.now().astimezone()
-        
-        articles = obj.article_set.filter(publication_date__range=[start_date, end_date]).all()
-        article_serializer = ArticleSerializer(articles, many=True)
-        all_articles.extend(article_serializer.data)
-
-        warning_messages = obj.warningmessage_set.filter(publication_date__range=[start_date, end_date]).all()
-        warning_message_serializer = WarningMessagePublicSerializer(warning_messages, many=True)
-        all_articles.extend(warning_message_serializer.data)
-
-        return all_articles
 
     def get_distance_from_project(self, lat: float, lon: float, obj: Project):
         """Get distance from project"""

@@ -48,12 +48,37 @@
             },
             "envFile": "${workspaceFolder}/env",
             "env": {
-                "DEBUG": "true",
+                // "DEBUG": "true",
                 "PYTHONPATH": "${workspaceFolder}",
                 "DJANGO_SETTINGS_MODULE": "main_application.settings",
-                "DJANGO_ALLOW_ASYNC_UNSAFE": "true",
+                // "DJANGO_ALLOW_ASYNC_UNSAFE": "true",
+                "NO_COVERAGE": "true",
+            },
+        },
+        {
+            "name": "Django: test specific class",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "args": [
+                "test",
+                "construction_work.unit_tests.tests_views_iprox_projects.TestApiProjects",
+                "--noinput"
+            ],
+            "django": true,
+            "console": "integratedTerminal",
+            "autoReload": {
+                "enable": true
+            },
+            "envFile": "${workspaceFolder}/env",
+            "env": {
+                // "DEBUG": "true",
+                "PYTHONPATH": "${workspaceFolder}",
+                "DJANGO_SETTINGS_MODULE": "main_application.settings",
+                // "DJANGO_ALLOW_ASYNC_UNSAFE": "true",
                 "NO_COVERAGE": "true",
             },
         }
+
     ]
 }

@@ -7,7 +7,7 @@ from math import ceil
 from typing import List
 
 import requests
-from django.db.models import BooleanField, Case, OuterRef, Subquery, Value, When
+from django.db.models import Max, BooleanField, Case, OuterRef, Subquery, Value, When
 from django.db.models.functions import Coalesce
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -17,8 +17,13 @@ from rest_framework.response import Response
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.distance import GeoPyDistance
 from construction_work.generic_functions.memoize import Memoize
-from construction_work.generic_functions.request_must_come_from_app import RequestMustComeFromApp
-from construction_work.generic_functions.static_data import DEFAULT_ARTICLE_MAX_AGE, StaticData
+from construction_work.generic_functions.request_must_come_from_app import (
+    RequestMustComeFromApp,
+)
+from construction_work.generic_functions.static_data import (
+    DEFAULT_ARTICLE_MAX_AGE,
+    StaticData,
+)
 from construction_work.generic_functions.text_search import TextSearch
 from construction_work.models import Article, Project, WarningMessage
 from construction_work.models.device import Device
@@ -26,6 +31,8 @@ from construction_work.serializers import (
     ArticleSerializer,
     DeviceSerializer,
     ProjectDetailsSerializer,
+    ProjectListSerializer,
+    ProjectSerializer,
     WarningMessagePublicSerializer,
 )
 from construction_work.swagger.swagger_views_iprox_projects import (
@@ -73,11 +80,20 @@ def search(model, request):
     if text is None or len(text) < 3:
         return Response({"status": False, "result": message.invalid_query}, status=422)
     if len([x for x in query_fields.split(",") if x not in model_fields]) > 0:
-        return Response({"status": False, "result": message.no_such_field_in_model}, status=422)
-    if fields is not None and len([x for x in fields.split(",") if x not in model_fields]) > 0:
-        return Response({"status": False, "result": message.no_such_field_in_model}, status=422)
+        return Response(
+            {"status": False, "result": message.no_such_field_in_model}, status=422
+        )
+    if (
+        fields is not None
+        and len([x for x in fields.split(",") if x not in model_fields]) > 0
+    ):
+        return Response(
+            {"status": False, "result": message.no_such_field_in_model}, status=422
+        )
 
-    text_search = TextSearch(model, text, query_fields, return_fields=fields, page_size=page_size, page=page)
+    text_search = TextSearch(
+        model, text, query_fields, return_fields=fields, page_size=page_size, page=page
+    )
     result = text_search.search()
     links = set_next_previous_links(request, result["page"])
     return Response(
@@ -94,7 +110,9 @@ def search(model, request):
 def address_to_gps(address):
     """Convert address to GPS info via API call"""
     apis = StaticData.urls()
-    url = "{api}{address}".format(api=apis["address_to_gps"], address=urllib.parse.quote_plus(address))
+    url = "{api}{address}".format(
+        api=apis["address_to_gps"], address=urllib.parse.quote_plus(address)
+    )
     result = requests.get(url=url, timeout=1)
     data = json.loads(result.content)
     if len(data["results"]) == 1:
@@ -128,133 +146,86 @@ def projects(request):
     Get a list of all projects. Narrow down by query param: project-type
     """
 
+    device_id = request.META.get("HTTP_DEVICEID", None)
+    if device_id is None:
+        return Response(
+            {"status": False, "result": message.invalid_headers}, status=422
+        )
+
     # @memoize
-    def _fetch_projects(deviceid):
+    def _fetch_projects(device_id):
         # Get query parameters
         lat = request.GET.get("lat", None)
         lon = request.GET.get("lon", None)
         address = request.GET.get("address", None)
-        articles_max_age = int(request.GET.get("articles_max_age", 3))  # Max days since publication date
+
+        # NOTE: is 3 days too little, users will miss many article updates
+        articles_max_age = int(
+            request.GET.get("articles_max_age", 3)
+        ) # Max days since publication date
 
         # Convert address into GPS data. Note: This should never happen, the device should already
         if address is not None:
             if lat is None or lon is None:
                 lat, lon = address_to_gps(address)
 
-        # For each project in the database get the following data:
-        # "project_id", "images", "publication_date", "subtitle", "title", "followed", "coordinates"
-
-        # TODO: FIXME
-        followed_projects = FollowedProject.objects.filter(projectid=OuterRef("project_id"), deviceid=deviceid).values(
-            "projectid"
-        )
-
-        _projects = list(
-            Project.objects.filter(active=True)
-            .annotate(
-                followed=Case(
-                    When(project_id__in=Subquery(followed_projects), then=Value(True)),
-                    default=Value(False),
-                    output_field=BooleanField(),
-                ),
-            )
-            .annotate(followed=Coalesce("followed", Value(False)))
-            .values(
-                "project_id",
-                "images",
-                "publication_date",
-                "subtitle",
-                "title",
-                "followed",
-                "coordinates",
-            )
-            .all()
-        )
-
-        # Get news and warning articles from the last 'articles_max_age' days
-        start_date = datetime.now() - timedelta(days=articles_max_age)
-        end_date = datetime.now()
-        start_date_str = start_date.strftime("%Y-%m-%d")
-
-        news_articles = list(
-            Article.objects.filter(publication_date__gte=start_date_str)
-            .values("project_identifier", "identifier", "publication_date")
-            .order_by("publication_date")
-            .all()
-        )
-
-        for article in news_articles:
-            article["publication_date"] = datetime.strptime(article["publication_date"], "%Y-%m-%d")
-
-        warning_articles = list(
-            WarningMessage.objects.filter(publication_date__range=[start_date, end_date])
-            .values("project_identifier", "identifier", "publication_date")
-            .order_by("publication_date")
-            .all()
-        )
-
-        articles = news_articles + warning_articles
-
-        # Add articles to 'projects', sorted descending on publication_date
-        for project in _projects:
-            try:
-                project["recent_articles"] = sorted(
-                    [
-                        {
-                            "identifier": article["identifier"],
-                            "publication_date": article["publication_date"],
-                        }
-                        for article in articles
-                        if article["project_identifier"] == project["identifier"]
-                    ],
-                    key=lambda x: x["publication_date"],
-                    reverse=True,
+        device = Device.objects.filter(device_id=device_id).first()
+        if device is None:
+            device_serializer = DeviceSerializer(data={"device_id": device_id})
+            if not device_serializer.is_valid():
+                return Response(
+                    device_serializer.errors, status=status.HTTP_400_BAD_REQUEST
                 )
-            except Exception as error:
-                print(error, flush=True)
+            device = device_serializer.save()
 
-        # Calculate distance from app-users-address to project (python based)
-        # efficiency: ~0.08s for 304 projects
-        _projects = get_distance(_projects, lat, lon)
+        # Sort followed projects by project with most recent article
+        projects_followed_by_device_qs = device.followed_projects.all().annotate(
+            latest_modification_date=Max("article__modification_date")
+        ).order_by("-latest_modification_date")
+        projects_followed_by_device = list(projects_followed_by_device_qs)
 
-        # Sort projects Algorithm (articles have been pre-sorted (desc) by publication date):
+        def calculate_distance(project: Project, lat, lon):
+            given_cords = (float(lat), float(lon))
 
-        # Divide the projects in two lists, followed projects and all others
-        data = {"follow": [], "others": []}
-        [data["follow"].append(x) if x["followed"] is True else data["others"].append(x) for x in _projects]
+            if project.coordinates is not None:
+                project_cords = (project.coordinates["lat"], project.coordinates["lon"])
+            else:
+                project_cords = (None, None)
 
-        # Next: → Sort the followed projects by most recent articles, (data["follow"] can be an empty list)
-        lambda_expression = (
-            lambda x: x["recent_articles"][0]["publication_date"]
-            if "recent_articles" in x and len(x["recent_articles"]) > 0
-            # and isinstance(x["recent_articles"][0]["publication_date"], datetime)
-            else datetime.min
-        )
-        if len(data["follow"]) != 0:
-            data["follow"] = sorted(data["follow"], key=lambda_expression, reverse=True)
+            distance = GeoPyDistance(given_cords, project_cords)
+            if distance.meter is None:
+                return float("inf")
+            return distance.meter
 
-        # Next: → If the user has not provided an address, sort on publication date of most recent news-article
-        if lat is None and lon is None:
-            data["others"] = sorted(data["others"], key=lambda_expression, reverse=True)
-        # Else: → If the user has provided an address, sort on increasing distance between address and project
-        else:
-            # Magic number "10000000" if meter is None, use a really high number...
-            data["others"] = sorted(
-                data["others"],
-                key=lambda x: x["meter"] if x["meter"] else 10000000,
-                reverse=False,
+        all_other_projects_qs = Project.objects.exclude(pk__in=projects_followed_by_device_qs)
+
+        if lat is not None and lon is not None:
+            # Sort remaining projects by distance from given coordinates
+            all_other_projects = sorted(
+                all_other_projects_qs,
+                key=lambda project: calculate_distance(project, lat, lon),
             )
+        else:
+            # Sort projects by project with most recent article
+            all_other_projects_qs = all_other_projects_qs.annotate(
+                latest_modification_date=Max("article__modification_date")
+            ).order_by("-latest_modification_date")
+            all_other_projects = list(all_other_projects_qs)
 
-        # Next: → Concatenate the two lists and return the result
-        return data["follow"] + data["others"]
+        all_projects = []
+        all_projects.extend(projects_followed_by_device)
+        all_projects.extend(all_other_projects)
 
-    # Guard clause
-    deviceid = request.META.get("HTTP_DEVICEID", None)
-    if deviceid is None:
-        return Response({"status": False, "result": message.invalid_headers}, status=422)
+        context = {
+            "device_id": device_id,
+            "articles_max_age": articles_max_age,
+        }
+        serializer = ProjectListSerializer(instance=all_projects, many=True, context=context)
+        
+        return serializer.data
 
     # Call _fetch_projects
-    result = _fetch_projects(deviceid)
+    result = _fetch_projects(device_id)
 
     # Set paginated result and calculate number of pages
     page_size = int(request.GET.get("page_size", 10))
@@ -273,12 +244,11 @@ def projects(request):
 
     return Response(
         {
-            "status": True,
             "result": paginated_result,
             "page": pagination,
             "_links": links,
         },
-        status=200,
+        status=status.HTTP_200_OK,
     )
 
 
@@ -299,17 +269,26 @@ def project_details(request):
     # NOTE: why get device id from header not from parameters?
     deviceid = request.META.get("HTTP_DEVICEID", None)
     if deviceid is None:
-        return Response({"status": False, "result": message.invalid_headers}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"status": False, "result": message.invalid_headers},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     # TODO: check if device exists: if not, create it, if it does, update last_access by save()
 
     foreign_id = request.GET.get("id", None)
     if foreign_id is None:
-        return Response({"status": False, "result": message.invalid_query}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"status": False, "result": message.invalid_query},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     articles_max_age = request.GET.get("articles_max_age", None)
     if articles_max_age is not None and articles_max_age.isdigit() is False:
-        return Response({"status": False, "result": message.invalid_query}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"status": False, "result": message.invalid_query},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     if articles_max_age is None:
         articles_max_age = DEFAULT_ARTICLE_MAX_AGE
@@ -321,7 +300,9 @@ def project_details(request):
     address = request.GET.get("address", None)  # akkerstraat%2014 -> akkerstraat 14
     if address is not None:
         apis = StaticData.urls()
-        url = "{api}{address}".format(api=apis["address_to_gps"], address=urllib.parse.quote_plus(address))
+        url = "{api}{address}".format(
+            api=apis["address_to_gps"], address=urllib.parse.quote_plus(address)
+        )
         result = requests.get(url=url, timeout=1)
         data = json.loads(result.content)
         if len(data["results"]) == 1:
@@ -386,7 +367,9 @@ def projects_follow(request):
         # TODO: if device is not none: add project to followed projects of device
 
         if device is None:
-            serializer = DeviceSerializer(data={"device_id": device_id, "followed_projects": [project.pk]})
+            serializer = DeviceSerializer(
+                data={"device_id": device_id, "followed_projects": [project.pk]}
+            )
             if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             serializer.save()
@@ -401,7 +384,9 @@ def projects_follow(request):
         )
 
     device.followed_projects.remove(project)
-    return Response({"status": False, "result": "Subscription removed"}, status=status.HTTP_200_OK)
+    return Response(
+        {"status": False, "result": "Subscription removed"}, status=status.HTTP_200_OK
+    )
 
 
 # TODO: change view when article gets remodelled
@@ -434,9 +419,15 @@ def projects_followed_articles(request):
         start_date = datetime.now() - timedelta(days=article_max_age)
         end_date = datetime.now()
         start_date_str = start_date.strftime("%Y-%m-%d")
-        news_articles_all = list(Article.objects.filter(project_identifier=project_id).all())
+        news_articles_all = list(
+            Article.objects.filter(project_identifier=project_id).all()
+        )
         serializer_news = ArticleSerializer(news_articles_all, many=True)
-        news_articles = [x["identifier"] for x in serializer_news.data if x["publication_date"] >= start_date_str]
+        news_articles = [
+            x["identifier"]
+            for x in serializer_news.data
+            if x["publication_date"] >= start_date_str
+        ]
         warning_articles = list(
             WarningMessage.objects.filter(
                 project_identifier=project_id,

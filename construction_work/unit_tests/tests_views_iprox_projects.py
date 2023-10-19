@@ -9,6 +9,7 @@ from construction_work.api_messages import Messages
 from construction_work.generic_functions.aes_cipher import AESCipher
 from construction_work.generic_functions.generic_logger import Logger
 from construction_work.models import Project
+from construction_work.models.article import Article
 from construction_work.models.device import Device
 from construction_work.unit_tests.mock_data import TestData
 
@@ -38,6 +39,11 @@ class BaseTestApi(TestCase):
 class TestApiProjects(BaseTestApi):
     """unit_tests"""
 
+    def tearDown(self) -> None:
+        Project.objects.all().delete()
+        Article.objects.all().delete()
+        Device.objects.all().delete()
+
     def test_method_not_allowed(self):
         """Http method not allowed"""
         c = Client()
@@ -48,99 +54,130 @@ class TestApiProjects(BaseTestApi):
         self.assertEqual(response.status_code, 405)
         self.assertDictEqual(result, {"detail": 'Method "POST" not allowed.'})
 
-    def test_projects_all(self):
-        """Get all projects"""
+    def create_project_and_article(self, project_foreign_id, article_pub_date):
+        project_data = self.data.projects[0]
+        project_data["foreign_id"] = project_foreign_id
+        project = Project.objects.create(**project_data)
+
+        article_data = self.data.articles[0]
+        article_data["foreign_id"] = project_foreign_id + 1
+        article_data["modification_date"] = article_pub_date
+        article = Article.objects.create(**article_data)
+        article.projects.add(project)
+
+        return project
+
+    def test_new_device_should_be_created(self):
         c = Client()
-        headers = {"HTTP_DEVICEID": "6"}
-        response = c.get("/api/v1/projects", **headers)
-        results = json.loads(response.content)
-        for result in results["result"]:
-            for i in range(0, len(self.data.projects), 1):
-                if result["project_id"] == self.data.projects[i]["project_id"]:
-                    self.data.projects[i]["followed"] = False
-        print(json.dumps(results, indent=4))
 
-        expected_result = {
-            "status": True,
-            "result": [
-                {
-                    "project_id": "0000000000",
-                    "images": [
-                        {
-                            "type": "banner",
-                            "sources": {
-                                "orig": {
-                                    "url": "https://localhost/image.jpg",
-                                    "size": "orig",
-                                    "filename": "image.jpg",
-                                    "image_id": "0000000000",
-                                    "description": "",
-                                }
-                            },
-                        },
-                        {
-                            "type": "additional",
-                            "sources": {
-                                "orig": {
-                                    "url": "https://localhost/image.jpg",
-                                    "size": "orig",
-                                    "filename": "image.jpg",
-                                    "image_id": "0000000001",
-                                    "description": "",
-                                }
-                            },
-                        },
-                    ],
-                    "publication_date": "1970-01-01",
-                    "subtitle": "subtitle",
-                    "title": "title",
-                    "followed": False,
-                    "coordinates": {"lat": 0.0, "lon": 0.0},
-                    "recent_articles": [],
-                },
-                {
-                    "project_id": "0000000001",
-                    "images": [
-                        {
-                            "type": "banner",
-                            "sources": {
-                                "orig": {
-                                    "url": "https://localhost/image.jpg",
-                                    "size": "orig",
-                                    "filename": "image.jpg",
-                                    "image_id": "0000000000",
-                                    "description": "",
-                                }
-                            },
-                        },
-                        {
-                            "type": "additional",
-                            "sources": {
-                                "orig": {
-                                    "url": "https://localhost/image.jpg",
-                                    "size": "orig",
-                                    "filename": "image.jpg",
-                                    "image_id": "0000000001",
-                                    "description": "",
-                                }
-                            },
-                        },
-                    ],
-                    "publication_date": "1970-01-02",
-                    "subtitle": "subtitle",
-                    "title": "title",
-                    "followed": False,
-                    "coordinates": {"lat": 1.0, "lon": 1.0},
-                    "recent_articles": [],
-                },
-            ],
-            "page": {"number": 1, "size": 10, "totalElements": 2, "totalPages": 1},
-            "_links": {"self": {"href": "http://localhost/api/v1/projects"}},
+        new_device_id = "test_new_device_should_be_created"
+        headers = {"HTTP_DEVICEID": new_device_id}
+        c.get("/api/v1/projects", **headers)
+
+        new_device = Device.objects.filter(device_id=new_device_id).first()
+        self.assertIsNotNone(new_device)
+
+    def assert_projects_sorted_descending_by_recent_article_date(self, device_follows_projects: bool):
+        # Reset projects
+        Project.objects.all().delete()
+
+        # Create projects with single article at different times
+        project_1 = self.create_project_and_article(10, "2023-01-01T12:00:00+00:00")
+        project_2 = self.create_project_and_article(20, "2023-01-01T12:45:00+00:00")
+        project_3 = self.create_project_and_article(30, "2023-01-01T12:15:00+00:00")
+        project_4 = self.create_project_and_article(40, "2023-01-01T12:30:00+00:00")
+
+        # Create device and follow all projects
+        device = Device.objects.create(**self.data.devices[0])
+        if device_follows_projects:
+            device.followed_projects.set([project_1, project_2, project_3, project_4])
+
+        # Perform request
+        c = Client()
+        headers = {"HTTP_DEVICEID": device.device_id}
+        response = c.get("/api/v1/projects?page_size=4", **headers)
+
+        # Default order will be by objects internal pk
+        expected_default_foreign_id_order = [10, 20, 30, 40]
+        default_foreign_id_order = list(
+            Project.objects.values_list("foreign_id", flat=True)
+        )
+        self.assertEqual(default_foreign_id_order, expected_default_foreign_id_order)
+
+        # Expected projects to be ordered descending by modification date
+        expected_foreign_id_order = [20, 40, 30, 10]
+        response_foreign_id_order = [x["foreign_id"] for x in response.data["result"]]
+        self.assertEqual(response_foreign_id_order, expected_foreign_id_order)
+
+    def test_followed_projects_sorted_descending_by_recent_article_date(self):
+        self.assert_projects_sorted_descending_by_recent_article_date(device_follows_projects=True)
+
+    def test_other_projects_sorted_descending_by_recent_article_date(self):
+        self.assert_projects_sorted_descending_by_recent_article_date(device_follows_projects=False)
+
+    def test_other_projects_sorted_by_distance_with_lat_lon(self):
+        # Reset projects
+        Project.objects.all().delete()
+
+        # Setup location
+        # - Base location is Amsterdam Central Station
+        adam_central_station = (52.379158791458494, 4.899904339167326)
+        # - The closest location to the base location
+        royal_palace_adam = (52.3731077480929, 4.891371824969558)
+        # - The second closest location to the base location
+        rijks_museam_adam = (52.36002292836369, 4.8852016757845345)
+        # - The furthest location to the base location
+        van_gogh_museum_adam = (52.358155575937595, 4.8811891932042055)
+
+        project_1 = self.create_project_and_article(10, "2023-01-01T12:00:00+00:00")
+        project_1.coordinates = {
+            "lat": van_gogh_museum_adam[0],
+            "lon": van_gogh_museum_adam[1],
         }
+        project_1.save()
 
-        self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(results, expected_result)
+        project_2 = self.create_project_and_article(20, "2023-01-01T12:15:00+00:00")
+        project_2.coordinates = {
+            "lat": royal_palace_adam[0],
+            "lon": royal_palace_adam[1],
+        }
+        project_2.save()
 
+        project_3 = self.create_project_and_article(30, "2023-01-01T12:30:00+00:00")
+        project_3.coordinates = {
+            "lat": rijks_museam_adam[0],
+            "lon": rijks_museam_adam[1],
+        }
+        project_3.save()
+
+        # Create device, but don't follow any projects
+        device = Device.objects.create(**self.data.devices[0])
+
+        # Perform request
+        c = Client()
+        headers = {"HTTP_DEVICEID": device.device_id}
+        response = c.get(
+            f"/api/v1/projects?lat={adam_central_station[0]}&lon={adam_central_station[1]}&page_size=3",
+            **headers,
+        )
+
+        # Expected projects to be ordered from closest to furthest from the base location
+        expected_foreign_id_order = [20, 30, 10]
+        response_foreign_id_order = [x["foreign_id"] for x in response.data["result"]]
+        self.assertEqual(response_foreign_id_order, expected_foreign_id_order)
+    
+    def test_pagination(self):
+        # Reset projects
+        Project.objects.all().delete()
+
+        for i in range(1, 10+1):
+            project_data = self.data.projects[0]
+            project_data["foreign_id"] = i*10
+            Project.objects.create(**project_data)
+
+        self.assertEqual(len(Project.objects.all()), 10)
+
+        # TODO: test actual pagination
 
 class TestApiProjectsSearch(BaseTestApi):
     """unit_tests"""
