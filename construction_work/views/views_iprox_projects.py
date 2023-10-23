@@ -50,19 +50,20 @@ memoize = Memoize(ttl=300, max_items=128)
 FollowedProject = None
 
 
-def set_next_previous_links(request, result):
+def create_next_previous_links(request, pagination):
     """Pagination defaults"""
     path_info = request.META.get("PATH_INFO")
     http_prefix = "https://" if request.is_secure() else "http://"
     http_host = request.META.get("HTTP_HOST", "localhost")
     host = http_prefix + http_host + path_info
+    page_size = pagination["size"]
     links = {"self": {"href": host}}
-    if result["number"] < result["totalPages"]:
-        _next = str(result["number"] + 1)
-        links["next"] = {"href": host + "?page=" + _next}
-    if result["number"] > 1:
-        previous = str(result["number"] - 1)
-        links["previous"] = {"href": host + "?page=" + previous}
+    if pagination["number"] < pagination["totalPages"]:
+        _next = str(pagination["number"] + 1)
+        links["next"] = {"href": f"{host}?page={_next}&page_size={page_size}"}
+    if pagination["number"] > 1:
+        previous = str(pagination["number"] - 1)
+        links["previous"] = {"href": f"{host}?page={previous}&page_size={page_size}"}
     return links
 
 
@@ -95,7 +96,7 @@ def search(model, request):
         model, text, query_fields, return_fields=fields, page_size=page_size, page=page
     )
     result = text_search.search()
-    links = set_next_previous_links(request, result["page"])
+    links = create_next_previous_links(request, result["page"])
     return Response(
         {
             "status": True,
@@ -238,7 +239,7 @@ def projects(request):
         "totalElements": len(result),
         "totalPages": pages,
     }
-    links = set_next_previous_links(request, pagination)
+    links = create_next_previous_links(request, pagination)
 
     return Response(
         {
@@ -264,22 +265,25 @@ def project_details(request):
     """
     Get details for a project by identifier
     """
-    # NOTE: why get device id from header not from parameters?
-    deviceid = request.META.get("HTTP_DEVICEID", None)
-    if deviceid is None:
-        return Response(
-            {"status": False, "result": message.invalid_headers},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    # TODO: check if device exists: if not, create it, if it does, update last_access by save()
-
-    foreign_id = request.GET.get("id", None)
+    device_id = request.META.get("HTTP_DEVICEID", None)
+    if device_id is None:
+        return Response(data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
+    
+    foreign_id = request.GET.get("foreign_id", None)
     if foreign_id is None:
         return Response(
             {"status": False, "result": message.invalid_query},
             status=status.HTTP_400_BAD_REQUEST,
         )
+
+    device = Device.objects.filter(device_id=device_id).first()
+    if device is None:
+        device_serializer = DeviceSerializer(data={"device_id": device_id})
+        if not device_serializer.is_valid():
+            return Response(
+                device_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+        device = device_serializer.save()
 
     articles_max_age = request.GET.get("articles_max_age", None)
     if articles_max_age is not None and articles_max_age.isdigit() is False:
@@ -320,7 +324,7 @@ def project_details(request):
         context={
             "lat": lat,
             "lon": lon,
-            "device_id": deviceid,
+            "device_id": device_id,
             "articles_max_age": articles_max_age,
         },
     )

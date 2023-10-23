@@ -183,14 +183,46 @@ class TestApiProjects(BaseTestApi):
         # Reset projects
         Project.objects.all().delete()
 
+        # Create a total of 10 projects
         for i in range(1, 10+1):
             project_data = self.data.projects[0]
             project_data["foreign_id"] = i*10
             Project.objects.create(**project_data)
-
         self.assertEqual(len(Project.objects.all()), 10)
 
-        # TODO: test actual pagination
+        device = Device.objects.create(**self.data.devices[0])
+        c = Client()
+        headers = {"HTTP_DEVICEID": device.device_id}
+        
+        # With page size of 4, 4 projects should be returned
+        response = c.get("/api/v1/projects", {"page_size": 4}, **headers)
+        self.assertEqual(response.data["page"]["number"], 1)
+        self.assertEqual(response.data["page"]["size"], 4)
+        self.assertEqual(response.data["page"]["totalElements"], 10)
+        self.assertEqual(response.data["page"]["totalPages"], 3)
+        self.assertEqual(len(response.data["result"]), 4)
+
+        # The next URL should be available with the same pagination settings
+        next_url = response.data["_links"]["next"]["href"]
+
+        # With page size of 4, the next 4 projects should be returned
+        response = c.get(next_url, **headers)
+        self.assertEqual(response.data["page"]["number"], 2)
+        self.assertEqual(response.data["page"]["size"], 4)
+        self.assertEqual(response.data["page"]["totalElements"], 10)
+        self.assertEqual(response.data["page"]["totalPages"], 3)
+        self.assertEqual(len(response.data["result"]), 4)
+
+        next_url = response.data["_links"]["next"]["href"]
+
+        # With page size of 4, the last 2 projects should be returned
+        response = c.get(next_url, **headers)
+        self.assertEqual(response.data["page"]["number"], 3)
+        self.assertEqual(response.data["page"]["size"], 4)
+        self.assertEqual(response.data["page"]["totalElements"], 10)
+        self.assertEqual(response.data["page"]["totalPages"], 3)
+        self.assertEqual(len(response.data["result"]), 2)
+
 
 class TestApiProjectsSearch(BaseTestApi):
     """unit_tests"""
