@@ -61,7 +61,7 @@ class TestApiProjects(BaseTestApi):
 
         article_data = self.data.articles[0]
         article_data["foreign_id"] = project_foreign_id + 1
-        article_data["modification_date"] = article_pub_date
+        article_data["publication_date"] = article_pub_date
         article = Article.objects.create(**article_data)
         article.projects.add(project)
 
@@ -70,7 +70,7 @@ class TestApiProjects(BaseTestApi):
     def add_article_to_project(self, project: Project, foreign_id, pub_date):
         article_data = self.data.articles[0]
         article_data["foreign_id"] = foreign_id
-        article_data["modification_date"] = pub_date
+        article_data["publication_date"] = pub_date
         article = Article.objects.create(**article_data)
         article.projects.add(project)
         return article
@@ -116,7 +116,7 @@ class TestApiProjects(BaseTestApi):
         )
         self.assertEqual(default_foreign_id_order, expected_default_foreign_id_order)
 
-        # Expected projects to be ordered descending by modification date
+        # Expected projects to be ordered descending by publication date
         expected_foreign_id_order = [20, 40, 10, 30]
         response_foreign_id_order = [x["foreign_id"] for x in response.data["result"]]
         self.assertEqual(response_foreign_id_order, expected_foreign_id_order)

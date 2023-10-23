@@ -178,8 +178,8 @@ def projects(request):
 
         # Sort followed projects by project with most recent article
         projects_followed_by_device_qs = device.followed_projects.all().annotate(
-            latest_modification_date=Max("article__modification_date")
-        ).order_by("-latest_modification_date")
+            latest_publication_date=Max("article__publication_date")
+        ).order_by("-latest_publication_date")
         projects_followed_by_device = list(projects_followed_by_device_qs)
 
         def calculate_distance(project: Project, lat, lon):
@@ -206,8 +206,8 @@ def projects(request):
         else:
             # Sort projects by project with most recent article
             all_other_projects_qs = all_other_projects_qs.annotate(
-                latest_modification_date=Max("article__modification_date")
-            ).order_by("-latest_modification_date")
+                latest_publication_date=Max("article__publication_date")
+            ).order_by("-latest_publication_date")
             all_other_projects = list(all_other_projects_qs)
 
         all_projects = []
