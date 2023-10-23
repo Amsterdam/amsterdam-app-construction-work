@@ -66,6 +66,14 @@ class TestApiProjects(BaseTestApi):
         article.projects.add(project)
 
         return project
+    
+    def add_article_to_project(self, project: Project, foreign_id, pub_date):
+        article_data = self.data.articles[0]
+        article_data["foreign_id"] = foreign_id
+        article_data["modification_date"] = pub_date
+        article = Article.objects.create(**article_data)
+        article.projects.add(project)
+        return article
 
     def test_new_device_should_be_created(self):
         c = Client()
@@ -81,11 +89,15 @@ class TestApiProjects(BaseTestApi):
         # Reset projects
         Project.objects.all().delete()
 
-        # Create projects with single article at different times
+        # Create projects with articles at different times
         project_1 = self.create_project_and_article(10, "2023-01-01T12:00:00+00:00")
-        project_2 = self.create_project_and_article(20, "2023-01-01T12:45:00+00:00")
+        self.add_article_to_project(project_1, 12, "2023-01-01T12:20:00+00:00")
+        project_2 = self.create_project_and_article(20, "2023-01-01T12:35:00+00:00")
+        self.add_article_to_project(project_2, 22, "2023-01-01T12:45:00+00:00")
         project_3 = self.create_project_and_article(30, "2023-01-01T12:15:00+00:00")
-        project_4 = self.create_project_and_article(40, "2023-01-01T12:30:00+00:00")
+        self.add_article_to_project(project_3, 32, "2023-01-01T12:16:00+00:00")
+        project_4 = self.create_project_and_article(40, "2023-01-01T12:35:00+00:00")
+        self.add_article_to_project(project_4, 42, "2023-01-01T12:30:00+00:00")
 
         # Create device and follow all projects
         device = Device.objects.create(**self.data.devices[0])
@@ -105,7 +117,7 @@ class TestApiProjects(BaseTestApi):
         self.assertEqual(default_foreign_id_order, expected_default_foreign_id_order)
 
         # Expected projects to be ordered descending by modification date
-        expected_foreign_id_order = [20, 40, 30, 10]
+        expected_foreign_id_order = [20, 40, 10, 30]
         response_foreign_id_order = [x["foreign_id"] for x in response.data["result"]]
         self.assertEqual(response_foreign_id_order, expected_foreign_id_order)
 
