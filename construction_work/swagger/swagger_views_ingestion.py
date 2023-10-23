@@ -1,7 +1,7 @@
 """ Swagger definitions used in the views_*_.py decorators '@swagger_auto_schema(**object)'. """
 from drf_yasg import openapi
 
-from construction_work.serializers import ArticleSerializer, ProjectCreateSerializer
+from construction_work.serializers import ArticleSerializer, ProjectSerializer
 
 #
 # Re-usable snippets
@@ -103,11 +103,11 @@ as_etl_project_post = {
             required=True,
         )
     ],
-    "request_body": ProjectCreateSerializer,
+    "request_body": ProjectSerializer,
     "responses": {
         200: openapi.Response(
             "application/json",
-            ProjectCreateSerializer,
+            ProjectSerializer,
             examples={
                 "application/json": {
                     "id": 334,

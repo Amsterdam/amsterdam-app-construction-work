@@ -61,11 +61,19 @@ class TestApiProjects(BaseTestApi):
 
         article_data = self.data.articles[0]
         article_data["foreign_id"] = project_foreign_id + 1
-        article_data["modification_date"] = article_pub_date
+        article_data["publication_date"] = article_pub_date
         article = Article.objects.create(**article_data)
         article.projects.add(project)
 
         return project
+    
+    def add_article_to_project(self, project: Project, foreign_id, pub_date):
+        article_data = self.data.articles[0]
+        article_data["foreign_id"] = foreign_id
+        article_data["publication_date"] = pub_date
+        article = Article.objects.create(**article_data)
+        article.projects.add(project)
+        return article
 
     def test_new_device_should_be_created(self):
         c = Client()
@@ -81,11 +89,15 @@ class TestApiProjects(BaseTestApi):
         # Reset projects
         Project.objects.all().delete()
 
-        # Create projects with single article at different times
+        # Create projects with articles at different times
         project_1 = self.create_project_and_article(10, "2023-01-01T12:00:00+00:00")
-        project_2 = self.create_project_and_article(20, "2023-01-01T12:45:00+00:00")
+        self.add_article_to_project(project_1, 12, "2023-01-01T12:20:00+00:00")
+        project_2 = self.create_project_and_article(20, "2023-01-01T12:35:00+00:00")
+        self.add_article_to_project(project_2, 22, "2023-01-01T12:45:00+00:00")
         project_3 = self.create_project_and_article(30, "2023-01-01T12:15:00+00:00")
-        project_4 = self.create_project_and_article(40, "2023-01-01T12:30:00+00:00")
+        self.add_article_to_project(project_3, 32, "2023-01-01T12:16:00+00:00")
+        project_4 = self.create_project_and_article(40, "2023-01-01T12:35:00+00:00")
+        self.add_article_to_project(project_4, 42, "2023-01-01T12:30:00+00:00")
 
         # Create device and follow all projects
         device = Device.objects.create(**self.data.devices[0])
@@ -95,7 +107,7 @@ class TestApiProjects(BaseTestApi):
         # Perform request
         c = Client()
         headers = {"HTTP_DEVICEID": device.device_id}
-        response = c.get("/api/v1/projects?page_size=4", **headers)
+        response = c.get("/api/v1/projects", {"page_size": 4}, **headers)
 
         # Default order will be by objects internal pk
         expected_default_foreign_id_order = [10, 20, 30, 40]
@@ -104,8 +116,8 @@ class TestApiProjects(BaseTestApi):
         )
         self.assertEqual(default_foreign_id_order, expected_default_foreign_id_order)
 
-        # Expected projects to be ordered descending by modification date
-        expected_foreign_id_order = [20, 40, 30, 10]
+        # Expected projects to be ordered descending by publication date
+        expected_foreign_id_order = [20, 40, 10, 30]
         response_foreign_id_order = [x["foreign_id"] for x in response.data["result"]]
         self.assertEqual(response_foreign_id_order, expected_foreign_id_order)
 
@@ -157,7 +169,8 @@ class TestApiProjects(BaseTestApi):
         c = Client()
         headers = {"HTTP_DEVICEID": device.device_id}
         response = c.get(
-            f"/api/v1/projects?lat={adam_central_station[0]}&lon={adam_central_station[1]}&page_size=3",
+            f"/api/v1/projects",
+            {"lat": adam_central_station[0], "lon": adam_central_station[1], "page_size": 3},
             **headers,
         )
 
@@ -170,14 +183,46 @@ class TestApiProjects(BaseTestApi):
         # Reset projects
         Project.objects.all().delete()
 
+        # Create a total of 10 projects
         for i in range(1, 10+1):
             project_data = self.data.projects[0]
             project_data["foreign_id"] = i*10
             Project.objects.create(**project_data)
-
         self.assertEqual(len(Project.objects.all()), 10)
 
-        # TODO: test actual pagination
+        device = Device.objects.create(**self.data.devices[0])
+        c = Client()
+        headers = {"HTTP_DEVICEID": device.device_id}
+        
+        # With page size of 4, 4 projects should be returned
+        response = c.get("/api/v1/projects", {"page_size": 4}, **headers)
+        self.assertEqual(response.data["page"]["number"], 1)
+        self.assertEqual(response.data["page"]["size"], 4)
+        self.assertEqual(response.data["page"]["totalElements"], 10)
+        self.assertEqual(response.data["page"]["totalPages"], 3)
+        self.assertEqual(len(response.data["result"]), 4)
+
+        # The next URL should be available with the same pagination settings
+        next_url = response.data["_links"]["next"]["href"]
+
+        # With page size of 4, the next 4 projects should be returned
+        response = c.get(next_url, **headers)
+        self.assertEqual(response.data["page"]["number"], 2)
+        self.assertEqual(response.data["page"]["size"], 4)
+        self.assertEqual(response.data["page"]["totalElements"], 10)
+        self.assertEqual(response.data["page"]["totalPages"], 3)
+        self.assertEqual(len(response.data["result"]), 4)
+
+        next_url = response.data["_links"]["next"]["href"]
+
+        # With page size of 4, the last 2 projects should be returned
+        response = c.get(next_url, **headers)
+        self.assertEqual(response.data["page"]["number"], 3)
+        self.assertEqual(response.data["page"]["size"], 4)
+        self.assertEqual(response.data["page"]["totalElements"], 10)
+        self.assertEqual(response.data["page"]["totalPages"], 3)
+        self.assertEqual(len(response.data["result"]), 2)
+
 
 class TestApiProjectsSearch(BaseTestApi):
     """unit_tests"""
@@ -273,16 +318,26 @@ class TestApiProjectDetails(BaseTestApi):
         self.assertEqual(response.status_code, 405)
         self.assertDictEqual(result, {"detail": 'Method "POST" not allowed.'})
 
-    def test_invalid_query(self):
-        """Invalid query parameters"""
+    def test_missing_device_id(self):
+        """Test call without device id"""
         c = Client()
-        headers = {"HTTP_DEVICEID": "0"}
+        headers = {}
         response = c.get("/api/v1/project/details", **headers)
 
-        self.assertEqual(response.status_code, 422)
-        self.assertEqual(
-            response.data, {"status": False, "result": messages.invalid_query}
-        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data, messages.invalid_query)
+
+    def test_missing_project_foreign_id(self):
+        """Test call without device id"""
+        c = Client()
+        headers = {"HTTP_DEVICEID": "foobar"}
+        response = c.get("/api/v1/project/details", **headers)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data, messages.invalid_query)
+
+    def test_device_does_not_exist(self):
+        """Test call with device id that does not exist"""
 
     def test_identifier_does_exist(self):
         """Invalid identifier"""
