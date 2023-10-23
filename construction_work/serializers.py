@@ -62,7 +62,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
         articles_max_age = self.context.get("articles_max_age")
         start_date = datetime.now().astimezone() - timedelta(days=int(articles_max_age))
         end_date = datetime.now().astimezone()
-        
+
         articles = obj.article_set.filter(publication_date__range=[start_date, end_date]).all()
         article_serializer = ArticleSerializer(articles, many=True)
         all_articles.extend(article_serializer.data)
@@ -117,7 +117,7 @@ class ProjectDetailsSerializer(ProjectListSerializer):
         """Get distance from project"""
         if obj is None:
             return None
-        
+
         cords_1 = lat, lon
         project_coordinates = obj.coordinates
         if project_coordinates is None:
@@ -142,9 +142,27 @@ class ArticleSerializer(serializers.ModelSerializer):
 class ProjectManagerSerializer(serializers.ModelSerializer):
     """Project managers serializer"""
 
+    projects = serializers.SerializerMethodField()
+
     class Meta:
         model = ProjectManager
         fields = "__all__"
+
+    def get_projects(self, obj: ProjectManager) -> list:
+        project_ids = [project.id for project in obj.projects.all()]
+
+        projects_details = self.context.get("project_augmented", False)
+        if projects_details:
+            return [
+                {
+                    "foreign_id": x.foreign_id,
+                    "images": x.images,
+                    "subtitle": x.subtitle,
+                    "title": x.title,
+                }
+                for x in list(Project.objects.filter(pk__in=project_ids, active=True))
+            ]
+        return project_ids
 
 
 class WarningMessageSerializer(serializers.ModelSerializer):
