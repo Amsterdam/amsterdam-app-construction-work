@@ -5,10 +5,10 @@
 from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
+from construction_work.serializers import ProjectListSerializer
 from construction_work.swagger.swagger_abstract_objects import images
 
 message = Messages()
-
 
 article_identifiers = openapi.Schema(
     type=openapi.TYPE_ARRAY,
@@ -33,8 +33,12 @@ news = openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
             "url": openapi.Schema(type=openapi.TYPE_STRING, description="url"),
-            "identifier": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
-            "project_identifier": openapi.Schema(type=openapi.TYPE_STRING, description="project identifier"),
+            "identifier": openapi.Schema(
+                type=openapi.TYPE_STRING, description="identifier"
+            ),
+            "project_identifier": openapi.Schema(
+                type=openapi.TYPE_STRING, description="project identifier"
+            ),
         },
     ),
 )
@@ -61,20 +65,32 @@ timeline = openapi.Schema(
             items=openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
-                    "title": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-                    "collapsed": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="collapsed"),
-                    "progress": openapi.Schema(type=openapi.TYPE_STRING, description="current progress"),
+                    "title": openapi.Schema(
+                        type=openapi.TYPE_STRING, description="text"
+                    ),
+                    "collapsed": openapi.Schema(
+                        type=openapi.TYPE_BOOLEAN, description="collapsed"
+                    ),
+                    "progress": openapi.Schema(
+                        type=openapi.TYPE_STRING, description="current progress"
+                    ),
                     "content": openapi.Schema(
                         type=openapi.TYPE_ARRAY,
                         items=openapi.Schema(
                             type=openapi.TYPE_OBJECT,
                             properties={
-                                "title": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
+                                "title": openapi.Schema(
+                                    type=openapi.TYPE_STRING, description="text"
+                                ),
                                 "body": openapi.Schema(
                                     type=openapi.TYPE_OBJECT,
                                     properties={
-                                        "html": openapi.Schema(type=openapi.TYPE_STRING, description="html"),
-                                        "text": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
+                                        "html": openapi.Schema(
+                                            type=openapi.TYPE_STRING, description="html"
+                                        ),
+                                        "text": openapi.Schema(
+                                            type=openapi.TYPE_STRING, description="text"
+                                        ),
                                     },
                                 ),
                             },
@@ -94,22 +110,22 @@ as_projects = {
         openapi.Parameter(
             "deviceId",
             openapi.IN_HEADER,
-            description="device identifier",
+            description="Device identifier",
             type=openapi.TYPE_STRING,
             required=True,
         ),
         openapi.Parameter(
             "articles_max_age",
             openapi.IN_QUERY,
-            "Number of days (default: 3)",
+            description="Number of days (default: 3)",
             type=openapi.TYPE_INTEGER,
-            format="<int>",
+            format="int",
             required=False,
         ),
         openapi.Parameter(
             "lat",
             openapi.IN_QUERY,
-            "latitude",
+            description="Latitude",
             type=openapi.TYPE_STRING,
             format="float",
             required=False,
@@ -117,7 +133,7 @@ as_projects = {
         openapi.Parameter(
             "lon",
             openapi.IN_QUERY,
-            "longitude",
+            description="Longitude",
             type=openapi.TYPE_STRING,
             format="float",
             required=False,
@@ -125,7 +141,7 @@ as_projects = {
         openapi.Parameter(
             "address",
             openapi.IN_QUERY,
-            "address (street and number)",
+            description="Address (street and number)",
             type=openapi.TYPE_STRING,
             format="string",
             required=False,
@@ -133,115 +149,101 @@ as_projects = {
         openapi.Parameter(
             "page_size",
             openapi.IN_QUERY,
-            "Number of results per page (default 10)",
+            description="Number of results per page (default 10)",
             type=openapi.TYPE_INTEGER,
-            format="<int>",
+            format="int",
             required=False,
         ),
         openapi.Parameter(
             "page",
             openapi.IN_QUERY,
-            "Page number",
+            description="Page number",
             type=openapi.TYPE_INTEGER,
-            format="<int>",
+            format="int",
             required=False,
         ),
     ],
     "responses": {
         200: openapi.Response(
             "application/json",
-            openapi.Schema(
-                type=openapi.TYPE_OBJECT,
-                properties={
-                    "status": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="status"),
-                    "result": openapi.Schema(
-                        type=openapi.TYPE_ARRAY,
-                        items=openapi.Schema(
-                            type=openapi.TYPE_OBJECT,
-                            properties={
-                                "identifier": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
-                                "project_type": openapi.Schema(type=openapi.TYPE_STRING, description="project_type"),
-                                "district_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="dictrict id"),
-                                "district_name": openapi.Schema(
-                                    type=openapi.TYPE_STRING,
-                                    description="district name",
-                                ),
-                                "title": openapi.Schema(type=openapi.TYPE_STRING, description="title"),
-                                "subtitle": openapi.Schema(type=openapi.TYPE_STRING, description="subtitle"),
-                                "content_html": openapi.Schema(type=openapi.TYPE_STRING, description="content html"),
-                                "content_text": openapi.Schema(type=openapi.TYPE_STRING, description="content text"),
-                                "images": images,
-                                "publication_date": openapi.Schema(
-                                    type=openapi.TYPE_STRING,
-                                    description="publication date",
-                                ),
-                                "modification_date": openapi.Schema(
-                                    type=openapi.TYPE_STRING,
-                                    description="modification date",
-                                ),
-                                "source_url": openapi.Schema(type=openapi.TYPE_STRING, description="source url"),
-                                "last_seen": openapi.Schema(
-                                    type=openapi.TYPE_STRING,
-                                    description="datetime field",
-                                ),
-                                "active": openapi.Schema(
-                                    type=openapi.TYPE_BOOLEAN,
-                                    description="is record active",
-                                ),
-                                "followed": openapi.Schema(
-                                    type=openapi.TYPE_BOOLEAN,
-                                    description="is following this project",
-                                ),
-                                "meter": openapi.Schema(type=openapi.TYPE_INTEGER, description="meter"),
-                                "strides": openapi.Schema(type=openapi.TYPE_INTEGER, description="strides"),
-                                "recent_articles": openapi.Schema(
-                                    type=openapi.TYPE_ARRAY,
-                                    items=openapi.Schema(
-                                        type=openapi.TYPE_OBJECT,
-                                        properties={
-                                            "identifier": openapi.Schema(
-                                                type=openapi.TYPE_STRING,
-                                                description="identifier",
-                                            ),
-                                            "publication_date": openapi.Schema(
-                                                type=openapi.TYPE_STRING,
-                                                description="publication date",
-                                            ),
-                                        },
-                                    ),
-                                ),
-                            },
-                        ),
-                    ),
-                    "page": openapi.Schema(
-                        type=openapi.TYPE_OBJECT,
-                        properties={
-                            "number": openapi.Schema(type=openapi.TYPE_INTEGER),
-                            "size": openapi.Schema(type=openapi.TYPE_INTEGER),
-                            "totalElements": openapi.Schema(type=openapi.TYPE_INTEGER),
-                            "totalPages": openapi.Schema(type=openapi.TYPE_INTEGER),
+            ProjectListSerializer,
+            examples={
+                "application/json": [
+                    {
+                        "id": 34,
+                        "followed": True,
+                        "foreign_id": 1003333,
+                        "active": True,
+                        "last_seen": "2023-10-12T10:54:50.907421+02:00",
+                        "title": "Slotermeer",
+                        "subtitle": "stedelijke vernieuwing",
+                        "coordinates": {"lat": 52.3584996, "lon": 4.8035019},
+                        "sections": {
+                            "what": [
+                                {
+                                    "body": "",
+                                    "title": "Vernieuwd stadscentrum voor heel Nieuw-West",
+                                }
+                            ],
+                            "when": [{"body": None, "title": "Wanneer"}],
+                            "work": [],
+                            "where": [],
+                            "contact": [],
                         },
-                    ),
-                    "_links": openapi.Schema(
-                        type=openapi.TYPE_OBJECT,
-                        properties={
-                            "self": openapi.Schema(type=openapi.TYPE_STRING, description="Link to main api"),
-                            "next": openapi.Schema(
-                                type=openapi.TYPE_STRING,
-                                description="Link to next page",
-                            ),
-                            "previous": openapi.Schema(
-                                type=openapi.TYPE_STRING,
-                                description="Link to previous page",
-                            ),
+                        "contacts": [
+                            {
+                                "id": 16800775,
+                                "name": "",
+                                "email": "",
+                                "phone": None,
+                                "position": "",
+                            }
+                        ],
+                        "timeline": {
+                            "intro": None,
+                            "items": [
+                                {
+                                    "body": "",
+                                    "items": [],
+                                    "title": "",
+                                    "collapsed": True,
+                                }
+                            ],
+                            "title": "",
                         },
-                    ),
-                },
-            ),
-            examples={"application/json": {"status": True, "result": []}},
+                        "image": {
+                            "id": 21360354,
+                            "sources": [
+                                {
+                                    "url": "/publish/pages/960128/slotermeer.jpg",
+                                    "width": 620,
+                                    "height": 348,
+                                },
+                                {
+                                    "url": "/publish/pages/960128/220px/slotermeer.jpg",
+                                    "width": 220,
+                                    "height": 123,
+                                },
+                                {
+                                    "url": "/publish/pages/960128/80px/slotermeer.jpg",
+                                    "width": 80,
+                                    "height": 45,
+                                },
+                            ],
+                            "aspectRatio": 1.7816091954022988,
+                            "alternativeText": None,
+                        },
+                        "images": [],
+                        "url": "http://www.amsterdam.nl/projecten/slotermeer/",
+                        "creation_date": "2016-09-29T14:25:00+02:00",
+                        "modification_date": "2023-10-02T06:34:00+02:00",
+                        "publication_date": "2023-10-02T06:34:00+02:00",
+                        "expiration_date": None,
+                    }
+                ]
+            },
         ),
-        405: openapi.Response("Error: Method not allowed"),
-        422: openapi.Response("Error: Unprocessable Entity"),
+        400: openapi.Response("Invalid header(s). See /api/v1/apidocs for more information"),
     },
     "tags": ["Projects"],
 }
@@ -305,11 +307,15 @@ as_project_details = {
             openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
-                    "status": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="status"),
+                    "status": openapi.Schema(
+                        type=openapi.TYPE_BOOLEAN, description="status"
+                    ),
                     "result": openapi.Schema(
                         type=openapi.TYPE_OBJECT,
                         properties={
-                            "identifier": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
+                            "identifier": openapi.Schema(
+                                type=openapi.TYPE_STRING, description="identifier"
+                            ),
                             "body": openapi.Schema(
                                 type=openapi.TYPE_OBJECT,
                                 properties={
@@ -322,15 +328,29 @@ as_project_details = {
                                     "timeline": timeline,
                                 },
                             ),
-                            "district_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="dictrict id"),
-                            "district_name": openapi.Schema(type=openapi.TYPE_STRING, description="district name"),
+                            "district_id": openapi.Schema(
+                                type=openapi.TYPE_INTEGER, description="dictrict id"
+                            ),
+                            "district_name": openapi.Schema(
+                                type=openapi.TYPE_STRING, description="district name"
+                            ),
                             "news": news,
                             "images": images,
-                            "page_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="page id"),
-                            "title": openapi.Schema(type=openapi.TYPE_STRING, description="title"),
-                            "subtitle": openapi.Schema(type=openapi.TYPE_STRING, description="subtitle"),
-                            "rel_url": openapi.Schema(type=openapi.TYPE_STRING, description="relative url"),
-                            "url": openapi.Schema(type=openapi.TYPE_STRING, description="url"),
+                            "page_id": openapi.Schema(
+                                type=openapi.TYPE_INTEGER, description="page id"
+                            ),
+                            "title": openapi.Schema(
+                                type=openapi.TYPE_STRING, description="title"
+                            ),
+                            "subtitle": openapi.Schema(
+                                type=openapi.TYPE_STRING, description="subtitle"
+                            ),
+                            "rel_url": openapi.Schema(
+                                type=openapi.TYPE_STRING, description="relative url"
+                            ),
+                            "url": openapi.Schema(
+                                type=openapi.TYPE_STRING, description="url"
+                            ),
                             "meter": openapi.Schema(
                                 type=openapi.TYPE_STRING,
                                 description="distance between address and project",
@@ -374,24 +394,36 @@ as_projects_follow_post = {
     ],
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        properties={"project_id": openapi.Schema(type=openapi.TYPE_STRING, description="project identifier")},
+        properties={
+            "project_id": openapi.Schema(
+                type=openapi.TYPE_STRING, description="project identifier"
+            )
+        },
     ),
     "responses": {
         200: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": True, "result": "Subscription added"}},
+            examples={
+                "application/json": {"status": True, "result": "Subscription added"}
+            },
         ),
         403: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": False, "result": message.access_denied}},
+            examples={
+                "application/json": {"status": False, "result": message.access_denied}
+            },
         ),
         404: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": False, "result": message.no_record_found}},
+            examples={
+                "application/json": {"status": False, "result": message.no_record_found}
+            },
         ),
         422: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": False, "result": message.invalid_headers}},
+            examples={
+                "application/json": {"status": False, "result": message.invalid_headers}
+            },
         ),
     },
     "tags": ["Projects"],
@@ -419,20 +451,30 @@ as_projects_follow_delete = {
     ],
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        properties={"project_id": openapi.Schema(type=openapi.TYPE_STRING, description="project identifier")},
+        properties={
+            "project_id": openapi.Schema(
+                type=openapi.TYPE_STRING, description="project identifier"
+            )
+        },
     ),
     "responses": {
         200: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": True, "result": "Subscription removed"}},
+            examples={
+                "application/json": {"status": True, "result": "Subscription removed"}
+            },
         ),
         403: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": False, "result": message.access_denied}},
+            examples={
+                "application/json": {"status": False, "result": message.access_denied}
+            },
         ),
         422: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": False, "result": message.invalid_headers}},
+            examples={
+                "application/json": {"status": False, "result": message.invalid_headers}
+            },
         ),
     },
     "tags": ["Projects"],
@@ -465,7 +507,9 @@ as_projects_followed_articles = {
             openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
-                    "status": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="status"),
+                    "status": openapi.Schema(
+                        type=openapi.TYPE_BOOLEAN, description="status"
+                    ),
                     "result": openapi.Schema(
                         type=openapi.TYPE_OBJECT,
                         properties={

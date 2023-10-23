@@ -148,9 +148,7 @@ def projects(request):
 
     device_id = request.META.get("HTTP_DEVICEID", None)
     if device_id is None:
-        return Response(
-            {"status": False, "result": message.invalid_headers}, status=422
-        )
+        return Response(data=message.invalid_headers, status=status.HTTP_400_BAD_REQUEST)
 
     # @memoize
     def _fetch_projects(device_id):
