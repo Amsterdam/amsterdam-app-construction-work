@@ -93,9 +93,7 @@ class TestData:
             {
                 "foreign_id": 128,
                 "active": True,
-                "last_seen": datetime.datetime.strptime(
-                    "2023-01-01T00:00:00", "%Y-%d-%mT%H:%M:%S"
-                ),
+                "last_seen": datetime.datetime.strptime("2023-01-01T00:00:00", "%Y-%d-%mT%H:%M:%S"),
                 "title": "title of first article",
                 "intro": "intro for first article",
                 "body": {
@@ -114,9 +112,7 @@ class TestData:
             {
                 "foreign_id": 256,
                 "active": True,
-                "last_seen": datetime.datetime.strptime(
-                    "2023-01-01T00:00:00", "%Y-%d-%mT%H:%M:%S"
-                ),
+                "last_seen": datetime.datetime.strptime("2023-01-01T00:00:00", "%Y-%d-%mT%H:%M:%S"),
                 "title": "title of second article",
                 "intro": "intro for second article",
                 "body": {
@@ -131,6 +127,72 @@ class TestData:
                 "modification_date": "2023-01-20T00:00:00+00:00",
                 "publication_date": "2023-01-01T00:00:00+00:00",
                 "expiration_date": "2023-02-01T00:00:00+00:00",
+            },
+        ]
+
+        self.ingest_projects = [
+            {
+                "foreign_id": 2048,
+                "active": True,
+                "title": "title first project: subtitle first project",
+                "coordinates": {"lat": -1.0, "lon": 1.0},
+                "sections": {},
+                "contacts": {},
+                "timeline": {},
+                "image": {},
+                "images": [],
+                "url": "https://www.amsterdam.nl/foobar",
+                "created": "2021-07-14 10:46:00.000000 +00:00",
+                "modified": "2023-06-01 11:08:00.000000 +00:00",
+                "publicationDate": "2023-04-25 15:19:00.000000 +00:00",
+                "expirationDate": "2024-04-25 15:19:00.000000 +00:00",
+            },
+            {
+                "foreign_id": 4096,
+                "active": True,
+                "title": "title second project: subtitle second project",
+                "coordinates": None,
+                "sections": {},
+                "contacts": {},
+                "timeline": {},
+                "image": {},
+                "images": [],
+                "url": "https://www.amsterdam.nl/fizzbuzz",
+                "created": "2021-07-14 10:46:00.000000 +00:00",
+                "modified": "2023-06-01 11:08:00.000000 +00:00",
+                "publicationDate": "2023-04-25 15:19:00.000000 +00:00",
+                "expirationDate": "2024-04-25 15:19:00.000000 +00:00",
+            },
+        ]
+
+        self.ingest_articles = [
+            {
+                "foreign_id": 128,
+                "title": "New title of first article",
+                "intro": "New intro for first article",
+                "body": "New body for first article",
+                "image": {},
+                "projectIds": [2048],
+                "type": "work",
+                "url": "https://www.amsterdam.nl/foobar-article",
+                "created": "2023-01-01T00:00:00+00:00",
+                "modified": "2023-01-20T00:00:00+00:00",
+                "publicationDate": "2023-01-01T00:00:00+00:00",
+                "expirationDate": "2023-02-01T00:00:00+00:00",
+            },
+            {
+                "foreign_id": 256,
+                "title": "title of second article",
+                "intro": "intro for second article",
+                "body": "body for second article",
+                "image": {},
+                "projectIds": [],
+                "type": "work",
+                "url": "https://www.amsterdam.nl/fizzbuzz-article",
+                "created": "2023-01-01T00:00:00+00:00",
+                "modified": "2023-01-20T00:00:00+00:00",
+                "publicationDate": "2023-01-01T00:00:00+00:00",
+                "expirationDate": "2023-02-01T00:00:00+00:00",
             },
         ]
 
