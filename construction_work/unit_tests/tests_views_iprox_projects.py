@@ -107,7 +107,7 @@ class TestApiProjects(BaseTestApi):
         # Perform request
         c = Client()
         headers = {"HTTP_DEVICEID": device.device_id}
-        response = c.get("/api/v1/projects?page_size=4", **headers)
+        response = c.get("/api/v1/projects", {"page_size": 4}, **headers)
 
         # Default order will be by objects internal pk
         expected_default_foreign_id_order = [10, 20, 30, 40]
@@ -169,7 +169,8 @@ class TestApiProjects(BaseTestApi):
         c = Client()
         headers = {"HTTP_DEVICEID": device.device_id}
         response = c.get(
-            f"/api/v1/projects?lat={adam_central_station[0]}&lon={adam_central_station[1]}&page_size=3",
+            f"/api/v1/projects",
+            {"lat": adam_central_station[0], "lon": adam_central_station[1], "page_size": 3},
             **headers,
         )
 
@@ -285,16 +286,26 @@ class TestApiProjectDetails(BaseTestApi):
         self.assertEqual(response.status_code, 405)
         self.assertDictEqual(result, {"detail": 'Method "POST" not allowed.'})
 
-    def test_invalid_query(self):
-        """Invalid query parameters"""
+    def test_missing_device_id(self):
+        """Test call without device id"""
         c = Client()
-        headers = {"HTTP_DEVICEID": "0"}
+        headers = {}
         response = c.get("/api/v1/project/details", **headers)
 
-        self.assertEqual(response.status_code, 422)
-        self.assertEqual(
-            response.data, {"status": False, "result": messages.invalid_query}
-        )
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data, messages.invalid_query)
+
+    def test_missing_project_foreign_id(self):
+        """Test call without device id"""
+        c = Client()
+        headers = {"HTTP_DEVICEID": "foobar"}
+        response = c.get("/api/v1/project/details", **headers)
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(response.data, messages.invalid_query)
+
+    def test_device_does_not_exist(self):
+        """Test call with device id that does not exist"""
 
     def test_identifier_does_exist(self):
         """Invalid identifier"""
