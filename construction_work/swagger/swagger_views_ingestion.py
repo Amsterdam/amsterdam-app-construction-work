@@ -62,7 +62,15 @@ as_garbage_collector = {
         200: openapi.Response(
             "application/json",
             examples={
-                "application/json": {"projects": {"active": 0, "inactive": 0}, "articles": {"deleted": 0, "active": 0}}
+                "application/json": {
+                    "projects": {
+                        "active": 300,
+                        "inactive": 12,
+                        "deleted": 4,
+                        "count": 312,
+                    },
+                    "articles": {"deleted": 12, "count": 563},
+                }
             },
         )
     },
