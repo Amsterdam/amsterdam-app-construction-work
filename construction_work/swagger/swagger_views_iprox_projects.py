@@ -410,7 +410,7 @@ as_projects_follow_post = {
         openapi.Parameter(
             "deviceId",
             openapi.IN_HEADER,
-            description="device identifier",
+            description="Device identifier",
             type=openapi.TYPE_STRING,
             required=True,
         ),
@@ -418,8 +418,8 @@ as_projects_follow_post = {
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            "project_id": openapi.Schema(
-                type=openapi.TYPE_STRING, description="project identifier"
+            "foreign_id": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Project identifier"
             )
         },
     ),
@@ -427,25 +427,31 @@ as_projects_follow_post = {
         200: openapi.Response(
             "application/json",
             examples={
-                "application/json": {"status": True, "result": "Subscription added"}
+                "application/json": "Subscription added"
             },
         ),
         403: openapi.Response(
             "application/json",
             examples={
-                "application/json": {"status": False, "result": message.access_denied}
+                "application/json": message.access_denied
+            },
+        ),
+        400: openapi.Response(
+            "application/json",
+            examples={
+                "application/json": message.invalid_headers
+            },
+        ),
+        400: openapi.Response(
+            "application/json",
+            examples={
+                "application/json": message.invalid_parameters
             },
         ),
         404: openapi.Response(
             "application/json",
             examples={
-                "application/json": {"status": False, "result": message.no_record_found}
-            },
-        ),
-        422: openapi.Response(
-            "application/json",
-            examples={
-                "application/json": {"status": False, "result": message.invalid_headers}
+                "application/json": message.no_record_found
             },
         ),
     },
@@ -467,7 +473,7 @@ as_projects_follow_delete = {
         openapi.Parameter(
             "deviceId",
             openapi.IN_HEADER,
-            description="device identifier",
+            description="Device identifier",
             type=openapi.TYPE_STRING,
             required=True,
         ),
@@ -476,7 +482,7 @@ as_projects_follow_delete = {
         type=openapi.TYPE_OBJECT,
         properties={
             "project_id": openapi.Schema(
-                type=openapi.TYPE_STRING, description="project identifier"
+                type=openapi.TYPE_STRING, description="Project identifier"
             )
         },
     ),
@@ -484,19 +490,31 @@ as_projects_follow_delete = {
         200: openapi.Response(
             "application/json",
             examples={
-                "application/json": {"status": True, "result": "Subscription removed"}
+                "application/json": "Subscription added"
             },
         ),
         403: openapi.Response(
             "application/json",
             examples={
-                "application/json": {"status": False, "result": message.access_denied}
+                "application/json": message.access_denied
             },
         ),
-        422: openapi.Response(
+        400: openapi.Response(
             "application/json",
             examples={
-                "application/json": {"status": False, "result": message.invalid_headers}
+                "application/json": message.invalid_headers
+            },
+        ),
+        400: openapi.Response(
+            "application/json",
+            examples={
+                "application/json": message.invalid_parameters
+            },
+        ),
+        404: openapi.Response(
+            "application/json",
+            examples={
+                "application/json": message.no_record_found
             },
         ),
     },

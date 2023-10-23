@@ -340,21 +340,21 @@ def projects_follow(request):
     device_id = request.META.get("HTTP_DEVICEID", None)
     if device_id is None:
         return Response(
-            {"status": False, "result": message.invalid_headers},
+            data=message.invalid_headers,
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     foreign_id = request.data.get("foreign_id", None)
     if foreign_id is None:
         return Response(
-            {"status": False, "result": message.invalid_parameters},
+            data=message.invalid_parameters,
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     project = Project.objects.filter(foreign_id=foreign_id).first()
     if project is None:
         return Response(
-            {"status": False, "result": message.no_record_found},
+            data=message.no_record_found,
             status=status.HTTP_404_NOT_FOUND,
         )
 
@@ -377,13 +377,13 @@ def projects_follow(request):
     # request.method == 'DELETE'
     if device is None:
         return Response(
-            {"status": False, "result": message.no_record_found},
+            data=message.no_record_found,
             status=status.HTTP_404_NOT_FOUND,
         )
 
     device.followed_projects.remove(project)
     return Response(
-        {"status": False, "result": "Subscription removed"}, status=status.HTTP_200_OK
+        data="Subscription removed", status=status.HTTP_200_OK
     )
 
 
