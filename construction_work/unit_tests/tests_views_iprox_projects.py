@@ -37,7 +37,7 @@ class BaseTestApi(TestCase):
 
 
 class TestApiProjects(BaseTestApi):
-    """unit_tests"""
+    """Tests for getting all projects via API"""
 
     def tearDown(self) -> None:
         Project.objects.all().delete()
@@ -307,7 +307,10 @@ class TestApiProjectsSearch(BaseTestApi):
 
 
 class TestApiProjectDetails(BaseTestApi):
-    """unit_tests"""
+    """Tests for getting all project details"""
+    
+    def setUp(self):
+        self.data = TestData()
 
     def test_method_not_allowed(self):
         """Test http method not allowed"""
@@ -325,109 +328,75 @@ class TestApiProjectDetails(BaseTestApi):
         response = c.get("/api/v1/project/details", **headers)
 
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.data, messages.invalid_query)
+        self.assertEqual(response.data, messages.invalid_headers)
 
     def test_missing_project_foreign_id(self):
-        """Test call without device id"""
+        """Test call without project foreign id"""
         c = Client()
         headers = {"HTTP_DEVICEID": "foobar"}
-        response = c.get("/api/v1/project/details", **headers)
+        params = {
+            "lat": 52.379158791458494,
+            "lon": 4.899904339167326,
+            "article_max_age": 10,
+        }
+        response = c.get("/api/v1/project/details", params, **headers)
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data, messages.invalid_query)
 
-    def test_device_does_not_exist(self):
+    def test_create_device_when_it_does_not_exist(self):
         """Test call with device id that does not exist"""
-
-    def test_identifier_does_exist(self):
-        """Invalid identifier"""
+        project = Project.objects.create(**self.data.projects[0])
+        
         c = Client()
-        headers = {"HTTP_DEVICEID": "0"}
-        response = c.get("/api/v1/project/details", {"id": "0000000000"}, **headers)
-        result = json.loads(response.content)
-
-        expected_result = {
-            "status": True,
-            "result": {
-                "foreign_id": "0000000000",
-                "identifier": "0000000000",
-                "district_name": "Centrum",
-                "source_url": "https://amsterdam.nl/@0000000000/page/?AppIdt=app-pagetype&reload=true",
-                "active": True,
-                "last_seen": result.get("last_seen"),
-                "publication_date": "1970-01-01",
-                "modification_date": "1970-01-01",
-                "title": "title",
-                "subtitle": "subtitle",
-                "body": {
-                    "what": [{"html": "html content", "title": "title"}],
-                    "when": [{"html": "html content", "title": "title"}],
-                    "work": [{"html": "html content", "title": "title"}],
-                    "where": [{"html": "html content", "title": "title"}],
-                    "contact": [{"html": "html content", "title": "title"}],
-                    "timeline": {},
-                    "more-info": [{"html": "html content", "title": "title"}],
-                },
-                "content_html": "html content",
-                "district_id": 5398,
-                "coordinates": {"lat": 0.0, "lon": 0.0},
-                "images": [
-                    {
-                        "type": "banner",
-                        "sources": {
-                            "orig": {
-                                "url": "https://localhost/image.jpg",
-                                "size": "orig",
-                                "filename": "image.jpg",
-                                "image_id": "0000000000",
-                                "description": "",
-                            }
-                        },
-                    },
-                    {
-                        "type": "additional",
-                        "sources": {
-                            "orig": {
-                                "url": "https://localhost/image.jpg",
-                                "size": "orig",
-                                "filename": "image.jpg",
-                                "image_id": "0000000001",
-                                "description": "",
-                            }
-                        },
-                    },
-                ],
-                "contacts": [],
-                "news": [
-                    {
-                        "url": "https://localhost/news/0",
-                        "identifier": "00000000000",
-                        "project_identifier": "00000000000",
-                    }
-                ],
-                "followers": 0,
-                "followed": False,
-                "meter": None,
-                "strides": None,
-            },
+        new_device_id = "new_foobar_device"
+        headers = {"HTTP_DEVICEID": new_device_id}
+        params = {
+            "foreign_id": project.foreign_id,
+            "lat": 52.379158791458494,
+            "lon": 4.899904339167326,
+            "article_max_age": 10,
         }
+        response = c.get("/api/v1/project/details", params, **headers)
 
-        logger.debug(response.data)
         self.assertEqual(response.status_code, 200)
 
-        expected_result["result"]["last_seen"] = result["result"]["last_seen"]
-        self.assertDictEqual(result, expected_result)
+        new_device = Device.objects.filter(device_id=new_device_id).first()
+        self.assertIsNotNone(new_device)
 
-    def test_identifier_does_not_exist(self):
-        """Invalid identifier (ii)"""
+    def test_project_does_not_exists(self):
+        """Test call when project does not exist"""        
         c = Client()
-        headers = {"HTTP_DEVICEID": "0"}
-        response = c.get("/api/v1/project/details", {"id": "does not exist"}, **headers)
+        new_device_id = "new_foobar_device"
+        headers = {"HTTP_DEVICEID": new_device_id}
+        params = {
+            "foreign_id": 9999,
+            "lat": 52.379158791458494,
+            "lon": 4.899904339167326,
+            "article_max_age": 10,
+        }
+        response = c.get("/api/v1/project/details", params, **headers)
 
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(
-            response.data, {"status": False, "result": messages.no_record_found}
-        )
+
+    def test_get_project_details(self):
+        """Test getting project details"""
+        project = Project.objects.create(**self.data.projects[0])
+        
+        c = Client()
+        new_device_id = "new_foobar_device"
+        headers = {"HTTP_DEVICEID": new_device_id}
+        params = {
+            "foreign_id": project.foreign_id,
+            "lat": 52.379158791458494,
+            "lon": 4.899904339167326,
+            "article_max_age": 10,
+        }
+        response = c.get("/api/v1/project/details", params, **headers)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIsNotNone(response.data)
+        self.assertEqual(response.data["foreign_id"], project.foreign_id)
 
 
 class TestApiProjectFollow(BaseTestApi):

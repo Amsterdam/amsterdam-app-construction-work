@@ -267,30 +267,15 @@ def project_details(request):
     """
     device_id = request.META.get("HTTP_DEVICEID", None)
     if device_id is None:
-        return Response(data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
+        return Response(data=message.invalid_headers, status=status.HTTP_400_BAD_REQUEST)
     
     foreign_id = request.GET.get("foreign_id", None)
     if foreign_id is None:
-        return Response(
-            {"status": False, "result": message.invalid_query},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    device = Device.objects.filter(device_id=device_id).first()
-    if device is None:
-        device_serializer = DeviceSerializer(data={"device_id": device_id})
-        if not device_serializer.is_valid():
-            return Response(
-                device_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
-        device = device_serializer.save()
+        return Response(data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
 
     articles_max_age = request.GET.get("articles_max_age", None)
     if articles_max_age is not None and articles_max_age.isdigit() is False:
-        return Response(
-            {"status": False, "result": message.invalid_query},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return Response(data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
 
     if articles_max_age is None:
         articles_max_age = DEFAULT_ARTICLE_MAX_AGE
@@ -314,17 +299,28 @@ def project_details(request):
     project_obj = Project.objects.filter(foreign_id=foreign_id, active=True).first()
     if project_obj is None:
         return Response(
-            {"status": False, "result": message.no_record_found},
+            data=message.no_record_found,
             status=status.HTTP_404_NOT_FOUND,
         )
+
+    # Only create device when all required paramaters are provided 
+    device = Device.objects.filter(device_id=device_id).first()
+    if device is None:
+        device_serializer = DeviceSerializer(data={"device_id": device_id})
+        if not device_serializer.is_valid():
+            return Response(
+                device_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
+        device = device_serializer.save()
 
     project_serializer = ProjectDetailsSerializer(
         instance=project_obj,
         partial=True,
+        data={},
         context={
             "lat": lat,
             "lon": lon,
-            "device_id": device_id,
+            "device_id": device.device_id,
             "articles_max_age": articles_max_age,
         },
     )
