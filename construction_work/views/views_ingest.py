@@ -66,7 +66,7 @@ def garbage_collector(request):
     }
 
     # Return Response
-    return Response(gc_status, status=200)
+    return Response(gc_status, status=status.HTTP_200_OK)
 
 
 @swagger_auto_schema(**as_etl_get)
