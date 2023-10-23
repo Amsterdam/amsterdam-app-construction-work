@@ -30,37 +30,40 @@ def garbage_collector(request):
     """Garbage collector"""
     data = request.data
 
-    etl_epoch_string = data.get("etl_epoch_string")
-    etl_epoch = datetime.strptime(etl_epoch_string, "%Y-%m-%d %H:%M:%S.%f")
     project_foreign_ids = data.get("project_ids", [])
     article_foreign_ids = data.get("article_ids", [])
 
-    # Skeleton status report
-    gc_status = {"projects": {"active": 0, "inactive": 0}, "articles": {"deleted": 0, "active": 0}}
-
     # Update last_seen and active state for all projects
     projects = Project.objects.all()
+    initial_projects_count = projects.count()
     for project in projects:
         if project.foreign_id in project_foreign_ids:
-            serializer = ProjectSerializer(project, data={"active": False}, partial=True)
-            gc_status["projects"]["inactive"] += 1
+            project.deactivate()
         else:
-            serializer = ProjectSerializer(project, data={"last_seen": etl_epoch, "active": True}, partial=True)
-            gc_status["projects"]["active"] += 1
-
-        # Check if the data is valid and save the changes
-        if not serializer.is_valid():
-            Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        serializer.save()
+            project.active = True
+            project.save()
 
     # Remove all un-seen articles from database
+    initial_article_count = Article.objects.all().count()
     Article.objects.filter(foreign_id__in=article_foreign_ids).delete()
-    gc_status["articles"]["deleted"] = len(article_foreign_ids)
-    gc_status["articles"]["active"] = Article.objects.all().count()
 
     # Cleanup inactive projects
     five_days_ago = timezone.now() - timezone.timedelta(days=5)
     Project.objects.filter(last_seen__lt=five_days_ago, active=False).delete()
+
+    # Set status
+    gc_status = {
+        "projects": {
+            "active": Project.objects.filter(active=True).count(),
+            "inactive": Project.objects.filter(active=False).count(),
+            "deleted": initial_projects_count - Project.objects.all().count(),
+            "count": Project.objects.all().count(),
+        },
+        "articles": {
+            "deleted": initial_article_count - Article.objects.all().count(),
+            "count": Article.objects.all().count(),
+        },
+    }
 
     # Return Response
     return Response(gc_status, status=200)
@@ -106,6 +109,7 @@ def etl_project_post(request):
         "images": etl_iprox_data.get("images"),
         "url": etl_iprox_data.get("url"),
         "foreign_id": foreign_id,
+        "coordinates": etl_iprox_data.get("coordinates"),
         "creation_date": etl_iprox_data.get("created"),
         "modification_date": etl_iprox_data.get("modified"),
         "publication_date": etl_iprox_data.get("publicationDate"),

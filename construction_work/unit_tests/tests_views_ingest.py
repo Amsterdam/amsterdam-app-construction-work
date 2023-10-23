@@ -1,28 +1,23 @@
 """ Test ingest views """
-
+import datetime
 import os
-from unittest.mock import patch
 
+import pytz
 from django.test import Client, TestCase
+from django.utils import timezone
+from rest_framework.exceptions import ErrorDetail
 
-from construction_work.api_messages import Messages
-from construction_work.garbage_collector.garbage_collector import GarbageCollector
 from construction_work.generic_functions.aes_cipher import AESCipher
 from construction_work.models import Article, Project
 from construction_work.unit_tests.mock_data import TestData
-from construction_work.generic_functions.generic_logger import Logger
-
-messages = Messages()
-logger = Logger()
 
 
 class BaseTestIngestViews(TestCase):
     """Base for ingest view tests"""
+
     def setUp(self):
         """Setup for all ingest view tests"""
-        token = AESCipher(
-            "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", os.getenv("AES_SECRET")
-        ).encrypt()
+        token = AESCipher("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", os.getenv("AES_SECRET")).encrypt()
         self.header = {"INGESTAUTHORIZATION": token}
         self.content_type = "application/json"
         self.client = Client()
@@ -38,16 +33,15 @@ class TestProjectIngestViews(BaseTestIngestViews):
 
     def test_add_new_project_success(self):
         """Test add new project via ingest API"""
-        first_project = self.test_data.projects[0]
+        project = self.test_data.ingest_projects[0]
 
         result = self.client.post(
             "/api/v1/ingest/project",
-            data=first_project,
+            data=project,
             headers=self.header,
             content_type="application/json",
         )
         # Test for correct status code
-        logger.debug(result.data)
         self.assertEqual(result.status_code, 200)
 
         # Test if a new object was created
@@ -59,21 +53,15 @@ class TestProjectIngestViews(BaseTestIngestViews):
         first_project = self.test_data.projects[0]
         Project.objects.create(**first_project)
 
-        new_date = "2023-10-01"
-        data = {
-            "foreign_id": "0000000000",
-            "modification_date": new_date,
-            "content_html": "<html />",
-        }
-
+        data = self.test_data.ingest_projects[0]
         result = self.client.post(
             "/api/v1/ingest/project",
             data=data,
             headers=self.header,
             content_type="application/json",
         )
+
         # Test for correct status code
-        logger.debug(result.data)
         self.assertEqual(result.status_code, 200)
 
         # Test if no new object was created
@@ -82,7 +70,8 @@ class TestProjectIngestViews(BaseTestIngestViews):
 
         # Test if objects was actually updated
         updated_project = db_objects[0]
-        self.assertEqual(str(updated_project.modification_date), new_date)
+        self.assertDictEqual(updated_project.coordinates, data["coordinates"])
+        self.assertDictEqual(updated_project.coordinates, result.data["coordinates"])
 
     def test_project_invalid(self):
         """test invalid project"""
@@ -99,84 +88,198 @@ class TestProjectIngestViews(BaseTestIngestViews):
         self.assertEqual(result.status_code, 400)
         self.assertEqual(len(db_objects), 0)
 
+    def test_get_projects(self):
+        """test get project modification dates"""
 
-class TestNewsIngestViews(BaseTestIngestViews):
-    """Test news ingest views"""
+        # Create projects from mock data
+        [Project.objects.create(**x) for x in self.test_data.projects]
+
+        result = self.client.get(
+            "/api/v1/ingest/project",
+            headers=self.header,
+            content_type="application/json",
+        )
+
+        self.assertEqual(result.status_code, 200)
+
+        # Check if len result equals the amount of objects in the database
+        db_objects = list(Project.objects.all())
+        self.assertEqual(len(db_objects), 2)
+
+        # Check for expected output
+        expected_result = {
+            "2048": {"modification_date": "2023-01-20 00:00:00+00:00"},
+            "4096": {"modification_date": "2023-01-20 00:00:00+00:00"},
+        }
+        self.assertDictEqual(result.data, expected_result)
+
+
+class TestArticleIngestViews(BaseTestIngestViews):
+    """Test project ingest views"""
 
     def setUp(self):
         """Setup test data"""
         self.test_data = TestData()
+        [Project.objects.create(**x) for x in self.test_data.projects]
         super().setUp()
 
-    def test_news_valid(self):
-        """test ingesting valid news"""
-        Project.objects.all().delete()
-        for project in self.test_data.projects:
-            Project.objects.create(**project)
+    def test_add_new_article_success(self):
+        """Test add new article via ingest API"""
+        article = self.test_data.ingest_articles[0]
 
         result = self.client.post(
             "/api/v1/ingest/article",
-            data=self.test_data.articles[0],
+            data=article,
             headers=self.header,
             content_type="application/json",
         )
-        news_objects = list(Article.objects.all())
-
+        # Test for correct status code
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(result.data, {"status": True, "result": "work item saved"})
-        self.assertEqual(len(news_objects), 1)
 
-        # Update existing record
-        result = self.client.post(
-            "/api/v1/ingest/article",
-            data=self.test_data.articles[0],
-            headers=self.header,
-            content_type="application/json",
-        )
-        news_objects = list(Article.objects.all())
+        # Test if a new object was created
+        db_objects = list(Article.objects.all())
+        self.assertEqual(len(db_objects), 1)
 
-        self.assertEqual(result.status_code, 200)
-        self.assertEqual(result.data, {"status": True, "result": "work item updated"})
-        self.assertEqual(len(news_objects), 1)
+    def test_update_article_success(self):
+        """Test update existing project via ingest API"""
 
-    def test_news_invalid(self):
-        """test ingesting invalid news"""
-        data = "bogus"
+        [Article.objects.create(**x) for x in self.test_data.articles]
 
+        data = self.test_data.ingest_articles[0]
         result = self.client.post(
             "/api/v1/ingest/article",
             data=data,
             headers=self.header,
             content_type="application/json",
         )
-        news_objects = list(Article.objects.all())
 
-        self.assertEqual(result.status_code, 500)
-        self.assertEqual(
-            result.data,
-            {
-                "status": False,
-                "result": "JSON parse error - Expecting value: line 1 column 1 (char 0)",
-            },
+        # Test for correct status code
+        self.assertEqual(result.status_code, 200)
+
+        # Test if no new object was created
+        db_objects = list(Article.objects.all())
+        self.assertEqual(len(db_objects), 2)
+
+        # Test if objects was actually updated
+        updated_article = Article.objects.filter(foreign_id=128).first()
+        self.assertEqual(updated_article.title, data["title"])
+        self.assertEqual(updated_article.intro, result.data["intro"])
+        self.assertEqual(updated_article.body, result.data["body"])
+
+    def test_article_invalid(self):
+        data = self.test_data.ingest_articles[1]
+        result = self.client.post(
+            "/api/v1/ingest/article",
+            data=data,
+            headers=self.header,
+            content_type="application/json",
         )
-        self.assertEqual(len(news_objects), 0)
+
+        # Test for correct status code
+        self.assertEqual(result.status_code, 400)
+        self.assertDictEqual(
+            result.data, {"projects": [ErrorDetail(string="This list may not be empty.", code="empty")]}
+        )
+
+    def test_get_articles(self):
+        """test get article modification dates"""
+
+        # Create projects from mock data
+        [Article.objects.create(**x) for x in self.test_data.articles]
+
+        result = self.client.get(
+            "/api/v1/ingest/article",
+            headers=self.header,
+            content_type="application/json",
+        )
+
+        self.assertEqual(result.status_code, 200)
+
+        # Check if len result equals the amount of objects in the database
+        db_objects = list(Article.objects.all())
+        self.assertEqual(len(db_objects), 2)
+
+        # Check for expected output
+        expected_result = {
+            "128": {"modification_date": "2023-01-20 00:00:00+00:00"},
+            "256": {"modification_date": "2023-01-20 00:00:00+00:00"},
+        }
+        self.assertDictEqual(result.data, expected_result)
 
 
 class TestGarbageCollectionView(BaseTestIngestViews):
-    """Test garbage collection view"""
-    def test_garbage_collection(self):
-        """test garbage collector"""
+    def setUp(self):
+        """Setup test data"""
+        self.test_data = TestData()
+        [Project.objects.create(**x) for x in self.test_data.projects]
+        [Article.objects.create(**x) for x in self.test_data.articles]
+        super().setUp()
 
-        def mock(*args, **kwargs):
-            """dummy func"""
-            pass  # pylint: disable=unnecessary-pass
+    def test_garbage_collector_one(self):
+        """One project is active, one project is inactive, one article is removed"""
+        etl_epoch = timezone.now() - timezone.timedelta(days=6)
+        etl_epoch_string = etl_epoch.strftime("%Y-%m-%d %H:%M:%S.%f")
+        project_ids = [2048]
+        article_ids = [128]
+        data = {"etl_epoch_string": etl_epoch_string, "project_ids": project_ids, "article_ids": article_ids}
 
-        with patch.object(GarbageCollector, "collect_iprox", side_effect=mock):
-            result = self.client.get(
-                "/api/v1/ingest/garbagecollector?project_type=kade",
-                headers=self.header,
-                content_type="application/json",
-            )
+        result = self.client.post(
+            "/api/v1/ingest/garbagecollector",
+            data=data,
+            headers=self.header,
+            content_type="application/json",
+        )
 
-            self.assertEqual(result.status_code, 200)
-            self.assertEqual(result.data, {"status": True, "result": None})
+        self.assertEqual(result.status_code, 200)
+
+        project_db_objects = list(Project.objects.all())
+        self.assertEqual(project_db_objects[0].active, False)
+        self.assertEqual(project_db_objects[1].active, True)
+
+        article_db_objects = list(Article.objects.all())
+        self.assertEqual(len(article_db_objects), 1)
+
+        self.assertDictEqual(
+            result.data,
+            {
+                "projects": {"active": 1, "inactive": 1, "deleted": 0, "count": 2},
+                "articles": {"deleted": 1, "count": 1},
+            },
+        )
+
+    def test_garbage_collector_two(self):
+        """One project is active, one project is removed, one article is removed"""
+        etl_epoch = timezone.now() + timezone.timedelta(days=6)
+        unix_epoch = datetime.datetime(1970, 1, 1, 0, 0, 0, tzinfo=pytz.utc)
+        etl_epoch_string = etl_epoch.strftime("%Y-%m-%d %H:%M:%S.%f")
+        project_ids = [2048]
+        article_ids = [128]
+        data = {"etl_epoch_string": etl_epoch_string, "project_ids": project_ids, "article_ids": article_ids}
+
+        first_project = Project.objects.filter(foreign_id=2048).first()
+        first_project.last_seen = unix_epoch
+        first_project.deactivate()
+
+        result = self.client.post(
+            "/api/v1/ingest/garbagecollector",
+            data=data,
+            headers=self.header,
+            content_type="application/json",
+        )
+
+        self.assertEqual(result.status_code, 200)
+
+        project_db_objects = list(Project.objects.all())
+        self.assertEqual(len(project_db_objects), 1)
+        self.assertEqual(project_db_objects[0].active, True)
+
+        article_db_objects = list(Article.objects.all())
+        self.assertEqual(len(article_db_objects), 1)
+
+        self.assertDictEqual(
+            result.data,
+            {
+                "projects": {"active": 1, "inactive": 0, "deleted": 1, "count": 1},
+                "articles": {"deleted": 1, "count": 1},
+            },
+        )
