@@ -5,7 +5,10 @@
 from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
-from construction_work.serializers import ProjectListSerializer
+from construction_work.serializers import (
+    ProjectDetailsSerializer,
+    ProjectListSerializer,
+)
 from construction_work.swagger.swagger_abstract_objects import images
 
 message = Messages()
@@ -243,7 +246,9 @@ as_projects = {
                 ]
             },
         ),
-        400: openapi.Response("Invalid header(s). See /api/v1/apidocs for more information"),
+        400: openapi.Response(
+            "Invalid header(s). See /api/v1/apidocs for more information"
+        ),
     },
     "tags": ["Projects"],
 }
@@ -256,30 +261,30 @@ as_project_details = {
         openapi.Parameter(
             "deviceId",
             openapi.IN_HEADER,
-            description="device identifier",
+            description="Device identifier",
             type=openapi.TYPE_STRING,
             required=True,
         ),
         openapi.Parameter(
-            "id",
+            "foreign_id",
             openapi.IN_QUERY,
-            "Project identifier",
-            type=openapi.TYPE_STRING,
-            format="<identifier>",
+            description="Project identifier",
+            type=openapi.TYPE_INTEGER,
+            format="int",
             required=True,
         ),
         openapi.Parameter(
             "articles_max_age",
             openapi.IN_QUERY,
-            "Number of days (default: 3)",
+            description="Number of days (default: 3)",
             type=openapi.TYPE_INTEGER,
-            format="<int>",
+            format="int",
             required=False,
         ),
         openapi.Parameter(
             "lat",
             openapi.IN_QUERY,
-            "latitude",
+            description="Latitude",
             type=openapi.TYPE_STRING,
             format="float",
             required=False,
@@ -287,7 +292,7 @@ as_project_details = {
         openapi.Parameter(
             "lon",
             openapi.IN_QUERY,
-            "longitude",
+            description="Longitude",
             type=openapi.TYPE_STRING,
             format="float",
             required=False,
@@ -295,7 +300,7 @@ as_project_details = {
         openapi.Parameter(
             "address",
             openapi.IN_QUERY,
-            "address (street and number)",
+            description="Address (street and number)",
             type=openapi.TYPE_STRING,
             format="string",
             required=False,
@@ -304,70 +309,88 @@ as_project_details = {
     "responses": {
         200: openapi.Response(
             "application/json",
-            openapi.Schema(
-                type=openapi.TYPE_OBJECT,
-                properties={
-                    "status": openapi.Schema(
-                        type=openapi.TYPE_BOOLEAN, description="status"
-                    ),
-                    "result": openapi.Schema(
-                        type=openapi.TYPE_OBJECT,
-                        properties={
-                            "identifier": openapi.Schema(
-                                type=openapi.TYPE_STRING, description="identifier"
-                            ),
-                            "body": openapi.Schema(
-                                type=openapi.TYPE_OBJECT,
-                                properties={
-                                    "what": body_element,
-                                    "when": body_element,
-                                    "work": body_element,
-                                    "where": body_element,
-                                    "contact": body_element,
-                                    "more-info": body_element,
-                                    "timeline": timeline,
-                                },
-                            ),
-                            "district_id": openapi.Schema(
-                                type=openapi.TYPE_INTEGER, description="dictrict id"
-                            ),
-                            "district_name": openapi.Schema(
-                                type=openapi.TYPE_STRING, description="district name"
-                            ),
-                            "news": news,
-                            "images": images,
-                            "page_id": openapi.Schema(
-                                type=openapi.TYPE_INTEGER, description="page id"
-                            ),
-                            "title": openapi.Schema(
-                                type=openapi.TYPE_STRING, description="title"
-                            ),
-                            "subtitle": openapi.Schema(
-                                type=openapi.TYPE_STRING, description="subtitle"
-                            ),
-                            "rel_url": openapi.Schema(
-                                type=openapi.TYPE_STRING, description="relative url"
-                            ),
-                            "url": openapi.Schema(
-                                type=openapi.TYPE_STRING, description="url"
-                            ),
-                            "meter": openapi.Schema(
-                                type=openapi.TYPE_STRING,
-                                description="distance between address and project",
-                            ),
-                            "strides": openapi.Schema(
-                                type=openapi.TYPE_STRING,
-                                description="distance between address and project",
-                            ),
-                        },
-                    ),
-                },
-            ),
-            examples={"application/json": {"status": True, "result": {}}},
+            ProjectDetailsSerializer,
+            examples={
+                "application/json": {
+                    "followed": False,
+                    "recent_articles": [],
+                    "meter": None,
+                    "strides": None,
+                    "followers": 5,
+                    "foreign_id": 1003333,
+                    "active": True,
+                    "last_seen": "2023-10-12T10:54:50.907421+02:00",
+                    "title": "Slotermeer",
+                    "subtitle": "stedelijke vernieuwing",
+                    "coordinates": None,
+                    "sections": {
+                        "what": [
+                            {
+                                "body": "<div><p>We werken samen met bewoners, woningcorporaties, besturen van scholen en andere partijen aan de vernieuwing van Slotermeer. We gaan woningen en gebouwen van scholen vernieuwen. Ook richten we de openbare ruimte waar nodig opnieuw in en knappen speelplekken op.</p></div>",
+                                "title": "Opknapbeurt",
+                            }
+                        ],
+                        "when": [],
+                        "work": [],
+                        "where": [],
+                        "contact": [],
+                    },
+                    "contacts": [
+                        {
+                            "id": 16800775,
+                            "name": "Kees Vissers",
+                            "email": "k.vissers@amsterdam.nl",
+                            "phone": None,
+                            "position": "Projectmanager",
+                        }
+                    ],
+                    "timeline": {
+                        "intro": None,
+                        "items": [
+                            {
+                                "body": "<div><ul><li>bouw 260 nieuwe woningen</li><li>opknappen 370 woningen</li></ul></div>",
+                                "items": [],
+                                "title": "2021 - 2026: Rousseaubuurt",
+                                "collapsed": True,
+                            }
+                        ],
+                        "title": "Wanneer",
+                    },
+                    "image": {
+                        "id": 21360354,
+                        "sources": [
+                            {
+                                "url": "/publish/pages/960128/slotermeer.jpg",
+                                "width": 620,
+                                "height": 348,
+                            },
+                            {
+                                "url": "/publish/pages/960128/220px/slotermeer.jpg",
+                                "width": 220,
+                                "height": 123,
+                            },
+                            {
+                                "url": "/publish/pages/960128/80px/slotermeer.jpg",
+                                "width": 80,
+                                "height": 45,
+                            },
+                        ],
+                        "aspectRatio": 1.7816091954022988,
+                        "alternativeText": None,
+                    },
+                    "images": [],
+                    "url": "http://www.amsterdam.nl/projecten/slotermeer/",
+                    "creation_date": "2016-09-29T14:25:00+02:00",
+                    "modification_date": "2023-10-02T06:34:00+02:00",
+                    "publication_date": "2023-10-02T06:34:00+02:00",
+                    "expiration_date": None,
+                }
+            },
         ),
-        404: openapi.Response("Error: No record found"),
-        405: openapi.Response("Error: Method not allowed"),
-        422: openapi.Response("Error: Unprocessable Entity"),
+        400: openapi.Response(
+            "Invalid header(s). See /api/v1/apidocs for more information"
+        ),
+        404: openapi.Response("No record found"),
     },
     "tags": ["Projects"],
 }

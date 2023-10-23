@@ -220,7 +220,6 @@ class TestProjectModel(TestCase):
         distance_amstel_1_central_station_strides = 1766
 
         expected_data = {
-            "id": serializer.data["id"],
             "meter": distance_amstel_1_central_station_meters,
             "strides": distance_amstel_1_central_station_strides,
             "followers": 1,

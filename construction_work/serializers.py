@@ -81,6 +81,10 @@ class ProjectDetailsSerializer(ProjectListSerializer):
     strides = serializers.SerializerMethodField()
     followers = serializers.SerializerMethodField()
 
+    class Meta:
+        model = Project
+        exclude = ["id"]
+
     def __init__(self, instance=None, data=None, **kwargs):
         super().__init__(instance, data, **kwargs)
 
@@ -111,6 +115,9 @@ class ProjectDetailsSerializer(ProjectListSerializer):
 
     def get_distance_from_project(self, lat: float, lon: float, obj: Project):
         """Get distance from project"""
+        if obj is None:
+            return None
+        
         cords_1 = lat, lon
         project_coordinates = obj.coordinates
         if project_coordinates is None:
