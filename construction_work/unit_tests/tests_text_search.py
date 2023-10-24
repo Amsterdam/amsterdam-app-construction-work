@@ -2,7 +2,7 @@
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.test import TestCase
 
-from construction_work.generic_functions.text_search import TextSearch
+from construction_work.generic_functions.text_search import search_model_for_text
 from construction_work.models import Project
 from construction_work.unit_tests.mock_data import TestData
 
@@ -27,7 +27,7 @@ class TestTextSearch(TestCase):
 
     def test_search(self):
         """Test text search"""
-        text_search = TextSearch(
+        result = search_model_for_text(
             Project,
             "titl",
             "title,subtitle",
@@ -35,11 +35,10 @@ class TestTextSearch(TestCase):
             page_size=2,
             page=0,
         )
-        result = text_search.search()
         expected_result = {
             "result": [
-                {"title": "title", "subtitle": "subtitle", "score": 1.0},
-                {"title": "title", "subtitle": "subtitle", "score": 1.0},
+                {"title": "title first project", "subtitle": "subtitle first project", "score": 1.0},
+                {"title": "title second project", "subtitle": "subtitle second project", "score": 1.0},
             ],
             "page": {"number": 1, "size": 2, "totalElements": 2, "totalPages": 1},
         }
@@ -48,7 +47,7 @@ class TestTextSearch(TestCase):
 
     def test_search_paginated(self):
         """test text search paginated result"""
-        text_search = TextSearch(
+        result = search_model_for_text(
             Project,
             "titl",
             "title,subtitle",
@@ -56,9 +55,8 @@ class TestTextSearch(TestCase):
             page_size=1,
             page=1,
         )
-        result = text_search.search()
         expected_result = {
-            "result": [{"title": "title", "subtitle": "subtitle", "score": 1.0}],
+            "result": [{"title": "title second project", "subtitle": "subtitle second project", "score": 1.0}],
             "page": {"number": 2, "size": 1, "totalElements": 2, "totalPages": 2},
         }
 
@@ -66,7 +64,7 @@ class TestTextSearch(TestCase):
 
     def test_search_2_letters(self):
         """test text search 2 char"""
-        text_search = TextSearch(
+        result = search_model_for_text(
             Project,
             "ti",
             "title,subtitle",
@@ -74,7 +72,6 @@ class TestTextSearch(TestCase):
             page_size=2,
             page=0,
         )
-        result = text_search.search()
         expected_result = {"page": [], "pages": 0}
 
         self.assertDictEqual(result, expected_result)

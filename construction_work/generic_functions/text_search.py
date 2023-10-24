@@ -24,110 +24,97 @@ PAGE_SIZE = 10
 MIN_QUERY_LENGTH = 3
 
 
-class TextSearch:
-    """For this class to function your database is required to support the extension 'pg_trgm' (TrigramWordSimilarity)
-    and 'unaccent' (search agnostic for accents e.g. ü or u are equivalent)
+def get_non_related_fields(model):
+    model_fields = []
+    for field in model._meta.get_fields():
+        if not (field.is_relation and (field.one_to_many, field.many_to_one or field.one_to_one or field.many_to_many)):
+            model_fields.append(field.name)
+    return model_fields
 
-    model: model object class
-    query: string
-    query_fields: comma separated string of model fields
-    return_fields: comma separated string of model fields
-    page_size: maximum number items in paginated result
-    page: the result page
-    """
 
-    def __init__(
-        self,
-        model,
-        query,
-        query_fields,
-        return_fields=None,
-        page_size=PAGE_SIZE,
-        page=0,
-    ):
-        self.model = model
-        self.query = query
-        self.query_fields = query_fields.split(",")
-        self.return_fields = None if return_fields is None else return_fields.split(",")
-        self.threshold = 0.0  # only scores above this threshold are considered
-        self.page_size = page_size
-        self.page = page
-        self.pages = 0
-        self.result = []
+def search_model_for_text(model, query, query_fields, return_fields, page_size=PAGE_SIZE, page=0):
+    """Search for text in database model"""
 
-    def search(self):
-        """Search for string in db"""
+    query_fields = query_fields.split(",")
+    if return_fields is not None:
+        return_fields = return_fields.split(",")
+    
+    threshold = 0.0  # only scores above this threshold are considered
+    pages = 0
+    result = []
 
-        # Only start the search with at least three characters
-        if len(self.query) < MIN_QUERY_LENGTH:
-            return {"page": self.result, "pages": self.pages}
+    # Only start the search with at least three characters
+    if len(query) < MIN_QUERY_LENGTH:
+        return {"page": result, "pages": pages}
 
-        # Dynamically get appropriate model fields and build a filter for the requested return fields
-        model_fields = [
-            x.name for x in self.model._meta.get_fields() if x.name != "data"
-        ]
-        if self.return_fields is not None:
-            model_fields = [x for x in model_fields if x in self.return_fields]
-        model_fields += ["score"]
+    # Dynamically get appropriate model fields and build a filter for the requested return fields
+    # model_fields = [
+    #     x.name for x in model._meta.get_fields() if x.name != "data"
+    # ]
+    model_fields = get_non_related_fields(model)
 
-        # Build a 'TrigramWordSimilarity' and 'accents agnostic adjacent characters' filter
-        score = 0
-        weight = 1.0
-        all_objects = []
-        for query_field in self.query_fields:
-            # Set half the weight for each next search field
-            score += weight * TrigramWordSimilarity(self.query, query_field)
-            weight = weight / 2
+    if return_fields is not None:
+        model_fields = [x for x in model_fields if x in return_fields]
+    model_fields += ["score"]
 
-            # Build accents agnostic filter for adjacent characters in TrigramWordSimilarity search results
-            q = Q(
-                **{
-                    "{query_field}__unaccent__icontains".format(
-                        query_field=query_field
-                    ): self.query
-                }
-            )
+    # Build a 'TrigramWordSimilarity' and 'accents agnostic adjacent characters' filter
+    score = 0
+    weight = 1.0
+    all_objects = []
+    for query_field in query_fields:
+        # Set half the weight for each next search field
+        score += weight * TrigramWordSimilarity(query, query_field)
+        weight = weight / 2
 
-            # Query and filter
-            objects = (
-                self.model.objects.annotate(score=score)
-                .filter(score__gte=self.threshold)
-                .filter(q)
-                .order_by("-score")
-            )
-            all_objects = all_objects + [x for x in objects if x != []]
-        sorted_objects = sorted(all_objects, key=lambda x: x.score, reverse=True)
+        # Build accents agnostic filter for adjacent characters in TrigramWordSimilarity search results
+        q = Q(
+            **{
+                "{query_field}__unaccent__icontains".format(
+                    query_field=query_field
+                ): query
+            }
+        )
 
-        # Round floats to limited decimals
-        for obj in sorted_objects:
-            obj.score = round(obj.score, 3)
+        # Query and filter
+        objects = (
+            model.objects.annotate(score=score)
+            .filter(score__gte=threshold)
+            .filter(q)
+            .order_by("-score")
+        )
+        all_objects = all_objects + [x for x in objects if x != []]
+    sorted_objects = sorted(all_objects, key=lambda x: x.score, reverse=True)
 
-        seen = set()
-        set_sorted_objects = [
-            seen.add(x.pk) or x for x in sorted_objects if x.pk not in seen
-        ]
+    # Round floats to limited decimals
+    for obj in sorted_objects:
+        obj.score = round(obj.score, 3)
 
-        # Set paginated result and calculate number of pages
-        start_index = self.page * self.page_size
-        stop_index = self.page * self.page_size + self.page_size
-        page = set_sorted_objects[start_index:stop_index]
-        self.pages = int(ceil(len(set_sorted_objects) / float(self.page_size)))
+    seen = set()
+    set_sorted_objects = [
+        seen.add(x.pk) or x for x in sorted_objects if x.pk not in seen
+    ]
 
-        # Filter the requested return fields (note: It functions as a serializer)
-        for item in page:
-            data = {}
-            for model_field in model_fields:
-                data[model_field] = getattr(item, model_field)
-            self.result.append(data)
+    # Set paginated result and calculate number of pages
+    start_index = page * page_size
+    stop_index = page * page_size + page_size
+    sorted_page = set_sorted_objects[start_index:stop_index]
+    pages = int(ceil(len(set_sorted_objects) / float(page_size)))
 
-        # Return result and page count
-        # return {'result': self.result, 'pages': self.pages, 'totalElements': len(set_sorted_objects)}
-        return {
-            "result": self.result,
-            "page": {
-                "number": self.page + 1,  # Pages are counted from one not zero
-                "size": self.page_size,
-                "totalElements": len(set_sorted_objects),
-                "totalPages": self.pages,
-            },
-        }
+    # Filter the requested return fields (note: It functions as a serializer)
+    for item in sorted_page:
+        data = {}
+        for model_field in model_fields:
+            data[model_field] = getattr(item, model_field)
+        result.append(data)
+
+    # Return result and page count
+    # return {'result': result, 'pages': pages, 'totalElements': len(set_sorted_objects)}
+    return {
+        "result": result,
+        "page": {
+            "number": page + 1,  # Pages are counted from one not zero
+            "size": page_size,
+            "totalElements": len(set_sorted_objects),
+            "totalPages": pages,
+        },
+    }

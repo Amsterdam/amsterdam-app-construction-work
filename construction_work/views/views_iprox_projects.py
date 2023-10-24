@@ -18,7 +18,7 @@ from construction_work.generic_functions.request_must_come_from_app import (
 from construction_work.generic_functions.static_data import (
     DEFAULT_ARTICLE_MAX_AGE,
 )
-from construction_work.generic_functions.text_search import TextSearch
+from construction_work.generic_functions.text_search import get_non_related_fields, search_model_for_text
 from construction_work.models import Project
 from construction_work.models.device import Device
 from construction_work.serializers import (
@@ -62,40 +62,44 @@ def search(model, request):
     """Pagination defaults"""
     text = request.GET.get("text", None)
     query_fields = request.GET.get("query_fields", "")
-    fields = request.GET.get("fields", None)
+    return_fields = request.GET.get("fields", None)
     page_size = int(request.GET.get("page_size", 10))
     page = int(request.GET.get("page", 1)) - 1
 
-    # Get Model fields
-    model_fields = [x.name for x in model._meta.get_fields()]
+    # Get all fields of given model
+    model_fields = get_non_related_fields(model)
 
+    # Text length has to be at least 3
     if text is None or len(text) < 3:
-        return Response({"status": False, "result": message.invalid_query}, status=422)
+        return Response(data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Check if given query fields are in model fields
     if len([x for x in query_fields.split(",") if x not in model_fields]) > 0:
         return Response(
-            {"status": False, "result": message.no_such_field_in_model}, status=422
+            data=message.no_such_field_in_model, status=status.HTTP_400_BAD_REQUEST
         )
+    
+    # Check if given return fields are in model fields, if assigned
     if (
-        fields is not None
-        and len([x for x in fields.split(",") if x not in model_fields]) > 0
+        return_fields is not None
+        and len([x for x in return_fields.split(",") if x not in model_fields]) > 0
     ):
         return Response(
-            {"status": False, "result": message.no_such_field_in_model}, status=422
+            data=message.no_such_field_in_model, status=status.HTTP_400_BAD_REQUEST
         )
 
-    text_search = TextSearch(
-        model, text, query_fields, return_fields=fields, page_size=page_size, page=page
-    )
-    result = text_search.search()
+    # Perform search
+    result = search_model_for_text(model, text, query_fields, return_fields=return_fields, page_size=page_size, page=page)
+
+    # Paginate result
     links = create_next_previous_links(request, result["page"])
     return Response(
         {
-            "status": True,
             "result": result["result"],
             "page": result["page"],
             "_links": links,
         },
-        status=200,
+        status=status.HTTP_200_OK,
     )
 
 
