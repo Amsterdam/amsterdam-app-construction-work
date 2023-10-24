@@ -382,8 +382,6 @@ def projects_follow(request):
     )
 
 
-# TODO: change view when article gets remodelled
-# TODO: write unit tests
 # NOTE: should be moved to articles views?
 @swagger_auto_schema(**as_projects_followed_articles)
 @api_view(["GET"])
