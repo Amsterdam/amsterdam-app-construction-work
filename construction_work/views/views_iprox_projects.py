@@ -18,7 +18,7 @@ from construction_work.generic_functions.request_must_come_from_app import (
 from construction_work.generic_functions.static_data import (
     DEFAULT_ARTICLE_MAX_AGE,
 )
-from construction_work.generic_functions.text_search import get_non_related_fields, search_model_for_text
+from construction_work.generic_functions.text_search import get_non_related_fields, search_text_in_model
 from construction_work.models import Project
 from construction_work.models.device import Device
 from construction_work.serializers import (
@@ -38,33 +38,57 @@ from construction_work.swagger.swagger_views_search import as_search
 message = Messages()
 memoize = Memoize(ttl=300, max_items=128)
 
-FollowedProject = None
 
-
-def create_next_previous_links(request, pagination):
-    """Pagination defaults"""
+def _paginate_data(request, data: list, page: int, page_size: int, extra_params: dict=None) -> dict:
+    """Create pagination of data"""
     path_info = request.META.get("PATH_INFO")
     http_prefix = "https://" if request.is_secure() else "http://"
     http_host = request.META.get("HTTP_HOST", "localhost")
     host = http_prefix + http_host + path_info
-    page_size = pagination["size"]
+
+    start_index = page * page_size
+    stop_index = page * page_size + page_size
+    paginated_result = data[start_index:stop_index]
+    pages = int(ceil(len(data) / float(page_size)))
+
+    pagination = {
+        "number": page + 1,
+        "size": page_size,
+        "totalElements": len(data),
+        "totalPages": pages,
+    }
+
     links = {"self": {"href": host}}
+
+    extra_params_str = ""
+    if extra_params is not None:
+        for k, v in extra_params.items():
+            param_str = f"&{k}={v}"
+            extra_params_str += param_str
+
+    # Add next page link, if available
     if pagination["number"] < pagination["totalPages"]:
-        _next = str(pagination["number"] + 1)
-        links["next"] = {"href": f"{host}?page={_next}&page_size={page_size}"}
+        next_page = str(pagination["number"] + 1)
+        links["next"] = {"href": f"{host}?page={next_page}&page_size={page_size}{extra_params_str}"}
+    # Add previous page link, if available
     if pagination["number"] > 1:
-        previous = str(pagination["number"] - 1)
-        links["previous"] = {"href": f"{host}?page={previous}&page_size={page_size}"}
-    return links
+        previous_page = str(pagination["number"] - 1)
+        links["previous"] = {"href": f"{host}?page={previous_page}&page_size={page_size}{extra_params_str}"}    
+
+    return {
+        "result": paginated_result,
+        "page": pagination,
+        "_links": links,
+    }
 
 
-def search(model, request):
+def search(model, request) -> Response:
     """Pagination defaults"""
     text = request.GET.get("text", None)
-    query_fields = request.GET.get("query_fields", "")
+    query_fields = request.GET.get("query_fields", None)
     return_fields = request.GET.get("fields", None)
-    page_size = int(request.GET.get("page_size", 10))
     page = int(request.GET.get("page", 1)) - 1
+    page_size = int(request.GET.get("page_size", 10))
 
     # Get all fields of given model
     model_fields = get_non_related_fields(model)
@@ -74,7 +98,10 @@ def search(model, request):
         return Response(data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
     
     # Check if given query fields are in model fields
-    if len([x for x in query_fields.split(",") if x not in model_fields]) > 0:
+    if (
+        query_fields is not None
+        and len([x for x in query_fields.split(",") if x not in model_fields]) > 0
+    ):
         return Response(
             data=message.no_such_field_in_model, status=status.HTTP_400_BAD_REQUEST
         )
@@ -89,16 +116,21 @@ def search(model, request):
         )
 
     # Perform search
-    result = search_model_for_text(model, text, query_fields, return_fields=return_fields, page_size=page_size, page=page)
+    result = search_text_in_model(model, text, query_fields, return_fields=return_fields)
 
     # Paginate result
-    links = create_next_previous_links(request, result["page"])
+    extra_params = {}
+    if text:
+        extra_params["text"] = text
+    if query_fields:
+        extra_params["query_fields"] = query_fields
+    if return_fields:
+        extra_params["fields"] = return_fields
+
+    paginated_data = _paginate_data(request, result, page, page_size, extra_params=extra_params)
+    
     return Response(
-        {
-            "result": result["result"],
-            "page": result["page"],
-            "_links": links,
-        },
+        data=paginated_data,
         status=status.HTTP_200_OK,
     )
 
@@ -189,37 +221,17 @@ def projects(request):
     # Call _fetch_projects
     result = _fetch_projects(device_id)
 
-    # Set paginated result and calculate number of pages
     page_size = int(request.GET.get("page_size", 10))
     page = int(request.GET.get("page", 1)) - 1
-    start_index = page * page_size
-    stop_index = page * page_size + page_size
-    paginated_result = result[start_index:stop_index]
-    pages = int(ceil(len(result) / float(page_size)))
-    pagination = {
-        "number": page + 1,
-        "size": page_size,
-        "totalElements": len(result),
-        "totalPages": pages,
-    }
-    links = create_next_previous_links(request, pagination)
 
-    return Response(
-        {
-            "result": paginated_result,
-            "page": pagination,
-            "_links": links,
-        },
-        status=status.HTTP_200_OK,
-    )
-
+    paginated_data = _paginate_data(request, result, page, page_size)
+    return Response(data=paginated_data, status=status.HTTP_200_OK)
 
 @swagger_auto_schema(**as_search)
 @api_view(["GET"])
 def projects_search(request):
     """Search project"""
-    model = Project
-    return search(model, request)
+    return search(Project, request)
 
 
 @swagger_auto_schema(**as_project_details)

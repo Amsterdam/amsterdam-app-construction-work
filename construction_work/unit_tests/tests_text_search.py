@@ -2,7 +2,7 @@
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.test import TestCase
 
-from construction_work.generic_functions.text_search import search_model_for_text
+from construction_work.generic_functions.text_search import search_text_in_model
 from construction_work.models import Project
 from construction_work.unit_tests.mock_data import TestData
 
@@ -27,7 +27,7 @@ class TestTextSearch(TestCase):
 
     def test_search(self):
         """Test text search"""
-        result = search_model_for_text(
+        result = search_text_in_model(
             Project,
             "titl",
             "title,subtitle",
@@ -47,7 +47,7 @@ class TestTextSearch(TestCase):
 
     def test_search_paginated(self):
         """test text search paginated result"""
-        result = search_model_for_text(
+        result = search_text_in_model(
             Project,
             "titl",
             "title,subtitle",
@@ -64,7 +64,7 @@ class TestTextSearch(TestCase):
 
     def test_search_2_letters(self):
         """test text search 2 char"""
-        result = search_model_for_text(
+        result = search_text_in_model(
             Project,
             "ti",
             "title,subtitle",

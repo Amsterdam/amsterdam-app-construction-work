@@ -32,7 +32,7 @@ def get_non_related_fields(model):
     return model_fields
 
 
-def search_model_for_text(model, query, query_fields, return_fields, page_size=PAGE_SIZE, page=0):
+def search_text_in_model(model, query, query_fields, return_fields):
     """Search for text in database model"""
 
     query_fields = query_fields.split(",")
@@ -48,9 +48,6 @@ def search_model_for_text(model, query, query_fields, return_fields, page_size=P
         return {"page": result, "pages": pages}
 
     # Dynamically get appropriate model fields and build a filter for the requested return fields
-    # model_fields = [
-    #     x.name for x in model._meta.get_fields() if x.name != "data"
-    # ]
     model_fields = get_non_related_fields(model)
 
     if return_fields is not None:
@@ -94,27 +91,11 @@ def search_model_for_text(model, query, query_fields, return_fields, page_size=P
         seen.add(x.pk) or x for x in sorted_objects if x.pk not in seen
     ]
 
-    # Set paginated result and calculate number of pages
-    start_index = page * page_size
-    stop_index = page * page_size + page_size
-    sorted_page = set_sorted_objects[start_index:stop_index]
-    pages = int(ceil(len(set_sorted_objects) / float(page_size)))
-
     # Filter the requested return fields (note: It functions as a serializer)
-    for item in sorted_page:
+    for item in set_sorted_objects:
         data = {}
         for model_field in model_fields:
             data[model_field] = getattr(item, model_field)
         result.append(data)
-
-    # Return result and page count
-    # return {'result': result, 'pages': pages, 'totalElements': len(set_sorted_objects)}
-    return {
-        "result": result,
-        "page": {
-            "number": page + 1,  # Pages are counted from one not zero
-            "size": page_size,
-            "totalElements": len(set_sorted_objects),
-            "totalPages": pages,
-        },
-    }
+    
+    return result
