@@ -9,7 +9,7 @@ from construction_work.generic_functions.sort import Sort
 from construction_work.generic_functions.static_data import StaticData
 from construction_work.models import Article, WarningMessage
 from construction_work.serializers import ArticleSerializer, WarningMessagePublicSerializer
-from construction_work.swagger.swagger_views_iprox_news import as_article, as_articles_get, as_news_by_project_id
+from construction_work.swagger.swagger_views_iprox_news import as_article, as_articles_get
 
 message = Messages()
 
