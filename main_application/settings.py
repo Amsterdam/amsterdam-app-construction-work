@@ -139,6 +139,7 @@ SWAGGER_SETTINGS = {
     "SHOW_REQUEST_HEADERS": True,
     "VALIDATOR_URL": None,
     "api_key": "",
+    "DEFAULT_MODEL_RENDERING": "example",
 }
 
 # CronJobs

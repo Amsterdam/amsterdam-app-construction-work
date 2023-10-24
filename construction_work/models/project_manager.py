@@ -1,6 +1,6 @@
 """ Model for ProjectManagers
 
-    The ProjectManagers model is used to add an project-manager to a set of projects. An identifier (UUIDv4) is
+    The ProjectManagers model is used to add a project-manager to a set of projects. An identifier (UUIDv4) is
     assigned to the project-manager alongside its assigned projects (list) and email-address of the project-manager
 """
 

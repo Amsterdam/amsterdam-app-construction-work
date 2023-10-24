@@ -23,11 +23,11 @@ as_project_manager_get = {
             required=True,
         ),
         openapi.Parameter(
-            "id",
+            "manager_key",
             openapi.IN_QUERY,
-            "Query project manager (optionally by identifier)",
+            description="Query project manager (optionally by manager_key)",
             type=openapi.TYPE_STRING,
-            format="<id>",
+            format="<uuid4>",
             required=False,
         ),
     ],
@@ -82,11 +82,11 @@ as_project_manager_delete = {
             required=True,
         ),
         openapi.Parameter(
-            "id",
+            "manager_key",
             openapi.IN_QUERY,
-            "Remove project manager by identifier",
+            description="Remove project manager by identifier",
             type=openapi.TYPE_STRING,
-            format="<identifier>",
+            format="<uuid4>",
             required=True,
         ),
     ],
@@ -136,7 +136,7 @@ as_project_manager_post_patch = {
             "application/json",
             examples={"application/json": {"status": False, "result": message.no_record_found}},
         ),
-        422: openapi.Response(
+        400: openapi.Response(
             "application/json",
             examples={"application/json": {"status": False, "result": message.invalid_query}},
         ),
