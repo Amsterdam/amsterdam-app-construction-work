@@ -490,7 +490,7 @@ as_projects_follow_delete = {
         200: openapi.Response(
             "application/json",
             examples={
-                "application/json": "Subscription added"
+                "application/json": "Subscription removed"
             },
         ),
         403: openapi.Response(

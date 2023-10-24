@@ -339,7 +339,7 @@ def projects_follow(request):
                 instance=device, partial=True
             )
         
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(data="Subscription added", status=status.HTTP_200_OK)
 
     # Unfollow flow
     # request.method == 'DELETE'
