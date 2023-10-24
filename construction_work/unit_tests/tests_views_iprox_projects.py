@@ -458,6 +458,31 @@ class TestApiProjectFollow(BaseTestApi):
         response = c.post(self.api_url, data, **headers)
         self.assertEqual(response.status_code, 404)
 
+    def test_existing_device_follows_existing_project(self):
+        """Test new device follows existing project"""
+        c = Client()
+        project = Project.objects.first()
+        foreign_id = project.foreign_id
+
+        # Setup device and follow project
+        device_id = "foobar"
+        device = Device(device_id=device_id)
+        device.save()
+
+        # Perform API call and check status
+        headers = {
+            "HTTP_DEVICEAUTHORIZATION": self.token,
+            "HTTP_DEVICEID": device_id,
+        }
+        data = {"foreign_id": foreign_id}
+        response = c.post(self.api_url, data, **headers)
+        self.assertEqual(response.status_code, 200)
+
+        # Device should now exist with followed project
+        device: Device = Device.objects.filter(device_id=device_id).first()
+        self.assertIsNotNone(device)
+        self.assertIn(project, device.followed_projects.all())
+
     def test_new_device_follows_existing_project(self):
         """Test new device follows existing project"""
         c = Client()

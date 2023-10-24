@@ -326,8 +326,6 @@ def projects_follow(request):
 
     # Follow flow
     if request.method == "POST":
-        # TODO: if device is not none: add project to followed projects of device
-
         if device is None:
             serializer = DeviceSerializer(
                 data={"device_id": device_id, "followed_projects": [project.pk]}
@@ -335,7 +333,13 @@ def projects_follow(request):
             if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            device.followed_projects.add(project)
+            serializer = DeviceSerializer(
+                instance=device, partial=True
+            )
+        
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     # Unfollow flow
     # request.method == 'DELETE'

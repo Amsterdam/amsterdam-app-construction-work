@@ -62,7 +62,7 @@
             "program": "${workspaceFolder}/manage.py",
             "args": [
                 "test",
-                "construction_work.unit_tests.tests_views_iprox_projects.TestApiProjectsSearch",
+                "construction_work.unit_tests.tests_views_iprox_projects.TestApiProjectFollow",
                 // "--noinput"
             ],
             "django": true,
