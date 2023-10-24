@@ -22,30 +22,46 @@
     To compute the distance in steps this class uses the average length of 0.74 meter
 """
 
+import json
+import urllib.parse
+
 import geopy.distance
+import requests
+
+from construction_work.generic_functions.static_data import StaticData
 
 STRIDES_PER_METER = 1 / 0.74
 
 
-# NOTE: refactor to only functions
-class GeoPyDistance:
-    """Calculate distance between two gps coordinates"""
+def get_distance(coords_1, coords_2):
+    meter = None
+    strides = None
 
-    def __init__(self, coords_1, coords_2):
-        """:param coords_1: tuple(52.2296756, 21.0122287)
-        :param coords_2: tuple(52.406374, 16.9251681)
-        """
-        self.meter = None
-        self.strides = None
+    if not any(
+        elem is None
+        for elem in [coords_1[0], coords_1[1], coords_2[0], coords_2[1]]
+    ):
+        try:
+            meter = int(geopy.distance.geodesic(coords_1, coords_2).km * 1000)
+            strides = int(meter * STRIDES_PER_METER)
+        except ValueError:
+            pass
+        except Exception as error:
+            print(error, flush=True)
 
-        if not any(
-            elem is None
-            for elem in [coords_1[0], coords_1[1], coords_2[0], coords_2[1]]
-        ):
-            try:
-                self.meter = int(geopy.distance.geodesic(coords_1, coords_2).km * 1000)
-                self.strides = int(self.meter * STRIDES_PER_METER)
-            except ValueError:
-                pass
-            except Exception as error:
-                print(error, flush=True)
+    return meter, strides
+
+
+def address_to_gps(address):
+    """Convert address to GPS info via API call"""
+    apis = StaticData.urls()
+    url = "{api}{address}".format(
+        api=apis["address_to_gps"], address=urllib.parse.quote_plus(address)
+    )
+    result = requests.get(url=url, timeout=1)
+    data = json.loads(result.content)
+    if len(data["results"]) == 1:
+        lon = data["results"][0]["centroid"][0]
+        lat = data["results"][0]["centroid"][1]
+        return lat, lon
+    return None, None

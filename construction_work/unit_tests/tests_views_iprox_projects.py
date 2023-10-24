@@ -56,6 +56,11 @@ class BaseTestApi(TestCase):
 class TestApiProjects(BaseTestApi):
     """Tests for getting all projects via API"""
 
+    def setUp(self):
+        super().setUp()
+
+        self.api_url = "/api/v1/projects"
+
     def tearDown(self) -> None:
         Project.objects.all().delete()
         Article.objects.all().delete()
@@ -65,7 +70,7 @@ class TestApiProjects(BaseTestApi):
         """Http method not allowed"""
         c = Client()
         headers = {"HTTP_DEVICEID": "1"}
-        response = c.post("/api/v1/projects", **headers)
+        response = c.post(self.api_url, **headers)
         result = json.loads(response.content)
 
         self.assertEqual(response.status_code, 405)
@@ -76,15 +81,12 @@ class TestApiProjects(BaseTestApi):
 
         new_device_id = "test_new_device_should_be_created"
         headers = {"HTTP_DEVICEID": new_device_id}
-        c.get("/api/v1/projects", **headers)
+        c.get(self.api_url, **headers)
 
         new_device = Device.objects.filter(device_id=new_device_id).first()
         self.assertIsNotNone(new_device)
 
     def assert_projects_sorted_descending_by_recent_article_date(self, device_follows_projects: bool):
-        # Reset projects
-        Project.objects.all().delete()
-
         # Create projects with articles at different times
         project_1 = self.create_project_and_article(10, "2023-01-01T12:00:00+00:00")
         self.add_article_to_project(project_1, 12, "2023-01-01T12:20:00+00:00")
@@ -103,7 +105,7 @@ class TestApiProjects(BaseTestApi):
         # Perform request
         c = Client()
         headers = {"HTTP_DEVICEID": device.device_id}
-        response = c.get("/api/v1/projects", {"page_size": 4}, **headers)
+        response = c.get(self.api_url, {"page_size": 4}, **headers)
 
         # Default order will be by objects internal pk
         expected_default_foreign_id_order = [10, 20, 30, 40]
@@ -124,9 +126,6 @@ class TestApiProjects(BaseTestApi):
         self.assert_projects_sorted_descending_by_recent_article_date(device_follows_projects=False)
 
     def test_other_projects_sorted_by_distance_with_lat_lon(self):
-        # Reset projects
-        Project.objects.all().delete()
-
         # Setup location
         # - Base location is Amsterdam Central Station
         adam_central_station = (52.379158791458494, 4.899904339167326)
@@ -165,7 +164,7 @@ class TestApiProjects(BaseTestApi):
         c = Client()
         headers = {"HTTP_DEVICEID": device.device_id}
         response = c.get(
-            f"/api/v1/projects",
+            self.api_url,
             {"lat": adam_central_station[0], "lon": adam_central_station[1], "page_size": 3},
             **headers,
         )
@@ -176,9 +175,6 @@ class TestApiProjects(BaseTestApi):
         self.assertEqual(response_foreign_id_order, expected_foreign_id_order)
     
     def test_pagination(self):
-        # Reset projects
-        Project.objects.all().delete()
-
         # Create a total of 10 projects
         for i in range(1, 10+1):
             project_data = self.data.projects[0]
@@ -191,7 +187,7 @@ class TestApiProjects(BaseTestApi):
         headers = {"HTTP_DEVICEID": device.device_id}
         
         # With page size of 4, 4 projects should be returned
-        response = c.get("/api/v1/projects", {"page_size": 4}, **headers)
+        response = c.get(self.api_url, {"page_size": 4}, **headers)
         self.assertEqual(response.data["page"]["number"], 1)
         self.assertEqual(response.data["page"]["size"], 4)
         self.assertEqual(response.data["page"]["totalElements"], 10)

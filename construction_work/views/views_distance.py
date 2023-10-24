@@ -9,7 +9,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from construction_work.api_messages import Messages
-from construction_work.generic_functions.distance import GeoPyDistance
+from construction_work.generic_functions.gps_utils import get_distance
 from construction_work.generic_functions.sort import Sort
 from construction_work.generic_functions.static_data import StaticData
 from construction_work.models import Project
@@ -24,7 +24,7 @@ messages = Messages()
 def distance(request):
     """Get distance 'in bird flight' from user to projects"""
 
-    def get_projects_data(_identifier, _model_items, _distance):
+    def get_projects_data(_identifier, _model_items, _meter, _strides):
         projects_object = Project.objects.filter(pk=_identifier).first()
 
         if _model_items is not None:
@@ -37,8 +37,8 @@ def distance(request):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         result = serializer.data
-        result["meter"] = int(_distance.meter) if _distance.meter is not None else None
-        result["strides"] = int(_distance.strides) if _distance.strides is not None else None
+        result["meter"] = int(_meter) if _meter is not None else None
+        result["strides"] = int(_strides) if _strides is not None else None
         return result
 
     lat = request.GET.get("lat", None)
@@ -75,13 +75,13 @@ def distance(request):
             int(project.coordinates["lon"]),
         ):
             cords_2 = (None, None)
-        this_distance = GeoPyDistance(cords_1, cords_2)
+        meter, strides = get_distance(cords_1, cords_2)
 
         result = None
         if radius is None:
-            result = get_projects_data(project.foreign_id, model_items, this_distance)
-        elif this_distance.meter is not None and this_distance.meter < float(radius):
-            result = get_projects_data(project.foreign_id, model_items, this_distance)
+            result = get_projects_data(project.foreign_id, model_items, meter, strides)
+        elif meter is not None and meter < float(radius):
+            result = get_projects_data(project.foreign_id, model_items, meter, strides)
 
         # Append the results
         if result is not None and result["foreign_id"] != "":

@@ -1,10 +1,7 @@
 # pylint: disable=unnecessary-lambda-assignment,expression-not-assigned
 """ Views for iprox project pages """
-import json
-import urllib.parse
 from math import ceil
 
-import requests
 from django.db.models import Max
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -12,7 +9,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from construction_work.api_messages import Messages
-from construction_work.generic_functions.distance import GeoPyDistance
+from construction_work.generic_functions.gps_utils import address_to_gps, get_distance
 from construction_work.generic_functions.memoize import Memoize
 from construction_work.generic_functions.project_utils import get_recent_articles_of_project
 from construction_work.generic_functions.request_must_come_from_app import (
@@ -20,7 +17,6 @@ from construction_work.generic_functions.request_must_come_from_app import (
 )
 from construction_work.generic_functions.static_data import (
     DEFAULT_ARTICLE_MAX_AGE,
-    StaticData,
 )
 from construction_work.generic_functions.text_search import TextSearch
 from construction_work.models import Project
@@ -103,38 +99,6 @@ def search(model, request):
     )
 
 
-def address_to_gps(address):
-    """Convert address to GPS info via API call"""
-    apis = StaticData.urls()
-    url = "{api}{address}".format(
-        api=apis["address_to_gps"], address=urllib.parse.quote_plus(address)
-    )
-    result = requests.get(url=url, timeout=1)
-    data = json.loads(result.content)
-    if len(data["results"]) == 1:
-        lon = data["results"][0]["centroid"][0]
-        lat = data["results"][0]["centroid"][1]
-        return lat, lon
-    return None, None
-
-
-def get_distance(project_data, lat, lon):
-    """Calculate distance from app-users-address to project (python based). Efficiency: ~0.08s for 304 projects"""
-    if lat is not None and lon is not None:
-        cords_1 = (float(lat), float(lon))
-        for project in project_data:
-            gps_data = project.get("coordinates", (None, None))
-
-            cords_2 = (gps_data["lat"], gps_data["lon"])
-            if (0, 0) == cords_2:
-                cords_2 = (None, None)
-            distance = GeoPyDistance(cords_1, cords_2)
-            project["meter"] = distance.meter
-            project["strides"] = distance.strides
-
-    return project_data
-
-
 @swagger_auto_schema(**as_projects)
 @api_view(["GET"])  # keep cached result for 5 minutes in memory
 def projects(request):
@@ -159,9 +123,8 @@ def projects(request):
         ) # Max days since publication date
 
         # Convert address into GPS data. Note: This should never happen, the device should already
-        if address is not None:
-            if lat is None or lon is None:
-                lat, lon = address_to_gps(address)
+        if address is not None and (lat is None or lon is None):
+            lat, lon = address_to_gps(address)
 
         device = Device.objects.filter(device_id=device_id).first()
         if device is None:
@@ -186,10 +149,11 @@ def projects(request):
             else:
                 project_cords = (None, None)
 
-            distance = GeoPyDistance(given_cords, project_cords)
-            if distance.meter is None:
+            meter, _ = get_distance(given_cords, project_cords)
+            # distance = GeoPyDistance(given_cords, project_cords)
+            if meter is None:
                 return float("inf")
-            return distance.meter
+            return meter
 
         all_other_projects_qs = Project.objects.exclude(pk__in=projects_followed_by_device_qs)
 
@@ -281,15 +245,7 @@ def project_details(request):
     lon = request.GET.get("lon", None)
     address = request.GET.get("address", None)  # akkerstraat%2014 -> akkerstraat 14
     if address is not None:
-        apis = StaticData.urls()
-        url = "{api}{address}".format(
-            api=apis["address_to_gps"], address=urllib.parse.quote_plus(address)
-        )
-        result = requests.get(url=url, timeout=1)
-        data = json.loads(result.content)
-        if len(data["results"]) == 1:
-            lon = data["results"][0]["centroid"][0]
-            lat = data["results"][0]["centroid"][1]
+        lat, lon = address_to_gps(address)
 
     project_obj = Project.objects.filter(foreign_id=foreign_id, active=True).first()
     if project_obj is None:

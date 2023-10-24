@@ -3,7 +3,7 @@ from ast import List
 
 from rest_framework import serializers
 
-from construction_work.generic_functions.distance import GeoPyDistance
+from construction_work.generic_functions.gps_utils import get_distance
 from construction_work.generic_functions.project_utils import get_recent_articles_of_project
 from construction_work.models import Article, Asset, Image, Notification, Project, ProjectManager, WarningMessage
 from construction_work.models.device import Device
@@ -80,7 +80,7 @@ class ProjectDetailsSerializer(ProjectListSerializer):
         self.distance = None
         lat = self.context.get("lat")
         lon = self.context.get("lon")
-        self.distance = self.get_distance_from_project(lat, lon, instance)
+        self.meter, self.strides = self.get_distance_from_project(lat, lon, instance)
 
     def get_field_names(self, *args, **kwargs):
         field_names = self.context.get("fields", None)
@@ -89,12 +89,12 @@ class ProjectDetailsSerializer(ProjectListSerializer):
         return super().get_field_names(*args, **kwargs)
 
     def get_meter(self, _) -> int:
-        """Get meters from distance obj"""
-        return self.distance.meter
+        """Given location away from project in meters"""
+        return self.meter
 
     def get_strides(self, _) -> int:
-        """Get strides from distance obj"""
-        return self.distance.strides
+        """Given location away from project in strides"""
+        return self.strides
 
     def get_followers(self, obj: Project) -> int:
         """Get amount of followers of project"""
@@ -114,8 +114,8 @@ class ProjectDetailsSerializer(ProjectListSerializer):
             cords_2 = (None, None)
         elif (0, 0) == cords_2:
             cords_2 = (None, None)
-        distance = GeoPyDistance(cords_1, cords_2)
-        return distance
+        meter, strides = get_distance(cords_1, cords_2)
+        return meter, strides
 
 
 class ArticleSerializer(serializers.ModelSerializer):
