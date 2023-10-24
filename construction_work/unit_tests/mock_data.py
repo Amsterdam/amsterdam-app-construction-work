@@ -213,24 +213,9 @@ class TestData:
             },
         ]
 
-        self.iprox_recursion = {
-            "Nam": "Target",
-            "cluster": [
-                {"Nam": "Target", "cluster": [{"Nam": "Target", "veld": []}]},
-                {"Nam": "Target", "cluster": {"Nam": "Target", "veld": {}}},
-                {"Nam": "Invalid Target", "cluster": {}},
-            ],
-        }
-
         self.project_managers = [
-            {
-                "manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-                "email": "mock0@amsterdam.nl",
-            },
-            {
-                "manager_key": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
-                "email": "mock1@amsterdam.nl",
-            },
+            {"manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "email": "mock0@amsterdam.nl", "projects": []},
+            {"manager_key": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "email": "mock1@amsterdam.nl", "projects": []},
         ]
 
         self.devices = [

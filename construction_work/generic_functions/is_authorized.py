@@ -14,23 +14,20 @@ import os
 from uuid import UUID
 
 import jwt
-from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError
-from django.http.response import HttpResponse, HttpResponseForbidden
 from django.http import HttpRequest
+from django.http.response import HttpResponse, HttpResponseForbidden
+from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError
 
-from main_application.settings import SECRET_KEY
 from construction_work.generic_functions.aes_cipher import AESCipher, AESException
 from construction_work.generic_functions.generic_logger import Logger
-
+from main_application.settings import SECRET_KEY
 
 logger = Logger()
 
 AES_SECRET = os.getenv("AES_SECRET")
 
 
-def get_token_from_request(
-    request: HttpRequest, http_key: str, header_key: str, encode_header: bool = False
-):
+def get_token_from_request(request: HttpRequest, http_key: str, header_key: str, encode_header: bool = False):
     """Get the AES encrypted token from the request"""
     http_token = request.META.get(http_key, None)
     header_token = request.META.get("headers", {}).get(header_key, None)
@@ -46,25 +43,20 @@ def get_token_from_request(
     return return_token
 
 
+# NOTE: Check headers, they don't seem to match their functions...
 def get_jwt_auth_token(request: HttpRequest):
     """Get the JWT token from the request"""
-    return get_token_from_request(
-        request, "HTTP_AUTHORIZATION", "AUTHORIZATION", encode_header=True
-    )
+    return get_token_from_request(request, "HTTP_AUTHORIZATION", "AUTHORIZATION", encode_header=True)
 
 
 def get_user_auth_token(request: HttpRequest):
     """Get the AES encrypted UserAuthorization token from the request"""
-    return get_token_from_request(
-        request, "HTTP_USERAUTHORIZATION", "UserAuthorization"
-    )
+    return get_token_from_request(request, "HTTP_USERAUTHORIZATION", "UserAuthorization")
 
 
 def get_ingest_auth_token(request: HttpRequest):
     """Get the AES encrypted INGEST token from the request"""
-    return get_token_from_request(
-        request, "HTTP_INGESTAUTHORIZATION", "INGESTAUTHORIZATION"
-    )
+    return get_token_from_request(request, "HTTP_INGESTAUTHORIZATION", "INGESTAUTHORIZATION")
 
 
 def is_valid_jwt_token(jwt_encrypted_token):

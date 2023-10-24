@@ -55,16 +55,12 @@ def get(request):
         return Response(data=messages.no_record_found, status=status.HTTP_404_NOT_FOUND)
 
     project_manager_object = ProjectManager.objects.filter(manager_key=manager_key).first()
-
-    if project_manager_object is None:
-        return Response(data={"message": "Project manager not found"}, status=status.HTTP_404_NOT_FOUND)
-
     serializer = ProjectManagerSerializer(
         instance=project_manager_object, data={}, context={"project_augmented": True}, many=False, partial=True
     )
 
     # Validation is required to get data from serializer
-    if not serializer.is_valid():
+    if not serializer.is_valid():  # pragma: no cover
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     return Response(data=serializer.data, status=status.HTTP_200_OK)
@@ -95,7 +91,12 @@ def post_patch(request):
 
 def delete(request):
     """Delete project manager"""
+    jwt_token = get_jwt_auth_token(request)
+    if not is_valid_jwt_token(jwt_encrypted_token=jwt_token):
+        return Response(data=messages.access_denied, status=status.HTTP_403_FORBIDDEN)
+
     manager_key = request.GET.get("manager_key", None)
+
     if manager_key is None:
         return Response(data=messages.invalid_query, status=status.HTTP_400_BAD_REQUEST)
 
