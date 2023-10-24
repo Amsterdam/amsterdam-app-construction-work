@@ -9,6 +9,7 @@ from freezegun import freeze_time
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.aes_cipher import AESCipher
 from construction_work.generic_functions.generic_logger import Logger
+from construction_work.generic_functions.text_search import MIN_QUERY_LENGTH
 from construction_work.models import Project
 from construction_work.models.article import Article
 from construction_work.models.device import Device
@@ -225,62 +226,63 @@ class TestApiProjectsSearch(BaseTestApi):
         for project in self.data.projects:
             Project.objects.create(**project)
 
-    # def test_no_text(self):
-    #     """Test search without a string"""
-    #     c = Client()
-    #     query = {
-    #         "query_fields": "title,subtitle",
-    #         "fields": "title,subtitle",
-    #         "page_size": 1,
-    #         "page": 1,
-    #     }
-    #     response = c.get("/api/v1/projects/search", query)
-    #     result = json.loads(response.content)
+    def test_no_text(self):
+        """Test search without a string"""
+        c = Client()
+        query = {
+            "query_fields": "title,subtitle",
+            "fields": "title,subtitle",
+            "page_size": 1,
+            "page": 1,
+        }
+        response = c.get("/api/v1/projects/search", query)
 
-    #     self.assertEqual(response.status_code, 422)
-    #     self.assertDictEqual(
-    #         result, {"status": False, "result": messages.invalid_query}
-    #     )
+        self.assertEqual(response.status_code, 400)
 
-    # def test_invalid_model_field(self):
-    #     """Test search on invalid model fields"""
-    #     c = Client()
-    #     query = {
-    #         "text": "mock",
-    #         "query_fields": "mock",
-    #         "fields": "title,subtitle",
-    #         "page_size": 1,
-    #         "page": 1,
-    #     }
-    #     response = c.get("/api/v1/projects/search", query)
-    #     result = json.loads(response.content)
+    def test_text_to_short(self):
+        """Test for text lower then minimal length"""
+        c = Client()
+        query = {
+            "text": "x" * (MIN_QUERY_LENGTH - 1),
+            "query_fields": "title,subtitle",
+            "fields": "title,subtitle",
+            "page_size": 1,
+            "page": 1,
+        }
+        response = c.get("/api/v1/projects/search", query)
 
-    #     self.assertEqual(response.status_code, 422)
-    #     self.assertDictEqual(
-    #         result, {"status": False, "result": messages.no_such_field_in_model}
-    #     )
+        self.assertEqual(response.status_code, 400)
 
-    # def test_invalid_model_return_field(self):
-    #     """Test search on invalid return fields"""
-    #     c = Client()
-    #     query = {
-    #         "text": "mock",
-    #         "query_fields": "title,subtitle",
-    #         "fields": "mock",
-    #         "page_size": 1,
-    #         "page": 1,
-    #     }
-    #     response = c.get("/api/v1/projects/search", query)
-    #     result = json.loads(response.content)
+    def test_search_in_field_not_part_of_model(self):
+        """Test search in field that is not part of the project model"""
+        c = Client()
+        query = {
+            "text": "title",
+            "query_fields": "foobar",
+            "fields": "title,subtitle",
+            "page_size": 1,
+            "page": 1,
+        }
+        response = c.get("/api/v1/projects/search", query)
 
-    #     self.assertEqual(response.status_code, 422)
-    #     self.assertDictEqual(
-    #         result, {"status": False, "result": messages.no_such_field_in_model}
-    #     )
+        self.assertEqual(response.status_code, 400)
 
+    def test_invalid_model_return_field(self):
+        """Test request return fields that are not part of the model"""
+        c = Client()
+        query = {
+            "text": "title",
+            "query_fields": "title,subtitle",
+            "fields": "foobar",
+            "page_size": 1,
+            "page": 1,
+        }
+        response = c.get("/api/v1/projects/search", query)
+
+        self.assertEqual(response.status_code, 400)
 
     def test_search_project_and_follow_links(self):
-        """Test search in projects"""
+        """Test search for projects"""
         c = Client()
         query = {
             "text": "title",
