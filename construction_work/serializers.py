@@ -1,10 +1,10 @@
 """ Serializers for DB models """
 from ast import List
-from datetime import datetime, timedelta
 
 from rest_framework import serializers
 
 from construction_work.generic_functions.distance import GeoPyDistance
+from construction_work.generic_functions.project_utils import get_recent_articles_of_project
 from construction_work.models import Article, Asset, Image, Notification, Project, ProjectManager, WarningMessage
 from construction_work.models.device import Device
 from construction_work.models.warning_and_notification import WarningImage
@@ -57,21 +57,8 @@ class ProjectListSerializer(serializers.ModelSerializer):
         return project_followed
 
     def get_recent_articles(self, obj: Project) -> dict:
-        all_articles = []
-
-        articles_max_age = self.context.get("articles_max_age")
-        start_date = datetime.now().astimezone() - timedelta(days=int(articles_max_age))
-        end_date = datetime.now().astimezone()
-        
-        articles = obj.article_set.filter(publication_date__range=[start_date, end_date]).all()
-        article_serializer = ArticleSerializer(articles, many=True)
-        all_articles.extend(article_serializer.data)
-
-        warning_messages = obj.warningmessage_set.filter(publication_date__range=[start_date, end_date]).all()
-        warning_message_serializer = WarningMessagePublicSerializer(warning_messages, many=True)
-        all_articles.extend(warning_message_serializer.data)
-
-        return all_articles
+        article_max_age = self.context.get("article_max_age")
+        return get_recent_articles_of_project(obj, article_max_age)
 
 
 class ProjectDetailsSerializer(ProjectListSerializer):

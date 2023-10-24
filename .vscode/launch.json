@@ -62,8 +62,8 @@
             "program": "${workspaceFolder}/manage.py",
             "args": [
                 "test",
-                "construction_work.unit_tests.tests_views_iprox_projects.TestApiProjectFollow",
-                "--noinput"
+                "construction_work.unit_tests.tests_views_iprox_projects.TestFollowedProjectArticles",
+                // "--noinput"
             ],
             "django": true,
             "console": "integratedTerminal",

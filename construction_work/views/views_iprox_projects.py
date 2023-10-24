@@ -2,13 +2,10 @@
 """ Views for iprox project pages """
 import json
 import urllib.parse
-from datetime import datetime, timedelta
 from math import ceil
-from typing import List
 
 import requests
-from django.db.models import Max, BooleanField, Case, OuterRef, Subquery, Value, When
-from django.db.models.functions import Coalesce
+from django.db.models import Max
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -17,6 +14,7 @@ from rest_framework.response import Response
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.distance import GeoPyDistance
 from construction_work.generic_functions.memoize import Memoize
+from construction_work.generic_functions.project_utils import get_recent_articles_of_project
 from construction_work.generic_functions.request_must_come_from_app import (
     RequestMustComeFromApp,
 )
@@ -25,15 +23,12 @@ from construction_work.generic_functions.static_data import (
     StaticData,
 )
 from construction_work.generic_functions.text_search import TextSearch
-from construction_work.models import Article, Project, WarningMessage
+from construction_work.models import Project
 from construction_work.models.device import Device
 from construction_work.serializers import (
-    ArticleSerializer,
     DeviceSerializer,
     ProjectDetailsSerializer,
     ProjectListSerializer,
-    ProjectSerializer,
-    WarningMessagePublicSerializer,
 )
 from construction_work.swagger.swagger_views_iprox_projects import (
     as_project_details,
@@ -159,8 +154,8 @@ def projects(request):
         address = request.GET.get("address", None)
 
         # NOTE: is 3 days too little, users will miss many article updates
-        articles_max_age = int(
-            request.GET.get("articles_max_age", 3)
+        article_max_age = int(
+            request.GET.get("article_max_age", 3)
         ) # Max days since publication date
 
         # Convert address into GPS data. Note: This should never happen, the device should already
@@ -217,7 +212,7 @@ def projects(request):
 
         context = {
             "device_id": device_id,
-            "articles_max_age": articles_max_age,
+            "article_max_age": article_max_age,
         }
         serializer = ProjectListSerializer(instance=all_projects, many=True, context=context)
         
@@ -273,14 +268,14 @@ def project_details(request):
     if foreign_id is None:
         return Response(data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
 
-    articles_max_age = request.GET.get("articles_max_age", None)
-    if articles_max_age is not None and articles_max_age.isdigit() is False:
+    article_max_age = request.GET.get("article_max_age", None)
+    if article_max_age is not None and article_max_age.isdigit() is False:
         return Response(data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
 
-    if articles_max_age is None:
-        articles_max_age = DEFAULT_ARTICLE_MAX_AGE
+    if article_max_age is None:
+        article_max_age = DEFAULT_ARTICLE_MAX_AGE
     else:
-        articles_max_age = int(articles_max_age)
+        article_max_age = int(article_max_age)
 
     lat = request.GET.get("lat", None)
     lon = request.GET.get("lon", None)
@@ -321,7 +316,7 @@ def project_details(request):
             "lat": lat,
             "lon": lon,
             "device_id": device.device_id,
-            "articles_max_age": articles_max_age,
+            "article_max_age": article_max_age,
         },
     )
     # Validation is required to get data from serializer
@@ -389,49 +384,36 @@ def projects_follow(request):
 
 # TODO: change view when article gets remodelled
 # TODO: write unit tests
+# NOTE: should be moved to articles views?
 @swagger_auto_schema(**as_projects_followed_articles)
 @api_view(["GET"])
 def projects_followed_articles(request):
     """Get articles for followed projects"""
     device_id = request.META.get("HTTP_DEVICEID", None)
-    article_max_age = int(request.GET.get("article-max-age", 3))
+
     if device_id is None:
         return Response(
-            {"status": False, "result": message.invalid_headers},
+            data=message.invalid_headers,
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     device = Device.objects.filter(device_id=device_id).first()
     if device is None:
         return Response(
-            {"status": False, "result": message.no_record_found},
+            data=message.no_record_found,
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    followed_projects: List[Project] = device.followed_projects.all()
-    project_identifiers = [x.foreign_id for x in followed_projects]
+    article_max_age = request.GET.get("article_max_age", 3)
+    
+    if not str(article_max_age).isdigit():
+        return Response(data=message.invalid_parameters, status=status.HTTP_400_BAD_REQUEST)
+
+    followed_projects: list[Project] = device.followed_projects.all()
 
     result = {}
-    # Get recent articles
-    for project_id in project_identifiers:
-        start_date = datetime.now() - timedelta(days=article_max_age)
-        end_date = datetime.now()
-        start_date_str = start_date.strftime("%Y-%m-%d")
-        news_articles_all = list(
-            Article.objects.filter(project_identifier=project_id).all()
-        )
-        serializer_news = ArticleSerializer(news_articles_all, many=True)
-        news_articles = [
-            x["identifier"]
-            for x in serializer_news.data
-            if x["publication_date"] >= start_date_str
-        ]
-        warning_articles = list(
-            WarningMessage.objects.filter(
-                project_identifier=project_id,
-                publication_date__range=[start_date, end_date],
-            ).all()
-        )
-        result[project_id] = news_articles + [x.identifier for x in warning_articles]
+    for project in followed_projects:
+        recent_articles = get_recent_articles_of_project(project, article_max_age)
+        result[project.foreign_id] = recent_articles
 
-    return Response({"status": True, "result": {"projects": result}})
+    return Response(data=result, status=status.HTTP_200_OK)
