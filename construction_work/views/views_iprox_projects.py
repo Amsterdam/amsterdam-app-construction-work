@@ -61,18 +61,20 @@ def _paginate_data(request, data: list, extra_params: dict=None) -> dict:
         "totalPages": pages,
     }
 
-    links = {"self": {"href": host}}
-
     extra_params_str = ""
     if extra_params is not None:
         for k, v in extra_params.items():
             param_str = f"&{k}={v}"
             extra_params_str += param_str
 
+    # Add link without pagination
+    links = {"self": {"href": f"{host}?{extra_params_str}"}}
+
     # Add next page link, if available
     if pagination["number"] < pagination["totalPages"]:
         next_page = str(pagination["number"] + 1)
         links["next"] = {"href": f"{host}?page={next_page}&page_size={page_size}{extra_params_str}"}
+
     # Add previous page link, if available
     if pagination["number"] > 1:
         previous_page = str(pagination["number"] - 1)

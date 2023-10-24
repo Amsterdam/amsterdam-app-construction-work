@@ -9,7 +9,7 @@ from construction_work.serializers import (
     ProjectDetailsSerializer,
     ProjectListSerializer,
 )
-from construction_work.swagger.swagger_abstract_objects import images
+from construction_work.swagger.swagger_views_search import pagination_schema
 
 message = Messages()
 
@@ -169,81 +169,98 @@ as_projects = {
     "responses": {
         200: openapi.Response(
             "application/json",
-            ProjectListSerializer,
+            pagination_schema,
             examples={
-                "application/json": [
-                    {
-                        "id": 34,
-                        "followed": True,
-                        "foreign_id": 1003333,
-                        "active": True,
-                        "last_seen": "2023-10-12T10:54:50.907421+02:00",
-                        "title": "Slotermeer",
-                        "subtitle": "stedelijke vernieuwing",
-                        "coordinates": {"lat": 52.3584996, "lon": 4.8035019},
-                        "sections": {
-                            "what": [
+                "application/json": {
+                    "result": [
+                        {
+                            "id": 34,
+                            "followed": True,
+                            "foreign_id": 1003333,
+                            "active": True,
+                            "last_seen": "2023-10-12T10:54:50.907421+02:00",
+                            "title": "Slotermeer",
+                            "subtitle": "stedelijke vernieuwing",
+                            "coordinates": {"lat": 52.3584996, "lon": 4.8035019},
+                            "sections": {
+                                "what": [
+                                    {
+                                        "body": "",
+                                        "title": "Vernieuwd stadscentrum voor heel Nieuw-West",
+                                    }
+                                ],
+                                "when": [{"body": None, "title": "Wanneer"}],
+                                "work": [],
+                                "where": [],
+                                "contact": [],
+                            },
+                            "contacts": [
                                 {
-                                    "body": "",
-                                    "title": "Vernieuwd stadscentrum voor heel Nieuw-West",
+                                    "id": 16800775,
+                                    "name": "",
+                                    "email": "",
+                                    "phone": None,
+                                    "position": "",
                                 }
                             ],
-                            "when": [{"body": None, "title": "Wanneer"}],
-                            "work": [],
-                            "where": [],
-                            "contact": [],
+                            "timeline": {
+                                "intro": None,
+                                "items": [
+                                    {
+                                        "body": "",
+                                        "items": [],
+                                        "title": "",
+                                        "collapsed": True,
+                                    }
+                                ],
+                                "title": "",
+                            },
+                            "image": {
+                                "id": 21360354,
+                                "sources": [
+                                    {
+                                        "url": "/publish/pages/960128/slotermeer.jpg",
+                                        "width": 620,
+                                        "height": 348,
+                                    },
+                                    {
+                                        "url": "/publish/pages/960128/220px/slotermeer.jpg",
+                                        "width": 220,
+                                        "height": 123,
+                                    },
+                                    {
+                                        "url": "/publish/pages/960128/80px/slotermeer.jpg",
+                                        "width": 80,
+                                        "height": 45,
+                                    },
+                                ],
+                                "aspectRatio": 1.7816091954022988,
+                                "alternativeText": None,
+                            },
+                            "images": [],
+                            "url": "http://www.amsterdam.nl/projecten/slotermeer/",
+                            "creation_date": "2016-09-29T14:25:00+02:00",
+                            "modification_date": "2023-10-02T06:34:00+02:00",
+                            "publication_date": "2023-10-02T06:34:00+02:00",
+                            "expiration_date": None,
+                        }
+                    ],
+                    "page": {
+                        "number": 2,
+                        "size": 1,
+                        "totalElements": 329,
+                        "totalPages": 329,
+                    },
+                    "_links": {
+                        "self": {"href": "http://localhost:8000/api/v1/projects"},
+                        "next": {
+                            "href": "http://localhost:8000/api/v1/projects?page=3&page_size=1&lat=52.3676379&lon=4.8968271"
                         },
-                        "contacts": [
-                            {
-                                "id": 16800775,
-                                "name": "",
-                                "email": "",
-                                "phone": None,
-                                "position": "",
-                            }
-                        ],
-                        "timeline": {
-                            "intro": None,
-                            "items": [
-                                {
-                                    "body": "",
-                                    "items": [],
-                                    "title": "",
-                                    "collapsed": True,
-                                }
-                            ],
-                            "title": "",
+                        "previous": {
+                            "href": "http://localhost:8000/api/v1/projects?page=1&page_size=1&lat=52.3676379&lon=4.8968271"
                         },
-                        "image": {
-                            "id": 21360354,
-                            "sources": [
-                                {
-                                    "url": "/publish/pages/960128/slotermeer.jpg",
-                                    "width": 620,
-                                    "height": 348,
-                                },
-                                {
-                                    "url": "/publish/pages/960128/220px/slotermeer.jpg",
-                                    "width": 220,
-                                    "height": 123,
-                                },
-                                {
-                                    "url": "/publish/pages/960128/80px/slotermeer.jpg",
-                                    "width": 80,
-                                    "height": 45,
-                                },
-                            ],
-                            "aspectRatio": 1.7816091954022988,
-                            "alternativeText": None,
-                        },
-                        "images": [],
-                        "url": "http://www.amsterdam.nl/projecten/slotermeer/",
-                        "creation_date": "2016-09-29T14:25:00+02:00",
-                        "modification_date": "2023-10-02T06:34:00+02:00",
-                        "publication_date": "2023-10-02T06:34:00+02:00",
-                        "expiration_date": None,
-                    }
-                ]
+                    },
+                }
             },
         ),
         400: openapi.Response(
@@ -309,7 +326,7 @@ as_project_details = {
     "responses": {
         200: openapi.Response(
             "application/json",
-            ProjectDetailsSerializer,
+            # ProjectDetailsSerializer,
             examples={
                 "application/json": {
                     "followed": False,
@@ -426,33 +443,23 @@ as_projects_follow_post = {
     "responses": {
         200: openapi.Response(
             "application/json",
-            examples={
-                "application/json": "Subscription added"
-            },
+            examples={"application/json": "Subscription added"},
         ),
         403: openapi.Response(
             "application/json",
-            examples={
-                "application/json": message.access_denied
-            },
+            examples={"application/json": message.access_denied},
         ),
         400: openapi.Response(
             "application/json",
-            examples={
-                "application/json": message.invalid_headers
-            },
+            examples={"application/json": message.invalid_headers},
         ),
         400: openapi.Response(
             "application/json",
-            examples={
-                "application/json": message.invalid_parameters
-            },
+            examples={"application/json": message.invalid_parameters},
         ),
         404: openapi.Response(
             "application/json",
-            examples={
-                "application/json": message.no_record_found
-            },
+            examples={"application/json": message.no_record_found},
         ),
     },
     "tags": ["Projects"],
@@ -489,33 +496,23 @@ as_projects_follow_delete = {
     "responses": {
         200: openapi.Response(
             "application/json",
-            examples={
-                "application/json": "Subscription removed"
-            },
+            examples={"application/json": "Subscription removed"},
         ),
         403: openapi.Response(
             "application/json",
-            examples={
-                "application/json": message.access_denied
-            },
+            examples={"application/json": message.access_denied},
         ),
         400: openapi.Response(
             "application/json",
-            examples={
-                "application/json": message.invalid_headers
-            },
+            examples={"application/json": message.invalid_headers},
         ),
         400: openapi.Response(
             "application/json",
-            examples={
-                "application/json": message.invalid_parameters
-            },
+            examples={"application/json": message.invalid_parameters},
         ),
         404: openapi.Response(
             "application/json",
-            examples={
-                "application/json": message.no_record_found
-            },
+            examples={"application/json": message.no_record_found},
         ),
     },
     "tags": ["Projects"],
