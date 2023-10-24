@@ -4,6 +4,7 @@ import os
 
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.test import Client, TestCase
+from freezegun import freeze_time
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.aes_cipher import AESCipher
@@ -20,39 +21,15 @@ logger = Logger()
 class BaseTestApi(TestCase):
     """Abstract base class for API tests"""
 
-    def __init__(self, methodName) -> None:
+    def setUp(self):
         self.data = TestData()
         self.maxDiff = None
-        super().__init__(methodName)
 
-    def setUp(self):
         # Create needed database extensions
         connection = connections[DEFAULT_DB_ALIAS]
         cursor = connection.cursor()
         cursor.execute("CREATE EXTENSION pg_trgm")
         cursor.execute("CREATE EXTENSION unaccent")
-
-        for project in self.data.projects:
-            Project.objects.create(**project)
-
-
-class TestApiProjects(BaseTestApi):
-    """Tests for getting all projects via API"""
-
-    def tearDown(self) -> None:
-        Project.objects.all().delete()
-        Article.objects.all().delete()
-        Device.objects.all().delete()
-
-    def test_method_not_allowed(self):
-        """Http method not allowed"""
-        c = Client()
-        headers = {"HTTP_DEVICEID": "1"}
-        response = c.post("/api/v1/projects", **headers)
-        result = json.loads(response.content)
-
-        self.assertEqual(response.status_code, 405)
-        self.assertDictEqual(result, {"detail": 'Method "POST" not allowed.'})
 
     def create_project_and_article(self, project_foreign_id, article_pub_date):
         project_data = self.data.projects[0]
@@ -75,20 +52,41 @@ class TestApiProjects(BaseTestApi):
         article.projects.add(project)
         return article
 
+
+class TestApiProjects(BaseTestApi):
+    """Tests for getting all projects via API"""
+
+    def setUp(self):
+        super().setUp()
+
+        self.api_url = "/api/v1/projects"
+
+    def tearDown(self) -> None:
+        Project.objects.all().delete()
+        Article.objects.all().delete()
+        Device.objects.all().delete()
+
+    def test_method_not_allowed(self):
+        """Http method not allowed"""
+        c = Client()
+        headers = {"HTTP_DEVICEID": "1"}
+        response = c.post(self.api_url, **headers)
+        result = json.loads(response.content)
+
+        self.assertEqual(response.status_code, 405)
+        self.assertDictEqual(result, {"detail": 'Method "POST" not allowed.'})
+
     def test_new_device_should_be_created(self):
         c = Client()
 
         new_device_id = "test_new_device_should_be_created"
         headers = {"HTTP_DEVICEID": new_device_id}
-        c.get("/api/v1/projects", **headers)
+        c.get(self.api_url, **headers)
 
         new_device = Device.objects.filter(device_id=new_device_id).first()
         self.assertIsNotNone(new_device)
 
     def assert_projects_sorted_descending_by_recent_article_date(self, device_follows_projects: bool):
-        # Reset projects
-        Project.objects.all().delete()
-
         # Create projects with articles at different times
         project_1 = self.create_project_and_article(10, "2023-01-01T12:00:00+00:00")
         self.add_article_to_project(project_1, 12, "2023-01-01T12:20:00+00:00")
@@ -107,7 +105,7 @@ class TestApiProjects(BaseTestApi):
         # Perform request
         c = Client()
         headers = {"HTTP_DEVICEID": device.device_id}
-        response = c.get("/api/v1/projects", {"page_size": 4}, **headers)
+        response = c.get(self.api_url, {"page_size": 4}, **headers)
 
         # Default order will be by objects internal pk
         expected_default_foreign_id_order = [10, 20, 30, 40]
@@ -128,9 +126,6 @@ class TestApiProjects(BaseTestApi):
         self.assert_projects_sorted_descending_by_recent_article_date(device_follows_projects=False)
 
     def test_other_projects_sorted_by_distance_with_lat_lon(self):
-        # Reset projects
-        Project.objects.all().delete()
-
         # Setup location
         # - Base location is Amsterdam Central Station
         adam_central_station = (52.379158791458494, 4.899904339167326)
@@ -169,7 +164,7 @@ class TestApiProjects(BaseTestApi):
         c = Client()
         headers = {"HTTP_DEVICEID": device.device_id}
         response = c.get(
-            f"/api/v1/projects",
+            self.api_url,
             {"lat": adam_central_station[0], "lon": adam_central_station[1], "page_size": 3},
             **headers,
         )
@@ -180,9 +175,6 @@ class TestApiProjects(BaseTestApi):
         self.assertEqual(response_foreign_id_order, expected_foreign_id_order)
     
     def test_pagination(self):
-        # Reset projects
-        Project.objects.all().delete()
-
         # Create a total of 10 projects
         for i in range(1, 10+1):
             project_data = self.data.projects[0]
@@ -195,7 +187,7 @@ class TestApiProjects(BaseTestApi):
         headers = {"HTTP_DEVICEID": device.device_id}
         
         # With page size of 4, 4 projects should be returned
-        response = c.get("/api/v1/projects", {"page_size": 4}, **headers)
+        response = c.get(self.api_url, {"page_size": 4}, **headers)
         self.assertEqual(response.data["page"]["number"], 1)
         self.assertEqual(response.data["page"]["size"], 4)
         self.assertEqual(response.data["page"]["totalElements"], 10)
@@ -310,12 +302,14 @@ class TestApiProjectDetails(BaseTestApi):
     """Tests for getting all project details"""
     
     def setUp(self):
-        self.data = TestData()
+        super().setUp()
+
+        self.api_url = "/api/v1/project/details"
 
     def test_method_not_allowed(self):
         """Test http method not allowed"""
         c = Client()
-        response = c.post("/api/v1/project/details")
+        response = c.post(self.api_url)
         result = json.loads(response.content)
 
         self.assertEqual(response.status_code, 405)
@@ -325,7 +319,7 @@ class TestApiProjectDetails(BaseTestApi):
         """Test call without device id"""
         c = Client()
         headers = {}
-        response = c.get("/api/v1/project/details", **headers)
+        response = c.get(self.api_url, **headers)
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data, messages.invalid_headers)
@@ -339,7 +333,7 @@ class TestApiProjectDetails(BaseTestApi):
             "lon": 4.899904339167326,
             "article_max_age": 10,
         }
-        response = c.get("/api/v1/project/details", params, **headers)
+        response = c.get(self.api_url, params, **headers)
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data, messages.invalid_query)
@@ -357,7 +351,7 @@ class TestApiProjectDetails(BaseTestApi):
             "lon": 4.899904339167326,
             "article_max_age": 10,
         }
-        response = c.get("/api/v1/project/details", params, **headers)
+        response = c.get(self.api_url, params, **headers)
 
         self.assertEqual(response.status_code, 200)
 
@@ -375,7 +369,7 @@ class TestApiProjectDetails(BaseTestApi):
             "lon": 4.899904339167326,
             "article_max_age": 10,
         }
-        response = c.get("/api/v1/project/details", params, **headers)
+        response = c.get(self.api_url, params, **headers)
 
         self.assertEqual(response.status_code, 404)
 
@@ -392,7 +386,7 @@ class TestApiProjectDetails(BaseTestApi):
             "lon": 4.899904339167326,
             "article_max_age": 10,
         }
-        response = c.get("/api/v1/project/details", params, **headers)
+        response = c.get(self.api_url, params, **headers)
 
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(response.data)
@@ -409,6 +403,9 @@ class TestApiProjectFollow(BaseTestApi):
         app_token = os.getenv("APP_TOKEN")
         aes_secret = os.getenv("AES_SECRET")
         self.token = AESCipher(app_token, aes_secret).encrypt()
+
+        for project in self.data.projects:
+            Project.objects.create(**project)
 
     def test_missing_device_id(self):
         """Test missing device id"""
@@ -540,3 +537,67 @@ class TestApiProjectFollow(BaseTestApi):
 
         # Device should have no followed projects
         self.assertEqual(0, len(device.followed_projects.all()))
+
+
+class TestFollowedProjectArticles(BaseTestApi):
+    def setUp(self):
+        super().setUp()
+
+        self.api_url = "/api/v1/projects/followed/articles"
+
+    def test_missing_device_id(self):
+        """Test missing device id"""
+        c = Client()
+        headers = {
+            "HTTP_DEVICEID": None,
+        }
+        response = c.get(self.api_url, **headers)
+        self.assertEqual(response.status_code, 400)
+
+    def test_device_does_not_exist(self):
+        c = Client()
+        headers = {
+            "HTTP_DEVICEID": "foobar",
+        }
+        response = c.get(self.api_url, **headers)
+        self.assertEqual(response.status_code, 404)
+
+    @freeze_time("2023-01-10")
+    def test_get_recent_articles(self):
+        
+        # Project with TWO recent articles
+        project_1 = self.create_project_and_article(10, "2023-01-08T12:00:00+00:00")
+        self.add_article_to_project(project_1, 12, "2023-01-08T12:00:00+00:00")
+        
+        # Project with ONE recent article
+        project_2 = self.create_project_and_article(20, "2023-01-05T12:00:00+00:00")
+        self.add_article_to_project(project_2, 22, "2023-01-07T12:00:00+00:00")
+        
+        # Project with NO recent articles
+        project_3 = self.create_project_and_article(30, "2023-01-01T12:00:00+00:00")
+        self.add_article_to_project(project_3, 32, "2023-01-01T12:00:00+00:00")
+        
+        # Create device and follow all projects
+        device = Device.objects.create(**self.data.devices[0])
+        device.followed_projects.set([project_1, project_2, project_3])
+
+        c = Client()
+        headers = {
+            "HTTP_DEVICEID": device.device_id,
+        }
+
+        def assert_total_returned_articles(max_age, expected_count):
+            params = {
+                "article_max_age": max_age
+            }
+            response = c.get(self.api_url, params, **headers)
+
+            total_returned_articles = 0
+            for articles in response.data.values():
+                article_count = len(articles)
+                total_returned_articles += article_count
+
+            self.assertEqual(total_returned_articles, expected_count)
+
+        assert_total_returned_articles(3, 3)
+        assert_total_returned_articles(10, 6)

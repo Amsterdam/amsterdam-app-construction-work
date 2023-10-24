@@ -1,10 +1,10 @@
 """ Serializers for DB models """
 from ast import List
-from datetime import datetime, timedelta
 
 from rest_framework import serializers
 
-from construction_work.generic_functions.distance import GeoPyDistance
+from construction_work.generic_functions.gps_utils import get_distance
+from construction_work.generic_functions.project_utils import get_recent_articles_of_project
 from construction_work.models import Article, Asset, Image, Notification, Project, ProjectManager, WarningMessage
 from construction_work.models.device import Device
 from construction_work.models.warning_and_notification import WarningImage
@@ -57,21 +57,8 @@ class ProjectListSerializer(serializers.ModelSerializer):
         return project_followed
 
     def get_recent_articles(self, obj: Project) -> dict:
-        all_articles = []
-
-        articles_max_age = self.context.get("articles_max_age")
-        start_date = datetime.now().astimezone() - timedelta(days=int(articles_max_age))
-        end_date = datetime.now().astimezone()
-
-        articles = obj.article_set.filter(publication_date__range=[start_date, end_date]).all()
-        article_serializer = ArticleSerializer(articles, many=True)
-        all_articles.extend(article_serializer.data)
-
-        warning_messages = obj.warningmessage_set.filter(publication_date__range=[start_date, end_date]).all()
-        warning_message_serializer = WarningMessagePublicSerializer(warning_messages, many=True)
-        all_articles.extend(warning_message_serializer.data)
-
-        return all_articles
+        article_max_age = self.context.get("article_max_age")
+        return get_recent_articles_of_project(obj, article_max_age)
 
 
 class ProjectDetailsSerializer(ProjectListSerializer):
@@ -93,7 +80,7 @@ class ProjectDetailsSerializer(ProjectListSerializer):
         self.distance = None
         lat = self.context.get("lat")
         lon = self.context.get("lon")
-        self.distance = self.get_distance_from_project(lat, lon, instance)
+        self.meter, self.strides = self.get_distance_from_project(lat, lon, instance)
 
     def get_field_names(self, *args, **kwargs):
         field_names = self.context.get("fields", None)
@@ -102,12 +89,12 @@ class ProjectDetailsSerializer(ProjectListSerializer):
         return super().get_field_names(*args, **kwargs)
 
     def get_meter(self, _) -> int:
-        """Get meters from distance obj"""
-        return self.distance.meter
+        """Given location away from project in meters"""
+        return self.meter
 
     def get_strides(self, _) -> int:
-        """Get strides from distance obj"""
-        return self.distance.strides
+        """Given location away from project in strides"""
+        return self.strides
 
     def get_followers(self, obj: Project) -> int:
         """Get amount of followers of project"""
@@ -127,8 +114,8 @@ class ProjectDetailsSerializer(ProjectListSerializer):
             cords_2 = (None, None)
         elif (0, 0) == cords_2:
             cords_2 = (None, None)
-        distance = GeoPyDistance(cords_1, cords_2)
-        return distance
+        meter, strides = get_distance(cords_1, cords_2)
+        return meter, strides
 
 
 class ArticleSerializer(serializers.ModelSerializer):

@@ -118,7 +118,7 @@ as_projects = {
             required=True,
         ),
         openapi.Parameter(
-            "articles_max_age",
+            "article_max_age",
             openapi.IN_QUERY,
             description="Number of days (default: 3)",
             type=openapi.TYPE_INTEGER,
@@ -274,7 +274,7 @@ as_project_details = {
             required=True,
         ),
         openapi.Parameter(
-            "articles_max_age",
+            "article_max_age",
             openapi.IN_QUERY,
             description="Number of days (default: 3)",
             type=openapi.TYPE_INTEGER,

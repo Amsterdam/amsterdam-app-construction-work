@@ -24,7 +24,6 @@ from construction_work.models.warning_and_notification import WarningImage, Warn
 
 from construction_work.serializers import (
     ArticleSerializer,
-    AssetsSerializer,
     ImageSerializer,
     Notification,
     NotificationSerializer,
@@ -37,47 +36,6 @@ from construction_work.generic_functions.generic_logger import Logger
 
 
 logger = Logger()
-
-
-# DEPRECATED
-# class TestAssetModel(TestCase):
-#     """Test asset model"""
-
-#     def setUp(self):
-#         """UNITTEST DB setup"""
-#         self.data = TestData()
-
-#         Asset.objects.all().delete()
-#         for asset in self.data.assets:
-#             Asset.objects.create(**asset)
-
-#     def test_asset_delete(self):
-#         """test delete"""
-#         Asset.objects.get(pk="0000000000").delete()
-#         asset_objects = Asset.objects.all()
-#         serializer = AssetsSerializer(asset_objects, many=True)
-
-#         self.assertEqual(len(serializer.data), 1)
-
-#     def test_asset_get_all(self):
-#         """test retrieve"""
-#         asset_objects = Asset.objects.all()
-#         self.assertEqual(len(asset_objects), 2)
-
-#     def test_asset_exists(self):
-#         """test exist"""
-#         asset = Asset.objects.get(pk="0000000000")
-
-#         self.assertEqual(asset.identifier, "0000000000")
-#         self.assertEqual(asset.url, "https://localhost/test0.pdf")
-#         self.assertEqual(asset.mime_type, "application/pdf")
-#         self.assertEqual(asset.data, b"")
-
-#     def test_asset_does_not_exist(self):
-#         """test not exist"""
-#         asset = Asset.objects.filter(pk="not-there").first()
-
-#         self.assertEqual(asset, None)
 
 
 class TestImageModel(TestCase):
@@ -206,7 +164,7 @@ class TestProjectModel(TestCase):
             "lat": lat_lon_amstel_1[0],
             "lon": lat_lon_amstel_1[1],
             "device_id": device.device_id,
-            "articles_max_age": DEFAULT_ARTICLE_MAX_AGE,
+            "article_max_age": DEFAULT_ARTICLE_MAX_AGE,
         }
         serializer = ProjectDetailsSerializer(
             instance=project, data={}, context=context, partial=True

@@ -26,3 +26,4 @@ requests==2.31.0
 whatimage==0.0.3
 wheel==0.41.0
 uWSGI==2.0.22
+freezegun==1.2.2

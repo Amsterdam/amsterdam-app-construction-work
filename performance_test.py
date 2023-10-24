@@ -16,7 +16,7 @@ class PerformanceTest:
         """ """
         api = "api/v1/projects"
         fields = "followed,identifier,images,publication_date,recent_articles,subtitle,title"
-        query_params = "articles_max_age=60&page_size=20"
+        query_params = "article_max_age=60&page_size=20"
         self.url = f"https://{server}/{api}?fields={fields}&{query_params}"
         self.concurrent_requests = concurrency
         self.cycles = cycles
