@@ -86,7 +86,7 @@ def _paginate_data(request, data: list, extra_params: dict=None) -> dict:
 
 
 def search(model, request) -> Response:
-    """Pagination defaults"""
+    """Search model using request parameters"""
     text = request.GET.get("text", None)
     query_fields = request.GET.get("query_fields", None)
     return_fields = request.GET.get("fields", None)
