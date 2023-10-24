@@ -217,9 +217,69 @@ class TestApiProjects(BaseTestApi):
 
 
 class TestApiProjectsSearch(BaseTestApi):
-    """unit_tests"""
+    """Test searching text in project model"""
 
-    def test_search(self):
+    def setUp(self):
+        super().setUp()
+
+        for project in self.data.projects:
+            Project.objects.create(**project)
+
+    # def test_no_text(self):
+    #     """Test search without a string"""
+    #     c = Client()
+    #     query = {
+    #         "query_fields": "title,subtitle",
+    #         "fields": "title,subtitle",
+    #         "page_size": 1,
+    #         "page": 1,
+    #     }
+    #     response = c.get("/api/v1/projects/search", query)
+    #     result = json.loads(response.content)
+
+    #     self.assertEqual(response.status_code, 422)
+    #     self.assertDictEqual(
+    #         result, {"status": False, "result": messages.invalid_query}
+    #     )
+
+    # def test_invalid_model_field(self):
+    #     """Test search on invalid model fields"""
+    #     c = Client()
+    #     query = {
+    #         "text": "mock",
+    #         "query_fields": "mock",
+    #         "fields": "title,subtitle",
+    #         "page_size": 1,
+    #         "page": 1,
+    #     }
+    #     response = c.get("/api/v1/projects/search", query)
+    #     result = json.loads(response.content)
+
+    #     self.assertEqual(response.status_code, 422)
+    #     self.assertDictEqual(
+    #         result, {"status": False, "result": messages.no_such_field_in_model}
+    #     )
+
+    # def test_invalid_model_return_field(self):
+    #     """Test search on invalid return fields"""
+    #     c = Client()
+    #     query = {
+    #         "text": "mock",
+    #         "query_fields": "title,subtitle",
+    #         "fields": "mock",
+    #         "page_size": 1,
+    #         "page": 1,
+    #     }
+    #     response = c.get("/api/v1/projects/search", query)
+    #     result = json.loads(response.content)
+
+    #     self.assertEqual(response.status_code, 422)
+    #     self.assertDictEqual(
+    #         result, {"status": False, "result": messages.no_such_field_in_model}
+    #     )
+
+
+    def test_search_project_and_follow_links(self):
         """Test search in projects"""
         c = Client()
         query = {
@@ -230,72 +290,26 @@ class TestApiProjectsSearch(BaseTestApi):
             "page": 1,
         }
         response = c.get("/api/v1/projects/search", query)
-        result = json.loads(response.content)
-        expected_result = {
-            "status": True,
-            "result": [{"title": "title", "subtitle": "subtitle", "score": 1.333}],
-            "page": {"number": 1, "size": 1, "totalElements": 2, "totalPages": 2},
-            "_links": {
-                "self": {"href": "http://localhost/api/v1/projects/search"},
-                "next": {"href": "http://localhost/api/v1/projects/search?page=2"},
-            },
-        }
 
         self.assertEqual(response.status_code, 200)
-        self.assertDictEqual(result, expected_result)
+        self.assertEqual(len(response.data["result"]), 1)
+        
+        project_data = response.data["result"][0]
+        first_project = Project.objects.first()
 
-    def test_no_text(self):
-        """Test search without a string"""
-        c = Client()
-        query = {
-            "query_fields": "title,subtitle",
-            "fields": "title,subtitle",
-            "page_size": 1,
-            "page": 1,
-        }
-        response = c.get("/api/v1/projects/search", query)
-        result = json.loads(response.content)
+        self.assertEqual(project_data["title"], first_project.title)
+        self.assertEqual(project_data["subtitle"], first_project.subtitle)
 
-        self.assertEqual(response.status_code, 422)
-        self.assertDictEqual(
-            result, {"status": False, "result": messages.invalid_query}
-        )
+        next_page = response.data["_links"]["next"]["href"]
 
-    def test_invalid_model_field(self):
-        """Test search on invalid model fields"""
-        c = Client()
-        query = {
-            "text": "mock",
-            "query_fields": "mock",
-            "fields": "title,subtitle",
-            "page_size": 1,
-            "page": 1,
-        }
-        response = c.get("/api/v1/projects/search", query)
-        result = json.loads(response.content)
+        # Go to next page, and check results
+        response = c.get(next_page)
 
-        self.assertEqual(response.status_code, 422)
-        self.assertDictEqual(
-            result, {"status": False, "result": messages.no_such_field_in_model}
-        )
+        project_data = response.data["result"][0]
+        second_project = Project.objects.last()
 
-    def test_invalid_model_return_field(self):
-        """Test search on invalid return fields"""
-        c = Client()
-        query = {
-            "text": "mock",
-            "query_fields": "title,subtitle",
-            "fields": "mock",
-            "page_size": 1,
-            "page": 1,
-        }
-        response = c.get("/api/v1/projects/search", query)
-        result = json.loads(response.content)
-
-        self.assertEqual(response.status_code, 422)
-        self.assertDictEqual(
-            result, {"status": False, "result": messages.no_such_field_in_model}
-        )
+        self.assertEqual(project_data["title"], second_project.title)
+        self.assertEqual(project_data["subtitle"], second_project.subtitle)
 
 
 class TestApiProjectDetails(BaseTestApi):

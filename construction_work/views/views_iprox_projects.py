@@ -18,7 +18,7 @@ from construction_work.generic_functions.request_must_come_from_app import (
 from construction_work.generic_functions.static_data import (
     DEFAULT_ARTICLE_MAX_AGE,
 )
-from construction_work.generic_functions.text_search import get_non_related_fields, search_text_in_model
+from construction_work.generic_functions.text_search import MIN_QUERY_LENGTH, get_non_related_fields, search_text_in_model
 from construction_work.models import Project
 from construction_work.models.device import Device
 from construction_work.serializers import (
@@ -39,8 +39,11 @@ message = Messages()
 memoize = Memoize(ttl=300, max_items=128)
 
 
-def _paginate_data(request, data: list, page: int, page_size: int, extra_params: dict=None) -> dict:
+def _paginate_data(request, data: list, extra_params: dict=None) -> dict:
     """Create pagination of data"""
+    page = int(request.GET.get("page", 1)) - 1
+    page_size = int(request.GET.get("page_size", 10))
+
     path_info = request.META.get("PATH_INFO")
     http_prefix = "https://" if request.is_secure() else "http://"
     http_host = request.META.get("HTTP_HOST", "localhost")
@@ -87,14 +90,12 @@ def search(model, request) -> Response:
     text = request.GET.get("text", None)
     query_fields = request.GET.get("query_fields", None)
     return_fields = request.GET.get("fields", None)
-    page = int(request.GET.get("page", 1)) - 1
-    page_size = int(request.GET.get("page_size", 10))
 
     # Get all fields of given model
     model_fields = get_non_related_fields(model)
 
     # Text length has to be at least 3
-    if text is None or len(text) < 3:
+    if text is None or len(text) < MIN_QUERY_LENGTH:
         return Response(data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
     
     # Check if given query fields are in model fields
@@ -116,7 +117,7 @@ def search(model, request) -> Response:
         )
 
     # Perform search
-    result = search_text_in_model(model, text, query_fields, return_fields=return_fields)
+    result = search_text_in_model(model, text, query_fields, return_fields)
 
     # Paginate result
     extra_params = {}
@@ -127,7 +128,7 @@ def search(model, request) -> Response:
     if return_fields:
         extra_params["fields"] = return_fields
 
-    paginated_data = _paginate_data(request, result, page, page_size, extra_params=extra_params)
+    paginated_data = _paginate_data(request, result, extra_params=extra_params)
     
     return Response(
         data=paginated_data,
@@ -138,9 +139,7 @@ def search(model, request) -> Response:
 @swagger_auto_schema(**as_projects)
 @api_view(["GET"])  # keep cached result for 5 minutes in memory
 def projects(request):
-    """
-    Get a list of all projects. Narrow down by query param: project-type
-    """
+    """Get a list of all projects in specific order"""
 
     device_id = request.META.get("HTTP_DEVICEID", None)
     if device_id is None:
@@ -221,11 +220,9 @@ def projects(request):
     # Call _fetch_projects
     result = _fetch_projects(device_id)
 
-    page_size = int(request.GET.get("page_size", 10))
-    page = int(request.GET.get("page", 1)) - 1
-
-    paginated_data = _paginate_data(request, result, page, page_size)
+    paginated_data = _paginate_data(request, result)
     return Response(data=paginated_data, status=status.HTTP_200_OK)
+
 
 @swagger_auto_schema(**as_search)
 @api_view(["GET"])

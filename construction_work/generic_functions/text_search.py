@@ -15,8 +15,6 @@
     page: the result page
 """
 
-from math import ceil
-
 from django.contrib.postgres.search import TrigramWordSimilarity
 from django.db.models import Q
 
@@ -45,7 +43,7 @@ def search_text_in_model(model, query, query_fields, return_fields):
 
     # Only start the search with at least three characters
     if len(query) < MIN_QUERY_LENGTH:
-        return {"page": result, "pages": pages}
+        return []
 
     # Dynamically get appropriate model fields and build a filter for the requested return fields
     model_fields = get_non_related_fields(model)
