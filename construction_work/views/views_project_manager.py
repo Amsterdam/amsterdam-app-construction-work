@@ -24,7 +24,7 @@ messages = Messages()
 @swagger_auto_schema(**as_project_manager_delete)
 @swagger_auto_schema(**as_project_manager_get)
 @api_view(["GET", "POST", "PATCH", "DELETE"])
-# @IsAuthorized
+@IsAuthorized
 def crud(request):
     """CRUD project manager(s)"""
     if request.method == "GET":

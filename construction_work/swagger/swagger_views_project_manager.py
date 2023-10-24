@@ -6,9 +6,61 @@ from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
 from construction_work.serializers import ProjectManagerSerializer
-from construction_work.swagger.swagger_abstract_objects import images
 
 message = Messages()
+
+
+images = openapi.Schema(
+    type=openapi.TYPE_ARRAY,
+    items=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="image id"),
+            "aspectRatio": openapi.Schema(type=openapi.TYPE_NUMBER, description="aspect ratio"),
+            "alternativeText": openapi.Schema(type=openapi.TYPE_STRING, description="Alternative text"),
+            "sources": openapi.Schema(
+                type=openapi.TYPE_ARRAY,
+                items=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        "url": openapi.Schema(type=openapi.TYPE_STRING, description="url"),
+                        "width": openapi.Schema(type=openapi.TYPE_INTEGER, description="width"),
+                        "height": openapi.Schema(type=openapi.TYPE_INTEGER, description="height"),
+                    },
+                ),
+            ),
+        },
+    ),
+)
+
+projects = {
+    "manager_key": openapi.Schema(type=openapi.TYPE_STRING, description="manager_key"),
+    "email": openapi.Schema(type=openapi.TYPE_STRING, description="email"),
+    "projects": openapi.Schema(
+        type=openapi.TYPE_ARRAY,
+        items=openapi.Schema(type=openapi.TYPE_INTEGER, description="foreign_id"),
+    ),
+}
+
+projects_augmented = {
+    "manager_key": openapi.Schema(type=openapi.TYPE_STRING, description="manager_key"),
+    "email": openapi.Schema(type=openapi.TYPE_STRING, description="email"),
+    "projects": openapi.Schema(
+        type=openapi.TYPE_ARRAY,
+        items=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                "foreign_id": openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                    description="foreign_id",
+                ),
+                "images": images,
+                "subtitle": openapi.Schema(type=openapi.TYPE_STRING, description="subtitle"),
+                "title": openapi.Schema(type=openapi.TYPE_STRING, description="title"),
+            },
+        ),
+    ),
+}
 
 as_project_manager_get = {
     # /api/v1/project/news swagger_auto_schema
@@ -25,7 +77,7 @@ as_project_manager_get = {
         openapi.Parameter(
             "manager_key",
             openapi.IN_QUERY,
-            description="Query project manager (optionally by manager_key)",
+            "Query project manager (optionally by manager_key)",
             type=openapi.TYPE_STRING,
             format="<uuid4>",
             required=False,
@@ -36,37 +88,23 @@ as_project_manager_get = {
             "application/json",
             openapi.Schema(
                 type=openapi.TYPE_ARRAY,
-                items=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        "identifier": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
-                        "email": openapi.Schema(type=openapi.TYPE_STRING, description="email"),
-                        "projects": openapi.Schema(
-                            type=openapi.TYPE_ARRAY,
-                            items=openapi.Schema(
-                                type=openapi.TYPE_OBJECT,
-                                properties={
-                                    "identifier": openapi.Schema(
-                                        type=openapi.TYPE_STRING,
-                                        description="identifier",
-                                    ),
-                                    "images": images,
-                                    "subtitle": openapi.Schema(type=openapi.TYPE_STRING, description="subtitle"),
-                                    "title": openapi.Schema(type=openapi.TYPE_STRING, description="title"),
-                                },
-                            ),
-                        ),
-                    },
-                ),
+                items=openapi.Schema(type=openapi.TYPE_OBJECT, properties=projects_augmented),
             ),
-            examples={"application/json": {"status": True, "result": {}}},
+            examples={
+                "application/json": {
+                    "manager_key": "fa201b9e-1634-41e2-8646-ee7fdec93840",
+                    "email": "j.doe@amsterdam.nl",
+                    "projects": [382512, 472782, 190062],
+                }
+            },
         ),
         404: openapi.Response(
-            "application/json",
-            examples={"application/json": {"status": False, "result": message.no_record_found}},
+            description="Error response",
+            schema=openapi.Schema(type=openapi.TYPE_STRING, format="text", description=message.no_record_found),
+            examples={"application/json": message.no_record_found},
         ),
     },
-    "tags": ["Projects"],
+    "tags": ["Project Manager"],
 }
 
 
@@ -84,7 +122,7 @@ as_project_manager_delete = {
         openapi.Parameter(
             "manager_key",
             openapi.IN_QUERY,
-            description="Remove project manager by identifier",
+            description="Remove project manager by manager_key",
             type=openapi.TYPE_STRING,
             format="<uuid4>",
             required=True,
@@ -92,20 +130,17 @@ as_project_manager_delete = {
     ],
     "responses": {
         200: openapi.Response(
-            "application/json",
-            examples={
-                "application/json": {
-                    "status": True,
-                    "result": "Project manager removed",
-                }
-            },
+            description="Successful response",
+            schema=openapi.Schema(type=openapi.TYPE_STRING, format="text", description="Project manager removed"),
+            examples={"application/json": "Project manager removed"},
         ),
-        422: openapi.Response(
-            "application/json",
-            examples={"application/json": {"status": False, "result": message.invalid_query}},
+        400: openapi.Response(
+            description="Error response",
+            schema=openapi.Schema(type=openapi.TYPE_STRING, format="text", description=message.invalid_query),
+            examples={"application/json": message.invalid_query},
         ),
     },
-    "tags": ["Projects"],
+    "tags": ["Project Manager"],
 }
 
 
@@ -121,25 +156,19 @@ as_project_manager_post_patch = {
             required=True,
         )
     ],
-    "request_body": ProjectManagerSerializer,
+    "request_body": openapi.Schema(type=openapi.TYPE_OBJECT, properties=projects),
     "responses": {
-        200: openapi.Response(
-            "application/json",
-            examples={
-                "application/json": {
-                    "status": True,
-                    "result": "Project manager updated",
-                }
-            },
+        200: ProjectManagerSerializer,
+        400: openapi.Response(
+            description="Error response",
+            schema=openapi.Schema(type=openapi.TYPE_STRING, format="text", description=message.invalid_query),
+            examples={"application/json": message.invalid_query},
         ),
         404: openapi.Response(
-            "application/json",
-            examples={"application/json": {"status": False, "result": message.no_record_found}},
-        ),
-        400: openapi.Response(
-            "application/json",
-            examples={"application/json": {"status": False, "result": message.invalid_query}},
+            description="Error response",
+            schema=openapi.Schema(type=openapi.TYPE_STRING, format="text", description=message.no_record_found),
+            examples={"application/json": message.no_record_found},
         ),
     },
-    "tags": ["Projects"],
+    "tags": ["Project Manager"],
 }
