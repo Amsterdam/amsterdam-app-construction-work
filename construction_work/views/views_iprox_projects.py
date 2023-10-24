@@ -145,12 +145,13 @@ def projects(request):
     if device_id is None:
         return Response(data=message.invalid_headers, status=status.HTTP_400_BAD_REQUEST)
 
+    lat = request.GET.get("lat", None)
+    lon = request.GET.get("lon", None)
+    address = request.GET.get("address", None)
+
     # @memoize
-    def _fetch_projects(device_id):
+    def _fetch_projects(device_id, lat, lon, address):
         # Get query parameters
-        lat = request.GET.get("lat", None)
-        lon = request.GET.get("lon", None)
-        address = request.GET.get("address", None)
 
         # NOTE: is 3 days too little, users will miss many article updates
         article_max_age = int(
@@ -185,7 +186,6 @@ def projects(request):
                 project_cords = (None, None)
 
             meter, _ = get_distance(given_cords, project_cords)
-            # distance = GeoPyDistance(given_cords, project_cords)
             if meter is None:
                 return float("inf")
             return meter
@@ -218,9 +218,17 @@ def projects(request):
         return serializer.data
 
     # Call _fetch_projects
-    result = _fetch_projects(device_id)
+    result = _fetch_projects(device_id, lat, lon, address)
 
-    paginated_data = _paginate_data(request, result)
+    extra_params = {}
+    if lat:
+        extra_params["lat"] = lat
+    if lon:
+        extra_params["lon"] = lon
+    if address:
+        extra_params["address"] = address
+
+    paginated_data = _paginate_data(request, result, extra_params=extra_params)
     return Response(data=paginated_data, status=status.HTTP_200_OK)
 
 
