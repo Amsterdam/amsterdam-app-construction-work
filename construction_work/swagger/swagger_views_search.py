@@ -9,6 +9,54 @@ from construction_work.api_messages import Messages
 messages = Messages()
 
 
+link_schema = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "href": openapi.Schema(
+            type=openapi.TYPE_STRING,
+        ),
+    }
+)
+
+
+pagination_schema = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "result": openapi.Schema(
+            type=openapi.TYPE_ARRAY,
+            description="List of requested data",
+            items=openapi.Schema(
+                type=openapi.TYPE_OBJECT
+            )
+        ),
+        "page": openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                "number": openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                ),
+                "size": openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                ),
+                "totalElements": openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                ),
+                "totalPages": openapi.Schema(
+                    type=openapi.TYPE_INTEGER,
+                ),
+            },
+        ),
+        "_links": openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                "self": link_schema,
+                "next": link_schema,
+                "previous": link_schema,
+            },
+        ),
+    },
+)
+
 as_search = {
     # /api/v1/XXX/search swagger_auto_schema
     "methods": ["get"],
@@ -57,39 +105,7 @@ as_search = {
     "responses": {
         200: openapi.Response(
             "application/json",
-            schema=openapi.Schema(
-                type=openapi.TYPE_OBJECT,
-                properties={
-                    "status": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="result status"),
-                    "result": openapi.Schema(
-                        type=openapi.TYPE_ARRAY,
-                        items=openapi.Schema(type=openapi.TYPE_OBJECT),
-                    ),
-                    "page": openapi.Schema(
-                        type=openapi.TYPE_OBJECT,
-                        properties={
-                            "number": openapi.Schema(type=openapi.TYPE_INTEGER),
-                            "size": openapi.Schema(type=openapi.TYPE_INTEGER),
-                            "totalElements": openapi.Schema(type=openapi.TYPE_INTEGER),
-                            "totalPages": openapi.Schema(type=openapi.TYPE_INTEGER),
-                        },
-                    ),
-                    "_links": openapi.Schema(
-                        type=openapi.TYPE_OBJECT,
-                        properties={
-                            "self": openapi.Schema(type=openapi.TYPE_STRING, description="Link to main api"),
-                            "next": openapi.Schema(
-                                type=openapi.TYPE_STRING,
-                                description="Link to next page",
-                            ),
-                            "previous": openapi.Schema(
-                                type=openapi.TYPE_STRING,
-                                description="Link to previous page",
-                            ),
-                        },
-                    ),
-                },
-            ),
+            pagination_schema
         ),
         422: openapi.Response("{a}|{b}".format(a=messages.invalid_query, b=messages.no_such_field_in_model)),
     },

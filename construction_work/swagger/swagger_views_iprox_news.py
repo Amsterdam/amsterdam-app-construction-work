@@ -10,47 +10,6 @@ from construction_work.views.views_messages import Messages
 messages = Messages()
 
 
-as_news_by_project_id = {
-    # /api/v1/project/news_by_project_id swagger_auto_schema
-    "methods": ["GET"],
-    "manual_parameters": [
-        openapi.Parameter(
-            "project-identifier",
-            openapi.IN_QUERY,
-            "Query by news project-identifier",
-            type=openapi.TYPE_STRING,
-            format="<brug, kade>",
-            required=False,
-        ),
-        openapi.Parameter(
-            "sort-by",
-            openapi.IN_QUERY,
-            "Sort response (default=publication_date)",
-            type=openapi.TYPE_STRING,
-            format="<any key from model>",
-            required=False,
-        ),
-        openapi.Parameter(
-            "sort-order",
-            openapi.IN_QUERY,
-            "Sorting order (default: desc)",
-            type=openapi.TYPE_STRING,
-            format="<asc, desc>",
-            required=False,
-        ),
-    ],
-    "responses": {
-        200: openapi.Response(
-            "application/json",
-            ArticleSerializer,
-            examples={"application/json": {"status": True, "result": []}},
-        ),
-        405: openapi.Response("Error: Method not allowed"),
-        422: openapi.Response("Error: Unprocessable Entity"),
-    },
-    "tags": ["Projects"],
-}
-
 as_article = {
     # /api/v1/project/news swagger_auto_schema
     "methods": ["GET"],

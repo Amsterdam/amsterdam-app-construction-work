@@ -7,7 +7,6 @@ from rest_framework import permissions
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 from construction_work.views import (
-    views_distance,
     views_generic,
     views_ingest,
     views_iprox_news,
@@ -44,13 +43,11 @@ urlpatterns = [
     # Project(s)
     path("projects", csrf_exempt(views_iprox_projects.projects)),
     path("projects/search", csrf_exempt(views_iprox_projects.projects_search)),
-    path("projects/distance", csrf_exempt(views_distance.distance)),
     path("projects/follow", csrf_exempt(views_iprox_projects.projects_follow)),
     path("projects/followed/articles", csrf_exempt(views_iprox_projects.projects_followed_articles)),
     # Project details(s)
     path("project/details", csrf_exempt(views_iprox_projects.project_details)),
     # News
-    path("project/news_by_project_id", csrf_exempt(views_iprox_news.news_by_project_id)),
     path("project/news", csrf_exempt(views_iprox_news.article)),
     # Articles belonging to projects (news and warnings)
     path("articles", csrf_exempt(views_iprox_news.articles)),
@@ -60,8 +57,6 @@ urlpatterns = [
     path("ingest/article", csrf_exempt(views_ingest.etl_article)),
     # Image & Assets
     path("image", csrf_exempt(views_generic.image)),
-    path("asset", csrf_exempt(views_generic.asset)),
-    path("districts", csrf_exempt(views_generic.districts)),
     # Mobile devices (used for C..D devices for push-notifications)
     path("device/register", csrf_exempt(views_mobile_devices.device_register)),
     # Project Manager (used to CRUD a project manager for notifications)

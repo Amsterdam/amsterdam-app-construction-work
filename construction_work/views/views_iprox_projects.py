@@ -61,18 +61,20 @@ def _paginate_data(request, data: list, extra_params: dict=None) -> dict:
         "totalPages": pages,
     }
 
-    links = {"self": {"href": host}}
-
     extra_params_str = ""
     if extra_params is not None:
         for k, v in extra_params.items():
             param_str = f"&{k}={v}"
             extra_params_str += param_str
 
+    # Add link without pagination
+    links = {"self": {"href": f"{host}?{extra_params_str}"}}
+
     # Add next page link, if available
     if pagination["number"] < pagination["totalPages"]:
         next_page = str(pagination["number"] + 1)
         links["next"] = {"href": f"{host}?page={next_page}&page_size={page_size}{extra_params_str}"}
+
     # Add previous page link, if available
     if pagination["number"] > 1:
         previous_page = str(pagination["number"] - 1)
@@ -86,7 +88,7 @@ def _paginate_data(request, data: list, extra_params: dict=None) -> dict:
 
 
 def search(model, request) -> Response:
-    """Pagination defaults"""
+    """Search model using request parameters"""
     text = request.GET.get("text", None)
     query_fields = request.GET.get("query_fields", None)
     return_fields = request.GET.get("fields", None)
@@ -145,12 +147,13 @@ def projects(request):
     if device_id is None:
         return Response(data=message.invalid_headers, status=status.HTTP_400_BAD_REQUEST)
 
+    lat = request.GET.get("lat", None)
+    lon = request.GET.get("lon", None)
+    address = request.GET.get("address", None)
+
     # @memoize
-    def _fetch_projects(device_id):
+    def _fetch_projects(device_id, lat, lon, address):
         # Get query parameters
-        lat = request.GET.get("lat", None)
-        lon = request.GET.get("lon", None)
-        address = request.GET.get("address", None)
 
         # NOTE: is 3 days too little, users will miss many article updates
         article_max_age = int(
@@ -185,7 +188,6 @@ def projects(request):
                 project_cords = (None, None)
 
             meter, _ = get_distance(given_cords, project_cords)
-            # distance = GeoPyDistance(given_cords, project_cords)
             if meter is None:
                 return float("inf")
             return meter
@@ -218,9 +220,17 @@ def projects(request):
         return serializer.data
 
     # Call _fetch_projects
-    result = _fetch_projects(device_id)
+    result = _fetch_projects(device_id, lat, lon, address)
 
-    paginated_data = _paginate_data(request, result)
+    extra_params = {}
+    if lat:
+        extra_params["lat"] = lat
+    if lon:
+        extra_params["lon"] = lon
+    if address:
+        extra_params["address"] = address
+
+    paginated_data = _paginate_data(request, result, extra_params=extra_params)
     return Response(data=paginated_data, status=status.HTTP_200_OK)
 
 

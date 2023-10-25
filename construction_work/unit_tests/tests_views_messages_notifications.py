@@ -8,7 +8,7 @@ from django.test import Client, TestCase
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.aes_cipher import AESCipher
-from construction_work.models import FollowedProject, Project, ProjectManager, WarningMessage
+from construction_work.models import Project, ProjectManager, WarningMessage
 from construction_work.models.device import Device
 from construction_work.unit_tests.mock_data import TestData
 from construction_work.unit_tests.mock_functions import firebase_admin_messaging_send_multicast
@@ -18,6 +18,7 @@ messages = Messages()
 
 # TODO: fix tests
 FirebaseToken = None
+FollowedProject = None
 
 class TestApiNotification(TestCase):
     """UNITTEST"""

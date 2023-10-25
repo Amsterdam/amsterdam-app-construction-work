@@ -9,31 +9,9 @@ from construction_work.generic_functions.sort import Sort
 from construction_work.generic_functions.static_data import StaticData
 from construction_work.models import Article, WarningMessage
 from construction_work.serializers import ArticleSerializer, WarningMessagePublicSerializer
-from construction_work.swagger.swagger_views_iprox_news import as_article, as_articles_get, as_news_by_project_id
+from construction_work.swagger.swagger_views_iprox_news import as_article, as_articles_get
 
 message = Messages()
-
-# TODO: are these endpoint ever used?
-
-@swagger_auto_schema(**as_news_by_project_id)
-@api_view(["GET"])
-def news_by_project_id(request):
-    """
-    Get a list of news items. Narrow down by query param: identifier (from project details)
-    """
-    project_identifier = request.GET.get("project-identifier", None)
-    sort_by = request.GET.get("sort-by", "publication_date")
-    sort_order = request.GET.get("sort-order", "desc")
-
-    # Set filter
-    query_filter = SetFilter(project_identifier=project_identifier, active=True).get()
-
-    # Return filtered result or all projects
-    news_objects = Article.objects.filter(**query_filter).all()
-
-    serializer = ArticleSerializer(news_objects, many=True)
-    result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
-    return Response({"status": True, "result": result}, status=200)
 
 
 @swagger_auto_schema(**as_article)
