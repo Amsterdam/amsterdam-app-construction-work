@@ -30,6 +30,7 @@ def garbage_collector(request):
     """Garbage collector"""
     data = request.data
 
+    # Foreign ids not seen after ETL
     project_foreign_ids = data.get("project_ids", [])
     article_foreign_ids = data.get("article_ids", [])
 
@@ -40,7 +41,6 @@ def garbage_collector(request):
         if project.foreign_id in project_foreign_ids:
             project.deactivate()
         else:
-            project.active = True
             project.save()
 
     # Remove all un-seen articles from database

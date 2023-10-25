@@ -23,7 +23,6 @@ class BaseTestIngestViews(TestCase):
         self.header = {"INGESTAUTHORIZATION": token}
         self.content_type = "application/json"
         self.client = Client()
-        self.api_url = "/api/v1/ingest/project"
 
 
 class TestProjectIngestViews(BaseTestIngestViews):
@@ -32,6 +31,8 @@ class TestProjectIngestViews(BaseTestIngestViews):
     def setUp(self):
         """Setup test data"""
         self.test_data = TestData()
+        self.api_url = "/api/v1/ingest/project"
+
         super().setUp()
 
     def test_add_new_project_success(self):
@@ -270,24 +271,28 @@ class TestGarbageCollectionView(BaseTestIngestViews):
     def setUp(self):
         """Setup test data"""
         self.test_data = TestData()
+        self.api_url = "/api/v1/ingest/garbagecollector"
+
         [Project.objects.create(**x) for x in self.test_data.projects]
         [Article.objects.create(**x) for x in self.test_data.articles]
         super().setUp()
 
     def test_garbage_collector_one(self):
         """One project is active, one project is inactive, one article is removed"""
-        etl_epoch = timezone.now() - timezone.timedelta(days=6)
-        etl_epoch_string = etl_epoch.strftime("%Y-%m-%d %H:%M:%S.%f")
-        project_ids = [2048]
-        article_ids = [128]
+        project_db_objects = list(Project.objects.all())
+        self.assertEqual(project_db_objects[0].active, True)
+        self.assertEqual(project_db_objects[1].active, True)
+
+        first_article = Article.objects.first()
+        project_ids = [project_db_objects[0].foreign_id]
+        article_ids = [first_article.foreign_id]
         data = {
-            "etl_epoch_string": etl_epoch_string,
             "project_ids": project_ids,
             "article_ids": article_ids,
         }
 
         result = self.client.post(
-            "/api/v1/ingest/garbagecollector",
+            self.api_url,
             data=data,
             headers=self.header,
             content_type="application/json",
@@ -312,23 +317,25 @@ class TestGarbageCollectionView(BaseTestIngestViews):
 
     def test_garbage_collector_two(self):
         """One project is active, one project is removed, one article is removed"""
-        etl_epoch = timezone.now() + timezone.timedelta(days=6)
-        unix_epoch = datetime.datetime(1970, 1, 1, 0, 0, 0, tzinfo=pytz.utc)
-        etl_epoch_string = etl_epoch.strftime("%Y-%m-%d %H:%M:%S.%f")
-        project_ids = [2048]
-        article_ids = [128]
+        project_db_objects = list(Project.objects.all())
+        self.assertEqual(project_db_objects[0].active, True)
+        self.assertEqual(project_db_objects[1].active, True)
+
+        first_article = Article.objects.first()
+        project_ids = [project_db_objects[0].foreign_id]
+        article_ids = [first_article.foreign_id]
+
         data = {
-            "etl_epoch_string": etl_epoch_string,
             "project_ids": project_ids,
             "article_ids": article_ids,
         }
 
-        first_project = Project.objects.filter(foreign_id=2048).first()
-        first_project.last_seen = unix_epoch
-        first_project.deactivate()
+        unix_epoch = datetime.datetime(1970, 1, 1, 0, 0, 0, tzinfo=pytz.utc)
+        project_db_objects[0].last_seen = unix_epoch
+        project_db_objects[0].deactivate()
 
         result = self.client.post(
-            "/api/v1/ingest/garbagecollector",
+            self.api_url,
             data=data,
             headers=self.header,
             content_type="application/json",

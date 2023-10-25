@@ -59,7 +59,7 @@ as_garbage_collector = {
     ],
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        properties={"etl_epoch_string": datetime, "project_ids": identifiers, "article_ids": identifiers},
+        properties={"project_ids": identifiers, "article_ids": identifiers},
     ),
     "responses": {
         200: openapi.Response(

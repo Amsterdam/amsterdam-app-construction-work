@@ -30,6 +30,7 @@ class Project(models.Model):
         ordering = ["title"]
 
     def save(self, *args, **kwargs):
+        self.active = True
         self.last_seen = timezone.now()
         super(Project, self).save(*args, **kwargs)
 
