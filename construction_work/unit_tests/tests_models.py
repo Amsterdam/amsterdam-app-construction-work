@@ -351,6 +351,12 @@ class TestProjectManagerModel(TestCase):
             pm = ProjectManager.objects.create(**data)
             pm.full_clean()
 
+    def test_default_serializer(self):
+        pass
+
+    def test_details_serializer(self):
+        pass
+
 
 class TestWarningMessagesModel(TestCase):
     """Test warning message model"""

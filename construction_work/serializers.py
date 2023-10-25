@@ -137,19 +137,30 @@ class ProjectManagerSerializer(serializers.ModelSerializer):
 
     def get_projects(self, obj: ProjectManager) -> list:
         project_ids = [project.id for project in obj.projects.all()]
-
-        projects_details = self.context.get("project_augmented", False)
-        if projects_details:
-            return [
-                {
-                    "foreign_id": x.foreign_id,
-                    "images": x.images,
-                    "subtitle": x.subtitle,
-                    "title": x.title,
-                }
-                for x in list(Project.objects.filter(pk__in=project_ids, active=True))
-            ]
         return project_ids
+
+
+class ProjectManagerAugmentedSerializer(serializers.ModelSerializer):
+    """Project managers serializer"""
+
+    projects = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ProjectManager
+        fields = "__all__"
+
+    def get_projects(self, obj: ProjectManager) -> list:
+        project_ids = [project.id for project in obj.projects.all()]
+
+        return [
+            {
+                "foreign_id": x.foreign_id,
+                "images": x.images,
+                "subtitle": x.subtitle,
+                "title": x.title,
+            }
+            for x in list(Project.objects.filter(pk__in=project_ids, active=True))
+        ]
 
 
 class WarningMessageSerializer(serializers.ModelSerializer):

@@ -9,7 +9,7 @@ from rest_framework.response import Response
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.is_authorized import IsAuthorized, get_jwt_auth_token, is_valid_jwt_token
 from construction_work.models import Project, ProjectManager
-from construction_work.serializers import ProjectManagerSerializer
+from construction_work.serializers import ProjectManagerAugmentedSerializer, ProjectManagerSerializer
 from construction_work.swagger.swagger_views_project_manager import (
     as_project_manager_delete,
     as_project_manager_get,
@@ -53,18 +53,11 @@ def get(request):
         return Response(data=serializer.data, status=status.HTTP_200_OK)
 
     # Call is made from mobile device
-    if not ProjectManager.objects.filter(manager_key=manager_key).exists():
+    project_manager_object = ProjectManager.objects.filter(manager_key=manager_key).first()
+    if project_manager_object is None:
         return Response(data=messages.no_record_found, status=status.HTTP_404_NOT_FOUND)
 
-    project_manager_object = ProjectManager.objects.filter(manager_key=manager_key).first()
-    serializer = ProjectManagerSerializer(
-        instance=project_manager_object, data={}, context={"project_augmented": True}, many=False, partial=True
-    )
-
-    # Validation is required to get data from serializer
-    if not serializer.is_valid():  # pragma: no cover
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
+    serializer = ProjectManagerAugmentedSerializer(instance=project_manager_object)
     return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 

@@ -24,7 +24,7 @@ class TestApiProjectManager(TestCase):
     def __init__(self, *args, **kwargs):
         super(TestApiProjectManager, self).__init__(*args, **kwargs)
         self.data = TestData()
-        self.url = "/api/v1/project/manager"
+        self.api_url = "/api/v1/project/manager"
         self.client = Client()
 
     def setUp(self):
@@ -65,7 +65,7 @@ class TestApiProjectManager(TestCase):
 
     def test_get_all_project_managers(self):
         """Get all project managers"""
-        response = self.client.get(self.url, **self.headers_jwt)
+        response = self.client.get(self.api_url, **self.headers_jwt)
         response_data = response.json()
         # remove db id's from response
         [x.pop("id") for x in response_data]
@@ -78,7 +78,7 @@ class TestApiProjectManager(TestCase):
         """Get a single project manager"""
         manager_key = self.data.project_managers[0]["manager_key"]
         response = self.client.get(
-            f"{self.url}?manager_key={manager_key}",
+            f"{self.api_url}?manager_key={manager_key}",
             **self.headers_aes,
         )
 
@@ -109,11 +109,10 @@ class TestApiProjectManager(TestCase):
     def test_get_single_project_managers_with_inactive_project(self):
         """Test if inactive projects are omitted from result"""
         project = Project.objects.filter(foreign_id=4096).first()
-        project.active = False
-        project.save()
+        project.deactivate()
 
         manager_key = self.data.project_managers[0]["manager_key"]
-        response = self.client.get(f"{self.url}?manager_key={manager_key}", **self.headers_aes)
+        response = self.client.get(f"{self.api_url}?manager_key={manager_key}", **self.headers_aes)
 
         expected_result = {
             "projects": [
@@ -135,21 +134,21 @@ class TestApiProjectManager(TestCase):
 
     def test_get_single_non_existing_project_managers(self):
         """Test if guard clause 'manager_key' works"""
-        response = self.client.get(f"{self.url}?manager_key=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", **self.headers_aes)
+        response = self.client.get(f"{self.api_url}?manager_key=aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", **self.headers_aes)
 
         self.assertEqual(response.status_code, 404)
         self.assertEqual(response.data, messages.no_record_found)
 
     def test_get_non_authorized_1(self):
         """Test if authorization is done with JWT token"""
-        response = self.client.get(f"{self.url}", **self.headers_aes)
+        response = self.client.get(f"{self.api_url}", **self.headers_aes)
 
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.reason_phrase, "Forbidden")
 
     def test_get_non_authorized_2(self):
         """Test if AES/JWT authorization is required"""
-        response = self.client.get(f"{self.url}")
+        response = self.client.get(f"{self.api_url}")
 
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.reason_phrase, "Forbidden")
@@ -157,28 +156,28 @@ class TestApiProjectManager(TestCase):
     def test_delete_project_manager(self):
         """Delete a project manager account. It should succeed"""
         manager_key = self.data.project_managers[0]["manager_key"]
-        response = self.client.delete(f"{self.url}?manager_key={manager_key}", **self.headers_jwt)
+        response = self.client.delete(f"{self.api_url}?manager_key={manager_key}", **self.headers_jwt)
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data, "Project manager removed")
 
     def test_delete_project_manager_no_identifier(self):
         """Test if guard clause 'manager_key' works"""
-        response = self.client.delete(self.url, **self.headers_jwt)
+        response = self.client.delete(self.api_url, **self.headers_jwt)
 
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data, messages.invalid_query)
 
     def test_delete_non_authorized_1(self):
         """Test if authorization is done with JWT token"""
-        response = self.client.delete(self.url, **self.headers_aes)
+        response = self.client.delete(self.api_url, **self.headers_aes)
 
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.reason_phrase, "Forbidden")
 
     def test_delete_non_authorized_2(self):
         """Test if AES/JWT authorization is required"""
-        response = self.client.delete(self.url)
+        response = self.client.delete(self.api_url)
 
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.reason_phrase, "Forbidden")
@@ -186,7 +185,7 @@ class TestApiProjectManager(TestCase):
     def test_post_project_manager_valid(self):
         """Create a new project manager account. It should succeed"""
         data = {"email": "mock@amsterdam.nl", "projects": [x.id for x in self.project_objs]}
-        response = self.client.post(self.url, data=data, content_type="application/json", **self.headers_jwt)
+        response = self.client.post(self.api_url, data=data, content_type="application/json", **self.headers_jwt)
         response_data = response.json()
 
         response_data.pop("id")
@@ -199,7 +198,7 @@ class TestApiProjectManager(TestCase):
     def test_post_non_amsterdam_email(self):
         """Test if it's possible to create a project manager without an amsterdam.nl email address. It should fail!"""
         data = {"email": "mock@dummy.nl"}
-        response = self.client.post(self.url, data=data, content_type="application/json", **self.headers_jwt)
+        response = self.client.post(self.api_url, data=data, content_type="application/json", **self.headers_jwt)
         response_data = response.json()
 
         self.assertEqual(response.status_code, 400)
@@ -208,7 +207,7 @@ class TestApiProjectManager(TestCase):
     def test_post_no_email(self):
         """Test if it's possible to create a project manager without an email address. It should fail!"""
         data = {"projects": [x.id for x in self.project_objs]}
-        response = self.client.post(self.url, data=data, content_type="application/json", **self.headers_jwt)
+        response = self.client.post(self.api_url, data=data, content_type="application/json", **self.headers_jwt)
         response_data = response.json()
 
         self.assertEqual(response.status_code, 400)
@@ -217,7 +216,7 @@ class TestApiProjectManager(TestCase):
     def test_post_invalid_project(self):
         """Test if it's possible to create a project manager with not existing projects. It should fail!"""
         data = {"email": "mock@amsterdam.nl", "projects": [0]}
-        response = self.client.post(self.url, data=data, content_type="application/json", **self.headers_jwt)
+        response = self.client.post(self.api_url, data=data, content_type="application/json", **self.headers_jwt)
         response_data = response.json()
 
         self.assertEqual(response.status_code, 404)
@@ -226,7 +225,7 @@ class TestApiProjectManager(TestCase):
     def test_post_no_projects(self):
         """Test if it's possible to create a new project manager without any projects"""
         data = {"email": "mock@amsterdam.nl", "projects": []}
-        response = self.client.post(self.url, data=data, content_type="application/json", **self.headers_jwt)
+        response = self.client.post(self.api_url, data=data, content_type="application/json", **self.headers_jwt)
         response_data = response.json()
 
         response_data.pop("id")
@@ -237,14 +236,14 @@ class TestApiProjectManager(TestCase):
 
     def test_post_non_authorized_1(self):
         """Test if authorization is done with JWT token"""
-        response = self.client.post(self.url, **self.headers_aes)
+        response = self.client.post(self.api_url, **self.headers_aes)
 
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.reason_phrase, "Forbidden")
 
     def test_post_patch_non_authorized_2(self):
         """Test if AES/JWT authorization is required"""
-        response = self.client.post(self.url)
+        response = self.client.post(self.api_url)
 
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.reason_phrase, "Forbidden")
@@ -256,7 +255,7 @@ class TestApiProjectManager(TestCase):
         self.assertEqual(len(projects), 2)
 
         data = {"manager_key": str(project_manager.manager_key), "email": "mock0@amsterdam.nl", "projects": []}
-        response = self.client.patch(self.url, data=data, content_type="application/json", **self.headers_jwt)
+        response = self.client.patch(self.api_url, data=data, content_type="application/json", **self.headers_jwt)
         response_data = response.json()
 
         response_data.pop("id")
@@ -267,7 +266,7 @@ class TestApiProjectManager(TestCase):
     def test_patch_no_manager_key(self):
         """Test if guard clause 'manager_key' works"""
         data = {}
-        response = self.client.patch(self.url, data=data, content_type="application/json", **self.headers_aes)
+        response = self.client.patch(self.api_url, data=data, content_type="application/json", **self.headers_aes)
         response_data = response.json()
 
         self.assertEqual(response.status_code, 400)
@@ -276,7 +275,7 @@ class TestApiProjectManager(TestCase):
     def test_patch_not_found(self):
         """Test that the to be patch project manager exists"""
         data = {"manager_key": str(uuid.uuid4())}
-        response = self.client.patch(self.url, data=data, content_type="application/json", **self.headers_aes)
+        response = self.client.patch(self.api_url, data=data, content_type="application/json", **self.headers_aes)
         response_data = response.json()
 
         self.assertEqual(response.status_code, 404)
@@ -286,14 +285,14 @@ class TestApiProjectManager(TestCase):
         """Test if authorization is done with JWT token"""
         project_manager = ProjectManager.objects.filter(email="mock0@amsterdam.nl").first()
         data = {"manager_key": str(project_manager.manager_key)}
-        response = self.client.patch(self.url, data=data, content_type="application/json", **self.headers_aes)
+        response = self.client.patch(self.api_url, data=data, content_type="application/json", **self.headers_aes)
 
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.reason_phrase, "Forbidden")
 
     def test_patch_non_authorized_2(self):
         """Test if AES/JWT authorization is required"""
-        response = self.client.post(self.url)
+        response = self.client.post(self.api_url)
 
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.reason_phrase, "Forbidden")
