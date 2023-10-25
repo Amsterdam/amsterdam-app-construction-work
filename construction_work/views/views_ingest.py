@@ -89,7 +89,7 @@ def etl_project_get():
 
 
 def etl_project_post(request):
-    """Import etl (iprox) data"""
+    """Import etl data"""
     etl_iprox_data = request.data
 
     foreign_id = etl_iprox_data.get("foreign_id")

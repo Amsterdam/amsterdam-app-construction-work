@@ -39,6 +39,15 @@ serializer_error = openapi.Schema(
     },
 )
 
+
+ingest_auth_param = openapi.Parameter(
+    "IngestAuthorization",
+    openapi.IN_HEADER,
+    description="IngestAuthorization authorization token",
+    type=openapi.TYPE_STRING,
+    required=True,
+)
+
 #
 # OpenAPI definitions
 #
@@ -46,13 +55,7 @@ serializer_error = openapi.Schema(
 as_garbage_collector = {
     "methods": ["POST"],
     "manual_parameters": [
-        openapi.Parameter(
-            "IngestAuthorization",
-            openapi.IN_HEADER,
-            description="IngestAuthorization authorization token",
-            type=openapi.TYPE_STRING,
-            required=True,
-        )
+        ingest_auth_param
     ],
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
@@ -81,13 +84,7 @@ as_garbage_collector = {
 as_etl_get = {
     "methods": ["get"],
     "manual_parameters": [
-        openapi.Parameter(
-            "IngestAuthorization",
-            openapi.IN_HEADER,
-            description="IngestAuthorization authorization token",
-            type=openapi.TYPE_STRING,
-            required=True,
-        )
+        ingest_auth_param
     ],
     "responses": {
         200: openapi.Response(
@@ -103,13 +100,7 @@ as_etl_get = {
 as_etl_project_post = {
     "methods": ["POST"],
     "manual_parameters": [
-        openapi.Parameter(
-            "IngestAuthorization",
-            openapi.IN_HEADER,
-            description="IngestAuthorization authorization token",
-            type=openapi.TYPE_STRING,
-            required=True,
-        )
+        ingest_auth_param
     ],
     "request_body": ProjectSerializer,
     "responses": {
@@ -233,13 +224,7 @@ as_etl_project_post = {
 as_etl_article_post = {
     "methods": ["POST"],
     "manual_parameters": [
-        openapi.Parameter(
-            "IngestAuthorization",
-            openapi.IN_HEADER,
-            description="IngestAuthorization authorization token",
-            type=openapi.TYPE_STRING,
-            required=True,
-        )
+        ingest_auth_param
     ],
     "request_body": ArticleSerializer,
     "responses": {
