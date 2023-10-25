@@ -8,7 +8,7 @@ from django.utils import timezone
 from rest_framework.exceptions import ErrorDetail
 
 from construction_work.generic_functions.aes_cipher import AESCipher
-from construction_work.models import Article, Project
+from construction_work.models import Article, Project, project
 from construction_work.unit_tests.mock_data import TestData
 
 
@@ -17,10 +17,13 @@ class BaseTestIngestViews(TestCase):
 
     def setUp(self):
         """Setup for all ingest view tests"""
-        token = AESCipher("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", os.getenv("AES_SECRET")).encrypt()
+        token = AESCipher(
+            "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", os.getenv("AES_SECRET")
+        ).encrypt()
         self.header = {"INGESTAUTHORIZATION": token}
         self.content_type = "application/json"
         self.client = Client()
+        self.api_url = "/api/v1/ingest/project"
 
 
 class TestProjectIngestViews(BaseTestIngestViews):
@@ -36,7 +39,7 @@ class TestProjectIngestViews(BaseTestIngestViews):
         project = self.test_data.ingest_projects[0]
 
         result = self.client.post(
-            "/api/v1/ingest/project",
+            self.api_url,
             data=project,
             headers=self.header,
             content_type="application/json",
@@ -51,11 +54,19 @@ class TestProjectIngestViews(BaseTestIngestViews):
     def test_update_project_success(self):
         """Test update existing project via ingest API"""
         first_project = self.test_data.projects[0]
+        # Set initial title, to be updated later
+        initial_title = "initial title"
+        first_project["title"] = initial_title
         Project.objects.create(**first_project)
 
         data = self.test_data.ingest_projects[0]
+        title_and_subtitle = data["title"].split(": ")
+        # Update title, keep subtitle the same
+        new_title = "updated title"
+        data["title"] = f"{new_title}: {title_and_subtitle[1]}"
+
         result = self.client.post(
-            "/api/v1/ingest/project",
+            self.api_url,
             data=data,
             headers=self.header,
             content_type="application/json",
@@ -70,15 +81,15 @@ class TestProjectIngestViews(BaseTestIngestViews):
 
         # Test if objects was actually updated
         updated_project = db_objects[0]
-        self.assertDictEqual(updated_project.coordinates, data["coordinates"])
-        self.assertDictEqual(updated_project.coordinates, result.data["coordinates"])
+        self.assertEqual(updated_project.title, new_title)
+        self.assertNotEqual(updated_project.title, initial_title)
 
     def test_project_invalid(self):
         """test invalid project"""
         data = {"bogus": "bogus"}
 
         result = self.client.post(
-            "/api/v1/ingest/project",
+            self.api_url,
             data=data,
             headers=self.header,
             content_type="application/json",
@@ -95,7 +106,7 @@ class TestProjectIngestViews(BaseTestIngestViews):
         [Project.objects.create(**x) for x in self.test_data.projects]
 
         result = self.client.get(
-            "/api/v1/ingest/project",
+            self.api_url,
             headers=self.header,
             content_type="application/json",
         )
@@ -107,9 +118,20 @@ class TestProjectIngestViews(BaseTestIngestViews):
         self.assertEqual(len(db_objects), 2)
 
         # Check for expected output
+        first_project = self.test_data.projects[0]
+        second_project = self.test_data.projects[1]
+
         expected_result = {
-            "2048": {"modification_date": "2023-01-20 00:00:00+00:00"},
-            "4096": {"modification_date": "2023-01-20 00:00:00+00:00"},
+            str(first_project["foreign_id"]): {
+                "modification_date": str(first_project["modification_date"]).replace(
+                    "T", " "
+                )
+            },
+            str(second_project["foreign_id"]): {
+                "modification_date": str(second_project["modification_date"]).replace(
+                    "T", " "
+                )
+            },
         }
         self.assertDictEqual(result.data, expected_result)
 
@@ -178,7 +200,12 @@ class TestArticleIngestViews(BaseTestIngestViews):
         # Test for correct status code
         self.assertEqual(result.status_code, 400)
         self.assertDictEqual(
-            result.data, {"projects": [ErrorDetail(string="This list may not be empty.", code="empty")]}
+            result.data,
+            {
+                "projects": [
+                    ErrorDetail(string="This list may not be empty.", code="empty")
+                ]
+            },
         )
 
     def test_get_articles(self):
@@ -221,7 +248,11 @@ class TestGarbageCollectionView(BaseTestIngestViews):
         etl_epoch_string = etl_epoch.strftime("%Y-%m-%d %H:%M:%S.%f")
         project_ids = [2048]
         article_ids = [128]
-        data = {"etl_epoch_string": etl_epoch_string, "project_ids": project_ids, "article_ids": article_ids}
+        data = {
+            "etl_epoch_string": etl_epoch_string,
+            "project_ids": project_ids,
+            "article_ids": article_ids,
+        }
 
         result = self.client.post(
             "/api/v1/ingest/garbagecollector",
@@ -254,7 +285,11 @@ class TestGarbageCollectionView(BaseTestIngestViews):
         etl_epoch_string = etl_epoch.strftime("%Y-%m-%d %H:%M:%S.%f")
         project_ids = [2048]
         article_ids = [128]
-        data = {"etl_epoch_string": etl_epoch_string, "project_ids": project_ids, "article_ids": article_ids}
+        data = {
+            "etl_epoch_string": etl_epoch_string,
+            "project_ids": project_ids,
+            "article_ids": article_ids,
+        }
 
         first_project = Project.objects.filter(foreign_id=2048).first()
         first_project.last_seen = unix_epoch
