@@ -7,6 +7,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.gps_utils import address_to_gps, get_distance
@@ -87,6 +88,12 @@ def _paginate_data(request, data: list, extra_params: dict=None) -> dict:
     }
 
 
+class CustomPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 def search(model, request) -> Response:
     """Search model using request parameters"""
     text = request.GET.get("text", None)
@@ -131,7 +138,7 @@ def search(model, request) -> Response:
         extra_params["fields"] = return_fields
 
     paginated_data = _paginate_data(request, result, extra_params=extra_params)
-    
+
     return Response(
         data=paginated_data,
         status=status.HTTP_200_OK,
@@ -151,15 +158,12 @@ def projects(request):
     lon = request.GET.get("lon", None)
     address = request.GET.get("address", None)
 
-    # @memoize
+    # NOTE: is 3 days too little, users will miss many article updates
+    article_max_age = int(
+        request.GET.get("article_max_age", 3)
+    ) # Max days since publication date
+
     def _fetch_projects(device_id, lat, lon, address):
-        # Get query parameters
-
-        # NOTE: is 3 days too little, users will miss many article updates
-        article_max_age = int(
-            request.GET.get("article_max_age", 3)
-        ) # Max days since publication date
-
         # Convert address into GPS data. Note: This should never happen, the device should already
         if address is not None and (lat is None or lon is None):
             lat, lon = address_to_gps(address)
@@ -211,16 +215,39 @@ def projects(request):
         all_projects.extend(projects_followed_by_device)
         all_projects.extend(all_other_projects)
 
-        context = {
-            "device_id": device_id,
-            "article_max_age": article_max_age,
-        }
-        serializer = ProjectListSerializer(instance=all_projects, many=True, context=context)
-        
-        return serializer.data
+        return all_projects
 
-    # Call _fetch_projects
-    result = _fetch_projects(device_id, lat, lon, address)
+    # Create context for project list serializer
+    context = {
+        "device_id": device_id,
+        "article_max_age": article_max_age,
+    }
+
+    """
+    Using DRF PageNumberPagination getting results is quite fast,
+    directly on the first request.
+    Since it only serializes a single page of the queryset. 
+    """
+    # projects_qs = _fetch_projects(device_id, lat, lon, address)
+    # paginator = CustomPagination()
+    # paginated_qs = paginator.paginate_queryset(projects_qs, request)
+    # serializer = ProjectListSerializer(instance=paginated_qs, many=True, context=context)
+    # return paginator.get_paginated_response(serializer.data)
+
+    """
+    This approach is slow on the first call,
+    since it will serialize the entire data set
+    before the (custom) pagination can happen.
+    After that it is much faster then DRF PageNumberPagination,
+    because of the caches serialized data using Memoize.
+    """
+    @memoize
+    def _get_serialized_data(device_id, lat, lon, address):
+        projects_qs = _fetch_projects(device_id, lat, lon, address)
+        serializer = ProjectListSerializer(instance=projects_qs, many=True, context=context)
+        return serializer.data
+    
+    serializer_data = _get_serialized_data(device_id, lat, lon, address)
 
     extra_params = {}
     if lat:
@@ -229,8 +256,7 @@ def projects(request):
         extra_params["lon"] = lon
     if address:
         extra_params["address"] = address
-
-    paginated_data = _paginate_data(request, result, extra_params=extra_params)
+    paginated_data = _paginate_data(request, serializer_data, extra_params=extra_params)
     return Response(data=paginated_data, status=status.HTTP_200_OK)
 
 
