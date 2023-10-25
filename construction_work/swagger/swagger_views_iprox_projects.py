@@ -5,6 +5,7 @@
 from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
+from construction_work.generic_functions.static_data import ARTICLE_MAX_AGE_PARAM
 from construction_work.serializers import (
     ProjectDetailsSerializer,
     ProjectListSerializer,
@@ -118,7 +119,7 @@ as_projects = {
             required=True,
         ),
         openapi.Parameter(
-            "article_max_age",
+            ARTICLE_MAX_AGE_PARAM,
             openapi.IN_QUERY,
             description="Number of days (default: 3)",
             type=openapi.TYPE_INTEGER,
@@ -291,7 +292,7 @@ as_project_details = {
             required=True,
         ),
         openapi.Parameter(
-            "article_max_age",
+            ARTICLE_MAX_AGE_PARAM,
             openapi.IN_QUERY,
             description="Number of days (default: 3)",
             type=openapi.TYPE_INTEGER,

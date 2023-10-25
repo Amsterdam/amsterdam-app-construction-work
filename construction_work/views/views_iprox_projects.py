@@ -17,6 +17,7 @@ from construction_work.generic_functions.request_must_come_from_app import (
     RequestMustComeFromApp,
 )
 from construction_work.generic_functions.static_data import (
+    ARTICLE_MAX_AGE_PARAM,
     DEFAULT_ARTICLE_MAX_AGE,
 )
 from construction_work.generic_functions.text_search import MIN_QUERY_LENGTH, get_non_related_fields, search_text_in_model
@@ -160,7 +161,7 @@ def projects(request):
 
     # NOTE: is 3 days too little, users will miss many article updates
     article_max_age = int(
-        request.GET.get("article_max_age", 3)
+        request.GET.get(ARTICLE_MAX_AGE_PARAM, 3)
     ) # Max days since publication date
 
     def _fetch_projects(device_id, lat, lon, address):
@@ -241,6 +242,7 @@ def projects(request):
     After that it is much faster then DRF PageNumberPagination,
     because of the caches serialized data using Memoize.
     """
+    # NOTE: requires invalidation when e.g. device follows/unfollows project
     @memoize
     def _get_serialized_data(device_id, lat, lon, address):
         projects_qs = _fetch_projects(device_id, lat, lon, address)
@@ -281,7 +283,7 @@ def project_details(request):
     if foreign_id is None:
         return Response(data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
 
-    article_max_age = request.GET.get("article_max_age", None)
+    article_max_age = request.GET.get(ARTICLE_MAX_AGE_PARAM, None)
     if article_max_age is not None and article_max_age.isdigit() is False:
         return Response(data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
 
@@ -411,7 +413,7 @@ def projects_followed_articles(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    article_max_age = request.GET.get("article_max_age", 3)
+    article_max_age = request.GET.get(ARTICLE_MAX_AGE_PARAM, 3)
     
     if not str(article_max_age).isdigit():
         return Response(data=message.invalid_parameters, status=status.HTTP_400_BAD_REQUEST)
