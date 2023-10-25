@@ -1,7 +1,6 @@
 """ Views for CRUD a project-manager and assign projects
 """
 
-from django.db.models import Q
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -30,8 +29,11 @@ def crud(request):
     if request.method == "GET":
         return get(request)
 
-    if request.method in ["POST", "PATCH"]:
-        return post_patch(request)
+    if request.method in ["POST"]:
+        return post(request)
+
+    if request.method in ["PATCH"]:
+        return patch(request)
 
     if request.method in ["DELETE"]:
         return delete(request)
@@ -66,10 +68,26 @@ def get(request):
     return Response(data=serializer.data, status=status.HTTP_200_OK)
 
 
-def post_patch(request):
-    """
-    Register a project manager with an optional set of project identifiers
-    """
+def patch(request):
+    """Patch an existing project manager"""
+    manager_key = request.data.get("manager_key", None)
+    if manager_key is None:
+        return Response(data=messages.invalid_query, status=status.HTTP_400_BAD_REQUEST)
+
+    project_manager = ProjectManager.objects.filter(manager_key=manager_key).first()
+    if project_manager is None:
+        return Response(data=messages.no_record_found, status=status.HTTP_404_NOT_FOUND)
+
+    # Rest of code is equal to post request
+    return post(request)
+
+
+def post(request):
+    """Register a project manager with an optional set of project identifiers"""
+    jwt_token = get_jwt_auth_token(request)
+    if not is_valid_jwt_token(jwt_encrypted_token=jwt_token):
+        return Response(data=messages.access_denied, status=status.HTTP_403_FORBIDDEN)
+
     manager_key = request.data.get("manager_key", None)
     email = request.data.get("email", None)
     project_ids = request.data.get("projects", [])
@@ -77,14 +95,25 @@ def post_patch(request):
     if email is None:
         return Response(data=messages.invalid_query, status=status.HTTP_400_BAD_REQUEST)
 
-    project_manager_object = ProjectManager.objects.filter(pk=manager_key).first()
+    projects = list(Project.objects.filter(pk__in=project_ids).all())
+
+    # Check if all projects really exist
+    if len(projects) != len(project_ids) and len(project_ids) != 0:
+        return Response(data=messages.no_record_found, status=status.HTTP_404_NOT_FOUND)
+
+    project_manager_object = ProjectManager.objects.filter(manager_key=manager_key).first()
 
     # Use the instance parameter to update the existing article or create a new one
-    project_manager = {"manager_key": manager_key, "email": email, "projects": project_ids}
+    project_manager = {"manager_key": manager_key, "email": email}
     serializer = ProjectManagerSerializer(instance=project_manager_object, data=project_manager)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    serializer.save()
+
+    updated_project_manager = serializer.save()
+
+    # Add related projects to the ProjectManager instance
+    updated_project_manager.projects.set(project_ids)
+    updated_project_manager.save()
 
     return Response(data=serializer.data, status=status.HTTP_200_OK)
 
