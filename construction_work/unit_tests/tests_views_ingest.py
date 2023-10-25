@@ -53,21 +53,26 @@ class TestProjectIngestViews(BaseTestIngestViews):
 
     def test_update_project_success(self):
         """Test update existing project via ingest API"""
-        first_project = self.test_data.projects[0]
+
+        project_foreign_id = 1337
+
         # Set initial title, to be updated later
+        first_project = self.test_data.projects[0]
         initial_title = "initial title"
+        first_project["foreign_id"] = project_foreign_id
         first_project["title"] = initial_title
         Project.objects.create(**first_project)
 
-        data = self.test_data.ingest_projects[0]
-        title_and_subtitle = data["title"].split(": ")
         # Update title, keep subtitle the same
+        ingest_data = self.test_data.ingest_projects[0]
+        ingest_data["foreign_id"] = project_foreign_id
+        title_and_subtitle = ingest_data["title"].split(": ")
         new_title = "updated title"
-        data["title"] = f"{new_title}: {title_and_subtitle[1]}"
+        ingest_data["title"] = f"{new_title}: {title_and_subtitle[1]}"
 
         result = self.client.post(
             self.api_url,
-            data=data,
+            data=ingest_data,
             headers=self.header,
             content_type="application/json",
         )
@@ -144,13 +149,14 @@ class TestArticleIngestViews(BaseTestIngestViews):
         self.test_data = TestData()
         [Project.objects.create(**x) for x in self.test_data.projects]
         super().setUp()
+        self.api_url = "/api/v1/ingest/article"
 
     def test_add_new_article_success(self):
         """Test add new article via ingest API"""
         article = self.test_data.ingest_articles[0]
 
         result = self.client.post(
-            "/api/v1/ingest/article",
+            self.api_url,
             data=article,
             headers=self.header,
             content_type="application/json",
@@ -165,12 +171,24 @@ class TestArticleIngestViews(BaseTestIngestViews):
     def test_update_article_success(self):
         """Test update existing project via ingest API"""
 
-        [Article.objects.create(**x) for x in self.test_data.articles]
+        article_foreign_id = 1337
 
-        data = self.test_data.ingest_articles[0]
+        # Setup article with initial title
+        article_data = self.test_data.articles[0]
+        initial_title = "initial data"
+        article_data["foreign_id"] = article_foreign_id
+        article_data["title"] = initial_title
+        Article.objects.create(**article_data)
+
+        # Update first article with updated title
+        ingest_data = self.test_data.ingest_articles[0]
+        new_title = "updated title"
+        ingest_data["foreign_id"] = article_foreign_id
+        ingest_data["title"] = new_title
+
         result = self.client.post(
-            "/api/v1/ingest/article",
-            data=data,
+            self.api_url,
+            data=ingest_data,
             headers=self.header,
             content_type="application/json",
         )
@@ -180,18 +198,20 @@ class TestArticleIngestViews(BaseTestIngestViews):
 
         # Test if no new object was created
         db_objects = list(Article.objects.all())
-        self.assertEqual(len(db_objects), 2)
+        self.assertEqual(len(db_objects), 1)
 
         # Test if objects was actually updated
-        updated_article = Article.objects.filter(foreign_id=128).first()
-        self.assertEqual(updated_article.title, data["title"])
-        self.assertEqual(updated_article.intro, result.data["intro"])
-        self.assertEqual(updated_article.body, result.data["body"])
+        updated_article = Article.objects.filter(foreign_id=article_foreign_id).first()
+        self.assertEqual(updated_article.title, new_title)
+        self.assertNotEqual(updated_article.title, initial_title)
 
     def test_article_invalid(self):
         data = self.test_data.ingest_articles[1]
+        # Empty required project id list
+        data["projectIds"] = []
+
         result = self.client.post(
-            "/api/v1/ingest/article",
+            self.api_url,
             data=data,
             headers=self.header,
             content_type="application/json",
@@ -211,11 +231,11 @@ class TestArticleIngestViews(BaseTestIngestViews):
     def test_get_articles(self):
         """test get article modification dates"""
 
-        # Create projects from mock data
+        # Create articles from mock data
         [Article.objects.create(**x) for x in self.test_data.articles]
 
         result = self.client.get(
-            "/api/v1/ingest/article",
+            self.api_url,
             headers=self.header,
             content_type="application/json",
         )
@@ -227,10 +247,22 @@ class TestArticleIngestViews(BaseTestIngestViews):
         self.assertEqual(len(db_objects), 2)
 
         # Check for expected output
+        first_article = self.test_data.articles[0]
+        second_article = self.test_data.articles[1]
+
         expected_result = {
-            "128": {"modification_date": "2023-01-20 00:00:00+00:00"},
-            "256": {"modification_date": "2023-01-20 00:00:00+00:00"},
+            str(first_article["foreign_id"]): {
+                "modification_date": str(first_article["modification_date"]).replace(
+                    "T", " "
+                )
+            },
+            str(second_article["foreign_id"]): {
+                "modification_date": str(second_article["modification_date"]).replace(
+                    "T", " "
+                )
+            },
         }
+
         self.assertDictEqual(result.data, expected_result)
 
 

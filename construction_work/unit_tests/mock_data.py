@@ -186,7 +186,7 @@ class TestData:
                 "intro": "intro for second article",
                 "body": "body for second article",
                 "image": {},
-                "projectIds": [],
+                "projectIds": [4096],
                 "type": "work",
                 "url": "https://www.amsterdam.nl/fizzbuzz-article",
                 "created": "2023-01-01T00:00:00+00:00",

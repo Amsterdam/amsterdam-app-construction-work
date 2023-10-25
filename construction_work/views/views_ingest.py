@@ -144,7 +144,7 @@ def etl_article_get():
 
 
 def etl_article_post(request):
-    """Import etl (iprox) data"""
+    """Import etl data"""
     iprox_data = request.data
 
     article_foreign_id = iprox_data.get("foreign_id")
