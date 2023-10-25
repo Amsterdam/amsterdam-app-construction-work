@@ -6,28 +6,23 @@ from django.db.models import Max
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import api_view
-from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.gps_utils import address_to_gps, get_distance
 from construction_work.generic_functions.memoize import Memoize
 from construction_work.generic_functions.project_utils import get_recent_articles_of_project
-from construction_work.generic_functions.request_must_come_from_app import (
-    RequestMustComeFromApp,
+from construction_work.generic_functions.request_must_come_from_app import RequestMustComeFromApp
+from construction_work.generic_functions.static_data import ARTICLE_MAX_AGE_PARAM, DEFAULT_ARTICLE_MAX_AGE
+from construction_work.generic_functions.text_search import (
+    MIN_QUERY_LENGTH,
+    get_non_related_fields,
+    search_text_in_model,
 )
-from construction_work.generic_functions.static_data import (
-    ARTICLE_MAX_AGE_PARAM,
-    DEFAULT_ARTICLE_MAX_AGE,
-)
-from construction_work.generic_functions.text_search import MIN_QUERY_LENGTH, get_non_related_fields, search_text_in_model
 from construction_work.models import Project
 from construction_work.models.device import Device
-from construction_work.serializers import (
-    DeviceSerializer,
-    ProjectDetailsSerializer,
-    ProjectListSerializer,
-)
+from construction_work.serializers import DeviceSerializer, ProjectDetailsSerializer, ProjectListSerializer
 from construction_work.swagger.swagger_views_iprox_projects import (
     as_project_details,
     as_projects,
@@ -41,15 +36,14 @@ message = Messages()
 memoize = Memoize(ttl=300, max_items=128)
 
 
-def _paginate_data(request, data: list, extra_params: dict=None) -> dict:
+def _paginate_data(request, data: list) -> dict:
     """Create pagination of data"""
     page = int(request.GET.get("page", 1)) - 1
     page_size = int(request.GET.get("page_size", 10))
 
-    path_info = request.META.get("PATH_INFO")
-    http_prefix = "https://" if request.is_secure() else "http://"
-    http_host = request.META.get("HTTP_HOST", "localhost")
-    host = http_prefix + http_host + path_info
+    # Get uri from request
+    absolute_uri = request.build_absolute_uri()
+    uri = absolute_uri.split("?")[0]
 
     start_index = page * page_size
     stop_index = page * page_size + page_size
@@ -63,24 +57,28 @@ def _paginate_data(request, data: list, extra_params: dict=None) -> dict:
         "totalPages": pages,
     }
 
-    extra_params_str = ""
-    if extra_params is not None:
-        for k, v in extra_params.items():
-            param_str = f"&{k}={v}"
-            extra_params_str += param_str
+    # Get query parameters from request
+    query_params = dict(request.query_params)
+    query_params.pop("page", None)
+    query_params.pop("page_size", None)
+
+    query_params_str = ""
+    for k, v in query_params.items():
+        param_str = f"&{k}={v[0]}"
+        query_params_str += param_str
 
     # Add link without pagination
-    links = {"self": {"href": f"{host}?{extra_params_str}"}}
+    links = {"self": {"href": f"{uri}?{query_params_str}"}}
 
     # Add next page link, if available
     if pagination["number"] < pagination["totalPages"]:
         next_page = str(pagination["number"] + 1)
-        links["next"] = {"href": f"{host}?page={next_page}&page_size={page_size}{extra_params_str}"}
+        links["next"] = {"href": f"{uri}?page={next_page}&page_size={page_size}{query_params_str}"}
 
     # Add previous page link, if available
     if pagination["number"] > 1:
         previous_page = str(pagination["number"] - 1)
-        links["previous"] = {"href": f"{host}?page={previous_page}&page_size={page_size}{extra_params_str}"}    
+        links["previous"] = {"href": f"{uri}?page={previous_page}&page_size={page_size}{query_params_str}"}
 
     return {
         "result": paginated_result,
@@ -91,7 +89,7 @@ def _paginate_data(request, data: list, extra_params: dict=None) -> dict:
 
 class CustomPagination(PageNumberPagination):
     page_size = 10
-    page_size_query_param = 'page_size'
+    page_size_query_param = "page_size"
     max_page_size = 100
 
 
@@ -107,38 +105,20 @@ def search(model, request) -> Response:
     # Text length has to be at least 3
     if text is None or len(text) < MIN_QUERY_LENGTH:
         return Response(data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
-    
+
     # Check if given query fields are in model fields
-    if (
-        query_fields is not None
-        and len([x for x in query_fields.split(",") if x not in model_fields]) > 0
-    ):
-        return Response(
-            data=message.no_such_field_in_model, status=status.HTTP_400_BAD_REQUEST
-        )
-    
+    if query_fields is not None and len([x for x in query_fields.split(",") if x not in model_fields]) > 0:
+        return Response(data=message.no_such_field_in_model, status=status.HTTP_400_BAD_REQUEST)
+
     # Check if given return fields are in model fields, if assigned
-    if (
-        return_fields is not None
-        and len([x for x in return_fields.split(",") if x not in model_fields]) > 0
-    ):
-        return Response(
-            data=message.no_such_field_in_model, status=status.HTTP_400_BAD_REQUEST
-        )
+    if return_fields is not None and len([x for x in return_fields.split(",") if x not in model_fields]) > 0:
+        return Response(data=message.no_such_field_in_model, status=status.HTTP_400_BAD_REQUEST)
 
     # Perform search
     result = search_text_in_model(model, text, query_fields, return_fields)
 
     # Paginate result
-    extra_params = {}
-    if text:
-        extra_params["text"] = text
-    if query_fields:
-        extra_params["query_fields"] = query_fields
-    if return_fields:
-        extra_params["fields"] = return_fields
-
-    paginated_data = _paginate_data(request, result, extra_params=extra_params)
+    paginated_data = _paginate_data(request, result)
 
     return Response(
         data=paginated_data,
@@ -148,6 +128,7 @@ def search(model, request) -> Response:
 
 @swagger_auto_schema(**as_projects)
 @api_view(["GET"])  # keep cached result for 5 minutes in memory
+@RequestMustComeFromApp
 def projects(request):
     """Get a list of all projects in specific order"""
 
@@ -160,35 +141,34 @@ def projects(request):
     address = request.GET.get("address", None)
 
     # NOTE: is 3 days too little, users will miss many article updates
-    article_max_age = int(
-        request.GET.get(ARTICLE_MAX_AGE_PARAM, 3)
-    ) # Max days since publication date
+    article_max_age = int(request.GET.get(ARTICLE_MAX_AGE_PARAM, 3))  # Max days since publication date
 
-    def _fetch_projects(device_id, lat, lon, address):
+    def _fetch_projects(_device_id, _lat, _lon, _address):
         # Convert address into GPS data. Note: This should never happen, the device should already
-        if address is not None and (lat is None or lon is None):
-            lat, lon = address_to_gps(address)
+        if _address is not None and (_lat is None or _lon is None):
+            _lat, _lon = address_to_gps(_address)
 
-        device = Device.objects.filter(device_id=device_id).first()
+        # If we've never seen this device, create it lookup device in DB and use it...
+        device = Device.objects.filter(device_id=_device_id).first()
         if device is None:
-            device_serializer = DeviceSerializer(data={"device_id": device_id})
+            device_serializer = DeviceSerializer(data={"device_id": _device_id})
             if not device_serializer.is_valid():
-                return Response(
-                    device_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response(device_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             device = device_serializer.save()
 
         # Sort followed projects by project with most recent article
-        projects_followed_by_device_qs = device.followed_projects.all().annotate(
-            latest_publication_date=Max("article__publication_date")
-        ).order_by("-latest_publication_date")
+        projects_followed_by_device_qs = (
+            device.followed_projects.all()
+            .annotate(latest_publication_date=Max("article__publication_date"))
+            .order_by("-latest_publication_date")
+        )
         projects_followed_by_device = list(projects_followed_by_device_qs)
 
         def calculate_distance(project: Project, lat, lon):
             given_cords = (float(lat), float(lon))
 
             if project.coordinates is not None:
-                project_cords = (project.coordinates["lat"], project.coordinates["lon"])
+                project_cords = (project.coordinates.get("lat"), project.coordinates.get("lon"))
             else:
                 project_cords = (None, None)
 
@@ -242,28 +222,23 @@ def projects(request):
     After that it is much faster then DRF PageNumberPagination,
     because of the caches serialized data using Memoize.
     """
+
     # NOTE: requires invalidation when e.g. device follows/unfollows project
     @memoize
     def _get_serialized_data(device_id, lat, lon, address):
         projects_qs = _fetch_projects(device_id, lat, lon, address)
         serializer = ProjectListSerializer(instance=projects_qs, many=True, context=context)
         return serializer.data
-    
+
     serializer_data = _get_serialized_data(device_id, lat, lon, address)
 
-    extra_params = {}
-    if lat:
-        extra_params["lat"] = lat
-    if lon:
-        extra_params["lon"] = lon
-    if address:
-        extra_params["address"] = address
-    paginated_data = _paginate_data(request, serializer_data, extra_params=extra_params)
+    paginated_data = _paginate_data(request, serializer_data)
     return Response(data=paginated_data, status=status.HTTP_200_OK)
 
 
 @swagger_auto_schema(**as_search)
 @api_view(["GET"])
+@RequestMustComeFromApp
 def projects_search(request):
     """Search project"""
     return search(Project, request)
@@ -271,6 +246,7 @@ def projects_search(request):
 
 @swagger_auto_schema(**as_project_details)
 @api_view(["GET"])
+@RequestMustComeFromApp
 def project_details(request):
     """
     Get details for a project by identifier
@@ -278,7 +254,7 @@ def project_details(request):
     device_id = request.META.get("HTTP_DEVICEID", None)
     if device_id is None:
         return Response(data=message.invalid_headers, status=status.HTTP_400_BAD_REQUEST)
-    
+
     foreign_id = request.GET.get("foreign_id", None)
     if foreign_id is None:
         return Response(data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
@@ -305,14 +281,12 @@ def project_details(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    # Only create device when all required paramaters are provided 
+    # Only create device when all required paramaters are provided
     device = Device.objects.filter(device_id=device_id).first()
     if device is None:
         device_serializer = DeviceSerializer(data={"device_id": device_id})
         if not device_serializer.is_valid():
-            return Response(
-                device_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response(device_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         device = device_serializer.save()
 
     project_serializer = ProjectDetailsSerializer(
@@ -365,18 +339,14 @@ def projects_follow(request):
     # Follow flow
     if request.method == "POST":
         if device is None:
-            serializer = DeviceSerializer(
-                data={"device_id": device_id, "followed_projects": [project.pk]}
-            )
+            serializer = DeviceSerializer(data={"device_id": device_id, "followed_projects": [project.pk]})
             if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             serializer.save()
         else:
             device.followed_projects.add(project)
-            serializer = DeviceSerializer(
-                instance=device, partial=True
-            )
-        
+            serializer = DeviceSerializer(instance=device, partial=True)
+
         return Response(data="Subscription added", status=status.HTTP_200_OK)
 
     # Unfollow flow
@@ -388,14 +358,13 @@ def projects_follow(request):
         )
 
     device.followed_projects.remove(project)
-    return Response(
-        data="Subscription removed", status=status.HTTP_200_OK
-    )
+    return Response(data="Subscription removed", status=status.HTTP_200_OK)
 
 
 # NOTE: should be moved to articles views?
 @swagger_auto_schema(**as_projects_followed_articles)
 @api_view(["GET"])
+@RequestMustComeFromApp
 def projects_followed_articles(request):
     """Get articles for followed projects"""
     device_id = request.META.get("HTTP_DEVICEID", None)
@@ -414,7 +383,7 @@ def projects_followed_articles(request):
         )
 
     article_max_age = request.GET.get(ARTICLE_MAX_AGE_PARAM, 3)
-    
+
     if not str(article_max_age).isdigit():
         return Response(data=message.invalid_parameters, status=status.HTTP_400_BAD_REQUEST)
 
