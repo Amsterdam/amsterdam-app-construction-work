@@ -33,12 +33,12 @@ def get_non_related_fields(model):
 def search_text_in_model(model, query, query_fields, return_fields):
     """Search for text in database model"""
 
-    query_fields = query_fields.split(",")
+    query_fields_list = query_fields.split(",")
+    return_fields_list = None
     if return_fields is not None:
-        return_fields = return_fields.split(",")
-    
+        return_fields_list = return_fields.split(",")
+
     threshold = 0.0  # only scores above this threshold are considered
-    pages = 0
     result = []
 
     # Only start the search with at least three characters
@@ -48,35 +48,24 @@ def search_text_in_model(model, query, query_fields, return_fields):
     # Dynamically get appropriate model fields and build a filter for the requested return fields
     model_fields = get_non_related_fields(model)
 
-    if return_fields is not None:
-        model_fields = [x for x in model_fields if x in return_fields]
+    if return_fields_list is not None:
+        model_fields = [x for x in model_fields if x in return_fields_list]
     model_fields += ["score"]
 
     # Build a 'TrigramWordSimilarity' and 'accents agnostic adjacent characters' filter
     score = 0
     weight = 1.0
     all_objects = []
-    for query_field in query_fields:
+    for query_field in query_fields_list:
         # Set half the weight for each next search field
         score += weight * TrigramWordSimilarity(query, query_field)
         weight = weight / 2
 
         # Build accents agnostic filter for adjacent characters in TrigramWordSimilarity search results
-        q = Q(
-            **{
-                "{query_field}__unaccent__icontains".format(
-                    query_field=query_field
-                ): query
-            }
-        )
+        q = Q(**{"{query_field}__unaccent__icontains".format(query_field=query_field): query})
 
         # Query and filter
-        objects = (
-            model.objects.annotate(score=score)
-            .filter(score__gte=threshold)
-            .filter(q)
-            .order_by("-score")
-        )
+        objects = model.objects.annotate(score=score).filter(score__gte=threshold).filter(q).order_by("-score")
         all_objects = all_objects + [x for x in objects if x != []]
     sorted_objects = sorted(all_objects, key=lambda x: x.score, reverse=True)
 
@@ -84,10 +73,9 @@ def search_text_in_model(model, query, query_fields, return_fields):
     for obj in sorted_objects:
         obj.score = round(obj.score, 3)
 
+    # Create a unique set of objects (sorted)
     seen = set()
-    set_sorted_objects = [
-        seen.add(x.pk) or x for x in sorted_objects if x.pk not in seen
-    ]
+    set_sorted_objects = [seen.add(x.pk) or x for x in sorted_objects if x.pk not in seen]
 
     # Filter the requested return fields (note: It functions as a serializer)
     for item in set_sorted_objects:
@@ -95,5 +83,5 @@ def search_text_in_model(model, query, query_fields, return_fields):
         for model_field in model_fields:
             data[model_field] = getattr(item, model_field)
         result.append(data)
-    
+
     return result
