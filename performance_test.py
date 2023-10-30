@@ -2,11 +2,14 @@
 """ A simple performance test
 """
 import concurrent.futures
+import os
 import random
 import threading
 import time
 
 import requests
+
+from construction_work.generic_functions.aes_cipher import AESCipher
 
 
 class PerformanceTest:
@@ -17,7 +20,7 @@ class PerformanceTest:
         api = "api/v1/projects"
         fields = "followed,identifier,images,publication_date,recent_articles,subtitle,title"
         query_params = "article_max_age=60&page_size=20"
-        self.url = f"https://{server}/{api}?fields={fields}&{query_params}"
+        self.url = f"http://{server}:8000/{api}?fields={fields}&{query_params}"
         self.concurrent_requests = concurrency
         self.cycles = cycles
         self.response_times = []
@@ -29,15 +32,19 @@ class PerformanceTest:
         self.test_stop = 0
         self.lock = threading.Lock()
 
+        app_token = os.getenv("APP_TOKEN")
+        aes_secret = os.getenv("AES_SECRET")
+        token = AESCipher(app_token, aes_secret).encrypt()
+        self.headers = {"DEVICEAUTHORIZATION": token, "DEVICEID": "uwsgi+nginx+client"}
+
     def send_request(self, url, max_retries=5):
         """Send request to upstream server"""
-        headers = {"DEVICEID": "uwsgi+nginx+client"}
         retries = 0
         start_time = time.time()
 
         while retries < max_retries:
             try:
-                response = requests.get(url, headers=headers, timeout=5)  # Send GET request
+                response = requests.get(url, headers=self.headers, timeout=5)  # Send GET request
 
                 if response.status_code == 200:
                     end_time = time.time()
@@ -116,6 +123,6 @@ class PerformanceTest:
 
 
 if __name__ == "__main__":
-    performance_test = PerformanceTest(server="test.masikh.org", concurrency=300, cycles=50)
+    performance_test = PerformanceTest(server="0.0.0.0", concurrency=300, cycles=100)
     performance_test.start_test()
     performance_test.print_metrics()
