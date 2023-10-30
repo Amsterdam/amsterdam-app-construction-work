@@ -5,172 +5,103 @@
 from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
-from construction_work.generic_functions.static_data import ARTICLE_MAX_AGE_PARAM
-from construction_work.serializers import (
-    ProjectDetailsSerializer,
-    ProjectListSerializer,
+from construction_work.swagger.swagger_abstract_objects import (
+    _links,
+    contacts,
+    coordinates,
+    foreign_id,
+    header_device_authorization,
+    header_device_id,
+    image,
+    images,
+    page,
+    query_address,
+    query_article_max_age,
+    query_id,
+    query_latitude,
+    query_longitude,
+    query_page,
+    query_page_size,
+    recent_articles,
+    sections,
+    timeline,
 )
-from construction_work.swagger.swagger_views_search import pagination_schema
 
 message = Messages()
 
-article_identifiers = openapi.Schema(
-    type=openapi.TYPE_ARRAY,
-    items=openapi.Schema(type=openapi.TYPE_STRING, description="article identifier"),
-)
 
-body_element = openapi.Schema(
-    type=openapi.TYPE_ARRAY,
-    items=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties={
-            "html": openapi.Schema(type=openapi.TYPE_STRING, description="html"),
-            "text": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-            "title": openapi.Schema(type=openapi.TYPE_STRING, description="title"),
-        },
-    ),
-)
+#
+# Re-usable schema objects
+#
 
-news = openapi.Schema(
-    type=openapi.TYPE_ARRAY,
-    items=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties={
-            "url": openapi.Schema(type=openapi.TYPE_STRING, description="url"),
-            "identifier": openapi.Schema(
-                type=openapi.TYPE_STRING, description="identifier"
-            ),
-            "project_identifier": openapi.Schema(
-                type=openapi.TYPE_STRING, description="project identifier"
-            ),
-        },
-    ),
-)
-
-timeline = openapi.Schema(
+project_details_schema = openapi.Schema(
     type=openapi.TYPE_OBJECT,
     properties={
-        "title": openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                "html": openapi.Schema(type=openapi.TYPE_STRING, description="html"),
-                "text": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-            },
-        ),
-        "intro": openapi.Schema(
-            type=openapi.TYPE_OBJECT,
-            properties={
-                "html": openapi.Schema(type=openapi.TYPE_STRING, description="html"),
-                "text": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-            },
-        ),
-        "items": openapi.Schema(
-            type=openapi.TYPE_ARRAY,
-            items=openapi.Schema(
-                type=openapi.TYPE_OBJECT,
-                properties={
-                    "title": openapi.Schema(
-                        type=openapi.TYPE_STRING, description="text"
-                    ),
-                    "collapsed": openapi.Schema(
-                        type=openapi.TYPE_BOOLEAN, description="collapsed"
-                    ),
-                    "progress": openapi.Schema(
-                        type=openapi.TYPE_STRING, description="current progress"
-                    ),
-                    "content": openapi.Schema(
-                        type=openapi.TYPE_ARRAY,
-                        items=openapi.Schema(
-                            type=openapi.TYPE_OBJECT,
-                            properties={
-                                "title": openapi.Schema(
-                                    type=openapi.TYPE_STRING, description="text"
-                                ),
-                                "body": openapi.Schema(
-                                    type=openapi.TYPE_OBJECT,
-                                    properties={
-                                        "html": openapi.Schema(
-                                            type=openapi.TYPE_STRING, description="html"
-                                        ),
-                                        "text": openapi.Schema(
-                                            type=openapi.TYPE_STRING, description="text"
-                                        ),
-                                    },
-                                ),
-                            },
-                        ),
-                    ),
-                },
-            ),
-        ),
+        "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="id"),
+        "followed": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="boolean"),
+        "foreign_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="foreign id"),
+        "active": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="boolean"),
+        "last_seen": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
+        "title": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
+        "subtitle": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
+        "coordinates": coordinates,
+        "sections": sections,
+        "contacts": contacts,
+        "timeline": timeline,
+        "image": image,
+        "images": images,
+        "recent_articles": recent_articles,
+        "url": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
+        "creation_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
+        "modification_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
+        "publication_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
+        "expiration_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
     },
 )
 
+project_schema = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "title": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
+        "subtitle": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
+        "image": image,
+        "followed": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="boolean"),
+        "strides": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
+        "meters": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
+        "recent_articles": recent_articles,
+        "project_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
+    },
+)
+
+projects_schema = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "result": openapi.Schema(type=openapi.TYPE_ARRAY, items=project_schema),
+        "page": page,
+        "_links": _links,
+    },
+)
+
+#
+# Actual Apidocs
+#
 
 as_projects = {
     # /api/v1/projects swagger_auto_schema
     "methods": ["GET"],
     "manual_parameters": [
-        openapi.Parameter(
-            "deviceId",
-            openapi.IN_HEADER,
-            description="Device identifier",
-            type=openapi.TYPE_STRING,
-            required=True,
-        ),
-        openapi.Parameter(
-            ARTICLE_MAX_AGE_PARAM,
-            openapi.IN_QUERY,
-            description="Number of days (default: 3)",
-            type=openapi.TYPE_INTEGER,
-            format="int",
-            required=False,
-        ),
-        openapi.Parameter(
-            "lat",
-            openapi.IN_QUERY,
-            description="Latitude",
-            type=openapi.TYPE_STRING,
-            format="float",
-            required=False,
-        ),
-        openapi.Parameter(
-            "lon",
-            openapi.IN_QUERY,
-            description="Longitude",
-            type=openapi.TYPE_STRING,
-            format="float",
-            required=False,
-        ),
-        openapi.Parameter(
-            "address",
-            openapi.IN_QUERY,
-            description="Address (street and number)",
-            type=openapi.TYPE_STRING,
-            format="string",
-            required=False,
-        ),
-        openapi.Parameter(
-            "page_size",
-            openapi.IN_QUERY,
-            description="Number of results per page (default 10)",
-            type=openapi.TYPE_INTEGER,
-            format="int",
-            required=False,
-        ),
-        openapi.Parameter(
-            "page",
-            openapi.IN_QUERY,
-            description="Page number",
-            type=openapi.TYPE_INTEGER,
-            format="int",
-            required=False,
-        ),
+        header_device_id,
+        query_article_max_age,
+        query_latitude,
+        query_longitude,
+        query_address,
+        query_page_size,
+        query_page,
     ],
     "responses": {
         200: openapi.Response(
             "application/json",
-            pagination_schema,
+            projects_schema,
             examples={
                 "application/json": {
                     "result": [
@@ -182,6 +113,7 @@ as_projects = {
                             "last_seen": "2023-10-12T10:54:50.907421+02:00",
                             "title": "Slotermeer",
                             "subtitle": "stedelijke vernieuwing",
+                            "resent_articles": [],
                             "coordinates": {"lat": 52.3584996, "lon": 4.8035019},
                             "sections": {
                                 "what": [
@@ -218,6 +150,8 @@ as_projects = {
                             },
                             "image": {
                                 "id": 21360354,
+                                "aspectRatio": 1.7816091954022988,
+                                "alternativeText": None,
                                 "sources": [
                                     {
                                         "url": "/publish/pages/960128/slotermeer.jpg",
@@ -235,8 +169,6 @@ as_projects = {
                                         "height": 45,
                                     },
                                 ],
-                                "aspectRatio": 1.7816091954022988,
-                                "alternativeText": None,
                             },
                             "images": [],
                             "url": "http://www.amsterdam.nl/projecten/slotermeer/",
@@ -264,9 +196,7 @@ as_projects = {
                 }
             },
         ),
-        400: openapi.Response(
-            "Invalid header(s). See /api/v1/apidocs for more information"
-        ),
+        400: openapi.Response(message.invalid_query),
     },
     "tags": ["Projects"],
 }
@@ -276,58 +206,18 @@ as_project_details = {
     # /api/v1/project/details swagger_auto_schema
     "methods": ["get"],
     "manual_parameters": [
-        openapi.Parameter(
-            "deviceId",
-            openapi.IN_HEADER,
-            description="Device identifier",
-            type=openapi.TYPE_STRING,
-            required=True,
-        ),
-        openapi.Parameter(
-            "foreign_id",
-            openapi.IN_QUERY,
-            description="Project identifier",
-            type=openapi.TYPE_INTEGER,
-            format="int",
-            required=True,
-        ),
-        openapi.Parameter(
-            ARTICLE_MAX_AGE_PARAM,
-            openapi.IN_QUERY,
-            description="Number of days (default: 3)",
-            type=openapi.TYPE_INTEGER,
-            format="int",
-            required=False,
-        ),
-        openapi.Parameter(
-            "lat",
-            openapi.IN_QUERY,
-            description="Latitude",
-            type=openapi.TYPE_STRING,
-            format="float",
-            required=False,
-        ),
-        openapi.Parameter(
-            "lon",
-            openapi.IN_QUERY,
-            description="Longitude",
-            type=openapi.TYPE_STRING,
-            format="float",
-            required=False,
-        ),
-        openapi.Parameter(
-            "address",
-            openapi.IN_QUERY,
-            description="Address (street and number)",
-            type=openapi.TYPE_STRING,
-            format="string",
-            required=False,
-        ),
+        header_device_id,
+        header_device_authorization,
+        query_id,
+        query_article_max_age,
+        query_latitude,
+        query_longitude,
+        query_address,
     ],
     "responses": {
         200: openapi.Response(
             "application/json",
-            # ProjectDetailsSerializer,
+            project_details_schema,
             examples={
                 "application/json": {
                     "followed": False,
@@ -405,10 +295,8 @@ as_project_details = {
                 }
             },
         ),
-        400: openapi.Response(
-            "Invalid header(s). See /api/v1/apidocs for more information"
-        ),
-        404: openapi.Response("No record found"),
+        400: openapi.Response(message.invalid_query),
+        404: openapi.Response(message.no_record_found),
     },
     "tags": ["Projects"],
 }
@@ -417,29 +305,10 @@ as_project_details = {
 as_projects_follow_post = {
     # /api/v1/image swagger_auto_schema
     "methods": ["POST"],
-    "manual_parameters": [
-        openapi.Parameter(
-            "DeviceAuthorization",
-            openapi.IN_HEADER,
-            description="Device authorization token",
-            type=openapi.TYPE_STRING,
-            required=True,
-        ),
-        openapi.Parameter(
-            "deviceId",
-            openapi.IN_HEADER,
-            description="Device identifier",
-            type=openapi.TYPE_STRING,
-            required=True,
-        ),
-    ],
+    "manual_parameters": [header_device_authorization, header_device_id],
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        properties={
-            "foreign_id": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Project identifier"
-            )
-        },
+        properties={"foreign_id": openapi.Schema(type=openapi.TYPE_STRING, description="Project foreign id")},
     ),
     "responses": {
         200: openapi.Response(
@@ -452,11 +321,7 @@ as_projects_follow_post = {
         ),
         400: openapi.Response(
             "application/json",
-            examples={"application/json": message.invalid_headers},
-        ),
-        400: openapi.Response(
-            "application/json",
-            examples={"application/json": message.invalid_parameters},
+            examples={"application/json": [message.invalid_parameters, message.invalid_headers]},
         ),
         404: openapi.Response(
             "application/json",
@@ -470,29 +335,10 @@ as_projects_follow_post = {
 as_projects_follow_delete = {
     # /api/v1/image swagger_auto_schema
     "methods": ["DELETE"],
-    "manual_parameters": [
-        openapi.Parameter(
-            "DeviceAuthorization",
-            openapi.IN_HEADER,
-            description="Device authorization token",
-            type=openapi.TYPE_STRING,
-            required=True,
-        ),
-        openapi.Parameter(
-            "deviceId",
-            openapi.IN_HEADER,
-            description="Device identifier",
-            type=openapi.TYPE_STRING,
-            required=True,
-        ),
-    ],
+    "manual_parameters": [header_device_authorization, header_device_id],
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        properties={
-            "project_id": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Project identifier"
-            )
-        },
+        properties={"project_id": openapi.Schema(type=openapi.TYPE_STRING, description="Project identifier")},
     ),
     "responses": {
         200: openapi.Response(
@@ -505,11 +351,7 @@ as_projects_follow_delete = {
         ),
         400: openapi.Response(
             "application/json",
-            examples={"application/json": message.invalid_headers},
-        ),
-        400: openapi.Response(
-            "application/json",
-            examples={"application/json": message.invalid_parameters},
+            examples={"application/json": [message.invalid_parameters, message.invalid_headers]},
         ),
         404: openapi.Response(
             "application/json",
@@ -523,38 +365,20 @@ as_projects_follow_delete = {
 as_projects_followed_articles = {
     # /api/v1/project/followed/articles swagger_auto_schema
     "methods": ["get"],
-    "manual_parameters": [
-        openapi.Parameter(
-            "deviceId",
-            openapi.IN_HEADER,
-            description="device identifier",
-            type=openapi.TYPE_STRING,
-            required=True,
-        ),
-        openapi.Parameter(
-            "article-max-age",
-            openapi.IN_QUERY,
-            "Number of days (default: 3)",
-            type=openapi.TYPE_INTEGER,
-            format="<int>",
-            required=False,
-        ),
-    ],
+    "manual_parameters": [header_device_id, query_article_max_age],
     "responses": {
         200: openapi.Response(
             "application/json",
             openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
-                    "status": openapi.Schema(
-                        type=openapi.TYPE_BOOLEAN, description="status"
-                    ),
+                    "status": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="status"),
                     "result": openapi.Schema(
                         type=openapi.TYPE_OBJECT,
                         properties={
                             "projects": openapi.Schema(
                                 type=openapi.TYPE_OBJECT,
-                                properties={"<identifier>": article_identifiers},
+                                properties={"<identifier>": foreign_id},
                             )
                         },
                     ),
