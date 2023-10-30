@@ -214,8 +214,8 @@ class TestData:
         ]
 
         self.project_managers = [
-            {"manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "email": "mock0@amsterdam.nl", "projects": []},
-            {"manager_key": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "email": "mock1@amsterdam.nl", "projects": []},
+            {"manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "email": "mock0@amsterdam.nl"},
+            {"manager_key": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "email": "mock1@amsterdam.nl"},
         ]
 
         self.devices = [
