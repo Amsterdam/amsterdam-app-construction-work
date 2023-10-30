@@ -92,11 +92,11 @@ class Memoize:
         self.ttl = ttl
         self.max_items = max_items
 
-    def add_cache(self, key, value, ttl):
+    def _add_cache(self, key, value, ttl):
         """Store cache item"""
         self.memoize_cache[key] = (time.time() + ttl, value)
 
-    def clean_cache(self):
+    def _clean_cache(self):
         """Clear expired cached items"""
         now = time.time()
         self.memoize_cache = {
@@ -112,6 +112,12 @@ class Memoize:
                 break
             del self.memoize_cache[key]
 
+    def clear_all_cache(self):
+        self.memoize_cache = {}
+
+    def clear_cache_device(self, device_id):
+        self.memoize_cache.pop(device_id, None)
+
     def __call__(self, func=None, ttl=None):
         if func is None:
             return functools.partial(self.__call__, ttl=ttl)
@@ -126,7 +132,7 @@ class Memoize:
                 # if key is not expired, return result
                 if time.time() - self.memoize_cache[args[0]][0] <= _ttl:
                     result = self.memoize_cache[args[0]][1]
-                    self.clean_cache()
+                    self._clean_cache()
                     return result
 
                 # Remove expired key
@@ -134,8 +140,8 @@ class Memoize:
 
             # Cache miss, execute the function and fill the cache
             result = func(*args, **kwargs)
-            self.add_cache(args[0], result, _ttl)
-            self.clean_cache()
+            self._add_cache(args[0], result, _ttl)
+            self._clean_cache()
             return result
 
         return wrapper

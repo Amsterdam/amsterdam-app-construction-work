@@ -43,7 +43,7 @@ class BaseTestApi(TestCase):
         self.client = Client()
 
     def tearDown(self) -> None:
-        memoize.memoize_cache = {}
+        memoize.clear_all_cache()
 
     def create_project_and_article(self, project_foreign_id, article_pub_date):
         project_data = self.data.projects[0]

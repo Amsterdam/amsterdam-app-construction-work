@@ -336,6 +336,9 @@ def projects_follow(request):
 
     device = Device.objects.filter(device_id=device_id).first()
 
+    # Clear cache related to device
+    memoize.clear_cache_device(device_id)
+    
     # Follow flow
     if request.method == "POST":
         if device is None:
