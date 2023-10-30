@@ -93,6 +93,13 @@ class CustomPagination(PageNumberPagination):
     max_page_size = 100
 
 
+class InvalidQueryError(Exception):
+    pass
+
+class NoSuchFieldInModelError(Exception):
+    pass
+
+
 def search(model, request, model_serializer, serializer_context) -> Response:
     """Search model using request parameters"""
     text = request.GET.get("text", None)
@@ -104,15 +111,15 @@ def search(model, request, model_serializer, serializer_context) -> Response:
 
     # Text length has to be at least 3
     if text is None or len(text) < MIN_QUERY_LENGTH:
-        return Response(data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
+        raise InvalidQueryError(message.invalid_query)
 
     # Check if given query fields are in model fields
     if query_fields is not None and len([x for x in query_fields.split(",") if x not in model_fields]) > 0:
-        return Response(data=message.no_such_field_in_model, status=status.HTTP_400_BAD_REQUEST)
+        raise NoSuchFieldInModelError(message.no_such_field_in_model)
 
     # Check if given return fields are in model fields, if assigned
     if return_fields is not None and len([x for x in return_fields.split(",") if x not in model_fields]) > 0:
-        return Response(data=message.no_such_field_in_model, status=status.HTTP_400_BAD_REQUEST)
+        raise NoSuchFieldInModelError(message.no_such_field_in_model)
 
     # Perform search
     result = search_text_in_model(model, text, query_fields, return_fields, model_serializer, serializer_context)
@@ -216,7 +223,6 @@ def projects(request):
     because of the caches serialized data using Memoize.
     """
 
-    # NOTE: requires invalidation when e.g. device follows/unfollows project
     @memoize
     def _get_serialized_data(device_id, lat, lon, address):
         projects_qs = _fetch_projects(device_id, lat, lon, address)
@@ -248,7 +254,12 @@ def projects_search(request):
         "article_max_age": article_max_age,
     }
 
-    search_result = search(Project, request, ProjectListSerializer, serializer_context)
+    try:
+        search_result = search(Project, request, ProjectListSerializer, serializer_context)
+    except InvalidQueryError as e:
+        return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
+    except NoSuchFieldInModelError as e:
+        return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
 
     # Paginate result
     paginated_data = _paginate_data(request, search_result)

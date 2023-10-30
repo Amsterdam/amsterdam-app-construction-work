@@ -39,7 +39,6 @@ def search_text_in_model(model, query, query_fields, return_fields, model_serial
         return_fields_list = return_fields.split(",")
 
     threshold = 0.0  # only scores above this threshold are considered
-    result = []
 
     # Only start the search with at least three characters
     if len(query) < MIN_QUERY_LENGTH:
