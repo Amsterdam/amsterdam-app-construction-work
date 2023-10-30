@@ -121,7 +121,7 @@ def search(model, request, model_serializer, serializer_context) -> Response:
 
 @swagger_auto_schema(**as_projects)
 @api_view(["GET"])  # keep cached result for 5 minutes in memory
-@RequestMustComeFromApp
+# @RequestMustComeFromApp
 def projects(request):
     """Get a list of all projects in specific order"""
 
@@ -157,8 +157,8 @@ def projects(request):
         )
         projects_followed_by_device = list(projects_followed_by_device_qs)
 
-        def calculate_distance(project: Project, lat, lon):
-            given_cords = (float(lat), float(lon))
+        def calculate_distance(project: Project, _lat, _lon):
+            given_cords = (float(_lat), float(_lon))
 
             if project.coordinates is not None:
                 project_cords = (project.coordinates.get("lat"), project.coordinates.get("lon"))
@@ -172,11 +172,11 @@ def projects(request):
 
         all_other_projects_qs = Project.objects.exclude(pk__in=projects_followed_by_device_qs)
 
-        if lat is not None and lon is not None:
+        if _lat is not None and _lon is not None:
             # Sort remaining projects by distance from given coordinates
             all_other_projects = sorted(
                 all_other_projects_qs,
-                key=lambda project: calculate_distance(project, lat, lon),
+                key=lambda project: calculate_distance(project, _lat, _lon),
             )
         else:
             # Sort projects by project with most recent article
@@ -192,10 +192,7 @@ def projects(request):
         return all_projects
 
     # Create context for project list serializer
-    context = {
-        "device_id": device_id,
-        "article_max_age": article_max_age,
-    }
+    context = {"device_id": device_id, "article_max_age": article_max_age, "lat": lat, "lon": lon}
 
     """
     Using DRF PageNumberPagination getting results is quite fast,
@@ -218,14 +215,14 @@ def projects(request):
 
     # NOTE: requires invalidation when e.g. device follows/unfollows project
     @memoize
-    def _get_serialized_data(device_id, lat, lon, address):
-        projects_qs = _fetch_projects(device_id, lat, lon, address)
+    def _get_serialized_data(_device_id, _lat, _lon, _address):
+        projects_qs = _fetch_projects(_device_id, _lat, _lon, _address)
         serializer = ProjectListSerializer(instance=projects_qs, many=True, context=context)
         return serializer.data
 
-    serializer_data = _get_serialized_data(device_id, lat, lon, address)
+    serialized_data = _get_serialized_data(device_id, lat, lon, address)
 
-    paginated_data = _paginate_data(request, serializer_data)
+    paginated_data = _paginate_data(request, serialized_data)
     return Response(data=paginated_data, status=status.HTTP_200_OK)
 
 
@@ -239,7 +236,7 @@ def projects_search(request):
     address = request.GET.get("address", None)
     if address is not None:
         lat, lon = address_to_gps(address)
-    
+
     article_max_age = int(request.GET.get(ARTICLE_MAX_AGE_PARAM, 3))
 
     serializer_context = {
@@ -261,7 +258,7 @@ def projects_search(request):
 
 @swagger_auto_schema(**as_project_details)
 @api_view(["GET"])
-@RequestMustComeFromApp
+# @RequestMustComeFromApp
 def project_details(request):
     """
     Get details for a project by identifier
@@ -296,7 +293,7 @@ def project_details(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    # Only create device when all required paramaters are provided
+    # Only create device when all required parameters are provided
     device = Device.objects.filter(device_id=device_id).first()
     if device is None:
         device_serializer = DeviceSerializer(data={"device_id": device_id})
@@ -353,7 +350,7 @@ def projects_follow(request):
 
     # Clear cache related to device
     memoize.clear_cache_by_key(device_id)
-    
+
     # Follow flow
     if request.method == "POST":
         if device is None:
