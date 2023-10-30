@@ -3,7 +3,7 @@ import os
 import uuid
 
 from django.contrib.auth import get_user_model
-from django.test import Client, RequestFactory, TestCase
+from django.test import Client, TestCase
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.aes_cipher import AESCipher
@@ -61,8 +61,6 @@ class TestApiProjectManager(TestCase):
             project_manager.projects.add(*self.project_objs)
             project_manager.save()
 
-        self.factory = RequestFactory()
-
     def test_get_all_project_managers(self):
         """Get all project managers"""
         response = self.client.get(self.api_url, **self.headers_jwt)
@@ -85,16 +83,16 @@ class TestApiProjectManager(TestCase):
         expected_result = {
             "projects": [
                 {
-                    "foreign_id": 2048,
-                    "images": [],
-                    "subtitle": "subtitle first project",
-                    "title": "title first project",
+                    "foreign_id": self.data.projects[0]["foreign_id"],
+                    "images": self.data.projects[0]["images"],
+                    "subtitle": self.data.projects[0]["subtitle"],
+                    "title": self.data.projects[0]["title"],
                 },
                 {
-                    "foreign_id": 4096,
-                    "images": [],
-                    "subtitle": "subtitle second project",
-                    "title": "title second project",
+                    "foreign_id": self.data.projects[1]["foreign_id"],
+                    "images": self.data.projects[1]["images"],
+                    "subtitle": self.data.projects[1]["subtitle"],
+                    "title": self.data.projects[1]["title"],
                 },
             ],
             "manager_key": manager_key,
@@ -117,10 +115,10 @@ class TestApiProjectManager(TestCase):
         expected_result = {
             "projects": [
                 {
-                    "foreign_id": 2048,
-                    "images": [],
-                    "subtitle": "subtitle first project",
-                    "title": "title first project",
+                    "foreign_id": self.data.projects[0]["foreign_id"],
+                    "images": self.data.projects[0]["images"],
+                    "subtitle": self.data.projects[0]["subtitle"],
+                    "title": self.data.projects[0]["title"],
                 }
             ],
             "manager_key": manager_key,
@@ -266,7 +264,7 @@ class TestApiProjectManager(TestCase):
     def test_patch_no_manager_key(self):
         """Test if guard clause 'manager_key' works"""
         data = {}
-        response = self.client.patch(self.api_url, data=data, content_type="application/json", **self.headers_aes)
+        response = self.client.patch(self.api_url, data=data, content_type="application/json", **self.headers_jwt)
         response_data = response.json()
 
         self.assertEqual(response.status_code, 400)
@@ -275,7 +273,7 @@ class TestApiProjectManager(TestCase):
     def test_patch_not_found(self):
         """Test that the to be patch project manager exists"""
         data = {"manager_key": str(uuid.uuid4())}
-        response = self.client.patch(self.api_url, data=data, content_type="application/json", **self.headers_aes)
+        response = self.client.patch(self.api_url, data=data, content_type="application/json", **self.headers_jwt)
         response_data = response.json()
 
         self.assertEqual(response.status_code, 404)
