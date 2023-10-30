@@ -98,6 +98,7 @@ class TestApiProjects(BaseTestApi):
         new_device = Device.objects.filter(device_id=new_device_id).first()
         self.assertIsNotNone(new_device)
 
+    @freeze_time("2023-01-02")
     def assert_projects_sorted_descending_by_recent_article_date(self, device_follows_projects: bool):
         # Create projects with articles at different times
         project_1 = self.create_project_and_article(10, "2023-01-01T12:00:00+00:00")

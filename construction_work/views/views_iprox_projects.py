@@ -255,8 +255,8 @@ def project_details(request):
     if device_id is None:
         return Response(data=message.invalid_headers, status=status.HTTP_400_BAD_REQUEST)
 
-    foreign_id = request.GET.get("foreign_id", None)
-    if foreign_id is None:
+    project_id = request.GET.get("id", None)
+    if project_id is None:
         return Response(data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
 
     article_max_age = request.GET.get(ARTICLE_MAX_AGE_PARAM, None)
@@ -274,7 +274,7 @@ def project_details(request):
     if address is not None:
         lat, lon = address_to_gps(address)
 
-    project_obj = Project.objects.filter(foreign_id=foreign_id, active=True).first()
+    project_obj = Project.objects.filter(pk=project_id, active=True).first()
     if project_obj is None:
         return Response(
             data=message.no_record_found,
@@ -320,14 +320,14 @@ def projects_follow(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    foreign_id = request.data.get("foreign_id", None)
-    if foreign_id is None:
+    project_id = request.data.get("id", None)
+    if project_id is None:
         return Response(
             data=message.invalid_parameters,
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    project = Project.objects.filter(foreign_id=foreign_id).first()
+    project = Project.objects.filter(pk=project_id).first()
     if project is None:
         return Response(
             data=message.no_record_found,
