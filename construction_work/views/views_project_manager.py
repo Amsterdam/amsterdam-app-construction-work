@@ -63,6 +63,11 @@ def get(request):
 
 def patch(request):
     """Patch an existing project manager"""
+    # REVIEW: jwt authentication should already happen here
+    jwt_token = get_jwt_auth_token(request)
+    if not is_valid_jwt_token(jwt_encrypted_token=jwt_token):
+        return Response(data=messages.access_denied, status=status.HTTP_403_FORBIDDEN)
+
     manager_key = request.data.get("manager_key", None)
     if manager_key is None:
         return Response(data=messages.invalid_query, status=status.HTTP_400_BAD_REQUEST)
