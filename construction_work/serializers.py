@@ -39,66 +39,14 @@ class ProjectSerializer(serializers.ModelSerializer):
 class ProjectListSerializer(serializers.ModelSerializer):
     """Project list serializer"""
 
+    meter = serializers.SerializerMethodField()
+    strides = serializers.SerializerMethodField()
     followed = serializers.SerializerMethodField()
     recent_articles = serializers.SerializerMethodField()
 
     class Meta:
         model = Project
-        fields = "__all__"
-
-    def get_followed(self, obj: Project) -> bool:
-        """Check if project is being followed by given device"""
-        device_id = self.context.get("device_id")
-        project_followed = False
-        if device_id is not None:
-            device = obj.device_set.filter(device_id=device_id).first()
-            if device is not None:
-                project_followed = True
-        return project_followed
-
-    def get_recent_articles(self, obj: Project) -> dict:
-        article_max_age = self.context.get("article_max_age")
-        return get_recent_articles_of_project(obj, article_max_age)
-
-
-class ProjectDetailsSerializer(ProjectListSerializer):
-    """Project details serializer"""
-
-    meter = serializers.SerializerMethodField()
-    strides = serializers.SerializerMethodField()
-    followers = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Project
-        exclude = ["id"]
-
-    def __init__(self, instance=None, data=None, **kwargs):
-        super().__init__(instance, data, **kwargs)
-
-        if data is None:
-            data = {}
-        self.distance = None
-        lat = self.context.get("lat")
-        lon = self.context.get("lon")
-        self.meter, self.strides = self.get_distance_from_project(lat, lon, instance)
-
-    def get_field_names(self, *args, **kwargs):
-        field_names = self.context.get("fields", None)
-        if field_names:
-            return field_names
-        return super().get_field_names(*args, **kwargs)
-
-    def get_meter(self, _) -> int:
-        """Given location away from project in meters"""
-        return self.meter
-
-    def get_strides(self, _) -> int:
-        """Given location away from project in strides"""
-        return self.strides
-
-    def get_followers(self, obj: Project) -> int:
-        """Get amount of followers of project"""
-        return obj.device_set.count()
+        fields = ["id", "title", "subtitle", "image", "followed", "meter", "strides", "recent_articles"]
 
     def get_distance_from_project(self, lat: float, lon: float, obj: Project):
         """Get distance from project"""
@@ -117,13 +65,80 @@ class ProjectDetailsSerializer(ProjectListSerializer):
         meter, strides = get_distance(cords_1, cords_2)
         return meter, strides
 
+    def get_meter(self, obj: Project) -> int:
+        """Given location away from project in meters"""
+        lat = self.context.get("lat")
+        lon = self.context.get("lon")
+        
+        distance = self.get_distance_from_project(lat, lon, obj)
+        return distance[0]
+
+    def get_strides(self, obj: Project) -> int:
+        """Given location away from project in strides"""
+        lat = self.context.get("lat")
+        lon = self.context.get("lon")
+        
+        distance = self.get_distance_from_project(lat, lon, obj)
+        return distance[1]
+
+    def get_followed(self, obj: Project) -> bool:
+        """Check if project is being followed by given device"""
+        device_id = self.context.get("device_id")
+        project_followed = False
+        if device_id is not None:
+            device = obj.device_set.filter(device_id=device_id).first()
+            if device is not None:
+                project_followed = True
+        return project_followed
+
+    def get_recent_articles(self, obj: Project) -> dict:
+        article_max_age = self.context.get("article_max_age")
+        return get_recent_articles_of_project(obj, article_max_age, ArticleMinimalSerializer, WarningMessageMinimalSerializer)
+
+
+class ProjectDetailsSerializer(ProjectListSerializer):
+    """Project details serializer"""
+
+    followers = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Project
+        exclude = ["id"]
+
+    def get_field_names(self, *args, **kwargs):
+        field_names = self.context.get("fields", None)
+        if field_names:
+            return field_names
+        return super().get_field_names(*args, **kwargs)
+
+    def get_followers(self, obj: Project) -> int:
+        """Get amount of followers of project"""
+        return obj.device_set.count()
+
+    def get_recent_articles(self, obj: Project) -> dict:
+        article_max_age = self.context.get("article_max_age")
+        return get_recent_articles_of_project(obj, article_max_age, ArticleSerializer, WarningMessagePublicSerializer)
+
 
 class ArticleSerializer(serializers.ModelSerializer):
-    """Project news serializer"""
+    """Article serializer"""
 
     class Meta:
         model = Article
         exclude = ["id"]
+
+
+class ArticleMinimalSerializer(serializers.ModelSerializer):
+    """Article serializer with minimal data"""
+
+    meta_id = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Article
+        fields = ["meta_id", "modification_date"]
+
+    def get_meta_id(self, obj: Article):
+        return f"a_{obj.pk}"
 
 
 class ProjectManagerSerializer(serializers.ModelSerializer):
@@ -169,6 +184,19 @@ class WarningMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = WarningMessage
         fields = "__all__"
+
+
+class WarningMessageMinimalSerializer(serializers.ModelSerializer):
+    """warning messages (internal VUE) serializer"""
+
+    meta_id = serializers.SerializerMethodField()
+
+    class Meta:
+        model = WarningMessage
+        fields = ["meta_id", "modification_date"]
+
+    def get_meta_id(self, obj: WarningMessage):
+        return f"w_{obj.pk}"
 
 
 class WarningMessagePublicSerializer(serializers.ModelSerializer):

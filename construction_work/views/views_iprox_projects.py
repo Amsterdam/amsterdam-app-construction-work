@@ -93,7 +93,7 @@ class CustomPagination(PageNumberPagination):
     max_page_size = 100
 
 
-def search(model, request) -> Response:
+def search(model, request, model_serializer, serializer_context) -> Response:
     """Search model using request parameters"""
     text = request.GET.get("text", None)
     query_fields = request.GET.get("query_fields", None)
@@ -115,15 +115,8 @@ def search(model, request) -> Response:
         return Response(data=message.no_such_field_in_model, status=status.HTTP_400_BAD_REQUEST)
 
     # Perform search
-    result = search_text_in_model(model, text, query_fields, return_fields)
-
-    # Paginate result
-    paginated_data = _paginate_data(request, result)
-
-    return Response(
-        data=paginated_data,
-        status=status.HTTP_200_OK,
-    )
+    result = search_text_in_model(model, text, query_fields, return_fields, model_serializer, serializer_context)
+    return result
 
 
 @swagger_auto_schema(**as_projects)
@@ -241,7 +234,29 @@ def projects(request):
 @RequestMustComeFromApp
 def projects_search(request):
     """Search project"""
-    return search(Project, request)
+    lat = request.GET.get("lat", None)
+    lon = request.GET.get("lon", None)
+    address = request.GET.get("address", None)
+    if address is not None:
+        lat, lon = address_to_gps(address)
+    
+    article_max_age = int(request.GET.get(ARTICLE_MAX_AGE_PARAM, 3))
+
+    serializer_context = {
+        "lat": lat,
+        "lon": lon,
+        "article_max_age": article_max_age,
+    }
+
+    search_result = search(Project, request, ProjectListSerializer, serializer_context)
+
+    # Paginate result
+    paginated_data = _paginate_data(request, search_result)
+
+    return Response(
+        data=paginated_data,
+        status=status.HTTP_200_OK,
+    )
 
 
 @swagger_auto_schema(**as_project_details)

@@ -30,7 +30,7 @@ def get_non_related_fields(model):
     return model_fields
 
 
-def search_text_in_model(model, query, query_fields, return_fields):
+def search_text_in_model(model, query, query_fields, return_fields, model_serializer, serializer_context={}):
     """Search for text in database model"""
 
     query_fields_list = query_fields.split(",")
@@ -66,22 +66,20 @@ def search_text_in_model(model, query, query_fields, return_fields):
 
         # Query and filter
         objects = model.objects.annotate(score=score).filter(score__gte=threshold).filter(q).order_by("-score")
-        all_objects = all_objects + [x for x in objects if x != []]
-    sorted_objects = sorted(all_objects, key=lambda x: x.score, reverse=True)
+        for obj in objects:
+            serializer = model_serializer(instance=obj, context=serializer_context)
+            serialized_data = serializer.data
+            serialized_data["score"] = float(obj.score)
+            all_objects.append(serialized_data)
 
-    # Round floats to limited decimals
-    for obj in sorted_objects:
-        obj.score = round(obj.score, 3)
+    # Sort objects by score
+    sorted_objects = sorted(all_objects, key=lambda x: x["score"], reverse=True)
+
+    # Remove score from results
+    [obj.pop("score") for obj in sorted_objects]
 
     # Create a unique set of objects (sorted)
     seen = set()
-    set_sorted_objects = [seen.add(x.pk) or x for x in sorted_objects if x.pk not in seen]
+    set_sorted_objects = [seen.add(x["id"]) or x for x in sorted_objects if x["id"] not in seen]
 
-    # Filter the requested return fields (note: It functions as a serializer)
-    for item in set_sorted_objects:
-        data = {}
-        for model_field in model_fields:
-            data[model_field] = getattr(item, model_field)
-        result.append(data)
-
-    return result
+    return set_sorted_objects
