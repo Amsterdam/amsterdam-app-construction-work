@@ -22,7 +22,7 @@ from construction_work.generic_functions.text_search import (
 )
 from construction_work.models import Project
 from construction_work.models.device import Device
-from construction_work.serializers import DeviceSerializer, ProjectDetailsSerializer, ProjectListSerializer
+from construction_work.serializers import ArticleSerializer, DeviceSerializer, ProjectDetailsSerializer, ProjectListSerializer, WarningMessagePublicSerializer
 from construction_work.swagger.swagger_views_iprox_projects import (
     as_project_details,
     as_projects,
@@ -409,7 +409,7 @@ def projects_followed_articles(request):
 
     result = {}
     for project in followed_projects:
-        recent_articles = get_recent_articles_of_project(project, article_max_age)
+        recent_articles = get_recent_articles_of_project(project, article_max_age, ArticleSerializer, WarningMessagePublicSerializer)
         result[project.foreign_id] = recent_articles
 
     return Response(data=result, status=status.HTTP_200_OK)

@@ -120,13 +120,13 @@ class TestApiProjects(BaseTestApi):
         response = self.client.get(self.api_url, {"page_size": 4}, **self.headers)
 
         # Default order will be by objects internal pk
-        expected_default_foreign_id_order = [10, 20, 30, 40]
-        default_foreign_id_order = list(Project.objects.values_list("foreign_id", flat=True))
+        expected_default_foreign_id_order = [project_1.pk, project_2.pk, project_3.pk, project_4.pk]
+        default_foreign_id_order = list(Project.objects.values_list("pk", flat=True))
         self.assertEqual(default_foreign_id_order, expected_default_foreign_id_order)
 
         # Expected projects to be ordered descending by publication date
-        expected_foreign_id_order = [20, 40, 10, 30]
-        response_foreign_id_order = [x["foreign_id"] for x in response.data["result"]]
+        expected_foreign_id_order = [project_2.pk, project_4.pk, project_1.pk, project_3.pk]
+        response_foreign_id_order = [x["id"] for x in response.data["result"]]
         self.assertEqual(response_foreign_id_order, expected_foreign_id_order)
 
     def test_followed_projects_sorted_descending_by_recent_article_date(self):
@@ -179,8 +179,8 @@ class TestApiProjects(BaseTestApi):
         )
 
         # Expected projects to be ordered from closest to furthest from the base location
-        expected_foreign_id_order = [20, 30, 10]
-        response_foreign_id_order = [x["foreign_id"] for x in response.data["result"]]
+        expected_foreign_id_order = [project_2.pk, project_3.pk, project_1.pk]
+        response_foreign_id_order = [x["id"] for x in response.data["result"]]
         self.assertEqual(response_foreign_id_order, expected_foreign_id_order)
 
     def test_pagination(self):
