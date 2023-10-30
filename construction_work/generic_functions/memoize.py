@@ -115,8 +115,8 @@ class Memoize:
     def clear_all_cache(self):
         self.memoize_cache = {}
 
-    def clear_cache_device(self, device_id):
-        self.memoize_cache.pop(device_id, None)
+    def clear_cache_by_key(self, key):
+        self.memoize_cache.pop(key, None)
 
     def __call__(self, func=None, ttl=None):
         if func is None:
