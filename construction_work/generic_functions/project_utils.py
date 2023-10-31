@@ -3,7 +3,7 @@ from construction_work.models.project import Project
 
 
 # TODO: create unit tests
-def get_recent_articles_of_project(project: Project, article_max_age: int, article_serializer, warning_message_serializer) -> dict:    
+def get_recent_articles_of_project(project: Project, article_max_age: int, article_serializer, warning_message_serializer) -> dict:
     all_articles = []
 
     datetime_now = datetime.now().astimezone()

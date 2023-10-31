@@ -1,5 +1,7 @@
 # pylint: disable=unnecessary-lambda-assignment,expression-not-assigned
 """ Views for iprox project pages """
+import asyncio
+from datetime import datetime, timedelta
 from math import ceil
 
 from django.db.models import Max
@@ -20,9 +22,9 @@ from construction_work.generic_functions.text_search import (
     get_non_related_fields,
     search_text_in_model,
 )
-from construction_work.models import Project
+from construction_work.models import Project, Article, WarningMessage
 from construction_work.models.device import Device
-from construction_work.serializers import ArticleSerializer, DeviceSerializer, ProjectDetailsSerializer, ProjectListSerializer, WarningMessagePublicSerializer
+from construction_work.serializers import ArticleMinimalSerializer, ArticleSerializer, DeviceSerializer, ProjectDetailsSerializer, ProjectListSerializer, WarningMessageMinimalSerializer, WarningMessagePublicSerializer
 from construction_work.swagger.swagger_views_iprox_projects import (
     as_project_details,
     as_projects,
@@ -132,9 +134,11 @@ def search(model, request, model_serializer, serializer_context) -> Response:
 def projects(request):
     """Get a list of all projects in specific order"""
 
-    device_id = request.META.get("HTTP_DEVICEID", None)
-    if device_id is None:
-        return Response(data=message.invalid_headers, status=status.HTTP_400_BAD_REQUEST)
+    device_id = "foobar"
+    
+    # device_id = request.META.get("HTTP_DEVICEID", None)
+    # if device_id is None:
+    #     return Response(data=message.invalid_headers, status=status.HTTP_400_BAD_REQUEST)
 
     lat = request.GET.get("lat", None)
     lon = request.GET.get("lon", None)
@@ -143,6 +147,7 @@ def projects(request):
     # NOTE: is 3 days too little, users will miss many article updates
     article_max_age = int(request.GET.get(ARTICLE_MAX_AGE_PARAM, 3))  # Max days since publication date
 
+    # @memoize
     def _fetch_projects(_device_id, _lat, _lon, _address):
         # Convert address into GPS data. Note: This should never happen, the device should already
         if _address is not None and (_lat is None or _lon is None):
@@ -192,41 +197,42 @@ def projects(request):
             ).order_by("-latest_publication_date")
             all_other_projects = list(all_other_projects_qs)
 
-        all_projects = []
-        all_projects.extend(projects_followed_by_device)
-        all_projects.extend(all_other_projects)
+        projects = []
+        projects.extend(projects_followed_by_device)
+        projects.extend(all_other_projects)
 
-        return all_projects
+        # Prefetch articles and warning messages within date range
+        datetime_now = datetime.now().astimezone()
+        start_date = datetime_now - timedelta(days=int(article_max_age))
+        end_date = datetime_now
+
+        def pre_fetch_news(mapping, model, pre_cursor):
+            pre_fetched_qs = model.objects.filter(publication_date__range=[start_date, end_date]).values("id", "modification_date", "projects")
+            pre_fetched = list(pre_fetched_qs)
+            
+            for obj in pre_fetched:
+                article_dict = {
+                    "meta_id": f"{pre_cursor}_{obj['id']}",
+                    "modification_date": str(obj["modification_date"])
+                }
+                mapping[obj["projects"]].append(article_dict)
+            
+            return mapping
+
+        project_news_mapping = {x.pk:[] for x in projects}
+        project_news_mapping = pre_fetch_news(project_news_mapping, Article, "a")
+        # project_news_mapping = pre_fetch_news(project_news_mapping, WarningMessage, "w")
+        context["project_article_mapping"] = project_news_mapping
+
+        context["followed_projects"] = projects_followed_by_device
+
+        serializer = ProjectListSerializer(instance=projects, many=True, context=context)
+        return serializer.data
 
     # Create context for project list serializer
     context = {"device_id": device_id, "article_max_age": article_max_age, "lat": lat, "lon": lon}
 
-    """
-    Using DRF PageNumberPagination getting results is quite fast,
-    directly on the first request.
-    Since it only serializes a single page of the queryset. 
-    """
-    # projects_qs = _fetch_projects(device_id, lat, lon, address)
-    # paginator = CustomPagination()
-    # paginated_qs = paginator.paginate_queryset(projects_qs, request)
-    # serializer = ProjectListSerializer(instance=paginated_qs, many=True, context=context)
-    # return paginator.get_paginated_response(serializer.data)
-
-    """
-    This approach is slow on the first call,
-    since it will serialize the entire data set
-    before the (custom) pagination can happen.
-    After that it is much faster then DRF PageNumberPagination,
-    because of the caches serialized data using Memoize.
-    """
-
-    @memoize
-    def _get_serialized_data(_device_id, _lat, _lon, _address):
-        projects_qs = _fetch_projects(_device_id, _lat, _lon, _address)
-        serializer = ProjectListSerializer(instance=projects_qs, many=True, context=context)
-        return serializer.data
-
-    serialized_data = _get_serialized_data(device_id, lat, lon, address)
+    serialized_data = _fetch_projects(device_id, lat, lon, address)
 
     paginated_data = _paginate_data(request, serialized_data)
     return Response(data=paginated_data, status=status.HTTP_200_OK)

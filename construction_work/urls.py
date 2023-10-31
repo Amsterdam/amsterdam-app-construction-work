@@ -1,5 +1,5 @@
 """ Url patterns for API """
-from django.urls import path, re_path
+from django.urls import include, path, re_path
 from django.views.decorators.csrf import csrf_exempt
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
@@ -68,4 +68,5 @@ urlpatterns = [
     # Notification ('teaser' pointing to news- or warning article)
     path("notification", csrf_exempt(views_messages.notification_post)),
     path("notifications", csrf_exempt(views_messages.notification_get)),
+    path("__debug__/", include("debug_toolbar.urls")),
 ]

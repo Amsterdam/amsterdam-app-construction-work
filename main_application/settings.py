@@ -60,6 +60,12 @@ if DEBUG:
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
+# Uncomment to enable Django Debug Toolbar
+# Makes the API really slow returning data, don't know why
+INTERNAL_IPS = [
+    "127.0.0.1"
+]
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -77,6 +83,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "construction_work.apps.ConstructionWorkApiConfig",
+    "debug_toolbar",
 ]
 
 MIDDLEWARE = [
@@ -88,6 +95,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware"
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
