@@ -123,7 +123,7 @@ class NoSuchFieldInModelError(Exception):
     pass
 
 
-def search(model, request, model_serializer, serializer_context) -> Response:
+def search(model, request) -> Response:
     """Search model using request parameters"""
     text = request.GET.get("text", None)
     query_fields = request.GET.get("query_fields", None)
@@ -151,9 +151,7 @@ def search(model, request, model_serializer, serializer_context) -> Response:
         raise NoSuchFieldInModelError(message.no_such_field_in_model)
 
     # Perform search
-    result = search_text_in_model(
-        model, text, query_fields, return_fields, model_serializer, serializer_context
-    )
+    result = search_text_in_model(model, text, query_fields, return_fields)
     return result
 
 
@@ -238,12 +236,11 @@ def projects(request):
         projects = []
         projects.extend(projects_followed_by_device)
         projects.extend(all_other_projects)
-        
+
         project_news_mapping = create_project_news_lookup(projects, _article_max_age)
 
         context = {
             "device_id": _device_id,
-            "article_max_age": _article_max_age,
             "lat": _lat,
             "lon": _lon,
             "project_news_mapping": project_news_mapping,
@@ -256,7 +253,7 @@ def projects(request):
 
     # Create context for project list serializer
     serialized_data = _fetch_projects(device_id, article_max_age, lat, lon, address)
-    
+
     # Paginate and return data
     paginated_data = _paginate_data(request, serialized_data)
     return Response(data=paginated_data, status=status.HTTP_200_OK)
@@ -275,23 +272,26 @@ def projects_search(request):
 
     article_max_age = int(request.GET.get(ARTICLE_MAX_AGE_PARAM, 3))
 
-    serializer_context = {
-        "lat": lat,
-        "lon": lon,
-        "article_max_age": article_max_age,
-    }
-
     try:
-        search_result = search(
-            Project, request, ProjectListSerializer, serializer_context
-        )
+        found_projects = search(Project, request)
     except InvalidQueryError as e:
         return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
     except NoSuchFieldInModelError as e:
         return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
 
+    project_news_mapping = create_project_news_lookup(found_projects, article_max_age)
+    context = {
+        "lat": lat,
+        "lon": lon,
+        "article_max_age": article_max_age,
+        "project_news_mapping": project_news_mapping,
+    }
+    serializer = ProjectListSerializer(
+        instance=found_projects, many=True, context=context
+    )
+
     # Paginate result
-    paginated_data = _paginate_data(request, search_result)
+    paginated_data = _paginate_data(request, serializer.data)
 
     return Response(
         data=paginated_data,
@@ -301,19 +301,17 @@ def projects_search(request):
 
 @swagger_auto_schema(**as_project_details)
 @api_view(["GET"])
-# @RequestMustComeFromApp
+@RequestMustComeFromApp
 def project_details(request):
     """
     Get details for a project by identifier
     """
 
-    device_id = "stan"
-
-    # device_id = request.META.get("HTTP_DEVICEID", None)
-    # if device_id is None:
-    #     return Response(
-    #         data=message.invalid_headers, status=status.HTTP_400_BAD_REQUEST
-    #     )
+    device_id = request.META.get("HTTP_DEVICEID", None)
+    if device_id is None:
+        return Response(
+            data=message.invalid_headers, status=status.HTTP_400_BAD_REQUEST
+        )
 
     project_id = request.GET.get("id", None)
     if project_id is None:
@@ -350,7 +348,7 @@ def project_details(request):
                 device_serializer.errors, status=status.HTTP_400_BAD_REQUEST
             )
         device = device_serializer.save()
-    
+
     context = {
         "lat": lat,
         "lon": lon,
@@ -463,9 +461,7 @@ def projects_followed_articles(request):
 
     result = {}
     for project in followed_projects:
-        recent_articles = get_recent_articles_of_project(
-            project, article_max_age, ArticleSerializer, WarningMessagePublicSerializer
-        )
+        recent_articles = get_recent_articles_of_project(project, article_max_age)
         result[project.foreign_id] = recent_articles
 
     return Response(data=result, status=status.HTTP_200_OK)

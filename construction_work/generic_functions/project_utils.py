@@ -3,7 +3,9 @@ from construction_work.models import Project, Article, WarningMessage
 
 
 # TODO: create unit tests
-def get_recent_articles_of_project(project: Project, article_max_age: int, article_serializer, warning_message_serializer) -> dict:
+def get_recent_articles_of_project(project: Project, article_max_age: int) -> dict:
+    from construction_work.serializers import ArticleSerializer, WarningMessagePublicSerializer
+
     all_articles = []
 
     datetime_now = datetime.now().astimezone()
@@ -12,11 +14,11 @@ def get_recent_articles_of_project(project: Project, article_max_age: int, artic
     end_date = datetime_now
     
     articles = project.article_set.filter(publication_date__range=[start_date, end_date]).all()
-    article_serializer = article_serializer(articles, many=True)
+    article_serializer = ArticleSerializer(articles, many=True)
     all_articles.extend(article_serializer.data)
 
     warning_messages = project.warningmessage_set.filter(publication_date__range=[start_date, end_date]).all()
-    warning_message_serializer = warning_message_serializer(warning_messages, many=True)
+    warning_message_serializer = WarningMessagePublicSerializer(warning_messages, many=True)
     all_articles.extend(warning_message_serializer.data)
 
     return all_articles

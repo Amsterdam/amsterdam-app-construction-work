@@ -85,12 +85,12 @@ class ProjectListSerializer(serializers.ModelSerializer):
         """Check if project is being followed by given device"""
         followed_projects = self.context.get("followed_projects")
         if followed_projects is None:
-            return False
+            return None
         
         return obj.pk in [x.pk for x in followed_projects]
 
     def get_recent_articles(self, obj: Project) -> dict:
-        project_news_mapping = self.context["project_news_mapping"]
+        project_news_mapping = self.context.get("project_news_mapping")
         if project_news_mapping is None:
             return []
 
@@ -118,7 +118,7 @@ class ProjectDetailsSerializer(ProjectListSerializer):
 
     def get_recent_articles(self, obj: Project) -> dict:
         article_max_age = self.context.get("article_max_age")
-        return get_recent_articles_of_project(obj, article_max_age, ArticleSerializer, WarningMessagePublicSerializer)
+        return get_recent_articles_of_project(obj, article_max_age)
 
 
 class ArticleSerializer(serializers.ModelSerializer):

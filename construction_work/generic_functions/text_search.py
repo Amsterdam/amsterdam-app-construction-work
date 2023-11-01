@@ -30,7 +30,7 @@ def get_non_related_fields(model):
     return model_fields
 
 
-def search_text_in_model(model, query, query_fields, return_fields, model_serializer, serializer_context={}):
+def search_text_in_model(model, query, query_fields, return_fields):
     """Search for text in database model"""
 
     query_fields_list = query_fields.split(",")
@@ -54,7 +54,7 @@ def search_text_in_model(model, query, query_fields, return_fields, model_serial
     # Build a 'TrigramWordSimilarity' and 'accents agnostic adjacent characters' filter
     score = 0
     weight = 1.0
-    all_objects = []
+    objects_with_scores = []
     for query_field in query_fields_list:
         # Set half the weight for each next search field
         score += weight * TrigramWordSimilarity(query, query_field)
@@ -66,19 +66,13 @@ def search_text_in_model(model, query, query_fields, return_fields, model_serial
         # Query and filter
         objects = model.objects.annotate(score=score).filter(score__gte=threshold).filter(q).order_by("-score")
         for obj in objects:
-            serializer = model_serializer(instance=obj, context=serializer_context)
-            serialized_data = serializer.data
-            serialized_data["score"] = float(obj.score)
-            all_objects.append(serialized_data)
+            objects_with_scores.append(obj)
 
     # Sort objects by score
-    sorted_objects = sorted(all_objects, key=lambda x: x["score"], reverse=True)
-
-    # Remove score from results
-    [obj.pop("score") for obj in sorted_objects]
+    sorted_objects = sorted(objects_with_scores, key=lambda x: x.score, reverse=True)
 
     # Create a unique set of objects (sorted)
     seen = set()
-    set_sorted_objects = [seen.add(x["id"]) or x for x in sorted_objects if x["id"] not in seen]
+    sorted_objects_unique = [seen.add(x.pk) or x for x in sorted_objects if x.pk not in seen]
 
-    return set_sorted_objects
+    return sorted_objects_unique
