@@ -1,7 +1,5 @@
 # pylint: disable=unnecessary-lambda-assignment,expression-not-assigned
 """ Views for iprox project pages """
-import asyncio
-from datetime import datetime, timedelta
 from math import ceil
 
 from django.db.models import Max
@@ -30,16 +28,12 @@ from construction_work.generic_functions.text_search import (
     get_non_related_fields,
     search_text_in_model,
 )
-from construction_work.models import Project, Article, WarningMessage
+from construction_work.models import Project
 from construction_work.models.device import Device
 from construction_work.serializers import (
-    ArticleMinimalSerializer,
-    ArticleSerializer,
     DeviceSerializer,
     ProjectDetailsSerializer,
     ProjectListSerializer,
-    WarningMessageMinimalSerializer,
-    WarningMessagePublicSerializer,
 )
 from construction_work.swagger.swagger_views_iprox_projects import (
     as_project_details,
@@ -176,7 +170,7 @@ def projects(request):
         request.GET.get(ARTICLE_MAX_AGE_PARAM, 3)
     )  # Max days since publication date
 
-    # @memoize
+    @memoize
     def _fetch_projects(_device_id, _article_max_age, _lat, _lon, _address):
         # Convert address into GPS data. Note: This should never happen, the device should already
         if _address is not None and (_lat is None or _lon is None):
