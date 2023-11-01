@@ -4,8 +4,18 @@ from ast import List
 from rest_framework import serializers
 
 from construction_work.generic_functions.gps_utils import get_distance
-from construction_work.generic_functions.project_utils import get_recent_articles_of_project
-from construction_work.models import Article, Asset, Image, Notification, Project, ProjectManager, WarningMessage
+from construction_work.generic_functions.project_utils import (
+    get_recent_articles_of_project,
+)
+from construction_work.models import (
+    Article,
+    Asset,
+    Image,
+    Notification,
+    Project,
+    ProjectManager,
+    WarningMessage,
+)
 from construction_work.models.device import Device
 from construction_work.models.warning_and_notification import WarningImage
 
@@ -46,7 +56,16 @@ class ProjectListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ["id", "title", "subtitle", "image", "followed", "meter", "strides", "recent_articles"]
+        fields = [
+            "id",
+            "title",
+            "subtitle",
+            "image",
+            "followed",
+            "meter",
+            "strides",
+            "recent_articles",
+        ]
 
     def get_distance_from_project(self, lat: float, lon: float, obj: Project):
         """Get distance from project"""
@@ -69,7 +88,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
         """Given location away from project in meters"""
         lat = self.context.get("lat")
         lon = self.context.get("lon")
-        
+
         distance = self.get_distance_from_project(lat, lon, obj)
         return distance[0]
 
@@ -77,7 +96,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
         """Given location away from project in strides"""
         lat = self.context.get("lat")
         lon = self.context.get("lon")
-        
+
         distance = self.get_distance_from_project(lat, lon, obj)
         return distance[1]
 
@@ -86,7 +105,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
         followed_projects = self.context.get("followed_projects")
         if followed_projects is None:
             return None
-        
+
         return obj.pk in [x.pk for x in followed_projects]
 
     def get_recent_articles(self, obj: Project) -> dict:
@@ -126,7 +145,7 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Article
-        exclude = ["id"]
+        fields = "__all__"
 
 
 class ArticleMinimalSerializer(serializers.ModelSerializer):

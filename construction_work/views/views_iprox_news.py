@@ -1,39 +1,49 @@
 """ Views for news routes """
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from construction_work.api_messages import Messages
+from construction_work.generic_functions.request_must_come_from_app import (
+    RequestMustComeFromApp,
+)
 from construction_work.generic_functions.set_filter import SetFilter
 from construction_work.generic_functions.sort import Sort
 from construction_work.generic_functions.static_data import StaticData
 from construction_work.models import Article, WarningMessage
-from construction_work.serializers import ArticleSerializer, WarningMessagePublicSerializer
-from construction_work.swagger.swagger_views_iprox_news import as_article, as_articles_get
+from construction_work.serializers import (
+    ArticleSerializer,
+    WarningMessagePublicSerializer,
+)
+from construction_work.swagger.swagger_views_iprox_news import (
+    as_article,
+    as_articles_get,
+)
 
 message = Messages()
 
 
 @swagger_auto_schema(**as_article)
 @api_view(["GET"])
+# @RequestMustComeFromApp
 def article(request):
-    """
-    Get a single article
-    """
-    identifier = request.GET.get("id", None)
-    if identifier is None:
-        return Response({"status": False, "result": message.invalid_query}, status=422)
+    """Get a single article"""
+    article_id = request.GET.get("id", None)
+    if article_id is None:
+        return Response(message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
 
-    article_object = Article.objects.filter(identifier=identifier, active=True).first()
-    if article_object is None:
-        return Response({"status": False, "result": message.no_record_found}, status=404)
+    article_obj = Article.objects.filter(pk=article_id, active=True).first()
+    if article_obj is None:
+        return Response(message.no_record_found, status=status.HTTP_404_NOT_FOUND)
 
-    serializer = ArticleSerializer(article_object, many=False)
-    return Response({"status": True, "result": serializer.data}, status=200)
+    serializer = ArticleSerializer(article_obj)
+    return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 @swagger_auto_schema(**as_articles_get)
 @api_view(["GET"])
+# @RequestMustComeFromApp
 def articles(request):
     """Get articles"""
 
@@ -48,7 +58,14 @@ def articles(request):
             }
             if article_type == "news":
                 _article["image"] = next(
-                    iter([x for x in item["images"] if x["type"] in ["main", "banner", "header"]]), None
+                    iter(
+                        [
+                            x
+                            for x in item["images"]
+                            if x["type"] in ["main", "banner", "header"]
+                        ]
+                    ),
+                    None,
                 )
             else:
                 _article["images"] = item["images"]
@@ -68,13 +85,26 @@ def articles(request):
     if query_params is not None:
         project_identifiers = query_params.split(",")
         for project_identifier in project_identifiers:
-            news_objects = list(Article.objects.filter(project_identifier=project_identifier, active=True).all())
+            news_objects = list(
+                Article.objects.filter(
+                    project_identifier=project_identifier, active=True
+                ).all()
+            )
             for news_object in news_objects:
-                result += filtering([ArticleSerializer(news_object, many=False).data], "news")
+                result += filtering(
+                    [ArticleSerializer(news_object, many=False).data], "news"
+                )
 
-            warning_objects = list(WarningMessage.objects.filter(project_identifier=project_identifier).all())
+            warning_objects = list(
+                WarningMessage.objects.filter(
+                    project_identifier=project_identifier
+                ).all()
+            )
             for warning_object in warning_objects:
-                result += filtering([WarningMessagePublicSerializer(warning_object, many=False).data], "warning")
+                result += filtering(
+                    [WarningMessagePublicSerializer(warning_object, many=False).data],
+                    "warning",
+                )
     else:
         news_objects = Article.objects.all()
         news_serializer = ArticleSerializer(news_objects, many=True)
