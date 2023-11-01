@@ -6,81 +6,24 @@ from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
 from construction_work.swagger.swagger_abstract_objects import (
-    _links,
-    contacts,
-    coordinates,
     foreign_id,
     header_device_authorization,
     header_device_id,
-    image,
-    images,
-    page,
+    project_details_schema,
+    projects_schema,
     query_address,
     query_article_max_age,
+    query_fields,
     query_id,
     query_latitude,
     query_longitude,
     query_page,
     query_page_size,
-    recent_articles,
-    sections,
-    timeline,
+    query_query_fields,
+    query_text,
 )
 
 message = Messages()
-
-
-#
-# Re-usable schema objects
-#
-
-project_details_schema = openapi.Schema(
-    type=openapi.TYPE_OBJECT,
-    properties={
-        "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="id"),
-        "followed": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="boolean"),
-        "foreign_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="foreign id"),
-        "active": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="boolean"),
-        "last_seen": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
-        "title": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-        "subtitle": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-        "coordinates": coordinates,
-        "sections": sections,
-        "contacts": contacts,
-        "timeline": timeline,
-        "image": image,
-        "images": images,
-        "recent_articles": recent_articles,
-        "url": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-        "creation_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
-        "modification_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
-        "publication_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
-        "expiration_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
-    },
-)
-
-project_schema = openapi.Schema(
-    type=openapi.TYPE_OBJECT,
-    properties={
-        "title": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-        "subtitle": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-        "image": image,
-        "followed": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="boolean"),
-        "strides": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
-        "meters": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
-        "recent_articles": recent_articles,
-        "project_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
-    },
-)
-
-projects_schema = openapi.Schema(
-    type=openapi.TYPE_OBJECT,
-    properties={
-        "result": openapi.Schema(type=openapi.TYPE_ARRAY, items=project_schema),
-        "page": page,
-        "_links": _links,
-    },
-)
 
 #
 # Actual Apidocs
@@ -107,47 +50,8 @@ as_projects = {
                     "result": [
                         {
                             "id": 34,
-                            "followed": True,
-                            "foreign_id": 1003333,
-                            "active": True,
-                            "last_seen": "2023-10-12T10:54:50.907421+02:00",
                             "title": "Slotermeer",
                             "subtitle": "stedelijke vernieuwing",
-                            "resent_articles": [],
-                            "coordinates": {"lat": 52.3584996, "lon": 4.8035019},
-                            "sections": {
-                                "what": [
-                                    {
-                                        "body": "",
-                                        "title": "Vernieuwd stadscentrum voor heel Nieuw-West",
-                                    }
-                                ],
-                                "when": [{"body": None, "title": "Wanneer"}],
-                                "work": [],
-                                "where": [],
-                                "contact": [],
-                            },
-                            "contacts": [
-                                {
-                                    "id": 16800775,
-                                    "name": "",
-                                    "email": "",
-                                    "phone": None,
-                                    "position": "",
-                                }
-                            ],
-                            "timeline": {
-                                "intro": None,
-                                "items": [
-                                    {
-                                        "body": "",
-                                        "items": [],
-                                        "title": "",
-                                        "collapsed": True,
-                                    }
-                                ],
-                                "title": "",
-                            },
                             "image": {
                                 "id": 21360354,
                                 "aspectRatio": 1.7816091954022988,
@@ -170,12 +74,11 @@ as_projects = {
                                     },
                                 ],
                             },
-                            "images": [],
-                            "url": "http://www.amsterdam.nl/projecten/slotermeer/",
-                            "creation_date": "2016-09-29T14:25:00+02:00",
-                            "modification_date": "2023-10-02T06:34:00+02:00",
-                            "publication_date": "2023-10-02T06:34:00+02:00",
-                            "expiration_date": None,
+                            "followed": True,
+                            "strides": 3242,
+                            "meters": 4552,
+                            "recent_articles": [],
+                            "project_id": 343,
                         }
                     ],
                     "page": {
@@ -299,6 +202,28 @@ as_project_details = {
         404: openapi.Response(message.no_record_found),
     },
     "tags": ["Projects"],
+}
+
+
+as_projects_search = {
+    # /api/v1/XXX/search swagger_auto_schema
+    "methods": ["get"],
+    "manual_parameters": [
+        query_text,
+        query_fields,
+        query_query_fields,
+        query_address,
+        query_article_max_age,
+        query_latitude,
+        query_longitude,
+        query_page,
+        query_page_size,
+    ],
+    "responses": {
+        200: openapi.Response("application/json", projects_schema),
+        400: openapi.Response(f"{message.invalid_query}|{message.no_such_field_in_model}"),
+    },
+    "tags": ["Search"],
 }
 
 

@@ -39,8 +39,8 @@ from construction_work.swagger.swagger_views_iprox_projects import (
     as_projects_follow_delete,
     as_projects_follow_post,
     as_projects_followed_articles,
+    as_projects_search,
 )
-from construction_work.swagger.swagger_views_search import as_search
 
 message = Messages()
 memoize = Memoize(ttl=300, max_items=300)
@@ -119,6 +119,10 @@ def search(model, text, query_fields, return_fields) -> list:
 
     # Text length has to be at least 3
     if text is None or len(text) < MIN_QUERY_LENGTH:
+        raise InvalidQueryError(message.invalid_query)
+
+    # Check if query_fields and return_field are not None
+    if query_fields is None or return_fields is None:
         raise InvalidQueryError(message.invalid_query)
 
     # Check if given query fields are in model fields
@@ -228,7 +232,7 @@ def projects(request):
     return Response(data=paginated_data, status=status.HTTP_200_OK)
 
 
-@swagger_auto_schema(**as_search)
+@swagger_auto_schema(**as_projects_search)
 @api_view(["GET"])
 @RequestMustComeFromApp
 def projects_search(request):
