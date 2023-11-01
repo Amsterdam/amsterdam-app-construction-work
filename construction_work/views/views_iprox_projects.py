@@ -208,7 +208,7 @@ def projects(request):
         all_projects.extend(projects_followed_by_device)
         all_projects.extend(all_other_projects)
 
-        project_news_mapping = create_project_news_lookup(all_projects, _article_max_age)
+        project_news_mapping = create_project_news_lookup(projects, _article_max_age)
 
         context = {
             "device_id": _device_id,

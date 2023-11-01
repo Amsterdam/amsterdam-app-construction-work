@@ -339,8 +339,8 @@ class TestApiProjectDetails(BaseTestApi):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(response.data, messages.invalid_headers)
 
-    def test_missing_project_foreign_id(self):
-        """Test call without project foreign id"""
+    def test_missing_project_id(self):
+        """Test call without project id"""
         self.headers["HTTP_DEVICEID"] = "foobar"
         params = {
             "lat": 52.379158791458494,
@@ -359,7 +359,7 @@ class TestApiProjectDetails(BaseTestApi):
         new_device_id = "new_foobar_device"
         self.headers["HTTP_DEVICEID"] = new_device_id
         params = {
-            "foreign_id": project.foreign_id,
+            "id": project.pk,
             "lat": 52.379158791458494,
             "lon": 4.899904339167326,
             "article_max_age": 10,
@@ -376,7 +376,7 @@ class TestApiProjectDetails(BaseTestApi):
         new_device_id = "new_foobar_device"
         self.headers["HTTP_DEVICEID"] = new_device_id
         params = {
-            "foreign_id": 9999,
+            "id": 9999,
             "lat": 52.379158791458494,
             "lon": 4.899904339167326,
             "article_max_age": 10,
@@ -392,7 +392,7 @@ class TestApiProjectDetails(BaseTestApi):
         new_device_id = "new_foobar_device"
         self.headers["HTTP_DEVICEID"] = new_device_id
         params = {
-            "foreign_id": project.foreign_id,
+            "id": project.pk,
             "lat": 52.379158791458494,
             "lon": 4.899904339167326,
             "article_max_age": 10,
@@ -401,7 +401,7 @@ class TestApiProjectDetails(BaseTestApi):
 
         self.assertEqual(response.status_code, 200)
         self.assertIsNotNone(response.data)
-        self.assertEqual(response.data["foreign_id"], project.foreign_id)
+        self.assertEqual(response.data["id"], project.pk)
 
 
 class TestApiProjectFollow(BaseTestApi):
@@ -434,14 +434,14 @@ class TestApiProjectFollow(BaseTestApi):
     def test_project_does_not_exist(self):
         """Test call but project does not exist"""
         self.headers["HTTP_DEVICEID"] = "foobar"
-        data = {"foreign_id": 9999}
+        data = {"id": 9999}
         response = self.client.post(self.api_url, data, **self.headers)
         self.assertEqual(response.status_code, 404)
 
     def test_existing_device_follows_existing_project(self):
         """Test new device follows existing project"""
         project = Project.objects.first()
-        foreign_id = project.foreign_id
+        project_id = project.pk
 
         # Setup device and follow project
         device_id = "foobar"
@@ -450,7 +450,7 @@ class TestApiProjectFollow(BaseTestApi):
 
         # Perform API call and check status
         self.headers["HTTP_DEVICEID"] = device_id
-        data = {"foreign_id": foreign_id}
+        data = {"id": project_id}
         response = self.client.post(self.api_url, data, **self.headers)
         self.assertEqual(response.status_code, 200)
 
@@ -462,7 +462,7 @@ class TestApiProjectFollow(BaseTestApi):
     def test_new_device_follows_existing_project(self):
         """Test new device follows existing project"""
         project = Project.objects.first()
-        foreign_id = project.foreign_id
+        project_id = project.pk
 
         # Test if device did not yet exist
         new_device_id = "foobar"
@@ -471,7 +471,7 @@ class TestApiProjectFollow(BaseTestApi):
 
         # Perform API call and check status
         self.headers["HTTP_DEVICEID"] = new_device_id
-        data = {"foreign_id": foreign_id}
+        data = {"id": project_id}
         response = self.client.post(self.api_url, data, **self.headers)
         self.assertEqual(response.status_code, 200)
 
@@ -485,14 +485,14 @@ class TestApiProjectFollow(BaseTestApi):
         # Setup device and follow project
         device_id = "foobar"
         project = Project.objects.first()
-        foreign_id = project.foreign_id
+        project_id = project.pk
         device = Device(device_id=device_id)
         device.save()
         device.followed_projects.add(project)
 
         # Perform API call and check status
         self.headers["HTTP_DEVICEID"] = device_id
-        data = {"foreign_id": foreign_id}
+        data = {"id": project_id}
         response = self.client.delete(self.api_url, data=data, content_type="application/json", **self.headers)
         self.assertEqual(response.status_code, 200)
 
@@ -508,7 +508,7 @@ class TestApiProjectFollow(BaseTestApi):
 
         # Perform API call and check status
         self.headers["HTTP_DEVICEID"] = device_id
-        data = {"foreign_id": 9999}
+        data = {"id": 9999}
         response = self.client.delete(self.api_url, data=data, content_type="application/json", **self.headers)
         self.assertEqual(response.status_code, 404)
 
@@ -516,7 +516,7 @@ class TestApiProjectFollow(BaseTestApi):
         """Test unfollow existing project with existing device"""
         # Setup device and follow project
         project = Project.objects.first()
-        foreign_id = project.foreign_id
+        project_id = project.pk
 
         device_id = "foobar"
         device = Device(device_id=device_id)
@@ -524,7 +524,7 @@ class TestApiProjectFollow(BaseTestApi):
 
         # Perform API call and check status
         self.headers["HTTP_DEVICEID"] = device_id
-        data = {"foreign_id": foreign_id}
+        data = {"id": project_id}
         response = self.client.delete(self.api_url, data=data, content_type="application/json", **self.headers)
         self.assertEqual(response.status_code, 200)
 
