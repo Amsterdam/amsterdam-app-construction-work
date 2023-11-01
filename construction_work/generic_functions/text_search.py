@@ -65,8 +65,7 @@ def search_text_in_model(model, query, query_fields, return_fields):
 
         # Query and filter
         objects = model.objects.annotate(score=score).filter(score__gte=threshold).filter(q).order_by("-score")
-        for obj in objects:
-            objects_with_scores.append(obj)
+        objects_with_scores.extend(objects)
 
     # Sort objects by score
     sorted_objects = sorted(objects_with_scores, key=lambda x: x.score, reverse=True)

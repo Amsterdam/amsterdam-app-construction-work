@@ -82,6 +82,16 @@ query_foreign_id = openapi.Parameter(
     required=True,
 )
 
+query_test = openapi.Parameter(
+    "foreign_id",
+    openapi.IN_QUERY,
+    description="Project foreign id",
+    type=openapi.TYPE_INTEGER,
+    format="int",
+    required=True,
+)
+
+
 query_page_size = openapi.Parameter(
     "page_size",
     openapi.IN_QUERY,

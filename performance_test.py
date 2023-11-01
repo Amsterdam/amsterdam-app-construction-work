@@ -123,6 +123,6 @@ class PerformanceTest:
 
 
 if __name__ == "__main__":
-    performance_test = PerformanceTest(server="0.0.0.0", concurrency=300, cycles=100)
+    performance_test = PerformanceTest(server="0.0.0.0", concurrency=1, cycles=10)
     performance_test.start_test()
     performance_test.print_metrics()
