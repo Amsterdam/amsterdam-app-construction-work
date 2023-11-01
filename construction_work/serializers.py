@@ -84,11 +84,17 @@ class ProjectListSerializer(serializers.ModelSerializer):
     def get_followed(self, obj: Project) -> bool:
         """Check if project is being followed by given device"""
         followed_projects = self.context.get("followed_projects")
+        if followed_projects is None:
+            return False
+        
         return obj.pk in [x.pk for x in followed_projects]
 
     def get_recent_articles(self, obj: Project) -> dict:
-        project_article_mapping = self.context["project_article_mapping"]
-        return project_article_mapping[obj.pk]
+        project_news_mapping = self.context["project_news_mapping"]
+        if project_news_mapping is None:
+            return []
+
+        return project_news_mapping[obj.pk]
 
 
 class ProjectDetailsSerializer(ProjectListSerializer):
@@ -98,7 +104,7 @@ class ProjectDetailsSerializer(ProjectListSerializer):
 
     class Meta:
         model = Project
-        exclude = ["id"]
+        fields = "__all__"
 
     def get_field_names(self, *args, **kwargs):
         field_names = self.context.get("fields", None)

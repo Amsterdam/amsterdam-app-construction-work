@@ -27,3 +27,4 @@ whatimage==0.0.3
 wheel==0.41.0
 uWSGI==2.0.22
 freezegun==1.2.2
+django-debug-toolbar==4.2.0

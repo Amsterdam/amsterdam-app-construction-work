@@ -14,9 +14,17 @@ from rest_framework.response import Response
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.gps_utils import address_to_gps, get_distance
 from construction_work.generic_functions.memoize import Memoize
-from construction_work.generic_functions.project_utils import get_recent_articles_of_project
-from construction_work.generic_functions.request_must_come_from_app import RequestMustComeFromApp
-from construction_work.generic_functions.static_data import ARTICLE_MAX_AGE_PARAM, DEFAULT_ARTICLE_MAX_AGE
+from construction_work.generic_functions.project_utils import (
+    create_project_news_lookup,
+    get_recent_articles_of_project,
+)
+from construction_work.generic_functions.request_must_come_from_app import (
+    RequestMustComeFromApp,
+)
+from construction_work.generic_functions.static_data import (
+    ARTICLE_MAX_AGE_PARAM,
+    DEFAULT_ARTICLE_MAX_AGE,
+)
 from construction_work.generic_functions.text_search import (
     MIN_QUERY_LENGTH,
     get_non_related_fields,
@@ -24,7 +32,15 @@ from construction_work.generic_functions.text_search import (
 )
 from construction_work.models import Project, Article, WarningMessage
 from construction_work.models.device import Device
-from construction_work.serializers import ArticleMinimalSerializer, ArticleSerializer, DeviceSerializer, ProjectDetailsSerializer, ProjectListSerializer, WarningMessageMinimalSerializer, WarningMessagePublicSerializer
+from construction_work.serializers import (
+    ArticleMinimalSerializer,
+    ArticleSerializer,
+    DeviceSerializer,
+    ProjectDetailsSerializer,
+    ProjectListSerializer,
+    WarningMessageMinimalSerializer,
+    WarningMessagePublicSerializer,
+)
 from construction_work.swagger.swagger_views_iprox_projects import (
     as_project_details,
     as_projects,
@@ -75,12 +91,16 @@ def _paginate_data(request, data: list) -> dict:
     # Add next page link, if available
     if pagination["number"] < pagination["totalPages"]:
         next_page = str(pagination["number"] + 1)
-        links["next"] = {"href": f"{uri}?page={next_page}&page_size={page_size}{query_params_str}"}
+        links["next"] = {
+            "href": f"{uri}?page={next_page}&page_size={page_size}{query_params_str}"
+        }
 
     # Add previous page link, if available
     if pagination["number"] > 1:
         previous_page = str(pagination["number"] - 1)
-        links["previous"] = {"href": f"{uri}?page={previous_page}&page_size={page_size}{query_params_str}"}
+        links["previous"] = {
+            "href": f"{uri}?page={previous_page}&page_size={page_size}{query_params_str}"
+        }
 
     return {
         "result": paginated_result,
@@ -97,6 +117,7 @@ class CustomPagination(PageNumberPagination):
 
 class InvalidQueryError(Exception):
     pass
+
 
 class NoSuchFieldInModelError(Exception):
     pass
@@ -116,39 +137,49 @@ def search(model, request, model_serializer, serializer_context) -> Response:
         raise InvalidQueryError(message.invalid_query)
 
     # Check if given query fields are in model fields
-    if query_fields is not None and len([x for x in query_fields.split(",") if x not in model_fields]) > 0:
+    if (
+        query_fields is not None
+        and len([x for x in query_fields.split(",") if x not in model_fields]) > 0
+    ):
         raise NoSuchFieldInModelError(message.no_such_field_in_model)
 
     # Check if given return fields are in model fields, if assigned
-    if return_fields is not None and len([x for x in return_fields.split(",") if x not in model_fields]) > 0:
+    if (
+        return_fields is not None
+        and len([x for x in return_fields.split(",") if x not in model_fields]) > 0
+    ):
         raise NoSuchFieldInModelError(message.no_such_field_in_model)
 
     # Perform search
-    result = search_text_in_model(model, text, query_fields, return_fields, model_serializer, serializer_context)
+    result = search_text_in_model(
+        model, text, query_fields, return_fields, model_serializer, serializer_context
+    )
     return result
 
 
 @swagger_auto_schema(**as_projects)
 @api_view(["GET"])  # keep cached result for 5 minutes in memory
-# @RequestMustComeFromApp
+@RequestMustComeFromApp
 def projects(request):
     """Get a list of all projects in specific order"""
 
-    device_id = "foobar"
-    
-    # device_id = request.META.get("HTTP_DEVICEID", None)
-    # if device_id is None:
-    #     return Response(data=message.invalid_headers, status=status.HTTP_400_BAD_REQUEST)
+    device_id = request.META.get("HTTP_DEVICEID", None)
+    if device_id is None:
+        return Response(
+            data=message.invalid_headers, status=status.HTTP_400_BAD_REQUEST
+        )
 
     lat = request.GET.get("lat", None)
     lon = request.GET.get("lon", None)
     address = request.GET.get("address", None)
 
     # NOTE: is 3 days too little, users will miss many article updates
-    article_max_age = int(request.GET.get(ARTICLE_MAX_AGE_PARAM, 3))  # Max days since publication date
+    article_max_age = int(
+        request.GET.get(ARTICLE_MAX_AGE_PARAM, 3)
+    )  # Max days since publication date
 
     # @memoize
-    def _fetch_projects(_device_id, _lat, _lon, _address):
+    def _fetch_projects(_device_id, _article_max_age, _lat, _lon, _address):
         # Convert address into GPS data. Note: This should never happen, the device should already
         if _address is not None and (_lat is None or _lon is None):
             _lat, _lon = address_to_gps(_address)
@@ -158,7 +189,9 @@ def projects(request):
         if device is None:
             device_serializer = DeviceSerializer(data={"device_id": _device_id})
             if not device_serializer.is_valid():
-                return Response(device_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    device_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+                )
             device = device_serializer.save()
 
         # Sort followed projects by project with most recent article
@@ -173,7 +206,10 @@ def projects(request):
             given_cords = (float(_lat), float(_lon))
 
             if project.coordinates is not None:
-                project_cords = (project.coordinates.get("lat"), project.coordinates.get("lon"))
+                project_cords = (
+                    project.coordinates.get("lat"),
+                    project.coordinates.get("lon"),
+                )
             else:
                 project_cords = (None, None)
 
@@ -182,7 +218,9 @@ def projects(request):
                 return float("inf")
             return meter
 
-        all_other_projects_qs = Project.objects.exclude(pk__in=projects_followed_by_device_qs)
+        all_other_projects_qs = Project.objects.exclude(
+            pk__in=projects_followed_by_device_qs
+        )
 
         if _lat is not None and _lon is not None:
             # Sort remaining projects by distance from given coordinates
@@ -200,40 +238,26 @@ def projects(request):
         projects = []
         projects.extend(projects_followed_by_device)
         projects.extend(all_other_projects)
+        
+        project_news_mapping = create_project_news_lookup(projects, _article_max_age)
 
-        # Prefetch articles and warning messages within date range
-        datetime_now = datetime.now().astimezone()
-        start_date = datetime_now - timedelta(days=int(article_max_age))
-        end_date = datetime_now
-
-        def pre_fetch_news(mapping, model, pre_cursor):
-            pre_fetched_qs = model.objects.filter(publication_date__range=[start_date, end_date]).values("id", "modification_date", "projects")
-            pre_fetched = list(pre_fetched_qs)
-            
-            for obj in pre_fetched:
-                article_dict = {
-                    "meta_id": f"{pre_cursor}_{obj['id']}",
-                    "modification_date": str(obj["modification_date"])
-                }
-                mapping[obj["projects"]].append(article_dict)
-            
-            return mapping
-
-        project_news_mapping = {x.pk:[] for x in projects}
-        project_news_mapping = pre_fetch_news(project_news_mapping, Article, "a")
-        # project_news_mapping = pre_fetch_news(project_news_mapping, WarningMessage, "w")
-        context["project_article_mapping"] = project_news_mapping
-
-        context["followed_projects"] = projects_followed_by_device
-
-        serializer = ProjectListSerializer(instance=projects, many=True, context=context)
+        context = {
+            "device_id": _device_id,
+            "article_max_age": _article_max_age,
+            "lat": _lat,
+            "lon": _lon,
+            "project_news_mapping": project_news_mapping,
+            "followed_projects": projects_followed_by_device,
+        }
+        serializer = ProjectListSerializer(
+            instance=projects, many=True, context=context
+        )
         return serializer.data
 
     # Create context for project list serializer
-    context = {"device_id": device_id, "article_max_age": article_max_age, "lat": lat, "lon": lon}
-
-    serialized_data = _fetch_projects(device_id, lat, lon, address)
-
+    serialized_data = _fetch_projects(device_id, article_max_age, lat, lon, address)
+    
+    # Paginate and return data
     paginated_data = _paginate_data(request, serialized_data)
     return Response(data=paginated_data, status=status.HTTP_200_OK)
 
@@ -258,7 +282,9 @@ def projects_search(request):
     }
 
     try:
-        search_result = search(Project, request, ProjectListSerializer, serializer_context)
+        search_result = search(
+            Project, request, ProjectListSerializer, serializer_context
+        )
     except InvalidQueryError as e:
         return Response(data=str(e), status=status.HTTP_400_BAD_REQUEST)
     except NoSuchFieldInModelError as e:
@@ -280,9 +306,14 @@ def project_details(request):
     """
     Get details for a project by identifier
     """
-    device_id = request.META.get("HTTP_DEVICEID", None)
-    if device_id is None:
-        return Response(data=message.invalid_headers, status=status.HTTP_400_BAD_REQUEST)
+
+    device_id = "stan"
+
+    # device_id = request.META.get("HTTP_DEVICEID", None)
+    # if device_id is None:
+    #     return Response(
+    #         data=message.invalid_headers, status=status.HTTP_400_BAD_REQUEST
+    #     )
 
     project_id = request.GET.get("id", None)
     if project_id is None:
@@ -315,20 +346,25 @@ def project_details(request):
     if device is None:
         device_serializer = DeviceSerializer(data={"device_id": device_id})
         if not device_serializer.is_valid():
-            return Response(device_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                device_serializer.errors, status=status.HTTP_400_BAD_REQUEST
+            )
         device = device_serializer.save()
-
+    
+    context = {
+        "lat": lat,
+        "lon": lon,
+        "device_id": device.device_id,
+        "article_max_age": article_max_age,
+        "followed_projects": device.followed_projects.all(),
+    }
     project_serializer = ProjectDetailsSerializer(
         instance=project_obj,
         partial=True,
         data={},
-        context={
-            "lat": lat,
-            "lon": lon,
-            "device_id": device.device_id,
-            "article_max_age": article_max_age,
-        },
+        context=context,
     )
+
     # Validation is required to get data from serializer
     if not project_serializer.is_valid():
         return Response(project_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -371,7 +407,9 @@ def projects_follow(request):
     # Follow flow
     if request.method == "POST":
         if device is None:
-            serializer = DeviceSerializer(data={"device_id": device_id, "followed_projects": [project.pk]})
+            serializer = DeviceSerializer(
+                data={"device_id": device_id, "followed_projects": [project.pk]}
+            )
             if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             serializer.save()
@@ -417,13 +455,17 @@ def projects_followed_articles(request):
     article_max_age = request.GET.get(ARTICLE_MAX_AGE_PARAM, 3)
 
     if not str(article_max_age).isdigit():
-        return Response(data=message.invalid_parameters, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            data=message.invalid_parameters, status=status.HTTP_400_BAD_REQUEST
+        )
 
     followed_projects: list[Project] = device.followed_projects.all()
 
     result = {}
     for project in followed_projects:
-        recent_articles = get_recent_articles_of_project(project, article_max_age, ArticleSerializer, WarningMessagePublicSerializer)
+        recent_articles = get_recent_articles_of_project(
+            project, article_max_age, ArticleSerializer, WarningMessagePublicSerializer
+        )
         result[project.foreign_id] = recent_articles
 
     return Response(data=result, status=status.HTTP_200_OK)
