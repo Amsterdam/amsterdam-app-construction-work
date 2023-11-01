@@ -1,10 +1,8 @@
 """ Views for mobile device routes """
-from django.db import IntegrityError
-from django.forms import model_to_dict
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.request_must_come_from_app import (
