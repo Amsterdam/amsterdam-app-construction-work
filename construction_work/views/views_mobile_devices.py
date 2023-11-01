@@ -29,7 +29,7 @@ def device_register(request):
     device_id = request.META.get("HTTP_DEVICEID", None)
     if device_id is None:
         return Response(
-            {"status": False, "result": message.invalid_headers},
+            data=message.invalid_headers,
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -39,14 +39,14 @@ def device_register(request):
         firebase_token = request.data.get("firebase_token", None)
         if firebase_token is None:
             return Response(
-                {"status": False, "result": message.invalid_query},
+                data=message.invalid_query,
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         os = request.data.get("os", None)
         if os is None:
             return Response(
-                {"status": False, "result": message.invalid_query},
+                data=message.invalid_query,
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -64,11 +64,11 @@ def device_register(request):
     # request.method == 'DELETE':
     if device is None:
         return Response(
-            {"status": False, "result": message.no_record_found},
+            data=message.no_record_found,
             status=status.HTTP_404_NOT_FOUND,
         )
 
     device.firebase_token = None
     device.save()
 
-    return Response({"status": False, "result": "Registration removed"}, status=200)
+    return Response("Registration removed", status=200)
