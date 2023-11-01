@@ -82,15 +82,32 @@ query_foreign_id = openapi.Parameter(
     required=True,
 )
 
-query_test = openapi.Parameter(
-    "foreign_id",
+query_text = openapi.Parameter(
+    "text",
     openapi.IN_QUERY,
-    description="Project foreign id",
-    type=openapi.TYPE_INTEGER,
-    format="int",
+    description="search text",
+    type=openapi.TYPE_STRING,
+    format="<string>",
     required=True,
 )
 
+query_query_fields = openapi.Parameter(
+    "query_fields",
+    openapi.IN_QUERY,
+    description="field to be queried",
+    type=openapi.TYPE_STRING,
+    format="<field,field,...>",
+    required=True,
+)
+
+query_fields = openapi.Parameter(
+    "fields",
+    openapi.IN_QUERY,
+    description="field to be returned",
+    type=openapi.TYPE_STRING,
+    format="<field,field,...>",
+    required=True,
+)
 
 query_page_size = openapi.Parameter(
     "page_size",
@@ -274,3 +291,51 @@ image = openapi.Schema(
 )
 
 images = openapi.Schema(type=openapi.TYPE_ARRAY, items=image)
+
+project_details_schema = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="id"),
+        "followed": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="boolean"),
+        "foreign_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="foreign id"),
+        "active": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="boolean"),
+        "last_seen": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
+        "title": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
+        "subtitle": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
+        "coordinates": coordinates,
+        "sections": sections,
+        "contacts": contacts,
+        "timeline": timeline,
+        "image": image,
+        "images": images,
+        "recent_articles": recent_articles,
+        "url": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
+        "creation_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
+        "modification_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
+        "publication_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
+        "expiration_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
+    },
+)
+
+project_schema = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "title": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
+        "subtitle": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
+        "image": image,
+        "followed": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="boolean"),
+        "strides": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
+        "meters": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
+        "recent_articles": recent_articles,
+        "project_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
+    },
+)
+
+projects_schema = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "result": openapi.Schema(type=openapi.TYPE_ARRAY, items=project_schema),
+        "page": page,
+        "_links": _links,
+    },
+)
