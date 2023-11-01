@@ -22,7 +22,7 @@ class TestApiDeviceRegistration(TestCase):
         for project in self.data.projects:
             Project.objects.create(**project)
 
-        self.url = "/api/v1/device/register"
+        self.api_url = "/api/v1/device/register"
         app_token = os.getenv("APP_TOKEN")
         aes_secret = os.getenv("AES_SECRET")
         self.token = AESCipher(app_token, aes_secret).encrypt()
@@ -36,7 +36,7 @@ class TestApiDeviceRegistration(TestCase):
         c = Client()
         data = {"firebase_token": "foobar_token", "os": "ios"}
         headers = {"HTTP_DEVICEAUTHORIZATION": self.token, "HTTP_DEVICEID": "0"}
-        first_result = c.post(self.url, data, **headers)
+        first_result = c.post(self.api_url, data, **headers)
 
         self.assertEqual(first_result.status_code, 200)
         self.assertEqual(
@@ -45,7 +45,7 @@ class TestApiDeviceRegistration(TestCase):
         self.assertEqual(first_result.data.get("os"), data.get("os"))
 
         # Silent discard second call
-        second_result = c.post(self.url, data, **headers)
+        second_result = c.post(self.api_url, data, **headers)
 
         self.assertEqual(second_result.status_code, 200)
         self.assertEqual(
@@ -68,11 +68,11 @@ class TestApiDeviceRegistration(TestCase):
             "HTTP_DEVICEAUTHORIZATION": self.token,
             "HTTP_DEVICEID": "foobar_device",
         }
-        first_result = c.delete(self.url, **headers)
+        first_result = c.delete(self.api_url, **headers)
 
         self.assertEqual(first_result.status_code, 200)
-        self.assertDictEqual(
-            first_result.data, {"status": False, "result": "Registration removed"}
+        self.assertEqual(
+            first_result.data, "Registration removed"
         )
 
         # Expect no records in db
@@ -80,11 +80,11 @@ class TestApiDeviceRegistration(TestCase):
         self.assertEqual(len(devices_with_token), 0)
 
         # Silently discard not existing registration delete
-        second_result = c.delete(self.url, **headers)
+        second_result = c.delete(self.api_url, **headers)
 
         self.assertEqual(second_result.status_code, 200)
-        self.assertDictEqual(
-            second_result.data, {"status": False, "result": "Registration removed"}
+        self.assertEqual(
+            second_result.data, "Registration removed"
         )
 
     def test_missing_os_missing(self):
@@ -92,11 +92,11 @@ class TestApiDeviceRegistration(TestCase):
         c = Client()
         data = {"firebase_token": "0"}
         headers = {"HTTP_DEVICEAUTHORIZATION": self.token, "HTTP_DEVICEID": "0"}
-        result = c.post(self.url, data, **headers)
+        result = c.post(self.api_url, data, **headers)
 
         self.assertEqual(result.status_code, 400)
-        self.assertDictEqual(
-            result.data, {"status": False, "result": messages.invalid_query}
+        self.assertEqual(
+            result.data, messages.invalid_query
         )
 
     def test_missing_firebase_token(self):
@@ -104,29 +104,29 @@ class TestApiDeviceRegistration(TestCase):
         c = Client()
         data = {"os": "ios"}
         headers = {"HTTP_DEVICEAUTHORIZATION": self.token, "HTTP_DEVICEID": "0"}
-        result = c.post(self.url, data, **headers)
+        result = c.post(self.api_url, data, **headers)
 
         self.assertEqual(result.status_code, 400)
-        self.assertDictEqual(
-            result.data, {"status": False, "result": messages.invalid_query}
+        self.assertEqual(
+            result.data, messages.invalid_query
         )
 
     def test_missing_identifier(self):
         """Test if missing identifier is detected"""
         c = Client()
         headers = {"HTTP_DEVICEAUTHORIZATION": self.token}
-        result = c.post(self.url, **headers)
+        result = c.post(self.api_url, **headers)
 
         self.assertEqual(result.status_code, 400)
-        self.assertDictEqual(
-            result.data, {"status": False, "result": messages.invalid_headers}
+        self.assertEqual(
+            result.data, messages.invalid_headers
         )
 
     def test_invalid_authorization(self):
         """Test if device authorization went well"""
         c = Client()
         headers = {"HTTP_DEVICEAUTHORIZATION": "foobar", "HTTP_DEVICEID": "0"}
-        result = c.post(self.url, **headers)
+        result = c.post(self.api_url, **headers)
 
         self.assertEqual(result.status_code, 403)
         self.assertEqual(result.reason_phrase, "Forbidden")
