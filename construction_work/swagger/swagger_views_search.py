@@ -5,6 +5,12 @@
 from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
+from construction_work.swagger.swagger_abstract_objects import (
+    query_address,
+    query_article_max_age,
+    query_latitude,
+    query_longitude,
+)
 
 messages = Messages()
 
@@ -15,7 +21,7 @@ link_schema = openapi.Schema(
         "href": openapi.Schema(
             type=openapi.TYPE_STRING,
         ),
-    }
+    },
 )
 
 
@@ -25,9 +31,7 @@ pagination_schema = openapi.Schema(
         "result": openapi.Schema(
             type=openapi.TYPE_ARRAY,
             description="List of requested data",
-            items=openapi.Schema(
-                type=openapi.TYPE_OBJECT
-            )
+            items=openapi.Schema(type=openapi.TYPE_OBJECT),
         ),
         "page": openapi.Schema(
             type=openapi.TYPE_OBJECT,
@@ -103,10 +107,7 @@ as_search = {
         ),
     ],
     "responses": {
-        200: openapi.Response(
-            "application/json",
-            pagination_schema
-        ),
+        200: openapi.Response("application/json", pagination_schema),
         422: openapi.Response("{a}|{b}".format(a=messages.invalid_query, b=messages.no_such_field_in_model)),
     },
     "tags": ["Search"],
