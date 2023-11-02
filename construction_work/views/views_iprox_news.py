@@ -1,4 +1,6 @@
 """ Views for news routes """
+from curses.ascii import isdigit
+
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -12,8 +14,12 @@ from construction_work.generic_functions.set_filter import SetFilter
 from construction_work.generic_functions.sort import Sort
 from construction_work.generic_functions.static_data import StaticData
 from construction_work.models import Article, WarningMessage
+from construction_work.models.asset_and_image import Image
+from construction_work.models.warning_and_notification import WarningImage
 from construction_work.serializers import (
     ArticleSerializer,
+    ImageSerializer,
+    WarningMessageMinimalSerializer,
     WarningMessagePublicSerializer,
 )
 from construction_work.swagger.swagger_views_iprox_news import (
@@ -51,39 +57,31 @@ def articles(request):
         _articles = []
         for item in data:
             _article = {
-                "identifier": item["identifier"],
+                "identifier": item["id"],
                 "title": item["title"],
                 "publication_date": item["publication_date"],
                 "type": article_type if article_type == "warning" else item["type"],
             }
             if article_type == "news":
-                _article["image"] = next(
-                    iter(
-                        [
-                            x
-                            for x in item["images"]
-                            if x["type"] in ["main", "banner", "header"]
-                        ]
-                    ),
-                    None,
-                )
+                _article["images"] = [item["image"]]
             else:
                 _article["images"] = item["images"]
+
             _articles.append(_article)
 
         return _articles
 
-    query_params = request.GET.get("project-ids", None)
+    projects_ids = request.GET.get("project-ids", None)
     sort_by = request.GET.get("sort-by", "publication_date")
     sort_order = request.GET.get("sort-order", "desc")
     try:
-        limit = int(request.GET.get("limit", default=0))
+        limit = int(request.GET.get("limit", 0))
     except Exception:
         limit = 0
 
     result = []
-    if query_params is not None:
-        project_identifiers = query_params.split(",")
+    if projects_ids is not None:
+        project_identifiers = projects_ids.split(",")
         for project_identifier in project_identifiers:
             news_objects = list(
                 Article.objects.filter(
@@ -121,11 +119,74 @@ def articles(request):
         item["publication_date"] = item["publication_date"]
 
         # Create image url for warning messages
-        if item["type"] == "warning":
-            for image in item["images"]:
-                for source in image["sources"]:
-                    source["url"] = f'{base_url}image?id={source["image_id"]}'
+        # if item["type"] == "warning":
+        #     for image in item["images"]:
+        #         for source in image["sources"]:
+        #             source["url"] = f'{base_url}image?id={source["image_id"]}'
 
     if limit != 0:
         result = result[:limit]
     return Response({"status": True, "result": result}, status=200)
+
+
+@swagger_auto_schema(**as_articles_get)
+@api_view(["GET"])
+# @RequestMustComeFromApp
+def articles2(request):
+    projects_ids = request.GET.get("project_ids", None)
+    sort_by = request.GET.get("sort_by", "publication_date")
+    sort_order = request.GET.get("sort_order", "desc")
+
+    limit = request.GET.get("limit", 0)
+    if str(limit).isdigit() is False:
+        return Response(data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
+
+    all_news = []
+    # Get articles
+    article_values_params = ("id", "title", "publication_date", "image")
+    if projects_ids:
+        articles_list = Article.objects.filter(projects__id=projects_ids).values(
+            *article_values_params
+        )
+    else:
+        articles_list = Article.objects.values(*article_values_params)
+
+    for obj in articles_list:
+        obj["meta_id"] = f"a_{obj['id']}"
+        obj["images"] = []
+        if obj["image"] is not None:
+            obj["images"].append(obj["image"])
+        obj.pop("image")
+
+    # Get warnings
+
+    # if projects_ids:
+    #     warnings_qs = WarningMessage.objects.filter(project__id__in=projects_ids)
+    # else:
+    #     warnings_qs = WarningMessage.objects.all()
+    # warning_serializer = WarningMessageMinimalSerializer(instance=warnings_qs, many=True)
+
+    warnings_qs = WarningMessage.objects.prefetch_related("warningimage_set__images")
+
+    warnings_list = []
+    for warning in warnings_qs:
+        images = [
+            image
+            for warning_image in warning.warningimage_set.all()
+            for image in warning_image.images.all()
+        ]
+        # TODO: format images the same way as article images, with working url
+        image_serializer = ImageSerializer(instance=images, many=True)
+
+        warning_dict = {
+            "id": warning.pk,
+            "title": warning.title,
+            "publication_date": warning.publication_date,
+            "images": image_serializer.data,
+        }
+        warnings_list.append(warning_dict)
+
+    # all_news.extend(articles_list)
+    all_news.extend(warnings_list)
+
+    return Response(data=all_news, status=status.HTTP_200_OK)

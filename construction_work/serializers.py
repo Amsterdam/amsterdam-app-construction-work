@@ -207,20 +207,20 @@ class WarningMessageSerializer(serializers.ModelSerializer):
 
 
 class WarningMessageMinimalSerializer(serializers.ModelSerializer):
-    """warning messages (internal VUE) serializer"""
+    """Warning message serializer with minimal data"""
 
     meta_id = serializers.SerializerMethodField()
 
     class Meta:
         model = WarningMessage
-        fields = ["meta_id", "modification_date"]
+        fields = ["id", "meta_id", "title", "publication_date"]
 
     def get_meta_id(self, obj: WarningMessage):
         return f"w_{obj.pk}"
 
 
 class WarningMessagePublicSerializer(serializers.ModelSerializer):
-    """warning messages (external) serializer"""
+    """Warning message serializer with extended data"""
 
     # project_foreign_id = serializers.CharField(source="project.foreign_id")
     # project_manager_key = serializers.CharField(source="project_manager.manager_key")
