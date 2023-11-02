@@ -38,6 +38,20 @@ class ImageSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ImagePublicSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Image
+        fields = ["url", "width", "height"]
+
+    def get_url(self, obj: Image):
+        base_url = self.context.get("base_url")
+        if base_url is None:
+            return None
+        return f"{base_url}image?id={obj.pk}"
+
+
 class ProjectSerializer(serializers.ModelSerializer):
     """Project create serializer"""
 
@@ -222,9 +236,6 @@ class WarningMessageMinimalSerializer(serializers.ModelSerializer):
 class WarningMessagePublicSerializer(serializers.ModelSerializer):
     """Warning message serializer with extended data"""
 
-    # project_foreign_id = serializers.CharField(source="project.foreign_id")
-    # project_manager_key = serializers.CharField(source="project_manager.manager_key")
-
     images = serializers.SerializerMethodField()
 
     class Meta:
@@ -237,18 +248,13 @@ class WarningMessagePublicSerializer(serializers.ModelSerializer):
 
         images = []
         for warning_image in warning_images:
-            sources = []
-            first_image = warning_image.images.first()
-            for source_image in warning_image.images.all():
-                source = {
-                    "width": source_image.width,
-                    "height": source_image.height,
-                    "image_id": source_image.pk,
-                    "mime_type": source_image.mime_type,
-                    "url": f"{base_url}image?id={source_image.pk}",
-                }
-                sources.append(source)
+            context = {"base_url": base_url}
+            image_serializer = ImagePublicSerializer(
+                instance=warning_image.images.all(), many=True, context=context
+            )
+            sources = image_serializer.data
 
+            first_image = warning_image.images.first()
             image = {
                 "main": warning_image.is_main,
                 "sources": sources,

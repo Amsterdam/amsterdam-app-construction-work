@@ -70,7 +70,6 @@ urlpatterns = [
     path("project/news", csrf_exempt(views_iprox_news.article)),
     # Articles belonging to projects (news and warnings)
     path("articles", csrf_exempt(views_iprox_news.articles)),
-    path("articles2", csrf_exempt(views_iprox_news.articles2)),
     # Ingestion
     path("ingest/garbagecollector", csrf_exempt(views_ingest.garbage_collector)),
     path("ingest/project", csrf_exempt(views_ingest.etl_project)),
