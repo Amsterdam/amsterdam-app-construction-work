@@ -16,7 +16,9 @@ class SignInTest(TestCase):
         self.password = "unsave"
         self.email = "mock@localhost"
 
-        self.user = get_user_model().objects.create_user(username=self.username, password=self.password, email=self.email)
+        self.user = get_user_model().objects.create_user(
+            username=self.username, password=self.password, email=self.email
+        )
         self.user.save()
         response = self.client.post("/api/v1/get-token/", {"username": self.username, "password": self.password})
         self.headers = {"Accept": "application/json", "AUTHORIZATION": response.data["access"]}
@@ -38,7 +40,7 @@ class SignInTest(TestCase):
         }
 
         response = self.client.post(self.api_url, payload, headers=self.headers)
-        self.assertEqual(response.data, {"status": True, "result": "password updated"})
+        self.assertEqual(response.data, "password updated")
         self.assertEqual(response.status_code, 200)
 
     def test_missing_parameter(self):
@@ -46,8 +48,8 @@ class SignInTest(TestCase):
         payload = {"old_password": self.password, "password": "012345678", "password_verify": "012345678"}
 
         response = self.client.post(self.api_url, payload, headers=self.headers)
-        self.assertEqual(response.data, {"status": False, "result": messages.invalid_query})
-        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.data, messages.invalid_query)
+        self.assertEqual(response.status_code, 400)
 
     def test_password_do_not_match(self):
         """Test non-matching passwords"""
@@ -59,8 +61,8 @@ class SignInTest(TestCase):
         }
 
         response = self.client.post(self.api_url, payload, headers=self.headers)
-        self.assertEqual(response.data, {"status": False, "result": messages.do_not_match})
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.data, messages.do_not_match)
+        self.assertEqual(response.status_code, 400)
 
     def test_password_invalid_username(self):
         """test invalid username"""
@@ -72,8 +74,8 @@ class SignInTest(TestCase):
         }
 
         response = self.client.post(self.api_url, payload, headers=self.headers)
-        self.assertEqual(response.data, {"status": False, "result": messages.invalid_username_or_password})
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.data, messages.invalid_username_or_password)
+        self.assertEqual(response.status_code, 400)
 
     def test_password_invalid_password(self):
         """test invalid password"""
@@ -85,5 +87,5 @@ class SignInTest(TestCase):
         }
 
         response = self.client.post(self.api_url, payload, headers=self.headers)
-        self.assertEqual(response.data, {"status": False, "result": messages.invalid_username_or_password})
-        self.assertEqual(response.status_code, 401)
+        self.assertEqual(response.data, messages.invalid_username_or_password)
+        self.assertEqual(response.status_code, 400)

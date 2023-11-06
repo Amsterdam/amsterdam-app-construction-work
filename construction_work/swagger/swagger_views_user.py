@@ -15,10 +15,10 @@ as_change_password = {
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            "username": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
-            "old_password": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
-            "password": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
-            "password_verify": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
+            "username": openapi.Schema(type=openapi.TYPE_STRING, description="username"),
+            "old_password": openapi.Schema(type=openapi.TYPE_STRING, description="old password"),
+            "password": openapi.Schema(type=openapi.TYPE_STRING, description="new password"),
+            "password_verify": openapi.Schema(type=openapi.TYPE_STRING, description="new password (verify)"),
         },
     ),
     "responses": {
