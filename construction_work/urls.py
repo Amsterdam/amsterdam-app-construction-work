@@ -32,19 +32,40 @@ schema_view = get_schema_view(
 
 urlpatterns = [
     # Path to obtain a new access and refresh token (refresh token expires after 24h)
-    path("get-token/", csrf_exempt(TokenObtainPairView.as_view()), name="token_obtain_pair"),
+    path(
+        "get-token/",
+        csrf_exempt(TokenObtainPairView.as_view()),
+        name="token_obtain_pair",
+    ),
     # Submit your refresh token to this path to obtain a fresh access token
-    path("refresh-token/", csrf_exempt(TokenRefreshView.as_view()), name="token_refresh"),
+    path(
+        "refresh-token/", csrf_exempt(TokenRefreshView.as_view()), name="token_refresh"
+    ),
     path("user/password", csrf_exempt(views_user.change_password)),
     # Swagger (drf-yasg framework)
-    re_path(r"^swagger(?P<format>\.json|\.yaml)$", schema_view.without_ui(cache_timeout=0), name="schema-json"),
-    re_path(r"^apidocs/$", schema_view.with_ui("swagger", cache_timeout=0), name="schema-swagger-ui"),
-    re_path(r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
+    re_path(
+        r"^swagger(?P<format>\.json|\.yaml)$",
+        schema_view.without_ui(cache_timeout=0),
+        name="schema-json",
+    ),
+    re_path(
+        r"^apidocs/$",
+        schema_view.with_ui("swagger", cache_timeout=0),
+        name="schema-swagger-ui",
+    ),
+    re_path(
+        r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"
+    ),
     # Project(s)
     path("projects", csrf_exempt(views_iprox_projects.projects)),
     path("projects/search", csrf_exempt(views_iprox_projects.projects_search)),
     path("projects/follow", csrf_exempt(views_iprox_projects.project_follow)),
     path("projects/followed/articles", csrf_exempt(views_iprox_projects.projects_followed_articles)),
+    path("projects/follow", csrf_exempt(views_iprox_projects.projects_follow)),
+    path(
+        "projects/followed/articles",
+        csrf_exempt(views_iprox_projects.projects_followed_articles),
+    ),
     # Project details(s)
     path("project/details", csrf_exempt(views_iprox_projects.project_details)),
     # News
@@ -64,7 +85,10 @@ urlpatterns = [
     # Warning message
     path("project/warning", csrf_exempt(views_messages.warning_message_crud)),
     path("project/warnings", csrf_exempt(views_messages.warning_messages_get)),
-    path("project/warning/image", csrf_exempt(views_messages.warning_messages_image_upload)),
+    path(
+        "project/warning/image",
+        csrf_exempt(views_messages.warning_messages_image_upload),
+    ),
     # Notification ('teaser' pointing to news- or warning article)
     path("notification", csrf_exempt(views_messages.notification_post)),
     path("notifications", csrf_exempt(views_messages.notification_get)),

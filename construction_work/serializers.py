@@ -4,8 +4,18 @@ from ast import List
 from rest_framework import serializers
 
 from construction_work.generic_functions.gps_utils import get_distance
-from construction_work.generic_functions.project_utils import get_recent_articles_of_project
-from construction_work.models import Article, Asset, Image, Notification, Project, ProjectManager, WarningMessage
+from construction_work.generic_functions.project_utils import (
+    get_recent_articles_of_project,
+)
+from construction_work.models import (
+    Article,
+    Asset,
+    Image,
+    Notification,
+    Project,
+    ProjectManager,
+    WarningMessage,
+)
 from construction_work.models.device import Device
 from construction_work.models.warning_and_notification import WarningImage
 
@@ -28,6 +38,20 @@ class ImageSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class ImagePublicSerializer(serializers.ModelSerializer):
+    url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Image
+        fields = ["url", "width", "height"]
+
+    def get_url(self, obj: Image):
+        base_url = self.context.get("base_url")
+        if base_url is None:
+            return None
+        return f"{base_url}image?id={obj.pk}"
+
+
 class ProjectSerializer(serializers.ModelSerializer):
     """Project create serializer"""
 
@@ -46,7 +70,16 @@ class ProjectListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Project
-        fields = ["id", "title", "subtitle", "image", "followed", "meter", "strides", "recent_articles"]
+        fields = [
+            "id",
+            "title",
+            "subtitle",
+            "image",
+            "followed",
+            "meter",
+            "strides",
+            "recent_articles",
+        ]
 
     def get_distance_from_project(self, lat: float, lon: float, obj: Project):
         """Get distance from project"""
@@ -69,7 +102,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
         """Given location away from project in meters"""
         lat = self.context.get("lat")
         lon = self.context.get("lon")
-        
+
         distance = self.get_distance_from_project(lat, lon, obj)
         return distance[0]
 
@@ -77,7 +110,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
         """Given location away from project in strides"""
         lat = self.context.get("lat")
         lon = self.context.get("lon")
-        
+
         distance = self.get_distance_from_project(lat, lon, obj)
         return distance[1]
 
@@ -86,7 +119,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
         followed_projects = self.context.get("followed_projects")
         if followed_projects is None:
             return None
-        
+
         return obj.pk in [x.pk for x in followed_projects]
 
     def get_recent_articles(self, obj: Project) -> dict:
@@ -126,7 +159,7 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Article
-        exclude = ["id"]
+        fields = "__all__"
 
 
 class ArticleMinimalSerializer(serializers.ModelSerializer):
@@ -188,23 +221,20 @@ class WarningMessageSerializer(serializers.ModelSerializer):
 
 
 class WarningMessageMinimalSerializer(serializers.ModelSerializer):
-    """warning messages (internal VUE) serializer"""
+    """Warning message serializer with minimal data"""
 
     meta_id = serializers.SerializerMethodField()
 
     class Meta:
         model = WarningMessage
-        fields = ["meta_id", "modification_date"]
+        fields = ["id", "meta_id", "title", "publication_date"]
 
     def get_meta_id(self, obj: WarningMessage):
         return f"w_{obj.pk}"
 
 
 class WarningMessagePublicSerializer(serializers.ModelSerializer):
-    """warning messages (external) serializer"""
-
-    # project_foreign_id = serializers.CharField(source="project.foreign_id")
-    # project_manager_key = serializers.CharField(source="project_manager.manager_key")
+    """Warning message serializer with extended data"""
 
     images = serializers.SerializerMethodField()
 
@@ -218,18 +248,13 @@ class WarningMessagePublicSerializer(serializers.ModelSerializer):
 
         images = []
         for warning_image in warning_images:
-            sources = []
-            first_image = warning_image.images.first()
-            for source_image in warning_image.images.all():
-                source = {
-                    "width": source_image.width,
-                    "height": source_image.height,
-                    "image_id": source_image.pk,
-                    "mime_type": source_image.mime_type,
-                    "url": f"{base_url}image?id={source_image.pk}",
-                }
-                sources.append(source)
+            context = {"base_url": base_url}
+            image_serializer = ImagePublicSerializer(
+                instance=warning_image.images.all(), many=True, context=context
+            )
+            sources = image_serializer.data
 
+            first_image = warning_image.images.first()
             image = {
                 "main": warning_image.is_main,
                 "sources": sources,
