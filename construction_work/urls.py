@@ -43,7 +43,7 @@ urlpatterns = [
     # Project(s)
     path("projects", csrf_exempt(views_iprox_projects.projects)),
     path("projects/search", csrf_exempt(views_iprox_projects.projects_search)),
-    path("projects/follow", csrf_exempt(views_iprox_projects.projects_follow)),
+    path("projects/follow", csrf_exempt(views_iprox_projects.project_follow)),
     path("projects/followed/articles", csrf_exempt(views_iprox_projects.projects_followed_articles)),
     # Project details(s)
     path("project/details", csrf_exempt(views_iprox_projects.project_details)),
