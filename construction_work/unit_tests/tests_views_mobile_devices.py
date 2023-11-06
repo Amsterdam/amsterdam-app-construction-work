@@ -39,18 +39,14 @@ class TestApiDeviceRegistration(TestCase):
         first_result = c.post(self.api_url, data, **headers)
 
         self.assertEqual(first_result.status_code, 200)
-        self.assertEqual(
-            first_result.data.get("firebase_token"), data.get("firebase_token")
-        )
+        self.assertEqual(first_result.data.get("firebase_token"), data.get("firebase_token"))
         self.assertEqual(first_result.data.get("os"), data.get("os"))
 
         # Silent discard second call
         second_result = c.post(self.api_url, data, **headers)
 
         self.assertEqual(second_result.status_code, 200)
-        self.assertEqual(
-            second_result.data.get("firebase_token"), data.get("firebase_token")
-        )
+        self.assertEqual(second_result.data.get("firebase_token"), data.get("firebase_token"))
         self.assertEqual(second_result.data.get("os"), data.get("os"))
 
         # Assert only one record in db
@@ -71,9 +67,7 @@ class TestApiDeviceRegistration(TestCase):
         first_result = c.delete(self.api_url, **headers)
 
         self.assertEqual(first_result.status_code, 200)
-        self.assertEqual(
-            first_result.data, "Registration removed"
-        )
+        self.assertEqual(first_result.data, "Registration removed")
 
         # Expect no records in db
         devices_with_token = list(Device.objects.filter(firebase_token__isnull=False).all())
@@ -83,9 +77,20 @@ class TestApiDeviceRegistration(TestCase):
         second_result = c.delete(self.api_url, **headers)
 
         self.assertEqual(second_result.status_code, 200)
-        self.assertEqual(
-            second_result.data, "Registration removed"
-        )
+        self.assertEqual(second_result.data, "Registration removed")
+
+    def test_delete_no_device(self):
+        """Test removing a device registration"""
+        # Delete registration
+        c = Client()
+        headers = {
+            "HTTP_DEVICEAUTHORIZATION": self.token,
+            "HTTP_DEVICEID": "foobar_device",
+        }
+        first_result = c.delete(self.api_url, **headers)
+
+        self.assertEqual(first_result.status_code, 404)
+        self.assertEqual(first_result.data, "No record found")
 
     def test_missing_os_missing(self):
         """Test if missing OS is detected"""
@@ -95,9 +100,7 @@ class TestApiDeviceRegistration(TestCase):
         result = c.post(self.api_url, data, **headers)
 
         self.assertEqual(result.status_code, 400)
-        self.assertEqual(
-            result.data, messages.invalid_query
-        )
+        self.assertEqual(result.data, messages.invalid_query)
 
     def test_missing_firebase_token(self):
         """Test is missing token is detected"""
@@ -107,9 +110,7 @@ class TestApiDeviceRegistration(TestCase):
         result = c.post(self.api_url, data, **headers)
 
         self.assertEqual(result.status_code, 400)
-        self.assertEqual(
-            result.data, messages.invalid_query
-        )
+        self.assertEqual(result.data, messages.invalid_query)
 
     def test_missing_identifier(self):
         """Test if missing identifier is detected"""
@@ -118,9 +119,7 @@ class TestApiDeviceRegistration(TestCase):
         result = c.post(self.api_url, **headers)
 
         self.assertEqual(result.status_code, 400)
-        self.assertEqual(
-            result.data, messages.invalid_headers
-        )
+        self.assertEqual(result.data, messages.invalid_headers)
 
     def test_invalid_authorization(self):
         """Test if device authorization went well"""
