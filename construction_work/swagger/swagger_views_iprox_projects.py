@@ -14,6 +14,7 @@ from construction_work.swagger.swagger_abstract_objects import (
     query_address,
     query_article_max_age,
     query_fields,
+    query_foreign_id,
     query_id,
     query_latitude,
     query_longitude,
@@ -227,22 +228,17 @@ as_projects_search = {
 }
 
 
-as_projects_follow_post = {
+as_project_follow_post = {
     # /api/v1/image swagger_auto_schema
     "methods": ["POST"],
     "manual_parameters": [header_device_authorization, header_device_id],
     "request_body": openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties={"foreign_id": openapi.Schema(type=openapi.TYPE_STRING, description="Project foreign id")},
+        type=openapi.TYPE_OBJECT, properties={"id": openapi.Schema(type=openapi.TYPE_INTEGER, description="project id")}
     ),
     "responses": {
         200: openapi.Response(
             "application/json",
             examples={"application/json": "Subscription added"},
-        ),
-        403: openapi.Response(
-            "application/json",
-            examples={"application/json": message.access_denied},
         ),
         400: openapi.Response(
             "application/json",
@@ -257,7 +253,7 @@ as_projects_follow_post = {
 }
 
 
-as_projects_follow_delete = {
+as_project_follow_delete = {
     # /api/v1/image swagger_auto_schema
     "methods": ["DELETE"],
     "manual_parameters": [header_device_authorization, header_device_id],

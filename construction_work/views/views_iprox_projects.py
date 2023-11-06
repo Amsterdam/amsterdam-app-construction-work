@@ -35,9 +35,9 @@ from construction_work.serializers import (
 )
 from construction_work.swagger.swagger_views_iprox_projects import (
     as_project_details,
+    as_project_follow_delete,
+    as_project_follow_post,
     as_projects,
-    as_projects_follow_delete,
-    as_projects_follow_post,
     as_projects_followed_articles,
     as_projects_search,
 )
@@ -341,11 +341,11 @@ def project_details(request):
     return Response(data=project_serializer.data, status=status.HTTP_200_OK)
 
 
-@swagger_auto_schema(**as_projects_follow_post)
-@swagger_auto_schema(**as_projects_follow_delete)
+@swagger_auto_schema(**as_project_follow_post)
+@swagger_auto_schema(**as_project_follow_delete)
 @api_view(["POST", "DELETE"])
 @RequestMustComeFromApp
-def projects_follow(request):
+def project_follow(request):
     """Subscribe or un-subscribe from project"""
     device_id = request.META.get("HTTP_DEVICEID", None)
     if device_id is None:
@@ -382,17 +382,14 @@ def projects_follow(request):
             serializer.save()
         else:
             device.followed_projects.add(project)
-            serializer = DeviceSerializer(instance=device, partial=True)
+            DeviceSerializer(instance=device, partial=True)
 
         return Response(data="Subscription added", status=status.HTTP_200_OK)
 
     # Unfollow flow
     # request.method == 'DELETE'
     if device is None:
-        return Response(
-            data=message.no_record_found,
-            status=status.HTTP_404_NOT_FOUND,
-        )
+        return Response(data=message.no_record_found, status=status.HTTP_404_NOT_FOUND)
 
     device.followed_projects.remove(project)
     return Response(data="Subscription removed", status=status.HTTP_200_OK)
