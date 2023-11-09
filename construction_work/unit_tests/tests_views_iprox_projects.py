@@ -13,6 +13,7 @@ from construction_work.generic_functions.text_search import MIN_QUERY_LENGTH
 from construction_work.models import Project
 from construction_work.models.article import Article
 from construction_work.models.device import Device
+from construction_work.models.warning_and_notification import WarningMessage
 from construction_work.unit_tests.mock_data import TestData
 from construction_work.views.views_iprox_projects import memoize
 
@@ -44,6 +45,16 @@ class BaseTestApi(TestCase):
 
     def tearDown(self) -> None:
         memoize.clear_all_cache()
+
+    def create_project_and_warning(self, project_foreign_id, warning_pub_date):
+        project = Project.objects.filter(foreign_id=project_foreign_id).first()
+
+        warning_data = self.data.warning_message
+        warning_data["project"] = project
+        warning_data["publication_date"] = warning_pub_date
+        warning = WarningMessage.objects.create(**warning_data)
+        warning.save()
+        return project
 
     def create_project_and_article(self, project_foreign_id, article_pub_date):
         project_data = self.data.projects[0]
@@ -553,6 +564,7 @@ class TestFollowedProjectArticles(BaseTestApi):
     def test_get_recent_articles(self):
         # Project with TWO recent articles
         project_1 = self.create_project_and_article(10, "2023-01-08T12:00:00+00:00")
+        self.create_project_and_warning(10, "2023-01-08T12:00:00+00:00")
         self.add_article_to_project(project_1, 12, "2023-01-08T12:00:00+00:00")
 
         # Project with ONE recent article
@@ -569,16 +581,39 @@ class TestFollowedProjectArticles(BaseTestApi):
 
         self.headers["HTTP_DEVICEID"] = device.device_id
 
-        def assert_total_returned_articles(max_age, expected_count):
+        def assert_total_returned_articles(max_age=0):
             params = {"article_max_age": max_age}
-            response = self.client.get(self.api_url, params, **self.headers)
+            _response = self.client.get(self.api_url, params, **self.headers).json()
 
-            total_returned_articles = 0
-            for articles in response.data.values():
-                article_count = len(articles)
-                total_returned_articles += article_count
+            _total_returned_articles = 0
+            for key in _response:
+                article_count = len(_response[key])
+                _total_returned_articles += article_count
 
-            self.assertEqual(total_returned_articles, expected_count)
+            return _total_returned_articles, _response
 
-        assert_total_returned_articles(3, 3)
-        assert_total_returned_articles(10, 6)
+        total_returned_articles, response = assert_total_returned_articles(max_age=3)
+        self.assertEqual(total_returned_articles, 4)
+        expected_result = {
+            "10": [
+                {"meta_id": {"type": "article", "id": 20}},
+                {"meta_id": {"type": "article", "id": 21}},
+                {"meta_id": {"type": "warning", "id": 1}},
+            ],
+            "20": [{"meta_id": {"type": "article", "id": 23}}],
+            "30": [],
+        }
+        self.assertDictEqual(response, expected_result)
+
+        total_returned_articles, response = assert_total_returned_articles(max_age=10)
+        self.assertEqual(total_returned_articles, 7)
+        expected_result = {
+            "10": [
+                {"meta_id": {"type": "article", "id": 20}},
+                {"meta_id": {"type": "article", "id": 21}},
+                {"meta_id": {"type": "warning", "id": 1}},
+            ],
+            "20": [{"meta_id": {"type": "article", "id": 22}}, {"meta_id": {"type": "article", "id": 23}}],
+            "30": [{"meta_id": {"type": "article", "id": 24}}, {"meta_id": {"type": "article", "id": 25}}],
+        }
+        self.assertDictEqual(response, expected_result)

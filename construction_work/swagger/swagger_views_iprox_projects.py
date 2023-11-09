@@ -14,7 +14,6 @@ from construction_work.swagger.swagger_abstract_objects import (
     query_address,
     query_article_max_age,
     query_fields,
-    query_foreign_id,
     query_id,
     query_latitude,
     query_longitude,
@@ -293,20 +292,38 @@ as_projects_followed_articles = {
             openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
-                    "status": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="status"),
-                    "result": openapi.Schema(
-                        type=openapi.TYPE_OBJECT,
-                        properties={
-                            "projects": openapi.Schema(
-                                type=openapi.TYPE_OBJECT,
-                                properties={"<identifier>": foreign_id},
-                            )
-                        },
-                    ),
+                    "<project identifier>": openapi.Schema(
+                        type=openapi.TYPE_ARRAY,
+                        items=openapi.Schema(
+                            type=openapi.TYPE_OBJECT,
+                            properties={
+                                "meta_id": openapi.Schema(
+                                    type=openapi.TYPE_OBJECT,
+                                    properties={
+                                        "type": openapi.Schema(type=openapi.TYPE_STRING, description="article|warning"),
+                                        "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="id"),
+                                    },
+                                )
+                            },
+                        ),
+                    )
                 },
             ),
-            examples={"application/json": {"status": True, "result": {}}},
-        )
+            examples={
+                "application/json": {
+                    "155581": [{"meta_id": {"type": "article", "id": 163}}, {"meta_id": {"type": "warning", "id": 67}}],
+                    "155584": [{"meta_id": {"type": "warning", "id": 356}}],
+                }
+            },
+        ),
+        400: openapi.Response(
+            "application/json",
+            examples={"application/json": [message.invalid_parameters, message.invalid_headers]},
+        ),
+        404: openapi.Response(
+            "application/json",
+            examples={"application/json": message.no_record_found},
+        ),
     },
     "tags": ["Projects"],
 }
