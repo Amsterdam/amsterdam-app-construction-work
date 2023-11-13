@@ -98,10 +98,20 @@ def articles(request):
         }
         warnings_list.append(warning_dict)
 
-    all_news.extend(warnings_list)
     all_news.extend(articles_list)
+    all_news.extend(warnings_list)
 
-    if sort_by is not None:
+    available_sort_keys = []
+    if len(all_news) > 0:
+        available_sort_keys = list(all_news[0].keys())
+
+    # Sort output if sort by is present and sort keys are available
+    if sort_by is not None and len(available_sort_keys) > 0:
+        if sort_by not in available_sort_keys:
+            return Response(
+                data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST
+            )
+
         reverse = False
         if sort_order == "desc":
             reverse = True
