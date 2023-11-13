@@ -38,7 +38,7 @@ def article(request):
 
 @swagger_auto_schema(**as_articles_get)
 @api_view(["GET"])
-# @RequestMustComeFromApp
+@RequestMustComeFromApp
 def articles(request):
     projects_ids = request.GET.get("project_ids", None)
     sort_by = request.GET.get("sort_by", "publication_date")
@@ -47,6 +47,7 @@ def articles(request):
     limit = request.GET.get("limit", 0)
     if str(limit).isdigit() is False:
         return Response(data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
+    limit = int(limit)
 
     all_news = []
 
@@ -116,5 +117,8 @@ def articles(request):
         if sort_order == "desc":
             reverse = True
         all_news = sorted(all_news, key=lambda x: x[sort_by], reverse=reverse)
+
+    if limit > 0:
+        all_news = all_news[:limit]
 
     return Response(data=all_news, status=status.HTTP_200_OK)
