@@ -101,10 +101,10 @@ def articles(request):
     all_news.extend(warnings_list)
     all_news.extend(articles_list)
 
-    reverse = False
-    if sort_order == "desc":
-        reverse = True
-
-    all_news = sorted(all_news, key=lambda x: x[sort_by], reverse=reverse)
+    if sort_by is not None:
+        reverse = False
+        if sort_order == "desc":
+            reverse = True
+        all_news = sorted(all_news, key=lambda x: x[sort_by], reverse=reverse)
 
     return Response(data=all_news, status=status.HTTP_200_OK)
