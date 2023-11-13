@@ -63,7 +63,7 @@
             "args": [
                 "test",
                 // "construction_work.unit_tests.tests_views_project_manager.TestApiProjectManager",
-                "construction_work.unit_tests.tests_views_iprox_projects.TestApiProjectsSearch",
+                "construction_work.unit_tests.tests_views_iprox_projects.TestFollowedProjectArticles",
                 // "--noinput"
             ],
             "django": true,

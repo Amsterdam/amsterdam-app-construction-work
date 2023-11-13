@@ -467,6 +467,6 @@ def projects_followed_articles(request):
             ArticleMinimalSerializer,
             WarningMessageMinimalSerializer,
         )
-        result[project.foreign_id] = recent_articles
+        result[project.pk] = recent_articles
 
     return Response(data=result, status=status.HTTP_200_OK)

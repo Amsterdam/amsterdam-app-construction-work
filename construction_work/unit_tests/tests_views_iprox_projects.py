@@ -46,16 +46,6 @@ class BaseTestApi(TestCase):
     def tearDown(self) -> None:
         memoize.clear_all_cache()
 
-    def create_project_and_warning(self, project_foreign_id, warning_pub_date):
-        project = Project.objects.filter(foreign_id=project_foreign_id).first()
-
-        warning_data = self.data.warning_message
-        warning_data["project"] = project
-        warning_data["publication_date"] = warning_pub_date
-        warning = WarningMessage.objects.create(**warning_data)
-        warning.save()
-        return project
-
     def create_project_and_article(self, project_foreign_id, article_pub_date):
         project_data = self.data.projects[0]
         project_data["foreign_id"] = project_foreign_id
@@ -67,7 +57,7 @@ class BaseTestApi(TestCase):
         article = Article.objects.create(**article_data)
         article.projects.add(project)
 
-        return project
+        return project, article
 
     def add_article_to_project(self, project: Project, foreign_id, pub_date):
         article_data = self.data.articles[0]
@@ -76,6 +66,14 @@ class BaseTestApi(TestCase):
         article = Article.objects.create(**article_data)
         article.projects.add(project)
         return article
+
+    def add_warning_to_project(self, project: Project, pub_date):
+        warning_data = self.data.warning_message
+        warning_data["publication_date"] = pub_date
+        warning_data["project_id"] = project.pk
+        warning = WarningMessage.objects.create(**warning_data)
+        warning.save()
+        return warning
 
 
 class TestApiProjects(BaseTestApi):
@@ -110,15 +108,17 @@ class TestApiProjects(BaseTestApi):
         self.assertIsNotNone(new_device)
 
     @freeze_time("2023-01-02")
-    def assert_projects_sorted_descending_by_recent_article_date(self, device_follows_projects: bool):
+    def assert_projects_sorted_descending_by_recent_article_date(
+        self, device_follows_projects: bool
+    ):
         # Create projects with articles at different times
-        project_1 = self.create_project_and_article(10, "2023-01-01T12:00:00+00:00")
+        project_1, _ = self.create_project_and_article(10, "2023-01-01T12:00:00+00:00")
         self.add_article_to_project(project_1, 12, "2023-01-01T12:20:00+00:00")
-        project_2 = self.create_project_and_article(20, "2023-01-01T12:35:00+00:00")
+        project_2, _ = self.create_project_and_article(20, "2023-01-01T12:35:00+00:00")
         self.add_article_to_project(project_2, 22, "2023-01-01T12:45:00+00:00")
-        project_3 = self.create_project_and_article(30, "2023-01-01T12:15:00+00:00")
+        project_3, _ = self.create_project_and_article(30, "2023-01-01T12:15:00+00:00")
         self.add_article_to_project(project_3, 32, "2023-01-01T12:16:00+00:00")
-        project_4 = self.create_project_and_article(40, "2023-01-01T12:35:00+00:00")
+        project_4, _ = self.create_project_and_article(40, "2023-01-01T12:35:00+00:00")
         self.add_article_to_project(project_4, 42, "2023-01-01T12:30:00+00:00")
 
         # Create device and follow all projects
@@ -131,20 +131,34 @@ class TestApiProjects(BaseTestApi):
         response = self.client.get(self.api_url, {"page_size": 4}, **self.headers)
 
         # Default order will be by objects internal pk
-        expected_default_foreign_id_order = [project_1.pk, project_2.pk, project_3.pk, project_4.pk]
+        expected_default_foreign_id_order = [
+            project_1.pk,
+            project_2.pk,
+            project_3.pk,
+            project_4.pk,
+        ]
         default_foreign_id_order = list(Project.objects.values_list("pk", flat=True))
         self.assertEqual(default_foreign_id_order, expected_default_foreign_id_order)
 
         # Expected projects to be ordered descending by publication date
-        expected_foreign_id_order = [project_2.pk, project_4.pk, project_1.pk, project_3.pk]
+        expected_foreign_id_order = [
+            project_2.pk,
+            project_4.pk,
+            project_1.pk,
+            project_3.pk,
+        ]
         response_foreign_id_order = [x["id"] for x in response.data["result"]]
         self.assertEqual(response_foreign_id_order, expected_foreign_id_order)
 
     def test_followed_projects_sorted_descending_by_recent_article_date(self):
-        self.assert_projects_sorted_descending_by_recent_article_date(device_follows_projects=True)
+        self.assert_projects_sorted_descending_by_recent_article_date(
+            device_follows_projects=True
+        )
 
     def test_other_projects_sorted_descending_by_recent_article_date(self):
-        self.assert_projects_sorted_descending_by_recent_article_date(device_follows_projects=False)
+        self.assert_projects_sorted_descending_by_recent_article_date(
+            device_follows_projects=False
+        )
 
     def test_other_projects_sorted_by_distance_with_lat_lon(self):
         # Setup location
@@ -157,21 +171,21 @@ class TestApiProjects(BaseTestApi):
         # - The furthest location to the base location
         van_gogh_museum_adam = (52.358155575937595, 4.8811891932042055)
 
-        project_1 = self.create_project_and_article(10, "2023-01-01T12:00:00+00:00")
+        project_1, _ = self.create_project_and_article(10, "2023-01-01T12:00:00+00:00")
         project_1.coordinates = {
             "lat": van_gogh_museum_adam[0],
             "lon": van_gogh_museum_adam[1],
         }
         project_1.save()
 
-        project_2 = self.create_project_and_article(20, "2023-01-01T12:15:00+00:00")
+        project_2, _ = self.create_project_and_article(20, "2023-01-01T12:15:00+00:00")
         project_2.coordinates = {
             "lat": royal_palace_adam[0],
             "lon": royal_palace_adam[1],
         }
         project_2.save()
 
-        project_3 = self.create_project_and_article(30, "2023-01-01T12:30:00+00:00")
+        project_3, _ = self.create_project_and_article(30, "2023-01-01T12:30:00+00:00")
         project_3.coordinates = {
             "lat": rijks_museam_adam[0],
             "lon": rijks_museam_adam[1],
@@ -185,7 +199,11 @@ class TestApiProjects(BaseTestApi):
         self.headers["HTTP_DEVICEID"] = device.device_id
         response = self.client.get(
             self.api_url,
-            {"lat": adam_central_station[0], "lon": adam_central_station[1], "page_size": 3},
+            {
+                "lat": adam_central_station[0],
+                "lon": adam_central_station[1],
+                "page_size": 3,
+            },
             **self.headers,
         )
 
@@ -504,7 +522,9 @@ class TestApiProjectFollow(BaseTestApi):
         # Perform API call and check status
         self.headers["HTTP_DEVICEID"] = device_id
         data = {"id": project_id}
-        response = self.client.delete(self.api_url, data=data, content_type="application/json", **self.headers)
+        response = self.client.delete(
+            self.api_url, data=data, content_type="application/json", **self.headers
+        )
         self.assertEqual(response.status_code, 200)
 
         # Project should not be part of device followed projects
@@ -520,7 +540,9 @@ class TestApiProjectFollow(BaseTestApi):
         # Perform API call and check status
         self.headers["HTTP_DEVICEID"] = device_id
         data = {"id": 9999}
-        response = self.client.delete(self.api_url, data=data, content_type="application/json", **self.headers)
+        response = self.client.delete(
+            self.api_url, data=data, content_type="application/json", **self.headers
+        )
         self.assertEqual(response.status_code, 404)
 
     def test_unfollow_project_that_device_is_not_following(self):
@@ -536,7 +558,9 @@ class TestApiProjectFollow(BaseTestApi):
         # Perform API call and check status
         self.headers["HTTP_DEVICEID"] = device_id
         data = {"id": project_id}
-        response = self.client.delete(self.api_url, data=data, content_type="application/json", **self.headers)
+        response = self.client.delete(
+            self.api_url, data=data, content_type="application/json", **self.headers
+        )
         self.assertEqual(response.status_code, 200)
 
         # Device should have no followed projects
@@ -563,17 +587,29 @@ class TestFollowedProjectArticles(BaseTestApi):
     @freeze_time("2023-01-10")
     def test_get_recent_articles(self):
         # Project with TWO recent articles
-        project_1 = self.create_project_and_article(10, "2023-01-08T12:00:00+00:00")
-        self.create_project_and_warning(10, "2023-01-08T12:00:00+00:00")
-        self.add_article_to_project(project_1, 12, "2023-01-08T12:00:00+00:00")
+        project_1, article_1 = self.create_project_and_article(
+            10, "2023-01-08T12:00:00+00:00"
+        )
+        warning_1 = self.add_warning_to_project(project_1, "2023-01-08T12:00:00+00:00")
+        article_2 = self.add_article_to_project(
+            project_1, 12, "2023-01-08T12:00:00+00:00"
+        )
 
         # Project with ONE recent article
-        project_2 = self.create_project_and_article(20, "2023-01-05T12:00:00+00:00")
-        self.add_article_to_project(project_2, 22, "2023-01-07T12:00:00+00:00")
+        project_2, article_3 = self.create_project_and_article(
+            20, "2023-01-05T12:00:00+00:00"
+        )
+        article_4 = self.add_article_to_project(
+            project_2, 22, "2023-01-07T12:00:00+00:00"
+        )
 
         # Project with NO recent articles
-        project_3 = self.create_project_and_article(30, "2023-01-01T12:00:00+00:00")
-        self.add_article_to_project(project_3, 32, "2023-01-01T12:00:00+00:00")
+        project_3, article_5 = self.create_project_and_article(
+            30, "2023-01-01T12:00:00+00:00"
+        )
+        article_6 = self.add_article_to_project(
+            project_3, 32, "2023-01-01T12:00:00+00:00"
+        )
 
         # Create device and follow all projects
         device = Device.objects.create(**self.data.devices[0])
@@ -595,25 +631,31 @@ class TestFollowedProjectArticles(BaseTestApi):
         total_returned_articles, response = assert_total_returned_articles(max_age=3)
         self.assertEqual(total_returned_articles, 4)
         expected_result = {
-            "10": [
-                {"meta_id": {"type": "article", "id": 20}},
-                {"meta_id": {"type": "article", "id": 21}},
-                {"meta_id": {"type": "warning", "id": 1}},
+            str(project_1.pk): [
+                {"meta_id": {"type": "article", "id": article_1.pk}},
+                {"meta_id": {"type": "article", "id": article_2.pk}},
+                {"meta_id": {"type": "warning", "id": warning_1.pk}},
             ],
-            "20": [{"meta_id": {"type": "article", "id": 23}}],
-            "30": [],
+            str(project_2.pk): [{"meta_id": {"type": "article", "id": article_4.pk}}],
+            str(project_3.pk): [],
         }
         self.assertDictEqual(response, expected_result)
 
         total_returned_articles, response = assert_total_returned_articles(max_age=10)
         self.assertEqual(total_returned_articles, 7)
         expected_result = {
-            "10": [
-                {"meta_id": {"type": "article", "id": 20}},
-                {"meta_id": {"type": "article", "id": 21}},
-                {"meta_id": {"type": "warning", "id": 1}},
+            str(project_1.pk): [
+                {"meta_id": {"type": "article", "id": article_1.pk}},
+                {"meta_id": {"type": "article", "id": article_2.pk}},
+                {"meta_id": {"type": "warning", "id": warning_1.pk}},
             ],
-            "20": [{"meta_id": {"type": "article", "id": 22}}, {"meta_id": {"type": "article", "id": 23}}],
-            "30": [{"meta_id": {"type": "article", "id": 24}}, {"meta_id": {"type": "article", "id": 25}}],
+            str(project_2.pk): [
+                {"meta_id": {"type": "article", "id": article_3.pk}},
+                {"meta_id": {"type": "article", "id": article_4.pk}},
+            ],
+            str(project_3.pk): [
+                {"meta_id": {"type": "article", "id": article_5.pk}},
+                {"meta_id": {"type": "article", "id": article_6.pk}},
+            ],
         }
         self.assertDictEqual(response, expected_result)
