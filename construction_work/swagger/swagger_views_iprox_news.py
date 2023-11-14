@@ -92,33 +92,32 @@ as_articles_get = {
     "methods": ["GET"],
     "manual_parameters": [
         openapi.Parameter(
-            "project-ids",
+            "project_ids",
             openapi.IN_QUERY,
-            "Query articles by project-identifier(s)",
-            type=openapi.TYPE_ARRAY,
-            items=openapi.Items(type=openapi.TYPE_STRING),
+            description="Limit articles to these comma seperated project ids",
+            type=openapi.TYPE_STRING,
             required=False,
         ),
         openapi.Parameter(
             "limit",
             openapi.IN_QUERY,
-            "Limit returned items",
+            description="Limit returned items to this number",
             type=openapi.TYPE_INTEGER,
             format="<int>",
             required=False,
         ),
         openapi.Parameter(
-            "sort-by",
+            "sort_by",
             openapi.IN_QUERY,
-            "Sort response (default: publication_date)",
+            description="Sort response (default: publication_date)",
             type=openapi.TYPE_STRING,
             format="<any key from model>",
             required=False,
         ),
         openapi.Parameter(
-            "sort-order",
+            "sort_order",
             openapi.IN_QUERY,
-            "Sorting order (default: desc)",
+            description="Sorting order (default: desc)",
             type=openapi.TYPE_STRING,
             format="<asc, desc>",
             required=False,
@@ -132,9 +131,6 @@ as_articles_get = {
                 items=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        "identifier": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="identifier"
-                        ),
                         "title": openapi.Schema(
                             type=openapi.TYPE_STRING, description="title"
                         ),
@@ -142,16 +138,97 @@ as_articles_get = {
                             type=openapi.TYPE_STRING, description="year-month-day"
                         ),
                         "type": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="<news|work|warning>"
+                            type=openapi.TYPE_STRING, description="<news|warning>"
                         ),
-                        "image": openapi.Schema(
-                            type=openapi.TYPE_OBJECT, properties={}
+                        "meta_id": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="identifier"
+                        ),
+                        "images": openapi.Schema(
+                            type=openapi.TYPE_ARRAY,
+                            description="related images",
+                            items=openapi.Schema(
+                                type=openapi.TYPE_OBJECT,
+                                properties={
+                                    "id": openapi.Schema(
+                                        type=openapi.TYPE_STRING,
+                                        description="image id",
+                                    ),
+                                    "sources": openapi.Schema(
+                                        type=openapi.TYPE_ARRAY,
+                                        description="same image in different formats",
+                                        items=openapi.Schema(
+                                            type=openapi.TYPE_OBJECT,
+                                            properties={
+                                                "url": openapi.Schema(
+                                                    type=openapi.TYPE_STRING,
+                                                    description="url to image",
+                                                ),
+                                                "width": openapi.Schema(
+                                                    type=openapi.TYPE_INTEGER,
+                                                    description="width of image",
+                                                ),
+                                                "height": openapi.Schema(
+                                                    type=openapi.TYPE_INTEGER,
+                                                    description="height of image",
+                                                ),
+                                            },
+                                        ),
+                                    ),
+                                },
+                            ),
                         ),
                     },
                 ),
             ),
-            examples={"application/json": {"status": True, "result": {}}},
-        )
+            examples={
+                "application/json": [
+                    {
+                        "title": "Werkzaamheden omgeving NDSM-kade",
+                        "publication_date": "2023-10-30T11:54:00Z",
+                        "type": "news",
+                        "meta_id": "a_183",
+                        "images": [
+                            {
+                                "id": 23148339,
+                                "sources": [
+                                    {
+                                        "url": "/publish/pages/968234/ndsm-werf-west-bouwontwikkelingen.png",
+                                        "width": 940,
+                                        "height": 415,
+                                    },
+                                    {
+                                        "url": "/publish/pages/968234/220px/ndsm-werf-west-bouwontwikkelingen.jpg",
+                                        "width": 220,
+                                        "height": 97,
+                                    },
+                                    {
+                                        "url": "/publish/pages/968234/460px/ndsm-werf-west-bouwontwikkelingen.jpg",
+                                        "width": 460,
+                                        "height": 203,
+                                    },
+                                    {
+                                        "url": "/publish/pages/968234/700px/ndsm-werf-west-bouwontwikkelingen.jpg",
+                                        "width": 700,
+                                        "height": 309,
+                                    },
+                                    {
+                                        "url": "/publish/pages/968234/80px/ndsm-werf-west-bouwontwikkelingen.jpg",
+                                        "width": 80,
+                                        "height": 35,
+                                    },
+                                ],
+                                "aspectRatio": 2.2650602409638556,
+                                "alternativeText": None,
+                            }
+                        ],
+                    }
+                ]
+            },
+        ),
+        400: openapi.Response(
+            "application/json",
+            examples={"application/json": messages.invalid_query},
+        ),
     },
     "tags": ["Articles", "Projects"],
 }
