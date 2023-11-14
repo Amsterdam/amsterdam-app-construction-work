@@ -38,7 +38,9 @@ urlpatterns = [
         name="token_obtain_pair",
     ),
     # Submit your refresh token to this path to obtain a fresh access token
-    path("refresh-token/", csrf_exempt(TokenRefreshView.as_view()), name="token_refresh"),
+    path(
+        "refresh-token/", csrf_exempt(TokenRefreshView.as_view()), name="token_refresh"
+    ),
     path("user/password", csrf_exempt(views_user.change_password)),
     # Swagger (drf-yasg framework)
     re_path(
@@ -51,13 +53,17 @@ urlpatterns = [
         schema_view.with_ui("swagger", cache_timeout=0),
         name="schema-swagger-ui",
     ),
-    re_path(r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
+    re_path(
+        r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"
+    ),
     # Project(s)
     path("projects", csrf_exempt(views_iprox_projects.projects)),
     path("projects/search", csrf_exempt(views_iprox_projects.projects_search)),
     path("projects/follow", csrf_exempt(views_iprox_projects.project_follow)),
-    path("projects/followed/articles", csrf_exempt(views_iprox_projects.projects_followed_articles)),
-    path("projects/follow", csrf_exempt(views_iprox_projects.project_follow)),
+    path(
+        "projects/followed/articles",
+        csrf_exempt(views_iprox_projects.projects_followed_articles),
+    ),
     # Project details(s)
     path("project/details", csrf_exempt(views_iprox_projects.project_details)),
     # News

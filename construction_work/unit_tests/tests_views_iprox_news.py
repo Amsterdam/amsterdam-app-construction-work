@@ -7,6 +7,8 @@ from django.test import Client, TestCase
 
 from construction_work.generic_functions.aes_cipher import AESCipher
 from construction_work.models import Article, Project, ProjectManager, WarningMessage
+from construction_work.models.asset_and_image import Image
+from construction_work.models.warning_and_notification import WarningImage
 from construction_work.unit_tests.mock_data import TestData
 from construction_work.views.views_messages import Messages
 
@@ -16,89 +18,262 @@ message = Messages()
 class TestArticlesBase(TestCase):
     def setUp(self) -> None:
         self.data = TestData()
-        self.identifiers = []
+        self.maxDiff = None
 
-        for project in self.data.projects:
-            Project.objects.create(**project)
+        # Create device header
+        app_token = os.getenv("APP_TOKEN")
+        aes_secret = os.getenv("AES_SECRET")
+        token = AESCipher(app_token, aes_secret).encrypt()
+        self.headers = {"HTTP_DEVICEAUTHORIZATION": token}
 
-        for news in self.data.articles:
-            news["project_id"] = Project.objects.filter(pk=news["project_id"]).first()
-            news_item = Article.objects.create(**news)
-            news_item.save()
-            self.identifiers.append(news_item.foreign_id)
-
-        for project_manager in self.data.project_managers:
-            ProjectManager.objects.create(**project_manager)
-
-        self.url = "/api/v1/project/warning"
+        # Create request client
         self.client = Client()
-        self.token = AESCipher(
-            "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", os.getenv("AES_SECRET")
-        ).encrypt()
-        self.headers = {"UserAuthorization": self.token}
-        self.content_type = "application/json"
-        for title in ["title0", "title1"]:
-            data = {
-                "title": title,
-                "project_identifier": "0000000000",
-                "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
-                "body": "Body text",
-            }
-        self.client.post(
-            self.url,
-            json.dumps(data),
-            headers=self.headers,
-            content_type=self.content_type,
-        )
 
     def tearDown(self) -> None:
         Project.objects.all().delete()
+        Article.objects.all().delete()
         WarningMessage.objects.all().delete()
         ProjectManager.objects.all().delete()
 
 
 class TestArticles(TestArticlesBase):
-    """unit_tests"""
+    """Test get articles view"""
 
     def setUp(self):
         """Setup test db"""
+        super().setUp()
         self.api_url = "/api/v1/articles"
 
+        projects = []
+        for project_data in self.data.projects:
+            project = Project.objects.create(**project_data)
+            projects.append(project)
+
+        articles = []
+        for article_data in self.data.articles:
+            article = Article.objects.create(**article_data)
+            articles.append(article)
+
+        articles[0].projects.add(projects[0])
+        articles[0].publication_date = "2023-01-01T12:00:00+00:00"
+        articles[0].save()
+
+        articles[1].projects.add(projects[1])
+        articles[1].publication_date = "2023-01-01T11:00:00+00:00"
+        articles[1].save()
+
+        warning_data = self.data.warning_message
+        # warning_data["publication_date"] = "2023-01-01T10:00:00+00:00"
+        warning_data["project_id"] = projects[0].pk
+        warning = WarningMessage.objects.create(**warning_data)
+        warning.publication_date = "2023-01-01T10:00:00+00:00"
+        warning.save()
+
     def test_get_all(self):
-        """Test get all articles"""
-        result = self.client.get(self.api_url)
+        """Test get all news"""
+        result = self.client.get(self.api_url, **self.headers)
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(len(result.data["result"]), 3)
+        self.assertEqual(len(result.data), 3)
 
     def test_get_limit_one(self):
         """Test limiting the result to one article"""
-        result = self.client.get(self.api_url, {"limit": 1})
+        result = self.client.get(self.api_url, {"limit": 1}, **self.headers)
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(len(result.data["result"]), 1)
+        self.assertEqual(len(result.data), 1)
 
-    def test_get_limit_project_ids(self):
-        """Test limiting amount of projects"""
+    def test_invalid_limit(self):
+        """Test passing invalid limit char"""
+        result = self.client.get(self.api_url, {"limit": "1.1"}, **self.headers)
+        self.assertEqual(result.status_code, 400)
+
+    def test_get_articles_of_single_project(self):
+        """Test get news from a single project"""
+        first_project = Project.objects.first()
+
+        result = self.client.get(
+            self.api_url, {"project_ids": first_project.pk}, **self.headers
+        )
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(len(result.data), 2)
+
+    def test_get_articles_of_multiple_projects(self):
+        """Test get news from multiple projects"""
+        first_project = Project.objects.first()
+        last_project = Project.objects.last()
+
         result = self.client.get(
             self.api_url,
-            {"project-ids": "0000000000,0000000001", "sort-order": "asc", "limit": 4},
+            {"project_ids": f"{first_project.pk},{last_project.pk}"},
+            **self.headers,
         )
-
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(len(result.data["result"]), 3)
+        self.assertEqual(len(result.data), 3)
 
-    def test_get_limit_error(self):
-        """Test false limit query"""
+    def test_invalid_project_id(self):
+        """Test passing invalid project id in comma seperated list"""
+        result = self.client.get(
+            self.api_url, {"project_ids": "1,foobar"}, **self.headers
+        )
+        self.assertEqual(result.status_code, 400)
+
+    def test_article_content(self):
+        """Test if content of article is as expected"""
         result = self.client.get(
             self.api_url,
-            {
-                "project-ids": "0000000000,0000000001",
-                "sort-order": "asc",
-                "limit": "error",
-            },
+            {"sort_by": "publication_date", "sort_order": "desc"},
+            **self.headers,
         )
-
         self.assertEqual(result.status_code, 200)
-        self.assertEqual(len(result.data["result"]), 3)
+        article = Article.objects.order_by("-publication_date").first()
+
+        expected_data = {
+            "type": "news",
+            "title": article.title,
+            "publication_date": article.publication_date,
+            "meta_id": f"a_{article.pk}",
+            "images": [],
+        }
+        self.assertDictEqual(result.data[0], expected_data)
+
+    def test_article_content_with_image(self):
+        """Test if content of article with image is as expected"""
+        image_data = {
+            "id": 123,
+            "sources": [
+                {
+                    "url": "/foo/bar.png",
+                    "width": 100,
+                    "height": 50,
+                },
+            ],
+            "aspectRatio": 2,
+            "alternativeText": None,
+        }
+
+        article_data = self.data.articles[0]
+        article_data["foreign_id"] = 9999
+        article_data["image"] = image_data
+        article: Article = Article.objects.create(**article_data)
+        # Refresh from db to create datetime objects from datetime strings
+        article.refresh_from_db()
+
+        project_data = self.data.projects[0]
+        project_data["foreign_id"] = 9999
+        project = Project.objects.create(**project_data)
+
+        article.projects.add(project)
+
+        result = self.client.get(
+            self.api_url, {"project_ids": [project.pk]}, **self.headers
+        )
+        self.assertEqual(result.status_code, 200)
+
+        expected_data = {
+            "type": "news",
+            "title": article.title,
+            "publication_date": article.publication_date,
+            "meta_id": f"a_{article.pk}",
+            "images": [image_data],
+        }
+        self.assertDictEqual(result.data[0], expected_data)
+
+    def test_warning_content(self):
+        """Test if content of warning is as expected"""
+        result = self.client.get(
+            self.api_url,
+            {"sort_by": "publication_date", "sort_order": "asc"},
+            **self.headers,
+        )
+        self.assertEqual(result.status_code, 200)
+        warning = WarningMessage.objects.first()
+
+        expected_data = {
+            "type": "warning",
+            "title": warning.title,
+            "publication_date": warning.publication_date,
+            "meta_id": f"w_{warning.pk}",
+            "images": [],
+        }
+        self.assertDictEqual(result.data[0], expected_data)
+
+    def test_warning_content_with_image(self):
+        """Test if content of warning with image is as expected"""
+        project_data = self.data.projects[0]
+        project_data["foreign_id"] = 9999
+        project = Project.objects.create(**project_data)
+
+        warning_data = self.data.warning_message
+        warning_data["project_id"] = project.pk
+        warning = WarningMessage.objects.create(**warning_data)
+        warning.refresh_from_db()
+
+        warning_image_data = {
+            "warning_id": warning.pk,
+            "is_main": True,
+        }
+        warning_image = WarningImage.objects.create(**warning_image_data)
+
+        image_data = self.data.images[0]
+        image = Image.objects.create(**image_data)
+        warning_image.images.add(image)
+
+        result = self.client.get(
+            self.api_url, {"project_ids": project.pk}, **self.headers
+        )
+        self.assertEqual(result.status_code, 200)
+
+        expected_data = {
+            "type": "warning",
+            "title": warning.title,
+            "publication_date": warning.publication_date,
+            "meta_id": f"w_{warning.pk}",
+            "images": [
+                {
+                    "id": warning_image.pk,
+                    "sources": [
+                        {
+                            "url": f"http://testserver/api/v1/image?id={image.pk}",
+                            "width": image.width,
+                            "height": image.height,
+                        }
+                    ],
+                }
+            ],
+        }
+        self.assertDictEqual(result.data[0], expected_data)
+
+    def test_sort_news_by_publication_date_descending(self):
+        """Test getting news sorted by publication date descending"""
+        articles = Article.objects.all()
+        warnings = WarningMessage.objects.all()
+        news = []
+        news.extend(articles)
+        news.extend(warnings)
+        news_pub_dates = [x.publication_date for x in news]
+        sorted_pub_dates = sorted(news_pub_dates, reverse=True)
+
+        result = self.client.get(
+            self.api_url,
+            {"sort_by": "publication_date", "sort_order": "desc"},
+            **self.headers,
+        )
+        self.assertEqual(result.status_code, 200)
+        result_pub_dates = [x["publication_date"] for x in result.data]
+
+        self.assertEqual(result_pub_dates, sorted_pub_dates)
+
+    def test_invalid_sort_key(self):
+        """Test sorting news with invalid sort key"""
+        result = self.client.get(self.api_url, {"sort_by": "foobar"}, **self.headers)
+        self.assertEqual(result.status_code, 400)
+
+    def test_invalid_sort_key_but_no_news(self):
+        """Test sorting news with invalid sort key"""
+        result = self.client.get(
+            self.api_url, {"project_ids": "9999", "sort_by": "foobar"}, **self.headers
+        )
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(len(result.data), 0)
 
 
 class TestNews(TestArticlesBase):
