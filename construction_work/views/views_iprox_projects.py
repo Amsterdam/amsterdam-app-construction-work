@@ -426,6 +426,11 @@ def project_follow(request):
         return Response(data=message.no_record_found, status=status.HTTP_404_NOT_FOUND)
 
     device.followed_projects.remove(project)
+    # NOTE: If device does not follow any projects at this point, it can be removed from database.
+    # This also means we should not store device id when calling `projects` endpoint,
+    # which has influence on the cache key flow.
+    # To solve this, the app can provide a temp session token to use as cache key.
+
     return Response(data="Subscription removed", status=status.HTTP_200_OK)
 
 
