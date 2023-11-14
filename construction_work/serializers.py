@@ -167,15 +167,11 @@ class ArticleSerializer(serializers.ModelSerializer):
 class ArticleMinimalSerializer(serializers.ModelSerializer):
     """Article serializer with minimal data"""
 
-    meta_id = serializers.SerializerMethodField()
+    meta_id = serializers.DictField(source="get_id_dict")
 
     class Meta:
         model = Article
         fields = ["meta_id"]
-
-    def get_meta_id(self, obj: Article):
-        # This return value is to distinct article from warnings
-        return {"type": "article", "id": obj.pk}
 
 
 class ProjectManagerSerializer(serializers.ModelSerializer):

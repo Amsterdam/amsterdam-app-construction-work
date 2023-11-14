@@ -130,7 +130,10 @@ class TestArticles(TestArticlesBase):
             "type": "news",
             "title": article.title,
             "publication_date": article.publication_date,
-            "meta_id": f"a_{article.pk}",
+            "meta_id": {
+                "type": "article",
+                "id": article.pk,
+            },
             "images": [],
         }
         self.assertDictEqual(result.data[0], expected_data)
@@ -172,7 +175,10 @@ class TestArticles(TestArticlesBase):
             "type": "news",
             "title": article.title,
             "publication_date": article.publication_date,
-            "meta_id": f"a_{article.pk}",
+            "meta_id": {
+                "type": "article",
+                "id": article.pk,
+            },
             "images": [image_data],
         }
         self.assertDictEqual(result.data[0], expected_data)
@@ -191,7 +197,10 @@ class TestArticles(TestArticlesBase):
             "type": "warning",
             "title": warning.title,
             "publication_date": warning.publication_date,
-            "meta_id": f"w_{warning.pk}",
+            "meta_id": {
+                "type": "warning",
+                "id": warning.pk,
+            },
             "images": [],
         }
         self.assertDictEqual(result.data[0], expected_data)
@@ -226,7 +235,10 @@ class TestArticles(TestArticlesBase):
             "type": "warning",
             "title": warning.title,
             "publication_date": warning.publication_date,
-            "meta_id": f"w_{warning.pk}",
+            "meta_id": {
+                "type": "warning",
+                "id": warning.pk,
+            },
             "images": [
                 {
                     "id": warning_image.pk,

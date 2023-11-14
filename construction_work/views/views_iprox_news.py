@@ -7,6 +7,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from construction_work.api_messages import Messages
+from construction_work.generic_functions.model_utils import create_id_dict
 from construction_work.generic_functions.request_must_come_from_app import (
     RequestMustComeFromApp,
 )
@@ -72,7 +73,7 @@ def articles(request):
 
     for obj in articles_list:
         obj["type"] = "news"
-        obj["meta_id"] = f"a_{obj['id']}"
+        obj["meta_id"] = create_id_dict(Article, obj["id"])
         obj.pop("id")
         obj["images"] = []
         # If not found, image is an empty dict, which is a False boolean
@@ -107,7 +108,7 @@ def articles(request):
             "title": warning.title,
             "publication_date": warning.publication_date,
             "type": "warning",
-            "meta_id": f"w_{warning.pk}",
+            "meta_id": warning.get_id_dict(),
             "images": images,
         }
         warnings_list.append(warning_dict)

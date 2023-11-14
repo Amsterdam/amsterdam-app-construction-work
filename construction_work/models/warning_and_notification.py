@@ -4,7 +4,10 @@ from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 
-from construction_work.generic_functions.static_data import DEFAULT_WARNING_MESSAGE_EMAIL
+from construction_work.generic_functions.model_utils import create_id_dict
+from construction_work.generic_functions.static_data import (
+    DEFAULT_WARNING_MESSAGE_EMAIL,
+)
 from construction_work.models.asset_and_image import Image
 from construction_work.models.project import Project
 
@@ -17,7 +20,9 @@ class WarningMessage(models.Model):
     title = models.CharField(max_length=1000, db_index=True)
     body = models.TextField()
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
-    project_manager = models.ForeignKey(ProjectManager, blank=True, null=True, on_delete=models.SET_NULL)
+    project_manager = models.ForeignKey(
+        ProjectManager, blank=True, null=True, on_delete=models.SET_NULL
+    )
     publication_date = models.DateTimeField(auto_now_add=True)
     modification_date = models.DateTimeField(auto_now=True)
     author_email = models.EmailField(null=True, blank=True)
@@ -28,6 +33,9 @@ class WarningMessage(models.Model):
             self.author_email = self.project_manager.email
 
         super().save(*args, **kwargs)
+
+    def get_id_dict(self):
+        return create_id_dict(type(self), self.pk)
 
 
 class WarningImage(models.Model):
@@ -50,5 +58,7 @@ class Notification(models.Model):
 
     title = models.CharField(max_length=1000, blank=False, null=False)
     body = models.TextField(blank=True, null=True)
-    warning = models.ForeignKey(WarningMessage, on_delete=models.CASCADE, blank=False, null=False)
+    warning = models.ForeignKey(
+        WarningMessage, on_delete=models.CASCADE, blank=False, null=False
+    )
     publication_date = models.DateTimeField(auto_now_add=True, blank=True)
