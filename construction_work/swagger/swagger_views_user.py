@@ -24,15 +24,11 @@ as_change_password = {
     "responses": {
         200: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": True, "result": "password update"}},
+            examples={"application/json": "password update"},
         ),
-        401: openapi.Response(
+        400: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": False, "result": message.do_not_match}},
-        ),
-        422: openapi.Response(
-            "application/json",
-            examples={"application/json": {"status": False, "result": message.invalid_query}},
+            examples={"application/json": message.invalid_query},
         ),
     },
     "tags": ["Users"],
