@@ -93,7 +93,9 @@ class TestData:
             {
                 "foreign_id": 128,
                 "active": True,
-                "last_seen": datetime.datetime.strptime("2023-01-01T00:00:00", "%Y-%d-%mT%H:%M:%S"),
+                "last_seen": datetime.datetime.strptime(
+                    "2023-01-01T00:00:00", "%Y-%d-%mT%H:%M:%S"
+                ),
                 "title": "title of first article",
                 "intro": "intro for first article",
                 "body": {
@@ -112,7 +114,9 @@ class TestData:
             {
                 "foreign_id": 256,
                 "active": True,
-                "last_seen": datetime.datetime.strptime("2023-01-01T00:00:00", "%Y-%d-%mT%H:%M:%S"),
+                "last_seen": datetime.datetime.strptime(
+                    "2023-01-01T12:00:00", "%Y-%d-%mT%H:%M:%S"
+                ),
                 "title": "title of second article",
                 "intro": "intro for second article",
                 "body": {
@@ -214,8 +218,14 @@ class TestData:
         ]
 
         self.project_managers = [
-            {"manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "email": "mock0@amsterdam.nl"},
-            {"manager_key": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "email": "mock1@amsterdam.nl"},
+            {
+                "manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+                "email": "mock0@amsterdam.nl",
+            },
+            {
+                "manager_key": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+                "email": "mock1@amsterdam.nl",
+            },
         ]
 
         self.devices = [
