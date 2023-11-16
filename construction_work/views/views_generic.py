@@ -1,6 +1,9 @@
 """ Generic views (images, assets) """
+import base64
+
 from django.http import HttpResponse
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
@@ -15,11 +18,14 @@ message = Messages()
 @api_view(["GET"])
 def image(request):
     """Request image from API by identifier"""
-    identifier = request.GET.get("id", None)
-    if identifier is None:
-        return Response({"status": False, "result": message.invalid_query}, status=422)
+    image_id = request.GET.get("id", None)
+    if image_id is None:
+        return Response(message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
 
-    image_object = Image.objects.filter(pk=identifier).first()
-    if image_object is not None:
-        return HttpResponse(image_object.data, content_type=image_object.mime_type, status=200)
-    return Response("Error: file not found", status=404)
+    image_obj = Image.objects.filter(pk=image_id).first()
+    if image_obj is None:
+        return Response(message.no_record_found, status=status.HTTP_404_NOT_FOUND)
+
+    return HttpResponse(
+        image_obj.data, content_type=image_obj.mime_type, status=status.HTTP_200_OK
+    )
