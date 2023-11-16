@@ -41,16 +41,16 @@ def article(request):
 @api_view(["GET"])
 @RequestMustComeFromApp
 def articles(request):
-    projects_ids = request.GET.get("project_ids", None)
-    if type(projects_ids) is str:
-        projects_ids = projects_ids.split(",")
-        for id in projects_ids:
+    project_ids = request.GET.get("project_ids", None)
+    if type(project_ids) is str:
+        project_ids = project_ids.split(",")
+        for id in project_ids:
             if id.isdigit() is False:
                 return Response(
                     data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST
                 )
     else:
-        projects_ids = []
+        project_ids = []
 
     sort_by = request.GET.get("sort_by", "publication_date")
     sort_order = request.GET.get("sort_order", "desc")
@@ -62,8 +62,8 @@ def articles(request):
 
     # Collect articles
     article_values_params = ("id", "title", "publication_date", "image")
-    if projects_ids:
-        articles_list = Article.objects.filter(projects__id__in=projects_ids).values(
+    if project_ids:
+        articles_list = Article.objects.filter(projects__id__in=project_ids).values(
             *article_values_params
         )
     else:
@@ -83,8 +83,8 @@ def articles(request):
     image_serializer_context = {"base_url": StaticData.base_url(request)}
 
     warnings_qs = WarningMessage.objects
-    if projects_ids:
-        warnings_qs = warnings_qs.filter(project__id__in=projects_ids)
+    if project_ids:
+        warnings_qs = warnings_qs.filter(project__id__in=project_ids)
     warnings_qs = warnings_qs.prefetch_related("warningimage_set__images")
 
     warnings_list = []
