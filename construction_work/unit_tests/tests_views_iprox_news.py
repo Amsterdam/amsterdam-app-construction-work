@@ -7,7 +7,9 @@ from datetime import datetime
 from django.test import Client, TestCase
 
 from construction_work.generic_functions.aes_cipher import AESCipher
-from construction_work.generic_functions.date_translation import translate_timezone
+from construction_work.generic_functions.date_translation import (
+    translate_timezone as tt,
+)
 from construction_work.models import Article, Project, ProjectManager, WarningMessage
 from construction_work.models.asset_and_image import Image
 from construction_work.models.warning_and_notification import WarningImage
@@ -39,7 +41,7 @@ class TestArticlesBase(TestCase):
 
 
 class TestArticles(TestArticlesBase):
-    """Test get articles view"""
+    """Test multiple articles view"""
 
     def setUp(self):
         """Setup test db"""
@@ -291,7 +293,7 @@ class TestArticles(TestArticlesBase):
 
 
 class TestNews(TestArticlesBase):
-    """UNITTEST"""
+    """Test single article view"""
 
     def setUp(self):
         """Setup test db"""
@@ -316,7 +318,8 @@ class TestNews(TestArticlesBase):
         articles[1].publication_date = "2023-01-01T11:00:00+00:00"
         articles[1].save()
 
-    def test_get_single_news_article(self):
+    def test_get_single_article(self):
+        """Test retrieving single article"""
         article = Article.objects.first()
         result = self.client.get(self.api_url, {"id": article.pk})
         self.assertEqual(result.status_code, 200)
@@ -327,71 +330,28 @@ class TestNews(TestArticlesBase):
             "id": article.pk,
             "foreign_id": article.foreign_id,
             "active": article.active,
-            "last_seen": translate_timezone(str(article.last_seen), target_tzinfo),
+            "last_seen": tt(str(article.last_seen), target_tzinfo),
             "title": article.title,
             "intro": article.intro,
             "body": article.body,
             "image": article.image,
             "type": article.type,
             "url": article.url,
-            "creation_date": translate_timezone(
-                str(article.creation_date), target_tzinfo
-            ),
-            "modification_date": translate_timezone(
-                str(article.modification_date), target_tzinfo
-            ),
-            "publication_date": translate_timezone(
-                str(article.publication_date), target_tzinfo
-            ),
-            "expiration_date": translate_timezone(
-                str(article.expiration_date), target_tzinfo
-            ),
+            "creation_date": tt(str(article.creation_date), target_tzinfo),
+            "modification_date": tt(str(article.modification_date), target_tzinfo),
+            "publication_date": tt(str(article.publication_date), target_tzinfo),
+            "expiration_date": tt(str(article.expiration_date), target_tzinfo),
             "projects": [x.pk for x in article.projects.all()],
         }
         result_dict = json.loads(result.content)
         self.assertDictEqual(result_dict, expected_data)
 
-    # def test_get_news(self):
-    #     """Test get news"""
-    #     c = Client()
-    #     for i in range(0, len(self.setup.identifiers)):
-    #         response = c.get(
-    #             "/api/v1/project/news?id={identifier}".format(
-    #                 identifier=self.setup.identifiers[i]
-    #             )
-    #         )
-    #         result = json.loads(response.content)
-    #         self.data.articles[i]["last_seen"] = result["result"]["last_seen"]
-    #         self.assertEqual(response.status_code, 200)
-    #         self.assertDictEqual(
-    #             result, {"status": True, "result": self.data.articles[i]}
-    #         )
+    def test_missing_article_id(self):
+        """Test calling API without article id param"""
+        result = self.client.get(self.api_url, {"foobar": "foobar"})
+        self.assertEqual(result.status_code, 400)
 
-    # def test_invalid_query(self):
-    #     """Test invalid news query"""
-    #     c = Client()
-    #     response = c.get("/api/v1/project/news")
-    #     result = json.loads(response.content)
-
-    #     self.assertEqual(response.status_code, 422)
-    #     self.assertDictEqual(result, {"status": False, "result": message.invalid_query})
-
-    # def test_no_record(self):
-    #     """Test for 404 result"""
-    #     c = Client()
-    #     response = c.get("/api/v1/project/news?id=unknown")
-    #     result = json.loads(response.content)
-
-    #     self.assertEqual(response.status_code, 404)
-    #     self.assertDictEqual(
-    #         result, {"status": False, "result": message.no_record_found}
-    #     )
-
-    # def test_method_not_allowed(self):
-    #     """Test invalid http method"""
-    #     c = Client()
-    #     response = c.post("/api/v1/project/news")
-    #     result = json.loads(response.content)
-
-    #     self.assertEqual(response.status_code, 405)
-    #     self.assertDictEqual(result, {"detail": 'Method "POST" not allowed.'})
+    def test_article_not_found(self):
+        """Test requesting article id which does not exist"""
+        result = self.client.get(self.api_url, {"id": 9999})
+        self.assertEqual(result.status_code, 404)
