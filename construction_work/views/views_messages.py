@@ -289,45 +289,40 @@ def notification_post(request):
     """Post Notification message"""
     title = request.data.get("title", None)
     body = request.data.get("body", None)
-    warning_id = request.data.get("warning_identifier", None)
+    warning_id = request.data.get("warning_id", None)
 
     if None in [title, body, warning_id]:
         return Response(
-            {"status": False, "result": messages.invalid_query},
+            data=messages.invalid_query,
             status=status.HTTP_400_BAD_REQUEST,
         )
 
     warning_message = WarningMessage.objects.filter(pk=warning_id).first()
     if warning_message is None:
         return Response(
-            {"status": False, "result": messages.no_record_found},
+            data=messages.no_record_found,
             status=status.HTTP_404_NOT_FOUND,
         )
 
     # Store notification in database
-    notification_serializer = NotificationSerializer(
-        data={"title": title, "body": body, "warning": warning_message.pk}
-    )
-    if not notification_serializer.is_valid():
-        return Response(
-            {"status": False, "result": notification_serializer.errors},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    notification_object = notification_serializer.save()
+    notification_data = {"title": title, "body": body, "warning": warning_message}
+    notification_object = Notification.objects.create(**notification_data)
 
     # Trigger the push notification services
     notification_service = NotificationService(notification_object)
     result = notification_service.setup()
     if result is False:
+        # Remove notification, since it was not send
+        notification_object.delete()
         return Response(
-            {"status": result, "result": notification_service.setup_result},
+            data=notification_service.setup_result,
             status=status.HTTP_200_OK,
         )
+
     notification_service.send_multicast_and_handle_errors()
 
-    # Send response to end-user
     return Response(
-        {"status": True, "result": "push-notification accepted"},
+        data="Push notifications sent",
         status=status.HTTP_200_OK,
     )
 
