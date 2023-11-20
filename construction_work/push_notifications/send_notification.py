@@ -3,8 +3,9 @@ import firebase_admin
 from firebase_admin import credentials, messaging
 
 from construction_work.generic_functions.generic_logger import Logger
-from construction_work.generic_functions.static_data import DEFAULT_NOTIFICATION_BATCH_SIZE
-from construction_work.models import Device
+from construction_work.generic_functions.static_data import (
+    DEFAULT_NOTIFICATION_BATCH_SIZE,
+)
 from main_application.settings import BASE_DIR
 
 logger = Logger()
@@ -17,7 +18,9 @@ class NotificationService:
         self.notification_object = notification_object
         self.batch_size = batch_size
         if not firebase_admin._apps:
-            cred = credentials.Certificate("{base_dir}/fcm_credentials.json".format(base_dir=BASE_DIR))
+            cred = credentials.Certificate(
+                "{base_dir}/fcm_credentials.json".format(base_dir=BASE_DIR)
+            )
             self.default_app = firebase_admin.initialize_app(cred)
         else:
             self.default_app = firebase_admin.get_app()
@@ -40,10 +43,15 @@ class NotificationService:
 
     def create_subscribed_device_batches(self):
         """Create batches of subscribers"""
-        firebase_tokens = self.notification_object.warning.project.device_set.values_list("firebase_token", flat=True)
+        firebase_tokens = self.notification_object.warning.project.device_set.exclude(
+            firebase_token=None
+        ).values_list("firebase_token", flat=True)
         if not firebase_tokens.exists():
             return []
-        return [firebase_tokens[x : x + self.batch_size] for x in range(0, len(firebase_tokens), self.batch_size)]
+        return [
+            firebase_tokens[x : x + self.batch_size]
+            for x in range(0, len(firebase_tokens), self.batch_size)
+        ]
 
     def send_multicast_and_handle_errors(self):
         """Send message to subscribers"""

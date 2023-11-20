@@ -4,25 +4,25 @@
 
 from drf_yasg import openapi
 
-from construction_work.generic_functions.static_data import StaticData
+from construction_work.api_messages import Messages
+from construction_work.swagger.swagger_abstract_objects import query_id
+
+messages = Messages()
 
 as_image = {
     # /api/v1/image swagger_auto_schema
     "methods": ["get"],
-    "manual_parameters": [
-        openapi.Parameter(
-            "id",
-            openapi.IN_QUERY,
-            "Image Identifier",
-            type=openapi.TYPE_STRING,
-            format="<identifier>",
-            required=True,
-        )
-    ],
+    "manual_parameters": [query_id],
     "responses": {
         200: openapi.Response("Binary data"),
-        404: openapi.Response("Error: file not found"),
-        422: openapi.Response("Error: Unprocessable Entity"),
+        400: openapi.Response(
+            "application/json",
+            examples={"application/json": messages.invalid_query},
+        ),
+        404: openapi.Response(
+            "application/json",
+            examples={"application/json": messages.no_record_found},
+        ),
     },
     "tags": ["Generic"],
 }

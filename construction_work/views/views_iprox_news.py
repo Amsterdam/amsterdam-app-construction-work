@@ -1,6 +1,4 @@
 """ Views for news routes """
-from curses.ascii import isdigit
-
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import api_view

@@ -64,7 +64,8 @@
                 "test",
                 // "construction_work.unit_tests.tests_views_project_manager.TestApiProjectManager",
                 // "construction_work.unit_tests.tests_views_iprox_projects.TestFollowedProjectArticles",
-                "construction_work.unit_tests.tests_views_iprox_news.TestArticles",
+                // "construction_work.unit_tests.tests_views_iprox_news.TestNews",
+                "construction_work.unit_tests.tests_views_messages_notifications",
                 // "--noinput"
             ],
             "django": true,

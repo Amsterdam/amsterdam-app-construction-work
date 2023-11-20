@@ -11,7 +11,13 @@ from construction_work.generic_functions.image_conversion import ImageConversion
 from construction_work.generic_functions.is_authorized import IsAuthorized
 from construction_work.generic_functions.sort import Sort
 from construction_work.generic_functions.static_data import StaticData
-from construction_work.models import Article, Notification, Project, ProjectManager, WarningMessage
+from construction_work.models import (
+    Notification,
+    Project,
+    ProjectManager,
+    WarningMessage,
+)
+from construction_work.models.asset_and_image import Image
 from construction_work.push_notifications.send_notification import NotificationService
 from construction_work.serializers import (
     ImageSerializer,
@@ -48,10 +54,14 @@ def warning_messages_get(request):
         projects = Project.objects.all()
         for project in projects:
             if project.active is True:
-                warning_messages += WarningMessage.objects.filter(project_identifier=project.foreign_id).all()
+                warning_messages += WarningMessage.objects.filter(
+                    project_identifier=project.foreign_id
+                ).all()
 
         serializer = WarningMessagePublicSerializer(warning_messages, many=True)
-        result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
+        result = Sort().list_of_dicts(
+            serializer.data, key=sort_by, sort_order=sort_order
+        )
         return Response({"status": True, "result": result}, 200)
 
     project = Project.objects.filter(foreign_id=project_foreign_id).first()
@@ -60,9 +70,13 @@ def warning_messages_get(request):
 
     result = []
     if project.active is True:
-        warning_messages = WarningMessage.objects.filter(project_identifier=project_foreign_id).all()
+        warning_messages = WarningMessage.objects.filter(
+            project_identifier=project_foreign_id
+        ).all()
         serializer = WarningMessagePublicSerializer(warning_messages, many=True)
-        result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
+        result = Sort().list_of_dicts(
+            serializer.data, key=sort_by, sort_order=sort_order
+        )
     return Response({"status": True, "result": result}, 200)
 
 
@@ -195,30 +209,42 @@ def notification_post(request):
     """Post Notification message"""
     title = request.data.get("title", None)
     body = request.data.get("body", None)
-    warning_id = request.data.get("warning_identifier", None)
+    warning_id = request.data.get("warning_id", None)
 
     if None in [title, body, warning_id]:
-        return Response({"status": False, "result": messages.invalid_query}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            data=messages.invalid_query,
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     warning_message = WarningMessage.objects.filter(pk=warning_id).first()
     if warning_message is None:
-        return Response({"status": False, "result": messages.no_record_found}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            data=messages.no_record_found,
+            status=status.HTTP_404_NOT_FOUND,
+        )
 
     # Store notification in database
-    notification_serializer = NotificationSerializer(data={"title": title, "body": body, "warning": warning_message.pk})
-    if not notification_serializer.is_valid():
-        return Response({"status": False, "result": notification_serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-    notification_object = notification_serializer.save()
+    notification_data = {"title": title, "body": body, "warning": warning_message}
+    notification_object = Notification.objects.create(**notification_data)
 
     # Trigger the push notification services
     notification_service = NotificationService(notification_object)
     result = notification_service.setup()
     if result is False:
-        return Response({"status": result, "result": notification_service.setup_result}, status=status.HTTP_200_OK)
+        # Remove notification, since it was not send
+        notification_object.delete()
+        return Response(
+            data=notification_service.setup_result,
+            status=status.HTTP_200_OK,
+        )
+
     notification_service.send_multicast_and_handle_errors()
 
-    # Send response to end-user
-    return Response({"status": True, "result": "push-notification accepted"}, status=status.HTTP_200_OK)
+    return Response(
+        data="Push notifications sent",
+        status=status.HTTP_200_OK,
+    )
 
 
 @swagger_auto_schema(**as_notification_get)
@@ -230,7 +256,10 @@ def notification_get(request):
     sort_order = request.GET.get("sort-order", "desc")
 
     if query_params is None:
-        return Response({"status": False, "result": messages.invalid_query}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"status": False, "result": messages.invalid_query},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     project_ids = query_params.split(",")
 
     notifications = Notification.objects.filter(
@@ -239,9 +268,14 @@ def notification_get(request):
 
     notification_serializer = NotificationSerializer(notifications, many=True)
     if not len(notification_serializer.data):
-        return Response({"status": False, "result": messages.no_record_found}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"status": False, "result": messages.no_record_found},
+            status=status.HTTP_404_NOT_FOUND,
+        )
 
-    result = Sort().list_of_dicts(notification_serializer.data, key=sort_by, sort_order=sort_order)
+    result = Sort().list_of_dicts(
+        notification_serializer.data, key=sort_by, sort_order=sort_order
+    )
     return Response({"status": True, "result": result}, status=status.HTTP_200_OK)
 
 
@@ -299,20 +333,16 @@ def warning_messages_image_upload(request):
     for key in image_conversion.images:  # pylint: disable=consider-using-dict-items
         # Build image object and save to database
         image = image_conversion.images[key]
-        image_serializer = ImageSerializer(
-            data={
-                "data": image["data"],
-                "description": description,
-                "width": image["width"],
-                "height": image["height"],
-                "aspect_ratio": image_conversion.aspect_ratio,
-                "coordinates": image_conversion.gps_info,
-                "mime_type": image["mime_type"],
-            }
+        image_object = Image(
+            data=image["data"],
+            description=description,
+            width=image["width"],
+            height=image["height"],
+            aspect_ratio=image_conversion.aspect_ratio,
+            coordinates=image_conversion.gps_info,
+            mime_type=image["mime_type"],
         )
-        if not image_serializer.is_valid():
-            return Response(image_serializer.errors, status=status.HTTP_400_BAD_REQUEST)  # pragma: no cover
-        image_object = image_serializer.save()
+        image_object.save()
         sources.append(image_object)
 
     image_ids = [image.pk for image in sources]

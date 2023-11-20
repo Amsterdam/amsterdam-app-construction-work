@@ -254,42 +254,44 @@ as_warning_message_get = {
 }
 
 as_notification_post = {
-    # /api/v1/notification/messages/push/send
+    # /api/v1/notification
     "methods": ["POST"],
     "manual_parameters": [
-        openapi.Parameter(
-            "UserAuthorization",
-            openapi.IN_HEADER,
-            description="authorization token",
-            type=openapi.TYPE_STRING,
-            required=True,
-        )
+        header_user_authorization
     ],
-    "request_body": NotificationSerializer,
+    "request_body": openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "title": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Title of notification"
+            ),
+            "body": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Body of notification"
+            ),
+            "warning_id": openapi.Schema(
+                type=openapi.TYPE_INTEGER, description="Warning identifier"
+            ),
+        },
+    ),
     "responses": {
         200: openapi.Response(
             "application/json",
-            examples={
-                "application/json": {
-                    "status": True,
-                    "result": "push-notification accepted",
-                }
-            },
+            examples={"application/json": "Push notifications sent"},
         ),
-        403: openapi.Response(
+        400: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": False, "result": message.access_denied}},
+            examples={"application/json": message.invalid_query},
         ),
-        422: openapi.Response(
+        404: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": False, "result": message.invalid_query}},
+            examples={"application/json": message.no_record_found},
         ),
     },
     "tags": ["Notifications"],
 }
 
 as_notification_get = {
-    # /api/v1/notification/messages/push/get
+    # /api/v1/notifications
     "methods": ["GET"],
     "manual_parameters": [
         openapi.Parameter(
@@ -343,13 +345,21 @@ as_warning_message_image_post = {
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            "project_warning_id": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
+            "project_warning_id": openapi.Schema(
+                type=openapi.TYPE_STRING, description="identifier"
+            ),
             "image": openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
-                    "main": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="<false|true>"),
-                    "description": openapi.Schema(type=openapi.TYPE_STRING, description="about this image"),
-                    "data": openapi.Schema(type=openapi.TYPE_STRING, description="base64 image data"),
+                    "main": openapi.Schema(
+                        type=openapi.TYPE_BOOLEAN, description="<false|true>"
+                    ),
+                    "description": openapi.Schema(
+                        type=openapi.TYPE_STRING, description="about this image"
+                    ),
+                    "data": openapi.Schema(
+                        type=openapi.TYPE_STRING, description="base64 image data"
+                    ),
                 },
             ),
         },
@@ -366,11 +376,18 @@ as_warning_message_image_post = {
         ),
         403: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": False, "result": message.access_denied}},
+            examples={
+                "application/json": {"status": False, "result": messages.access_denied}
+            },
         ),
         404: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": False, "result": message.no_record_found}},
+            examples={
+                "application/json": {
+                    "status": False,
+                    "result": message.no_record_found,
+                }
+            },
         ),
         422: openapi.Response(
             "application/json",
