@@ -11,12 +11,7 @@ from construction_work.generic_functions.image_conversion import ImageConversion
 from construction_work.generic_functions.is_authorized import IsAuthorized
 from construction_work.generic_functions.sort import Sort
 from construction_work.generic_functions.static_data import StaticData
-from construction_work.models import (
-    Notification,
-    Project,
-    ProjectManager,
-    WarningMessage,
-)
+from construction_work.models import Notification, Project, ProjectManager, WarningMessage
 from construction_work.models.asset_and_image import Image
 from construction_work.push_notifications.send_notification import NotificationService
 from construction_work.serializers import (
@@ -54,14 +49,10 @@ def warning_messages_get(request):
         projects = Project.objects.all()
         for project in projects:
             if project.active is True:
-                warning_messages += WarningMessage.objects.filter(
-                    project_identifier=project.foreign_id
-                ).all()
+                warning_messages += WarningMessage.objects.filter(project_identifier=project.foreign_id).all()
 
         serializer = WarningMessagePublicSerializer(warning_messages, many=True)
-        result = Sort().list_of_dicts(
-            serializer.data, key=sort_by, sort_order=sort_order
-        )
+        result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
         return Response({"status": True, "result": result}, 200)
 
     project = Project.objects.filter(foreign_id=project_foreign_id).first()
@@ -70,13 +61,9 @@ def warning_messages_get(request):
 
     result = []
     if project.active is True:
-        warning_messages = WarningMessage.objects.filter(
-            project_identifier=project_foreign_id
-        ).all()
+        warning_messages = WarningMessage.objects.filter(project_identifier=project_foreign_id).all()
         serializer = WarningMessagePublicSerializer(warning_messages, many=True)
-        result = Sort().list_of_dicts(
-            serializer.data, key=sort_by, sort_order=sort_order
-        )
+        result = Sort().list_of_dicts(serializer.data, key=sort_by, sort_order=sort_order)
     return Response({"status": True, "result": result}, 200)
 
 
@@ -273,9 +260,7 @@ def notification_get(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    result = Sort().list_of_dicts(
-        notification_serializer.data, key=sort_by, sort_order=sort_order
-    )
+    result = Sort().list_of_dicts(notification_serializer.data, key=sort_by, sort_order=sort_order)
     return Response({"status": True, "result": result}, status=status.HTTP_200_OK)
 
 
