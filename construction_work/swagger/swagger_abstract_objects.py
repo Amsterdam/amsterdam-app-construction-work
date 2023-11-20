@@ -24,6 +24,14 @@ header_device_authorization = openapi.Parameter(
     required=True,
 )
 
+header_user_authorization = openapi.Parameter(
+    "UserAuthorization",
+    openapi.IN_HEADER,
+    description="authorization token",
+    type=openapi.TYPE_STRING,
+    required=True,
+)
+
 #
 # Query parameters
 #
@@ -79,6 +87,15 @@ query_foreign_id = openapi.Parameter(
     description="Project foreign id",
     type=openapi.TYPE_INTEGER,
     format="int",
+    required=True,
+)
+
+query_warning_message_id = openapi.Parameter(
+    "id",
+    openapi.IN_QUERY,
+    "Warning message identifier",
+    type=openapi.TYPE_STRING,
+    format="<identifier>",
     required=True,
 )
 
