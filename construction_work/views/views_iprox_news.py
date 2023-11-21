@@ -22,7 +22,7 @@ message = Messages()
 
 @swagger_auto_schema(**as_article)
 @api_view(["GET"])
-@RequestMustComeFromApp
+# @RequestMustComeFromApp
 def article(request):
     """Get a single article"""
     article_id = request.GET.get("id", None)
@@ -39,7 +39,7 @@ def article(request):
 
 @swagger_auto_schema(**as_articles_get)
 @api_view(["GET"])
-@RequestMustComeFromApp
+# @RequestMustComeFromApp
 def articles(request):
     project_ids = request.GET.get("project_ids", None)
     if type(project_ids) is str:
