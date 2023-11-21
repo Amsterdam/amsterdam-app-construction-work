@@ -342,46 +342,6 @@ as_notification_post = {
     "tags": ["Notifications"],
 }
 
-as_notification_get = {
-    # /api/v1/notifications
-    "methods": ["GET"],
-    "manual_parameters": [
-        openapi.Parameter(
-            "project-ids",
-            openapi.IN_QUERY,
-            "Query push-notifications by project-identifier(s)",
-            type=openapi.TYPE_ARRAY,
-            items=openapi.Items(type=openapi.TYPE_STRING),
-            required=True,
-        ),
-        openapi.Parameter(
-            "sort-by",
-            openapi.IN_QUERY,
-            "Sort response (default: publication_date)",
-            type=openapi.TYPE_STRING,
-            format="<any key from model>",
-            required=False,
-        ),
-        openapi.Parameter(
-            "sort-order",
-            openapi.IN_QUERY,
-            "Sorting order (default: desc)",
-            type=openapi.TYPE_STRING,
-            format="<asc, desc>",
-            required=False,
-        ),
-    ],
-    "responses": {
-        200: openapi.Response(
-            "application/json",
-            NotificationSerializer,
-            examples={"application/json": {"status": True, "result": []}},
-        ),
-        422: openapi.Response("Error: Unprocessable Entity"),
-    },
-    "tags": ["Notifications"],
-}
-
 as_warning_message_image_post = {
     # /api/v1/notification/messages/image/post
     "methods": ["POST"],

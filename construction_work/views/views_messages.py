@@ -255,47 +255,6 @@ def notification_post(request):
     )
 
 
-@swagger_auto_schema(**as_notification_get)
-@api_view(["GET"])
-def notification_get(request):
-    """Get notification"""
-    project_ids = request.GET.get("project_ids", None)
-    if type(project_ids) is str:
-        project_ids = project_ids.split(",")
-        for id in project_ids:
-            if id.isdigit() is False:
-                return Response(
-                    data=messages.invalid_query, status=status.HTTP_400_BAD_REQUEST
-                )
-    else:
-        project_ids = []
-
-    if len(project_ids) == 0:
-        return Response(
-            data=messages.invalid_query,
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    sort_by = request.GET.get("sort_by", "publication_date")
-    sort_order = request.GET.get("sort_order", "desc")
-
-    notifications = Notification.objects.filter(
-        warning__project__in=project_ids, warning__project__active=True
-    ).all()
-
-    if len(notifications) == 0:
-        return Response(data=[], status=status.HTTP_200_OK)
-
-    serializer = NotificationSerializer(notifications, many=True)
-
-    reverse = False
-    if sort_order == "desc":
-        reverse = True
-    sorted_data = sorted(serializer.data, key=lambda x: x[sort_by], reverse=reverse)
-
-    return Response(data=sorted_data, status=status.HTTP_200_OK)
-
-
 @swagger_auto_schema(**as_warning_message_image_post)
 @IsAuthorized
 @api_view(["POST"])
