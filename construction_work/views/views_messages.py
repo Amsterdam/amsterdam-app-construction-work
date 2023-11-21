@@ -149,10 +149,7 @@ def warning_message_post(request):
         return Response(messages.no_record_found, status.HTTP_404_NOT_FOUND)
 
     # Check if project manager is entitled for sending a message for this project
-    project_manager_project_ids = list(
-        project_manager.projects.values_list("id", flat=True)
-    )
-    if project_id not in project_manager_project_ids:
+    if project not in project_manager.projects.all():
         return Response(messages.no_record_found, status.HTTP_403_FORBIDDEN)
 
     serializer = WarningMessageSerializer(
@@ -198,7 +195,6 @@ def warning_message_patch(request):
         )  # pragma: no cover
 
     serializer.save()
-
     return Response(serializer.data, status.HTTP_200_OK)
 
 
