@@ -38,9 +38,7 @@ urlpatterns = [
         name="token_obtain_pair",
     ),
     # Submit your refresh token to this path to obtain a fresh access token
-    path(
-        "refresh-token/", csrf_exempt(TokenRefreshView.as_view()), name="token_refresh"
-    ),
+    path("refresh-token/", csrf_exempt(TokenRefreshView.as_view()), name="token_refresh"),
     path("user/password", csrf_exempt(views_user.change_password)),
     # Swagger (drf-yasg framework)
     re_path(
@@ -53,9 +51,7 @@ urlpatterns = [
         schema_view.with_ui("swagger", cache_timeout=0),
         name="schema-swagger-ui",
     ),
-    re_path(
-        r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"
-    ),
+    re_path(r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
     # Project(s)
     path("projects", csrf_exempt(views_iprox_projects.projects)),
     path("projects/search", csrf_exempt(views_iprox_projects.projects_search)),
@@ -83,10 +79,7 @@ urlpatterns = [
     # Warning message
     path("project/warning", csrf_exempt(views_messages.warning_message_crud)),
     path("project/warnings", csrf_exempt(views_messages.warning_messages_get)),
-    path(
-        "project/warning/image",
-        csrf_exempt(views_messages.warning_messages_image_upload),
-    ),
+    path("project/warning/image", csrf_exempt(views_messages.warning_messages_image_upload)),
     # Notification ('teaser' pointing to news- or warning article)
     path("notification", csrf_exempt(views_messages.notification_post)),
     path("notifications", csrf_exempt(views_messages.notification_get)),

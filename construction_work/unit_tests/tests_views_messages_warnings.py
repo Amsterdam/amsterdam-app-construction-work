@@ -282,10 +282,11 @@ class TestApiProjectWarning(TestCase):
 
     def test_post_warning_message_image_upload(self):
         """Test uploading image for warning message"""
+        project_obj = Project.objects.filter(foreign_id=2048).first()
         data = {
             "title": "foobar title",
             "body": "foobar body",
-            "project_foreign_id": 2048,
+            "project_foreign_id": project_obj.foreign_id,
             "project_manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
         }
         warning_message = self.create_message_from_data(data)
@@ -295,7 +296,7 @@ class TestApiProjectWarning(TestCase):
 
         image_data = {
             "image": {"main": "true", "data": base64_image_data, "description": "unittest"},
-            "project_warning_id": warning_message.pk,
+            "warning_id": warning_message.pk,
         }
 
         result = self.client.post(
@@ -345,7 +346,7 @@ class TestApiProjectWarning(TestCase):
 
         image_data = {
             "image": {"main": "true", "data": base64_image_data, "description": "unittest"},
-            "project_warning_id": warning_message.pk,
+            "warning_id": warning_message.pk,
         }
 
         result = self.client.post(
@@ -418,7 +419,7 @@ class TestApiProjectWarning(TestCase):
                 "main": "true",
                 "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg==",  # pylint: disable=line-too-long
             },
-            "project_warning_id": 4096,
+            "warning_id": 4096,
         }
 
         result = self.client.post(
