@@ -81,6 +81,15 @@ query_id = openapi.Parameter(
     required=True,
 )
 
+query_project_id = openapi.Parameter(
+    "project_id",
+    openapi.IN_QUERY,
+    description="id",
+    type=openapi.TYPE_INTEGER,
+    format="int",
+    required=True,
+)
+
 query_foreign_id = openapi.Parameter(
     "foreign_id",
     openapi.IN_QUERY,
@@ -124,6 +133,24 @@ query_fields = openapi.Parameter(
     type=openapi.TYPE_STRING,
     format="<field,field,...>",
     required=True,
+)
+
+query_sort_by = openapi.Parameter(
+    "sort-by",
+    openapi.IN_QUERY,
+    "Sort response (default: modification_date)",
+    type=openapi.TYPE_STRING,
+    format="<any key from model>",
+    required=False,
+)
+
+query_sort_order = openapi.Parameter(
+    "sort-order",
+    openapi.IN_QUERY,
+    "Sorting order (default: asc)",
+    type=openapi.TYPE_STRING,
+    format="<asc, desc>",
+    required=False,
 )
 
 query_page_size = openapi.Parameter(
