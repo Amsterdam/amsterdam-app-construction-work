@@ -27,51 +27,15 @@ class TestTextSearch(TestCase):
 
     def test_search(self):
         """Test text search"""
-        result = search_text_in_model(
-            Project,
-            "titl",
-            "title,subtitle",
-            return_fields="title,subtitle",
-            page_size=2,
-            page=0,
-        )
-        expected_result = {
-            "result": [
-                {"title": "title first project", "subtitle": "subtitle first project", "score": 1.0},
-                {"title": "title second project", "subtitle": "subtitle second project", "score": 1.0},
-            ],
-            "page": {"number": 1, "size": 2, "totalElements": 2, "totalPages": 1},
-        }
+        results = search_text_in_model(Project, "titl", "title,subtitle", return_fields="title,subtitle")
 
-        self.assertDictEqual(result, expected_result)
-
-    def test_search_paginated(self):
-        """test text search paginated result"""
-        result = search_text_in_model(
-            Project,
-            "titl",
-            "title,subtitle",
-            return_fields="title,subtitle",
-            page_size=1,
-            page=1,
-        )
-        expected_result = {
-            "result": [{"title": "title second project", "subtitle": "subtitle second project", "score": 1.0}],
-            "page": {"number": 2, "size": 1, "totalElements": 2, "totalPages": 2},
-        }
-
-        self.assertDictEqual(result, expected_result)
+        expected_result = [2048, 4096]
+        for i, result in enumerate(results):
+            self.assertEqual(expected_result[i], result.foreign_id)
 
     def test_search_2_letters(self):
         """test text search 2 char"""
-        result = search_text_in_model(
-            Project,
-            "ti",
-            "title,subtitle",
-            return_fields="title,subtitle",
-            page_size=2,
-            page=0,
-        )
-        expected_result = {"page": [], "pages": 0}
+        result = search_text_in_model(Project, "ti", "title,subtitle", return_fields="title,subtitle")
+        expected_result = []
 
-        self.assertDictEqual(result, expected_result)
+        self.assertListEqual(result, expected_result)

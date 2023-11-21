@@ -51,6 +51,10 @@ def search_text_in_model(model, query, query_fields, return_fields):
         model_fields = [x for x in model_fields if x in return_fields_list]
     model_fields += ["score"]
 
+    for query_field in query_fields_list:
+        if query_field not in model_fields:
+            raise Exception(f"Field {query_field} not in model")
+
     # Build a 'TrigramWordSimilarity' and 'accents agnostic adjacent characters' filter
     score = 0
     weight = 1.0
@@ -61,7 +65,8 @@ def search_text_in_model(model, query, query_fields, return_fields):
         weight = weight / 2
 
         # Build accents agnostic filter for adjacent characters in TrigramWordSimilarity search results
-        q = Q(**{"{query_field}__unaccent__icontains".format(query_field=query_field): query})
+        field_name = f"{query_field}__unaccent__icontains"
+        q = Q(**{field_name: query})
 
         # Query and filter
         objects = model.objects.annotate(score=score).filter(score__gte=threshold).filter(q).order_by("-score")
