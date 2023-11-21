@@ -20,6 +20,7 @@ from construction_work.models import (
 from construction_work.models.asset_and_image import Image
 from construction_work.push_notifications.send_notification import NotificationService
 from construction_work.serializers import (
+    ImageSerializer,
     NotificationSerializer,
     WarningImageSerializer,
     WarningMessagePublicSerializer,
@@ -87,111 +88,36 @@ def warning_messages_get(request):
 def warning_message_crud(request):
     """Warning message CRUD"""
     if request.method == "GET":
-        data = warning_message_get(request)
-        return Response(data["result"], status=data["status_code"])
+        return warning_message_get(request)
 
     if request.method == "POST":
-        data = None
-        try:
-            data = warning_message_post(request)
-            return Response(data["result"], status=data["status_code"])
-        except Exception:
-            return data
+        return warning_message_post(request)
 
     if request.method == "PATCH":
-        data = None
-        try:
-            data = warning_message_patch(request)
-            return Response(data["result"], status=data["status_code"])
-        except Exception:
-            return data
+        return warning_message_patch(request)
 
-    # request.method == 'DELETE'
-    data = None
-    try:
-        data = warning_message_delete(request)
-        return Response(data["result"], status=data["status_code"])
-    except Exception:
-        return data
+    if request.method == "DELETE":
+        return warning_message_delete(request)
 
 
 def warning_message_get(request):
     """Warning message get"""
     message_id = request.GET.get("id", None)
-    if message_id is None:
-        return {
-            "result": {"status": False, "result": messages.invalid_query},
-            "status_code": status.HTTP_400_BAD_REQUEST,
-        }
+    if message_id is None or not message_id.isdigit():
+        return Response(messages.invalid_query, status.HTTP_400_BAD_REQUEST)
 
-    message = WarningMessage.objects.filter(pk=message_id).first()
+    message = WarningMessage.objects.filter(pk=message_id, project__active=True).first()
     if message is None:
-        return {
-            "result": {"status": False, "result": messages.no_record_found},
-            "status_code": status.HTTP_404_NOT_FOUND,
-        }
+        return Response(messages.no_record_found, status.HTTP_404_NOT_FOUND)
 
     # Get hostname for this server
     base_url = StaticData.base_url(request)
-
-    if message.project.active is False:
-        return {
-            "result": {"status": False, "result": messages.no_record_found},
-            "status_code": status.HTTP_404_NOT_FOUND,
-        }
 
     serializer = WarningMessagePublicSerializer(
         message, many=False, context={"base_url": base_url}
     )
 
-    return {
-        "result": serializer.data,
-        "status_code": status.HTTP_200_OK,
-    }
-
-
-@IsAuthorized
-def warning_message_patch(request):
-    """Patch a warning message (most likely by web-redactie)"""
-    title = request.data.get("title", None)
-    body = request.data.get("body", None)
-    message_id = request.data.get("identifier", None)
-
-    if None in [title, message_id] or not isinstance(message_id, int):
-        return {
-            "result": {"status": False, "result": messages.invalid_query},
-            "status_code": status.HTTP_400_BAD_REQUEST,
-        }
-
-    if not isinstance(body, str):
-        return {
-            "result": {"status": False, "result": messages.invalid_query},
-            "status_code": status.HTTP_400_BAD_REQUEST,
-        }
-
-    message = WarningMessage.objects.filter(pk=message_id).first()
-    if message is None:
-        return {
-            "result": {"status": False, "result": messages.no_record_found},
-            "status_code": status.HTTP_404_NOT_FOUND,
-        }
-
-    serializer = WarningMessageSerializer(
-        instance=message,
-        partial=True,
-        data={
-            "title": title,
-            "body": body,
-        },
-    )
-    if not serializer.is_valid():
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    serializer.save()
-    return {
-        "result": {"status": True, "result": "Message patched"},
-        "status_code": status.HTTP_200_OK,
-    }
+    return Response(serializer.data, status.HTTP_200_OK)
 
 
 @IsAuthorized
@@ -199,53 +125,35 @@ def warning_message_post(request):
     """Post a warning message. Only warnings by a valid Project manager for a valid project are allowed."""
     title = request.data.get("title", None)
     body = request.data.get("body", None)
-    project_foreign_id = request.data.get("project_foreign_id", None)
+    project_id = request.data.get("project_id", None)
     project_manager_key = request.data.get("project_manager_key", None)
 
-    if None in [title, project_foreign_id, project_manager_key]:
-        return {
-            "result": {"status": False, "result": messages.invalid_query},
-            "status_code": status.HTTP_400_BAD_REQUEST,
-        }
+    if None in [title, project_id, project_manager_key]:
+        return Response(messages.invalid_query, status.HTTP_400_BAD_REQUEST)
 
-    if not str(project_foreign_id).isdigit():
-        return {
-            "result": {"status": False, "result": messages.invalid_query},
-            "status_code": status.HTTP_400_BAD_REQUEST,
-        }
-    project_foreign_id = int(project_foreign_id)
+    if not isinstance(project_id, int):
+        return Response(messages.invalid_query, status.HTTP_400_BAD_REQUEST)
 
     if not isinstance(body, str):
-        return {
-            "result": {"status": False, "result": messages.invalid_query},
-            "status_code": status.HTTP_400_BAD_REQUEST,
-        }
+        return Response(messages.invalid_query, status.HTTP_400_BAD_REQUEST)
 
-    project = Project.objects.filter(foreign_id=project_foreign_id).first()
+    project = Project.objects.filter(pk=project_id).first()
     if project is None:
-        return {
-            "result": {"status": False, "result": messages.no_record_found},
-            "status_code": status.HTTP_404_NOT_FOUND,
-        }
+        return Response(messages.no_record_found, status.HTTP_404_NOT_FOUND)
 
-    # Check if the project manager exists and is entitled for sending a message for this project
+    # Check if the project manager exists
     project_manager = ProjectManager.objects.filter(
         manager_key=project_manager_key
     ).first()
     if project_manager is None:
-        return {
-            "result": {"status": False, "result": messages.no_record_found},
-            "status_code": status.HTTP_404_NOT_FOUND,
-        }
+        return Response(messages.no_record_found, status.HTTP_404_NOT_FOUND)
 
+    # Check if project manager is entitled for sending a message for this project
     project_manager_project_ids = list(
-        project_manager.projects.values_list("foreign_id", flat=True)
+        project_manager.projects.values_list("id", flat=True)
     )
-    if project_foreign_id not in project_manager_project_ids:
-        return {
-            "result": {"status": False, "result": messages.no_record_found},
-            "status_code": status.HTTP_403_FORBIDDEN,
-        }
+    if project_id not in project_manager_project_ids:
+        return Response(messages.no_record_found, status.HTTP_403_FORBIDDEN)
 
     serializer = WarningMessageSerializer(
         data={
@@ -256,13 +164,42 @@ def warning_message_post(request):
         }
     )
     if not serializer.is_valid():
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            serializer.errors, status=status.HTTP_400_BAD_REQUEST
+        )  # pragma: no cover
 
     serializer.save()
-    return {
-        "result": serializer.data,
-        "status_code": status.HTTP_200_OK,
-    }
+    return Response(serializer.data, status.HTTP_200_OK)
+
+
+@IsAuthorized
+def warning_message_patch(request):
+    """Patch a warning message (most likely by web-redactie)"""
+    title = request.data.get("title", None)
+    body = request.data.get("body", None)
+    message_id = request.data.get("id", None)
+
+    if None in [title, message_id] or not isinstance(message_id, int):
+        return Response(messages.invalid_query, status.HTTP_400_BAD_REQUEST)
+
+    if not isinstance(body, str) or len(body) == 0:
+        return Response(messages.invalid_query, status.HTTP_400_BAD_REQUEST)
+
+    message = WarningMessage.objects.filter(pk=message_id).first()
+    if message is None:
+        return Response(messages.no_record_found, status.HTTP_404_NOT_FOUND)
+
+    serializer = WarningMessageSerializer(
+        instance=message, partial=True, data={"title": title, "body": body}
+    )
+    if not serializer.is_valid():
+        return Response(
+            serializer.errors, status=status.HTTP_400_BAD_REQUEST
+        )  # pragma: no cover
+
+    serializer.save()
+
+    return Response(serializer.data, status.HTTP_200_OK)
 
 
 @IsAuthorized
@@ -270,16 +207,11 @@ def warning_message_delete(request):
     """Delete warning message"""
     message_id = request.GET.get("id", None)
     if message_id is None:
-        return {
-            "result": {"status": False, "result": messages.invalid_query},
-            "status_code": status.HTTP_400_BAD_REQUEST,
-        }
+        return Response(messages.invalid_query, status.HTTP_400_BAD_REQUEST)
 
     WarningMessage.objects.filter(pk=message_id).delete()
-    return {
-        "result": {"status": False, "result": "Message deleted"},
-        "status_code": status.HTTP_200_OK,
-    }
+
+    return Response("Message deleted", status.HTTP_200_OK)
 
 
 @swagger_auto_schema(**as_notification_post)
@@ -374,35 +306,23 @@ def notification_get(request):
 def warning_messages_image_upload(request):
     """Upload image for warning message"""
     image_data = request.data.get("image", None)
-    warning_id = request.data.get("project_warning_id", None)
+    warning_id = request.data.get("warning_id", None)
 
     if None in [image_data, warning_id] or not isinstance(warning_id, int):
-        return Response(
-            {"status": False, "result": messages.invalid_query},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return Response(messages.invalid_query, status=status.HTTP_400_BAD_REQUEST)
 
     warning_message = WarningMessage.objects.filter(pk=warning_id).first()
     if warning_message is None:
-        return Response(
-            {"status": False, "result": messages.no_record_found},
-            status=status.HTTP_404_NOT_FOUND,
-        )
+        return Response(messages.no_record_found, status=status.HTTP_404_NOT_FOUND)
 
     if "main" not in image_data:
-        return Response(
-            {"status": False, "result": messages.invalid_query},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return Response(messages.invalid_query, status=status.HTTP_400_BAD_REQUEST)
 
     # Make sure we've got a boolean not a string
     image_data["main"] = bool(image_data["main"] in ["True", "true", True])
 
     if image_data.get("data") is None:
-        return Response(
-            {"status": False, "result": messages.invalid_query},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return Response(messages.invalid_query, status=status.HTTP_400_BAD_REQUEST)
 
     # Get description
     description = image_data.get("description", f"Warning Message {warning_id}")
@@ -413,8 +333,7 @@ def warning_messages_image_upload(request):
     result = image_conversion.run()
     if result is False:
         return Response(
-            {"status": False, "result": messages.unsupported_image_format},
-            status=status.HTTP_400_BAD_REQUEST,
+            messages.unsupported_image_format, status=status.HTTP_400_BAD_REQUEST
         )
 
     # Store images into DB and build warning-messages images list
@@ -446,10 +365,7 @@ def warning_messages_image_upload(request):
     if not warning_image_serializer.is_valid():
         return Response(
             warning_image_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-        )
+        )  # pragma: no cover
     warning_image_serializer.save()
 
-    return Response(
-        {"status": True, "result": "Images stored in database"},
-        status=status.HTTP_200_OK,
-    )
+    return Response(warning_image_serializer.data, status=status.HTTP_200_OK)

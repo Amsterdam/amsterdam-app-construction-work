@@ -22,7 +22,7 @@ message = Messages()
 
 @swagger_auto_schema(**as_article)
 @api_view(["GET"])
-# @RequestMustComeFromApp
+@RequestMustComeFromApp
 def article(request):
     """Get a single article"""
     article_id = request.GET.get("id", None)
