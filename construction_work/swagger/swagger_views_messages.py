@@ -7,9 +7,7 @@ from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
 from construction_work.serializers import (
-    NotificationSerializer,
     WarningImageSerializer,
-    WarningMessagePublicSerializer,
     WarningMessageSerializer,
 )
 from construction_work.swagger.swagger_abstract_objects import (
@@ -35,15 +33,23 @@ image = openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
                     "url": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-                    "width": openapi.Schema(type=openapi.TYPE_INTEGER, description="width"),
-                    "height": openapi.Schema(type=openapi.TYPE_INTEGER, description="height"),
+                    "width": openapi.Schema(
+                        type=openapi.TYPE_INTEGER, description="width"
+                    ),
+                    "height": openapi.Schema(
+                        type=openapi.TYPE_INTEGER, description="height"
+                    ),
                 },
             ),
         ),
-        "landscape": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="image orientation"),
+        "landscape": openapi.Schema(
+            type=openapi.TYPE_BOOLEAN, description="image orientation"
+        ),
         "coordinates": coordinates,
         "description": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-        "aspect_ratio": openapi.Schema(type=openapi.TYPE_NUMBER, description="aspect ratio"),
+        "aspect_ratio": openapi.Schema(
+            type=openapi.TYPE_NUMBER, description="aspect ratio"
+        ),
     },
 )
 
@@ -62,10 +68,18 @@ as_warning_message_get = {
                     "id": openapi.Schema(type=openapi.TYPE_STRING, description="id"),
                     "images": images,
                     "title": openapi.Schema(type=openapi.TYPE_STRING, description="id"),
-                    "body": openapi.Schema(type=openapi.TYPE_STRING, description="body"),
-                    "modification_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
-                    "publication_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
-                    "author_email": openapi.Schema(type=openapi.TYPE_STRING, description="author email"),
+                    "body": openapi.Schema(
+                        type=openapi.TYPE_STRING, description="body"
+                    ),
+                    "modification_date": openapi.Schema(
+                        type=openapi.TYPE_STRING, description="datetime"
+                    ),
+                    "publication_date": openapi.Schema(
+                        type=openapi.TYPE_STRING, description="datetime"
+                    ),
+                    "author_email": openapi.Schema(
+                        type=openapi.TYPE_STRING, description="author email"
+                    ),
                 },
             ),
             examples={
@@ -151,8 +165,12 @@ as_warning_message_post = {
         properties={
             "title": openapi.Schema(type=openapi.TYPE_STRING, description="title"),
             "body": openapi.Schema(type=openapi.TYPE_STRING, description="full text"),
-            "project_identifier": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
-            "project_manager_id": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
+            "project_identifier": openapi.Schema(
+                type=openapi.TYPE_STRING, description="identifier"
+            ),
+            "project_manager_id": openapi.Schema(
+                type=openapi.TYPE_STRING, description="identifier"
+            ),
         },
     ),
     "responses": {
@@ -178,7 +196,7 @@ as_warning_message_post = {
         ),
         403: openapi.Response(
             "application/json",
-            examples={"application/json": message.no_record_found},
+            examples={"application/json": message.access_denied},
         ),
         404: openapi.Response(
             "application/json",
@@ -221,6 +239,10 @@ as_warning_message_patch = {
             "application/json",
             examples={"application/json": message.invalid_query},
         ),
+        403: openapi.Response(
+            "application/json",
+            examples={"application/json": message.access_denied},
+        ),
         404: openapi.Response(
             "application/json",
             examples={"application/json": message.no_record_found},
@@ -245,6 +267,10 @@ as_warning_message_delete = {
             "application/json",
             examples={"application/json": message.invalid_query},
         ),
+        403: openapi.Response(
+            "application/json",
+            examples={"application/json": message.access_denied},
+        ),
     },
     "tags": ["Projects"],
 }
@@ -261,13 +287,25 @@ as_warning_messages_get = {
                 items=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        "id": openapi.Schema(type=openapi.TYPE_STRING, description="id"),
+                        "id": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="id"
+                        ),
                         "images": images,
-                        "title": openapi.Schema(type=openapi.TYPE_STRING, description="id"),
-                        "body": openapi.Schema(type=openapi.TYPE_STRING, description="body"),
-                        "modification_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
-                        "publication_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
-                        "author_email": openapi.Schema(type=openapi.TYPE_STRING, description="author email"),
+                        "title": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="id"
+                        ),
+                        "body": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="body"
+                        ),
+                        "modification_date": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="datetime"
+                        ),
+                        "publication_date": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="datetime"
+                        ),
+                        "author_email": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="author email"
+                        ),
                     },
                 ),
             ),
@@ -285,6 +323,10 @@ as_warning_messages_get = {
                 ]
             },
         ),
+        400: openapi.Response(
+            "application/json",
+            examples={"application/json": message.invalid_query},
+        ),
         404: openapi.Response(message.no_record_found),
     },
     "tags": ["Projects"],
@@ -297,9 +339,15 @@ as_notification_post = {
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            "title": openapi.Schema(type=openapi.TYPE_STRING, description="Title of notification"),
-            "body": openapi.Schema(type=openapi.TYPE_STRING, description="Body of notification"),
-            "warning_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="Warning identifier"),
+            "title": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Title of notification"
+            ),
+            "body": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Body of notification"
+            ),
+            "warning_id": openapi.Schema(
+                type=openapi.TYPE_INTEGER, description="Warning identifier"
+            ),
         },
     ),
     "responses": {
@@ -326,13 +374,21 @@ as_warning_message_image_post = {
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            "warning_id": openapi.Schema(type=openapi.TYPE_STRING, description="warning id"),
+            "warning_id": openapi.Schema(
+                type=openapi.TYPE_STRING, description="warning id"
+            ),
             "image": openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
-                    "main": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="<false|true>"),
-                    "description": openapi.Schema(type=openapi.TYPE_STRING, description="about this image"),
-                    "data": openapi.Schema(type=openapi.TYPE_STRING, description="base64 image data"),
+                    "main": openapi.Schema(
+                        type=openapi.TYPE_BOOLEAN, description="<false|true>"
+                    ),
+                    "description": openapi.Schema(
+                        type=openapi.TYPE_STRING, description="about this image"
+                    ),
+                    "data": openapi.Schema(
+                        type=openapi.TYPE_STRING, description="base64 image data"
+                    ),
                 },
                 required=["main", "data"],
             ),
