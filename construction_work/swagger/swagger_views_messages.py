@@ -322,15 +322,7 @@ as_notification_post = {
 as_warning_message_image_post = {
     # /api/v1/notification/messages/image/post
     "methods": ["POST"],
-    "manual_parameters": [
-        openapi.Parameter(
-            "UserAuthorization",
-            openapi.IN_HEADER,
-            description="authorization token",
-            type=openapi.TYPE_STRING,
-            required=True,
-        )
-    ],
+    "manual_parameters": [header_user_authorization],
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
@@ -375,12 +367,7 @@ as_warning_message_image_post = {
         ),
         404: openapi.Response(
             "application/json",
-            examples={
-                "application/json": {
-                    "status": False,
-                    "result": message.no_record_found,
-                }
-            },
+            examples={"application/json": message.no_record_found},
         ),
     },
     "tags": ["Projects"],
