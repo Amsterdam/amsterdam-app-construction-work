@@ -331,32 +331,41 @@ def notification_post(request):
 @api_view(["GET"])
 def notification_get(request):
     """Get notification"""
-    query_params = request.GET.get("project-ids", None)
-    sort_by = request.GET.get("sort-by", "publication_date")
-    sort_order = request.GET.get("sort-order", "desc")
+    project_ids = request.GET.get("project_ids", None)
+    if type(project_ids) is str:
+        project_ids = project_ids.split(",")
+        for id in project_ids:
+            if id.isdigit() is False:
+                return Response(
+                    data=messages.invalid_query, status=status.HTTP_400_BAD_REQUEST
+                )
+    else:
+        project_ids = []
 
-    if query_params is None:
+    if len(project_ids) == 0:
         return Response(
-            {"status": False, "result": messages.invalid_query},
+            data=messages.invalid_query,
             status=status.HTTP_400_BAD_REQUEST,
         )
-    project_ids = query_params.split(",")
+
+    sort_by = request.GET.get("sort_by", "publication_date")
+    sort_order = request.GET.get("sort_order", "desc")
 
     notifications = Notification.objects.filter(
-        warning__project__project_id__in=project_ids, warning__project__active=True
+        warning__project__in=project_ids, warning__project__active=True
     ).all()
 
-    notification_serializer = NotificationSerializer(notifications, many=True)
-    if not len(notification_serializer.data):
-        return Response(
-            {"status": False, "result": messages.no_record_found},
-            status=status.HTTP_404_NOT_FOUND,
-        )
+    if len(notifications) == 0:
+        return Response(data=[], status=status.HTTP_200_OK)
 
-    result = Sort().list_of_dicts(
-        notification_serializer.data, key=sort_by, sort_order=sort_order
-    )
-    return Response({"status": True, "result": result}, status=status.HTTP_200_OK)
+    serializer = NotificationSerializer(notifications, many=True)
+
+    reverse = False
+    if sort_order == "desc":
+        reverse = True
+    sorted_data = sorted(serializer.data, key=lambda x: x[sort_by], reverse=reverse)
+
+    return Response(data=sorted_data, status=status.HTTP_200_OK)
 
 
 @swagger_auto_schema(**as_warning_message_image_post)
