@@ -82,6 +82,5 @@ urlpatterns = [
     path("project/warning/image", csrf_exempt(views_messages.warning_messages_image_upload)),
     # Notification ('teaser' pointing to news- or warning article)
     path("notification", csrf_exempt(views_messages.notification_post)),
-    path("notifications", csrf_exempt(views_messages.notification_get)),
     path("__debug__/", include("debug_toolbar.urls")),
 ]

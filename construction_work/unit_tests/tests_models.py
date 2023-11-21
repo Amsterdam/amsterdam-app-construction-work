@@ -1,12 +1,13 @@
 """ unit_tests """
-from datetime import datetime
 import uuid
+from datetime import datetime
+
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-
 from django.test import TestCase
-from construction_work.generic_functions.static_data import DEFAULT_ARTICLE_MAX_AGE
 
+from construction_work.generic_functions.generic_logger import Logger
+from construction_work.generic_functions.static_data import DEFAULT_ARTICLE_MAX_AGE
 from construction_work.models import (
     Article,
     Asset,
@@ -20,8 +21,10 @@ from construction_work.models.asset_and_image import Asset, Image
 from construction_work.models.device import Device
 from construction_work.models.project import Project
 from construction_work.models.project_manager import ProjectManager
-from construction_work.models.warning_and_notification import WarningImage, WarningMessage
-
+from construction_work.models.warning_and_notification import (
+    WarningImage,
+    WarningMessage,
+)
 from construction_work.serializers import (
     ArticleSerializer,
     ImageSerializer,
@@ -32,8 +35,6 @@ from construction_work.serializers import (
     WarningMessagePublicSerializer,
 )
 from construction_work.unit_tests.mock_data import TestData
-from construction_work.generic_functions.generic_logger import Logger
-
 
 logger = Logger()
 
@@ -165,6 +166,7 @@ class TestProjectModel(TestCase):
             "lon": lat_lon_amstel_1[1],
             "device_id": device.device_id,
             "article_max_age": DEFAULT_ARTICLE_MAX_AGE,
+            "followed_projects": device.followed_projects.all(),
         }
         serializer = ProjectDetailsSerializer(
             instance=project, data={}, context=context, partial=True
@@ -178,6 +180,7 @@ class TestProjectModel(TestCase):
         distance_amstel_1_central_station_strides = 1766
 
         expected_data = {
+            "id": project.pk,
             "meter": distance_amstel_1_central_station_meters,
             "strides": distance_amstel_1_central_station_strides,
             "followers": 1,
@@ -427,11 +430,15 @@ class TestWarningMessagesModel(TestCase):
 
         # Author email message should not yet be changed at this point
         warning_message.project_manager.email = new_email
-        self.assertNotEqual(warning_message.project_manager.email, warning_message.author_email)
+        self.assertNotEqual(
+            warning_message.project_manager.email, warning_message.author_email
+        )
 
-        # After save, author email should be updated to manager email 
+        # After save, author email should be updated to manager email
         warning_message.save()
-        self.assertEqual(warning_message.project_manager.email, warning_message.author_email)
+        self.assertEqual(
+            warning_message.project_manager.email, warning_message.author_email
+        )
 
     def test_public_serializer(self):
         """Purpose: test if project_manager_id is present in serializer"""
