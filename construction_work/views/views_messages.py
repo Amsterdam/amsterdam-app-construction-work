@@ -20,14 +20,11 @@ from construction_work.models import (
 from construction_work.models.asset_and_image import Image
 from construction_work.push_notifications.send_notification import NotificationService
 from construction_work.serializers import (
-    ImageSerializer,
-    NotificationSerializer,
     WarningImageSerializer,
     WarningMessagePublicSerializer,
     WarningMessageSerializer,
 )
 from construction_work.swagger.swagger_views_messages import (
-    as_notification_get,
     as_notification_post,
     as_warning_message_delete,
     as_warning_message_get,
