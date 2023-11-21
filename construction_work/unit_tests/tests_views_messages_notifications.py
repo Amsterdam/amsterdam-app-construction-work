@@ -1,7 +1,6 @@
 """ UNITTEST """
 import json
 import os
-import uuid
 from unittest.mock import patch
 
 from django.test import Client, TestCase
@@ -17,11 +16,6 @@ from construction_work.unit_tests.mock_functions import (
 )
 
 messages = Messages()
-
-
-# TODO: fix tests
-FirebaseToken = None
-FollowedProject = None
 
 
 class TestApiNotification(TestCase):

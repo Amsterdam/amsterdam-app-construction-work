@@ -4,8 +4,18 @@ from ast import List
 from rest_framework import serializers
 
 from construction_work.generic_functions.gps_utils import get_distance
-from construction_work.generic_functions.project_utils import get_recent_articles_of_project
-from construction_work.models import Article, Asset, Image, Notification, Project, ProjectManager, WarningMessage
+from construction_work.generic_functions.project_utils import (
+    get_recent_articles_of_project,
+)
+from construction_work.models import (
+    Article,
+    Asset,
+    Image,
+    Notification,
+    Project,
+    ProjectManager,
+    WarningMessage,
+)
 from construction_work.models.device import Device
 from construction_work.models.warning_and_notification import WarningImage
 
@@ -141,7 +151,9 @@ class ProjectDetailsSerializer(ProjectListSerializer):
 
     def get_recent_articles(self, obj: Project) -> list:
         article_max_age = self.context.get("article_max_age")
-        return get_recent_articles_of_project(obj, article_max_age, ArticleSerializer, WarningMessagePublicSerializer)
+        return get_recent_articles_of_project(
+            obj, article_max_age, ArticleSerializer, WarningMessagePublicSerializer
+        )
 
 
 class ArticleSerializer(serializers.ModelSerializer):
@@ -210,15 +222,11 @@ class WarningMessageSerializer(serializers.ModelSerializer):
 class WarningMessageMinimalSerializer(serializers.ModelSerializer):
     """Warning message serializer with minimal data"""
 
-    meta_id = serializers.SerializerMethodField()
+    meta_id = serializers.DictField(source="get_id_dict")
 
     class Meta:
         model = WarningMessage
         fields = ["meta_id"]
-
-    def get_meta_id(self, obj: WarningMessage):
-        # This return value is to distinct warnings from articles
-        return {"type": "warning", "id": obj.pk}
 
 
 class WarningMessagePublicSerializer(serializers.ModelSerializer):
@@ -237,7 +245,9 @@ class WarningMessagePublicSerializer(serializers.ModelSerializer):
         images = []
         for warning_image in warning_images:
             context = {"base_url": base_url}
-            image_serializer = ImagePublicSerializer(instance=warning_image.images.all(), many=True, context=context)
+            image_serializer = ImagePublicSerializer(
+                instance=warning_image.images.all(), many=True, context=context
+            )
             sources = image_serializer.data
 
             first_image = warning_image.images.first()
