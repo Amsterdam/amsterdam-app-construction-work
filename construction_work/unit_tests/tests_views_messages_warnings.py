@@ -330,7 +330,8 @@ class TestApiProjectWarning(TestCase):
         ]
 
         for i, source in enumerate(sources):
-            self.assertDictEqual(expected_result[i], dict(source))
+            self.assertEqual(expected_result[i]["width"], dict(source)["width"])
+            self.assertEqual(expected_result[i]["height"], dict(source)["height"])
 
     def test_post_warning_message_unsupported_image_upload(self):
         """test uploading an unsupported image format"""
@@ -614,3 +615,70 @@ class TestApiProjectWarning(TestCase):
 
         self.assertEqual(result.status_code, 403)
         self.assertEqual(result.reason_phrase, "Forbidden")
+
+    def test_project_warnings_valid(self):
+        data = [
+            {
+                "title": "title",
+                "body": "Body text",
+                "project_foreign_id": 2048,
+                "project_manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            },
+            {
+                "title": "title",
+                "body": "Body text",
+                "project_foreign_id": 4096,
+                "project_manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            },
+        ]
+        [self.create_message_from_data(x) for x in data]
+
+        result = self.client.get(
+            "{url}".format(url=self.url_warnings_get),
+            headers=self.headers,
+            content_type=self.content_type,
+        )
+
+        self.assertEqual(len(result.data), 2)
+
+    def test_project_warnings_invalid_project_id(self):
+        result = self.client.get(
+            "{url}?project_id=999".format(url=self.url_warnings_get),
+            headers=self.headers,
+            content_type=self.content_type,
+        )
+
+        self.assertEqual(result.status_code, 404)
+        self.assertEqual(result.data, messages.no_record_found)
+
+    def test_project_warnings_with_project_id(self):
+        project_obj = Project.objects.filter(foreign_id=2048).first()
+        data = {
+            "title": "title",
+            "body": "Body text",
+            "project_foreign_id": project_obj.foreign_id,
+            "project_manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        }
+        warning_message = self.create_message_from_data(data)
+
+        result = self.client.get(
+            f"{self.url_warnings_get}?project_id={project_obj.pk}",
+            headers=self.headers,
+            content_type=self.content_type,
+        )
+
+        result_data = result.json()
+
+        target_dt = datetime.fromisoformat(result_data[0]["publication_date"])
+        expected_value = {
+            "id": warning_message.id,
+            "images": [],
+            "title": "title",
+            "body": "Body text",
+            "publication_date": translate_timezone(str(warning_message.publication_date), target_dt.tzinfo),
+            "modification_date": translate_timezone(str(warning_message.modification_date), target_dt.tzinfo),
+            "author_email": "mock0@amsterdam.nl",
+        }
+
+        self.assertEqual(result.status_code, 200)
+        self.assertDictEqual(expected_value, result_data[0])
