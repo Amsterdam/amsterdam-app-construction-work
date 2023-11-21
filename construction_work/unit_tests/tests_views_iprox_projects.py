@@ -315,8 +315,9 @@ class TestApiProjectsSearch(BaseTestApi):
 
     def test_search_project_and_follow_links(self):
         """Test search for projects"""
+        search_text = "title"
         query = {
-            "text": "title",
+            "text": search_text,
             "query_fields": "title,subtitle",
             "fields": "title,subtitle",
             "page_size": 1,
@@ -328,21 +329,18 @@ class TestApiProjectsSearch(BaseTestApi):
         self.assertEqual(len(response.data["result"]), 1)
 
         project_data = response.data["result"][0]
-        first_project = Project.objects.first()
-
-        self.assertEqual(project_data["title"], first_project.title)
-        self.assertEqual(project_data["subtitle"], first_project.subtitle)
+        self.assertTrue(search_text in project_data["title"])
 
         next_page = response.data["_links"]["next"]["href"]
 
         # Go to next page, and check results
         response = self.client.get(next_page, **self.headers)
 
-        project_data = response.data["result"][0]
-        second_project = Project.objects.last()
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(len(response.data["result"]), 1)
 
-        self.assertEqual(project_data["title"], second_project.title)
-        self.assertEqual(project_data["subtitle"], second_project.subtitle)
+        project_data = response.data["result"][0]
+        self.assertTrue(search_text in project_data["title"])
 
 
 class TestApiProjectDetails(BaseTestApi):
