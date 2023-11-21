@@ -356,7 +356,7 @@ class TestApiProjectWarning(TestCase):
         )
 
         self.assertEqual(result.status_code, 400)
-        self.assertDictEqual(result.data, {"status": False, "result": messages.unsupported_image_format})
+        self.assertEqual(result.data, messages.unsupported_image_format)
 
         warning_message = WarningMessage.objects.filter(project__foreign_id=2048).first()
         self.assertEqual(len(warning_message.warningimage_set.all()), 0)
@@ -382,7 +382,7 @@ class TestApiProjectWarning(TestCase):
         )
 
         self.assertEqual(result.status_code, 400)
-        self.assertDictEqual(result.data, {"status": False, "result": messages.invalid_query})
+        self.assertEqual(result.data, messages.invalid_query)
 
     def test_post_warning_message_image_upload_no_main(self):
         """test posting an image upload without 'main''"""
@@ -409,7 +409,7 @@ class TestApiProjectWarning(TestCase):
         )
 
         self.assertEqual(result.status_code, 400)
-        self.assertDictEqual(result.data, {"status": False, "result": messages.invalid_query})
+        self.assertEqual(result.data, messages.invalid_query)
 
     def test_post_warning_message_image_upload_no_warning_message(self):
         """test uploading warning image without a warning message"""
@@ -429,7 +429,7 @@ class TestApiProjectWarning(TestCase):
         )
 
         self.assertEqual(result.status_code, 404)
-        self.assertDictEqual(result.data, {"status": False, "result": messages.no_record_found})
+        self.assertEqual(result.data, messages.no_record_found)
 
     def test_post_warning_message_image_project_warning_id_should_not_be_string(self):
         """test warning_id should not be a string but an integer"""
@@ -446,7 +446,7 @@ class TestApiProjectWarning(TestCase):
         )
 
         self.assertEqual(result.status_code, 400)
-        self.assertDictEqual(result.data, {"status": False, "result": messages.invalid_query})
+        self.assertEqual(result.data, messages.invalid_query)
 
     def test_post_warning_message_image_upload_no_image_and_project_warning_id(self):
         """test posting a warning message without image and project id"""
@@ -459,7 +459,7 @@ class TestApiProjectWarning(TestCase):
         )
 
         self.assertEqual(result.status_code, 400)
-        self.assertDictEqual(result.data, {"status": False, "result": messages.invalid_query})
+        self.assertEqual(result.data, messages.invalid_query)
 
     def test_patch_warning_message_valid(self):
         """test patching a warning message"""

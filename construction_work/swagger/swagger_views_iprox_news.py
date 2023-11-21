@@ -5,7 +5,7 @@
 from drf_yasg import openapi
 
 from construction_work.serializers import ArticleSerializer
-from construction_work.swagger.swagger_abstract_objects import query_id
+from construction_work.swagger.swagger_abstract_objects import header_device_authorization, query_id
 from construction_work.views.views_messages import Messages
 
 messages = Messages()
@@ -14,7 +14,7 @@ messages = Messages()
 as_article = {
     # /api/v1/project/news swagger_auto_schema
     "methods": ["GET"],
-    "manual_parameters": [query_id],
+    "manual_parameters": [header_device_authorization, query_id],
     "responses": {
         200: openapi.Response(
             "application/json",
@@ -131,18 +131,10 @@ as_articles_get = {
                 items=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        "title": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="title"
-                        ),
-                        "publication_date": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="year-month-day"
-                        ),
-                        "type": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="<news|warning>"
-                        ),
-                        "meta_id": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="identifier"
-                        ),
+                        "title": openapi.Schema(type=openapi.TYPE_STRING, description="title"),
+                        "publication_date": openapi.Schema(type=openapi.TYPE_STRING, description="year-month-day"),
+                        "type": openapi.Schema(type=openapi.TYPE_STRING, description="<news|warning>"),
+                        "meta_id": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
                         "images": openapi.Schema(
                             type=openapi.TYPE_ARRAY,
                             description="related images",

@@ -6,23 +6,18 @@ from rest_framework.response import Response
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.model_utils import create_id_dict
-from construction_work.generic_functions.request_must_come_from_app import (
-    RequestMustComeFromApp,
-)
+from construction_work.generic_functions.request_must_come_from_app import RequestMustComeFromApp
 from construction_work.generic_functions.static_data import StaticData
 from construction_work.models import Article, WarningMessage
 from construction_work.serializers import ArticleSerializer, ImagePublicSerializer
-from construction_work.swagger.swagger_views_iprox_news import (
-    as_article,
-    as_articles_get,
-)
+from construction_work.swagger.swagger_views_iprox_news import as_article, as_articles_get
 
 message = Messages()
 
 
 @swagger_auto_schema(**as_article)
 @api_view(["GET"])
-# @RequestMustComeFromApp
+@RequestMustComeFromApp
 def article(request):
     """Get a single article"""
     article_id = request.GET.get("id", None)
@@ -46,9 +41,7 @@ def articles(request):
         projects_ids = projects_ids.split(",")
         for id in projects_ids:
             if id.isdigit() is False:
-                return Response(
-                    data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST
-                )
+                return Response(data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
     else:
         projects_ids = []
 
@@ -63,9 +56,7 @@ def articles(request):
     # Collect articles
     article_values_params = ("id", "title", "publication_date", "image")
     if projects_ids:
-        articles_list = Article.objects.filter(projects__id__in=projects_ids).values(
-            *article_values_params
-        )
+        articles_list = Article.objects.filter(projects__id__in=projects_ids).values(*article_values_params)
     else:
         articles_list = Article.objects.values(*article_values_params)
 
@@ -123,9 +114,7 @@ def articles(request):
     # Sort output if "sort by" is available and sort keys are available
     if sort_by is not None and len(available_sort_keys) > 0:
         if sort_by not in available_sort_keys:
-            return Response(
-                data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response(data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
 
         reverse = False
         if sort_order == "desc":

@@ -8,6 +8,7 @@ from drf_yasg import openapi
 from construction_work.api_messages import Messages
 from construction_work.serializers import (
     NotificationSerializer,
+    WarningImageSerializer,
     WarningMessagePublicSerializer,
     WarningMessageSerializer,
 )
@@ -337,7 +338,7 @@ as_warning_message_image_post = {
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            "project_warning_id": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
+            "warning_id": openapi.Schema(type=openapi.TYPE_STRING, description="warning id"),
             "image": openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
@@ -345,22 +346,24 @@ as_warning_message_image_post = {
                     "description": openapi.Schema(type=openapi.TYPE_STRING, description="about this image"),
                     "data": openapi.Schema(type=openapi.TYPE_STRING, description="base64 image data"),
                 },
+                required=["main", "data"],
             ),
         },
+        required=["warning_id"],
     ),
     "responses": {
         200: openapi.Response(
             "application/json",
-            examples={
-                "application/json": {
-                    "status": True,
-                    "result": "Images stored in database",
-                }
-            },
+            WarningImageSerializer,
+            examples={"application/json": {"id": 234, "is_main": False, "warning": 3245, "images": [34, 35, 36]}},
+        ),
+        400: openapi.Response(
+            "application/json",
+            examples={"application/json": [message.invalid_query, message.unsupported_image_format]},
         ),
         403: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": False, "result": message.access_denied}},
+            examples={"application/json": message.access_denied},
         ),
         404: openapi.Response(
             "application/json",
@@ -368,18 +371,6 @@ as_warning_message_image_post = {
                 "application/json": {
                     "status": False,
                     "result": message.no_record_found,
-                }
-            },
-        ),
-        422: openapi.Response(
-            "application/json",
-            examples={
-                "application/json": {
-                    "status": False,
-                    "result": "{invalid}|{unsupported}".format(
-                        invalid=message.invalid_query,
-                        unsupported=message.unsupported_image_format,
-                    ),
                 }
             },
         ),

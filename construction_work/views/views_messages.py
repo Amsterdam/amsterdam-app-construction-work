@@ -270,35 +270,23 @@ def notification_get(request):
 def warning_messages_image_upload(request):
     """Upload image for warning message"""
     image_data = request.data.get("image", None)
-    warning_id = request.data.get("project_warning_id", None)
+    warning_id = request.data.get("warning_id", None)
 
     if None in [image_data, warning_id] or not isinstance(warning_id, int):
-        return Response(
-            {"status": False, "result": messages.invalid_query},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return Response(messages.invalid_query, status=status.HTTP_400_BAD_REQUEST)
 
     warning_message = WarningMessage.objects.filter(pk=warning_id).first()
     if warning_message is None:
-        return Response(
-            {"status": False, "result": messages.no_record_found},
-            status=status.HTTP_404_NOT_FOUND,
-        )
+        return Response(messages.no_record_found, status=status.HTTP_404_NOT_FOUND)
 
     if "main" not in image_data:
-        return Response(
-            {"status": False, "result": messages.invalid_query},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return Response(messages.invalid_query, status=status.HTTP_400_BAD_REQUEST)
 
     # Make sure we've got a boolean not a string
     image_data["main"] = bool(image_data["main"] in ["True", "true", True])
 
     if image_data.get("data") is None:
-        return Response(
-            {"status": False, "result": messages.invalid_query},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return Response(messages.invalid_query, status=status.HTTP_400_BAD_REQUEST)
 
     # Get description
     description = image_data.get("description", f"Warning Message {warning_id}")
@@ -308,10 +296,7 @@ def warning_messages_image_upload(request):
     image_conversion = ImageConversion(data, description)
     result = image_conversion.run()
     if result is False:
-        return Response(
-            {"status": False, "result": messages.unsupported_image_format},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+        return Response(messages.unsupported_image_format, status=status.HTTP_400_BAD_REQUEST)
 
     # Store images into DB and build warning-messages images list
     sources = []
