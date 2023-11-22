@@ -1,6 +1,6 @@
 """ import for python module """
 from .article import Article
-from .asset_and_image import Asset, Image
+from .asset_and_image import Image
 from .device import Device
 from .project import Project
 from .project_manager import ProjectManager

@@ -9,7 +9,6 @@ from construction_work.generic_functions.project_utils import (
 )
 from construction_work.models import (
     Article,
-    Asset,
     Image,
     Notification,
     Project,
@@ -18,14 +17,6 @@ from construction_work.models import (
 )
 from construction_work.models.device import Device
 from construction_work.models.warning_and_notification import WarningImage
-
-
-class AssetsSerializer(serializers.ModelSerializer):
-    """Assets serializer (pdf's)"""
-
-    class Meta:
-        model = Asset
-        fields = "__all__"
 
 
 class ImageSerializer(serializers.ModelSerializer):
