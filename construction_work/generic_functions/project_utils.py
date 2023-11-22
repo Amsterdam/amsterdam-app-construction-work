@@ -7,7 +7,6 @@ from construction_work.generic_functions.model_utils import create_id_dict
 from construction_work.models import Article, Project, WarningMessage
 
 
-# TODO: create unit tests
 def get_recent_articles_of_project(
     project: Project,
     article_max_age: int,
