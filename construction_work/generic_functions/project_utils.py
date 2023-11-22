@@ -14,6 +14,7 @@ def get_recent_articles_of_project(
     article_serializer_class: Type[ModelSerializer],
     warning_serializer_class: Type[ModelSerializer],
 ) -> list:
+    """Combine articles and warning for a single project limited to max age"""
     all_articles = []
 
     datetime_now = datetime.now().astimezone()
@@ -40,6 +41,7 @@ def get_recent_articles_of_project(
 
 # TODO: create unit tests
 def create_project_news_lookup(projects: list[Project], article_max_age):
+    """Create lookup table to quickly find articles by project id"""
     # Prefetch articles and warning messages within date range
     datetime_now = datetime.now().astimezone()
     start_date = datetime_now - timedelta(days=int(article_max_age))
