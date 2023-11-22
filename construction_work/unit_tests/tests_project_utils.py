@@ -4,6 +4,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from construction_work.generic_functions.project_utils import (
+    create_project_news_lookup,
     get_recent_articles_of_project,
 )
 from construction_work.models.article import Article
@@ -16,13 +17,15 @@ from construction_work.serializers import (
 from construction_work.unit_tests.mock_data import TestData
 
 
-class TestGetRecentArticlesOfProject(TestCase):
+class TestProjectUtilsBase(TestCase):
     def setUp(self) -> None:
         self.data = TestData()
         self.project = Project.objects.create(**self.data.projects[0])
 
     def tearDown(self) -> None:
         Project.objects.all().delete()
+        Article.objects.all().delete()
+        WarningMessage.objects.all().delete()
 
     def create_article(self, foreign_id, pub_date):
         article_data = self.data.articles[0]
@@ -41,6 +44,8 @@ class TestGetRecentArticlesOfProject(TestCase):
         warning = WarningMessage.objects.create(**warning_data)
         return warning
 
+
+class TestGetRecentArticlesOfProject(TestProjectUtilsBase):
     def test_article_age_being_applied(self):
         # Set up articles with varying publication dates
         article1 = self.create_article(10, timezone.now() - timedelta(days=10))
@@ -97,9 +102,40 @@ class TestGetRecentArticlesOfProject(TestCase):
         self.assertIn(warning2.pk, recent_articles_ids)
 
 
-class TestCreateProjectNewsLookup(TestCase):
+class TestCreateProjectNewsLookup(TestProjectUtilsBase):
     def test_article_age_being_applied(self):
-        pass
+        # Set up articles and warning messages with varying publication dates
+        article1 = self.create_article(
+            foreign_id=1, pub_date=timezone.now() - timedelta(days=10)
+        )
+        article2 = self.create_article(
+            foreign_id=2, pub_date=timezone.now() - timedelta(days=5)
+        )
+        warning1 = self.create_warning(pub_date=timezone.now() - timedelta(days=2))
+        warning2 = self.create_warning(pub_date=timezone.now() - timedelta(days=1))
 
-    def test_mapping_created_correctly(self):
+        # Call the function with max age of 7 days
+        project_news_mapping = create_project_news_lookup(
+            projects=[self.project], article_max_age=7
+        )
+
+        # Check that the mapping only contains articles and warnings within the 7-day range for the project
+        project_id = self.project.pk
+        project_articles = [
+            news["meta_id"]["id"]
+            for news in project_news_mapping[project_id]
+            if news["meta_id"]["type"] == "article"
+        ]
+        project_warnings = [
+            news["meta_id"]["id"]
+            for news in project_news_mapping[project_id]
+            if news["meta_id"]["type"] == "warning"
+        ]
+
+        self.assertNotIn(article1.pk, project_articles)
+        self.assertIn(article2.pk, project_articles)
+        self.assertIn(warning1.pk, project_warnings)
+        self.assertIn(warning2.pk, project_warnings)
+
+    def test_lookup_map_created_correctly(self):
         pass
