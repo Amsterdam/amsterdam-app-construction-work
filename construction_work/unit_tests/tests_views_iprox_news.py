@@ -11,7 +11,7 @@ from construction_work.generic_functions.date_translation import (
     translate_timezone as tt,
 )
 from construction_work.models import Article, Project, ProjectManager, WarningMessage
-from construction_work.models.asset_and_image import Image
+from construction_work.models.image import Image
 from construction_work.models.warning_and_notification import WarningImage
 from construction_work.unit_tests.mock_data import TestData
 from construction_work.views.views_messages import Messages

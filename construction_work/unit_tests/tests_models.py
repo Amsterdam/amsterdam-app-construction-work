@@ -9,8 +9,8 @@ from django.test import TestCase
 from construction_work.generic_functions.generic_logger import Logger
 from construction_work.generic_functions.static_data import DEFAULT_ARTICLE_MAX_AGE
 from construction_work.models.article import Article
-from construction_work.models.asset_and_image import Image
 from construction_work.models.device import Device
+from construction_work.models.image import Image
 from construction_work.models.project import Project
 from construction_work.models.project_manager import ProjectManager
 from construction_work.models.warning_and_notification import (

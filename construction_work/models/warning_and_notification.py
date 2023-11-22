@@ -8,7 +8,7 @@ from construction_work.generic_functions.model_utils import create_id_dict
 from construction_work.generic_functions.static_data import (
     DEFAULT_WARNING_MESSAGE_EMAIL,
 )
-from construction_work.models.asset_and_image import Image
+from construction_work.models.image import Image
 from construction_work.models.project import Project
 
 from .project_manager import ProjectManager
