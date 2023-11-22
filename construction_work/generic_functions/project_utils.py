@@ -3,6 +3,7 @@ from typing import Type
 
 from rest_framework.serializers import ModelSerializer
 
+from construction_work.generic_functions.model_utils import create_id_dict
 from construction_work.models import Article, Project, WarningMessage
 
 
@@ -47,7 +48,7 @@ def create_project_news_lookup(projects: list[Project], article_max_age):
     # Setup lookup table
     project_news_mapping = {x.pk: [] for x in projects}
 
-    def pre_fetch_news(model, pre_cursor, project_id_key):
+    def pre_fetch_news(model, project_id_key):
         pre_fetched_qs = model.objects.filter(
             publication_date__range=[start_date, end_date]
         ).values("id", "modification_date", project_id_key)
@@ -56,13 +57,13 @@ def create_project_news_lookup(projects: list[Project], article_max_age):
         # Remap articles to lookup table with project id as key
         for obj in pre_fetched:
             news_dict = {
-                "meta_id": f"{pre_cursor}_{obj['id']}",
+                "meta_id": create_id_dict(model, obj["id"]),
                 "modification_date": str(obj["modification_date"]),
             }
             if obj[project_id_key] in [x.pk for x in projects]:
                 project_news_mapping[obj[project_id_key]].append(news_dict)
 
-    pre_fetch_news(Article, "a", "projects")
-    pre_fetch_news(WarningMessage, "w", "project")
+    pre_fetch_news(Article, "projects")
+    pre_fetch_news(WarningMessage, "project")
 
     return project_news_mapping
