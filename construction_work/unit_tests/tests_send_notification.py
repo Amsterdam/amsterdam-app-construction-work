@@ -36,47 +36,47 @@ class TestSendNotification(TestCase):
             projects.append(new_project)
 
         ProjectManager.objects.all().delete()
+        project_managers = []
         for project_manager in self.data.project_managers:
-            ProjectManager.objects.create(**project_manager)
+            new_project_manager = ProjectManager.objects.create(**project_manager)
+            project_managers.append(new_project_manager)
 
-        self.data.articles[0]["project_identifier"] = Project.objects.filter(
-            pk=self.data.articles[0]["project_identifier"]
-        ).first()
+        # self.data.articles[0]["project_identifier"] = Project.objects.filter(
+        #     pk=self.data.articles[0]["foreign_id"]
+        # ).first()
         news = Article.objects.create(**self.data.articles[0])
-        self.news_identifier = news.foreign_id
 
+        [news.projects.add(x) for x in projects]
+        news.save()
+
+        self.news_identifier = news.id
         warning_message_data1 = {
             "title": "title",
-            "project_identifier": projects[0],
-            "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            "project": projects[0],
+            "project_manager": project_managers[0],
             "body": {"preface": "short text", "content": "long text"},
-            "images": [],
         }
 
         warning_message_data2 = {
             "title": "title",
-            "project_identifier": projects[1],
-            "project_manager_id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+            "project": projects[1],
+            "project_manager": project_managers[1],
             "body": {"preface": "short text", "content": "long text"},
-            "images": [],
         }
         WarningMessage.objects.all().delete()
 
         warning_message1 = WarningMessage.objects.create(**warning_message_data1)
         warning_message2 = WarningMessage.objects.create(**warning_message_data2)
 
-        self.warning_identifier1 = str(warning_message1.identifier)
-        self.warning_identifier2 = str(warning_message2.identifier)
-
         notification_message_data1 = {
             "title": "title",
             "body": "text",
-            "warning_identifier": self.warning_identifier1,
+            "warning": warning_message1,
         }
         notification_message_data2 = {
             "title": "title",
             "body": "text",
-            "warning_identifier": self.warning_identifier2,
+            "warning": warning_message2,
         }
         notification_message_data3 = {
             "title": "title",
@@ -86,11 +86,13 @@ class TestSendNotification(TestCase):
 
         notification1 = Notification.objects.create(**notification_message_data1)
         notification2 = Notification.objects.create(**notification_message_data2)
+
+        # TODO: We moeten ook een article (former news) kunnen hangen aan een push-notificatie... Oepsie...
         notification3 = Notification.objects.create(**notification_message_data3)
 
-        self.notification_identifier1 = str(notification1.identifier)
-        self.notification_identifier2 = str(notification2.identifier)
-        self.notification_identifier3 = str(notification3.identifier)
+        self.notification_id_1 = str(notification1.id)
+        self.notification_id_2 = str(notification2.id)
+        self.notification_id_3 = str(notification3.id)
 
         Device.objects.all().delete()
         for device in self.data.devices:
@@ -110,7 +112,7 @@ class TestSendNotification(TestCase):
 
         mock_logging = logging.getLogger("construction_work.generic_functions.generic_logger")
         with patch.object(mock_logging, "error") as mocked_log:
-            send_notification = NotificationService(self.notification_identifier1)
+            send_notification = NotificationService(self.notification_id_1)
             send_notification.send_multicast_and_handle_errors()
 
             assert mocked_log.call_args_list == [call("List of tokens that caused failures: ['foobar_token1']")]
@@ -164,7 +166,7 @@ class TestSendNotification(TestCase):
 
         mock_logging = logging.getLogger("construction_work.generic_functions.generic_logger")
         with patch.object(mock_logging, "error") as mocked_log:
-            send_notification = NotificationService(self.notification_identifier3)
+            send_notification = NotificationService(self.notification_id_3)
             send_notification.send_multicast_and_handle_errors()
 
             assert mocked_log.call_args_list == [call("List of tokens that caused failures: ['foobar_token1']")]
