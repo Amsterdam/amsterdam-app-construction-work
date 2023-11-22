@@ -35,13 +35,13 @@ class NotificationService:
             title=self.notification_object.title, body=self.notification_object.body
         )
 
-        self.subscribed_device_batches = self.create_subscribed_device_batches()
+        self.subscribed_device_batches = self._create_subscribed_device_batches()
         if len(self.subscribed_device_batches) == 0:
             self.setup_result = "No subscribed devices found"
             return False
         return True
 
-    def create_subscribed_device_batches(self):
+    def _create_subscribed_device_batches(self):
         """Create batches of subscribers"""
         firebase_tokens = self.notification_object.warning.project.device_set.exclude(
             firebase_token=None
