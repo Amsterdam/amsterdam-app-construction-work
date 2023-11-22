@@ -22,8 +22,6 @@ from construction_work.models.warning_and_notification import WarningImage
 class ImageSerializer(serializers.ModelSerializer):
     """Image serializer (iprox images)"""
 
-    # TODO: url, size, landscape
-
     class Meta:
         model = Image
         fields = "__all__"

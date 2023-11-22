@@ -37,7 +37,6 @@ from construction_work.swagger.swagger_views_messages import (
 messages = Messages()
 
 
-# TODO: refactor, used by vue app?
 @swagger_auto_schema(**as_warning_messages_get)
 @api_view(["GET"])
 def warning_messages_get(request):
