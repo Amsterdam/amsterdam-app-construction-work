@@ -38,7 +38,6 @@ def get_recent_articles_of_project(
     return all_articles
 
 
-# TODO: create unit tests
 def create_project_news_lookup(projects: list[Project], article_max_age):
     """Create lookup table to quickly find articles by project id"""
     # Prefetch articles and warning messages within date range
