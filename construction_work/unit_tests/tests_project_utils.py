@@ -1,8 +1,9 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.test import TestCase
 from django.utils import timezone
 
+from construction_work.generic_functions.model_utils import create_id_dict
 from construction_work.generic_functions.project_utils import (
     create_project_news_lookup,
     get_recent_articles_of_project,
@@ -19,6 +20,7 @@ from construction_work.unit_tests.mock_data import TestData
 
 class TestProjectUtilsBase(TestCase):
     def setUp(self) -> None:
+        self.maxDiff = None
         self.data = TestData()
         self.project = Project.objects.create(**self.data.projects[0])
 
@@ -27,21 +29,29 @@ class TestProjectUtilsBase(TestCase):
         Article.objects.all().delete()
         WarningMessage.objects.all().delete()
 
-    def create_article(self, foreign_id, pub_date):
+    def create_article(self, foreign_id, pub_date, project=None):
+        if project is None:
+            project = self.project
+
         article_data = self.data.articles[0]
 
         article_data["foreign_id"] = foreign_id
         article_data["publication_date"] = pub_date
         article = Article.objects.create(**article_data)
-        article.projects.add(self.project)
+        article.projects.add(project)
+        article.refresh_from_db()
         return article
 
-    def create_warning(self, pub_date):
+    def create_warning(self, pub_date, project=None):
+        if project is None:
+            project = self.project
+
         warning_data = self.data.warning_message
 
-        warning_data["project"] = self.project
+        warning_data["project"] = project
         warning_data["publication_date"] = pub_date
         warning = WarningMessage.objects.create(**warning_data)
+        warning.refresh_from_db()
         return warning
 
 
@@ -138,4 +148,39 @@ class TestCreateProjectNewsLookup(TestProjectUtilsBase):
         self.assertIn(warning2.pk, project_warnings)
 
     def test_lookup_map_created_correctly(self):
-        pass
+        project2 = Project.objects.create(**self.data.projects[1])
+
+        article1 = self.create_article(
+            10, timezone.now() - timedelta(days=15), self.project
+        )
+        article2 = self.create_article(
+            20, timezone.now() - timedelta(days=10), project2
+        )
+        warning1 = self.create_warning(timezone.now() - timedelta(days=5), project2)
+
+        project_news_mapping = create_project_news_lookup(
+            projects=[self.project, project2], article_max_age=30
+        )
+
+        expected_project_map = {
+            self.project.pk: [
+                {
+                    "meta_id": create_id_dict(Article, article1.pk),
+                }
+            ],
+            project2.pk: [
+                {
+                    "meta_id": create_id_dict(Article, article2.pk),
+                },
+                {
+                    "meta_id": create_id_dict(WarningMessage, warning1.pk),
+                },
+            ],
+        }
+
+        # Testing without modification date to annoying to parse and compare correctly
+        for _, v in project_news_mapping.items():
+            for d in v:
+                d.pop("modification_date")
+
+        self.assertDictEqual(project_news_mapping, expected_project_map)
