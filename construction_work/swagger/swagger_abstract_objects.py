@@ -216,12 +216,20 @@ foreign_id = openapi.Schema(
     items=openapi.Schema(type=openapi.TYPE_STRING, description="foreign id"),
 )
 
+meta_id = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "type": openapi.Schema(type=openapi.TYPE_STRING, description="[article|warning]"),
+        "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="id"),
+    },
+)
+
 recent_articles = openapi.Schema(
     type=openapi.TYPE_ARRAY,
     items=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            "meta_id": openapi.Schema(type=openapi.TYPE_STRING, description="meta id"),
+            "meta_id": meta_id,
             "modification_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
         },
     ),

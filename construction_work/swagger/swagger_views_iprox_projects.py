@@ -6,9 +6,9 @@ from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
 from construction_work.swagger.swagger_abstract_objects import (
-    foreign_id,
     header_device_authorization,
     header_device_id,
+    meta_id,
     project_details_schema,
     projects_schema,
     query_address,
@@ -296,15 +296,7 @@ as_projects_followed_articles = {
                         type=openapi.TYPE_ARRAY,
                         items=openapi.Schema(
                             type=openapi.TYPE_OBJECT,
-                            properties={
-                                "meta_id": openapi.Schema(
-                                    type=openapi.TYPE_OBJECT,
-                                    properties={
-                                        "type": openapi.Schema(type=openapi.TYPE_STRING, description="article|warning"),
-                                        "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="id"),
-                                    },
-                                )
-                            },
+                            properties={"meta_id": meta_id},
                         ),
                     )
                 },
