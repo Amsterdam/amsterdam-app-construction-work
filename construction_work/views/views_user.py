@@ -6,7 +6,10 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from construction_work.api_messages import Messages
-from construction_work.generic_functions.is_authorized import IsAuthorized
+from construction_work.generic_functions.is_authorized import (
+    IsAuthorized,
+    JWTAuthorized,
+)
 from construction_work.swagger.swagger_views_user import as_change_password
 
 messages = Messages()
@@ -14,7 +17,7 @@ messages = Messages()
 
 @swagger_auto_schema(**as_change_password)
 @api_view(["POST"])
-@IsAuthorized
+@JWTAuthorized
 def change_password(request):
     """Change user password (VUE)"""
     username = request.data.get("username", None)
@@ -31,7 +34,9 @@ def change_password(request):
     UserModel = get_user_model()
     user = UserModel.objects.filter(username=username).first()
     if user is None or not user.check_password(old_password):
-        return Response(messages.invalid_username_or_password, status.HTTP_400_BAD_REQUEST)
+        return Response(
+            messages.invalid_username_or_password, status.HTTP_400_BAD_REQUEST
+        )
 
     # Change user password
     user.set_password(password)

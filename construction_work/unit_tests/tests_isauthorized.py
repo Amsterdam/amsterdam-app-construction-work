@@ -6,7 +6,10 @@ from django.contrib.auth import get_user_model
 from django.test import RequestFactory, TestCase
 
 from construction_work.generic_functions.aes_cipher import AESCipher
-from construction_work.generic_functions.is_authorized import IsAuthorized
+from construction_work.generic_functions.is_authorized import (
+    IsAuthorized,
+    JWTAuthorized,
+)
 from construction_work.models import ProjectManager
 from construction_work.unit_tests.mock_data import TestData
 
@@ -46,9 +49,10 @@ class TestIsAuthorized(TestCase):
         def a_view(request):
             return "success"
 
-        token = AESCipher(
-            "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", os.getenv("AES_SECRET")
-        ).encrypt()
+        app_token = os.getenv("APP_TOKEN")
+        aes_secret = os.getenv("AES_SECRET")
+        token = AESCipher(app_token, aes_secret).encrypt()
+
         headers = {"Accept": "application/json", "UserAuthorization": token}
         request = self.factory.post("/", headers=headers)
         resp = a_view(request)
@@ -61,9 +65,10 @@ class TestIsAuthorized(TestCase):
         def a_view(request):
             return "success"
 
-        token = AESCipher(
-            "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", os.getenv("AES_SECRET")
-        ).encrypt()
+        app_token = os.getenv("APP_TOKEN")
+        aes_secret = os.getenv("AES_SECRET")
+        token = AESCipher(app_token, aes_secret).encrypt()
+
         headers = {"Accept": "application/json", "INGESTAUTHORIZATION": token}
         request = self.factory.post("/", headers=headers)
         resp = a_view(request)
@@ -91,7 +96,7 @@ class TestIsAuthorized(TestCase):
         headers = {"Accept": "application/json", "UserAuthorization": "invalid"}
         request = self.factory.post("/", headers=headers)
         result = a_view(request)
-        self.assertEqual(result.content, b"Server error: Invalid encrypted token")
+        self.assertEqual(result.status_code, 403)
 
     def test_no_token(self):
         """Test missing JWT token"""
@@ -108,7 +113,7 @@ class TestIsAuthorized(TestCase):
     def test_jwt_token_valid(self):
         """Test if JWT token is valid"""
 
-        @IsAuthorized
+        @JWTAuthorized
         def a_view(request):  # pragma: no cover
             return "success"
 
@@ -120,7 +125,7 @@ class TestIsAuthorized(TestCase):
     def test_jwt_token_invalid(self):
         """Test if JWT token is in-valid"""
 
-        @IsAuthorized
+        @JWTAuthorized
         def a_view(request):  # pragma: no cover
             return "success"
 

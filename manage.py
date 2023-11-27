@@ -48,7 +48,7 @@ def main():
 
     # Always read environment variables via manage.py
     source_environment()
-    
+
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
@@ -64,8 +64,8 @@ def main():
     no_coverage = os.getenv("NO_COVERAGE", "false").lower() in ("true", "1")
 
     if is_testing and no_coverage is False:
-        os.environ["AES_SECRET"] = "aes_mock_secret"
-        os.environ["APP_TOKEN"] = "app_mock_token"
+        os.environ["AES_SECRET"] = "mock_secret"
+        os.environ["APP_TOKEN"] = "111acb9e-9235-41fc-874c-3ef365d84dc7"
 
         import coverage
 

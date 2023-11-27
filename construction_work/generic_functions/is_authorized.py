@@ -15,7 +15,7 @@ from uuid import UUID
 
 import jwt
 from django.http import HttpRequest
-from django.http.response import HttpResponse, HttpResponseForbidden
+from django.http.response import HttpResponseForbidden
 from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError
 
 from construction_work.generic_functions.aes_cipher import AESCipher, AESException
@@ -27,36 +27,46 @@ logger = Logger()
 AES_SECRET = os.getenv("AES_SECRET")
 
 
-def get_token_from_request(request: HttpRequest, http_key: str, header_key: str, encode_header: bool = False):
+def get_token_from_request(request: HttpRequest):
     """Get the AES encrypted token from the request"""
-    http_token = request.META.get(http_key, None)
-    header_token = request.META.get("headers", {}).get(header_key, None)
+    auth_headers = [
+        "UserAuthorization",
+        "IngestAuthorization",
+        "DeviceAuthorization",
+    ]
 
-    return_token = None
-    if http_token:
-        return_token = http_token
-    elif header_token:
-        return_token = header_token
-        if encode_header:
-            return_token = header_token.encode("utf-8")
+    auth_token = None
+    for k, v in request.META.items():
+        if k in [f"HTTP_{x.upper()}" for x in auth_headers]:
+            auth_token = v
+            break
 
-    return return_token
+    if auth_token is None:
+        for k, v in request.META.get("headers", {}).items():
+            if k in auth_headers:
+                auth_token = v
+
+    return auth_token
 
 
-# NOTE: Check headers, they don't seem to match their functions...
 def get_jwt_auth_token(request: HttpRequest):
     """Get the JWT token from the request"""
-    return get_token_from_request(request, "HTTP_AUTHORIZATION", "AUTHORIZATION", encode_header=True)
 
+    jwt_header = "AUTHORIZATION"
 
-def get_user_auth_token(request: HttpRequest):
-    """Get the AES encrypted UserAuthorization token from the request"""
-    return get_token_from_request(request, "HTTP_USERAUTHORIZATION", "UserAuthorization")
+    auth_token = None
+    http_token = request.META.get(f"HTTP_{jwt_header}")
+    header_token = request.META.get("headers", {}).get(jwt_header)
 
+    if http_token:
+        auth_token = http_token
+    elif header_token:
+        auth_token = http_token
 
-def get_ingest_auth_token(request: HttpRequest):
-    """Get the AES encrypted INGEST token from the request"""
-    return get_token_from_request(request, "HTTP_INGESTAUTHORIZATION", "INGESTAUTHORIZATION")
+    if auth_token:
+        auth_token = auth_token.encode("utf-8")
+
+    return auth_token
 
 
 def is_valid_jwt_token(jwt_encrypted_token):
@@ -69,21 +79,12 @@ def is_valid_jwt_token(jwt_encrypted_token):
         return False
 
 
-def is_valid_aes_token(encrypted_token):
-    """Test if aes token is valid"""
-    try:
-        AESCipher(encrypted_token, AES_SECRET).decrypt()
-        return True
-    except AESException as e:
-        logger.error(e)
-        raise AESException("Invalid encrypted token") from e
-
-
-def is_valid_ingest_token(encrypted_token):
+def is_valid_auth_token(encrypted_token):
     """Test is ingest token is valid"""
     try:
         decrypted_token = AESCipher(encrypted_token, AES_SECRET).decrypt()
         # Check if token is valid UUID, if not ValueError will be thrown
+        print(decrypted_token)
         UUID(decrypted_token, version=4)
         return True
     except AESException as e:
@@ -111,24 +112,31 @@ class IsAuthorized:
         self.func = func
 
     def __call__(self, *args, **kwargs):
+        request = args[0]
+        auth_token = get_token_from_request(request)
+
+        if auth_token is None or is_valid_auth_token(auth_token) is False:
+            return HttpResponseForbidden()
+
+        return self.func(*args, **kwargs)
+
+
+class JWTAuthorized:
+    def __init__(self, func):
+        functools.update_wrapper(self, func)
+        self.func = func
+
+    def __call__(self, *args, **kwargs):
+        request = args[0]
+        jwt_auth_token = get_jwt_auth_token(request)
+
+        if jwt_auth_token is None:
+            return HttpResponseForbidden()
+
         try:
-            request = args[0]
+            jwt.decode(jwt_auth_token, SECRET_KEY, algorithms=["HS256"])
+        except (InvalidSignatureError, ExpiredSignatureError, Exception) as e:
+            logger.error(e)
+            return HttpResponseForbidden()
 
-            user_auth_token = get_user_auth_token(request)
-            ingest_auth_token = get_ingest_auth_token(request)
-            jwt_auth_token = get_jwt_auth_token(request)
-
-            if user_auth_token is not None:
-                if is_valid_aes_token(user_auth_token):
-                    return self.func(*args, **kwargs)
-            elif jwt_auth_token is not None:
-                if is_valid_jwt_token(jwt_auth_token):
-                    return self.func(*args, **kwargs)
-            elif ingest_auth_token is not None:
-                if is_valid_ingest_token(ingest_auth_token):
-                    return self.func(*args, **kwargs)
-        except Exception as error:  # pragma: no cover
-            return HttpResponse(f"Server error: {error}", status=500)
-
-        # Access is not allowed, abort with 403
-        return HttpResponseForbidden()
+        return self.func(*args, **kwargs)

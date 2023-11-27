@@ -27,7 +27,9 @@ class TestApiNotification(TestCase):
         self.post_url = "/api/v1/notification"
         self.get_url = "/api/v1/notifications"
 
-        self.token = AESCipher("foobar", os.getenv("AES_SECRET")).encrypt()
+        app_token = os.getenv("APP_TOKEN")
+        aes_secret = os.getenv("AES_SECRET")
+        self.token = AESCipher(app_token, aes_secret).encrypt()
         self.headers = {"UserAuthorization": self.token}
         self.content_type = "application/json"
         self.client = Client()

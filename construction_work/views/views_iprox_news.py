@@ -6,9 +6,6 @@ from rest_framework.response import Response
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.model_utils import create_id_dict
-from construction_work.generic_functions.request_must_come_from_app import (
-    RequestMustComeFromApp,
-)
 from construction_work.generic_functions.static_data import StaticData
 from construction_work.models import Article, WarningMessage
 from construction_work.serializers import ArticleSerializer, ImagePublicSerializer
@@ -22,7 +19,6 @@ message = Messages()
 
 @swagger_auto_schema(**as_article)
 @api_view(["GET"])
-# @RequestMustComeFromApp
 def article(request):
     """Get a single article"""
     article_id = request.GET.get("id", None)
@@ -39,7 +35,6 @@ def article(request):
 
 @swagger_auto_schema(**as_articles_get)
 @api_view(["GET"])
-# @RequestMustComeFromApp
 def articles(request):
     project_ids = request.GET.get("project_ids", None)
     if type(project_ids) is str:

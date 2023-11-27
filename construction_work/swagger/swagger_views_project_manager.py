@@ -16,16 +16,26 @@ images = openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
             "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="image id"),
-            "aspectRatio": openapi.Schema(type=openapi.TYPE_NUMBER, description="aspect ratio"),
-            "alternativeText": openapi.Schema(type=openapi.TYPE_STRING, description="Alternative text"),
+            "aspectRatio": openapi.Schema(
+                type=openapi.TYPE_NUMBER, description="aspect ratio"
+            ),
+            "alternativeText": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Alternative text"
+            ),
             "sources": openapi.Schema(
                 type=openapi.TYPE_ARRAY,
                 items=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        "url": openapi.Schema(type=openapi.TYPE_STRING, description="url"),
-                        "width": openapi.Schema(type=openapi.TYPE_INTEGER, description="width"),
-                        "height": openapi.Schema(type=openapi.TYPE_INTEGER, description="height"),
+                        "url": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="url"
+                        ),
+                        "width": openapi.Schema(
+                            type=openapi.TYPE_INTEGER, description="width"
+                        ),
+                        "height": openapi.Schema(
+                            type=openapi.TYPE_INTEGER, description="height"
+                        ),
                     },
                 ),
             ),
@@ -55,7 +65,9 @@ projects_augmented = {
                     description="foreign_id",
                 ),
                 "images": images,
-                "subtitle": openapi.Schema(type=openapi.TYPE_STRING, description="subtitle"),
+                "subtitle": openapi.Schema(
+                    type=openapi.TYPE_STRING, description="subtitle"
+                ),
                 "title": openapi.Schema(type=openapi.TYPE_STRING, description="title"),
             },
         ),
@@ -88,7 +100,9 @@ as_project_manager_get = {
             "application/json",
             openapi.Schema(
                 type=openapi.TYPE_ARRAY,
-                items=openapi.Schema(type=openapi.TYPE_OBJECT, properties=projects_augmented),
+                items=openapi.Schema(
+                    type=openapi.TYPE_OBJECT, properties=projects_augmented
+                ),
             ),
             examples={
                 "application/json": {
@@ -100,7 +114,11 @@ as_project_manager_get = {
         ),
         404: openapi.Response(
             description="Error response",
-            schema=openapi.Schema(type=openapi.TYPE_STRING, format="text", description=message.no_record_found),
+            schema=openapi.Schema(
+                type=openapi.TYPE_STRING,
+                format="text",
+                description=message.no_record_found,
+            ),
             examples={"application/json": message.no_record_found},
         ),
     },
@@ -131,12 +149,20 @@ as_project_manager_delete = {
     "responses": {
         200: openapi.Response(
             description="Successful response",
-            schema=openapi.Schema(type=openapi.TYPE_STRING, format="text", description="Project manager removed"),
+            schema=openapi.Schema(
+                type=openapi.TYPE_STRING,
+                format="text",
+                description="Project manager removed",
+            ),
             examples={"application/json": "Project manager removed"},
         ),
         400: openapi.Response(
             description="Error response",
-            schema=openapi.Schema(type=openapi.TYPE_STRING, format="text", description=message.invalid_query),
+            schema=openapi.Schema(
+                type=openapi.TYPE_STRING,
+                format="text",
+                description=message.invalid_query,
+            ),
             examples={"application/json": message.invalid_query},
         ),
     },
@@ -151,22 +177,37 @@ as_project_manager_post_patch = {
         openapi.Parameter(
             "UserAuthorization",
             openapi.IN_HEADER,
-            description="authorization token",
+            description="Authorization token",
             type=openapi.TYPE_STRING,
             required=True,
-        )
+        ),
+        openapi.Parameter(
+            "AUTHORIZATION",
+            openapi.IN_HEADER,
+            description="JWT token",
+            type=openapi.TYPE_STRING,
+            required=True,
+        ),
     ],
     "request_body": openapi.Schema(type=openapi.TYPE_OBJECT, properties=projects),
     "responses": {
         200: ProjectManagerSerializer,
         400: openapi.Response(
             description="Error response",
-            schema=openapi.Schema(type=openapi.TYPE_STRING, format="text", description=message.invalid_query),
+            schema=openapi.Schema(
+                type=openapi.TYPE_STRING,
+                format="text",
+                description=message.invalid_query,
+            ),
             examples={"application/json": message.invalid_query},
         ),
         404: openapi.Response(
             description="Error response",
-            schema=openapi.Schema(type=openapi.TYPE_STRING, format="text", description=message.no_record_found),
+            schema=openapi.Schema(
+                type=openapi.TYPE_STRING,
+                format="text",
+                description=message.no_record_found,
+            ),
             examples={"application/json": message.no_record_found},
         ),
     },
