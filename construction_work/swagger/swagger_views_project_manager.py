@@ -9,7 +9,6 @@ from construction_work.serializers import ProjectManagerSerializer
 from construction_work.swagger.swagger_abstract_objects import (
     header_jwt_authorization,
     header_jwt_authorization_not_required,
-    header_user_authorization,
     header_user_authorization_not_required,
 )
 
@@ -49,7 +48,7 @@ images = openapi.Schema(
     ),
 )
 
-projects = {
+project_manager = {
     "manager_key": openapi.Schema(type=openapi.TYPE_STRING, description="manager_key"),
     "email": openapi.Schema(type=openapi.TYPE_STRING, description="email"),
     "projects": openapi.Schema(
@@ -58,7 +57,7 @@ projects = {
     ),
 }
 
-projects_augmented = {
+project_manager_augmented = {
     "manager_key": openapi.Schema(type=openapi.TYPE_STRING, description="manager_key"),
     "email": openapi.Schema(type=openapi.TYPE_STRING, description="email"),
     "projects": openapi.Schema(
@@ -85,7 +84,8 @@ as_project_manager_get = {
     "methods": ["GET"],
     "Description": "test",
     "manual_parameters": [
-        header_user_authorization,
+        header_user_authorization_not_required,
+        header_jwt_authorization_not_required,
         openapi.Parameter(
             "manager_key",
             openapi.IN_QUERY,
@@ -101,7 +101,7 @@ as_project_manager_get = {
             openapi.Schema(
                 type=openapi.TYPE_ARRAY,
                 items=openapi.Schema(
-                    type=openapi.TYPE_OBJECT, properties=projects_augmented
+                    type=openapi.TYPE_OBJECT, properties=project_manager_augmented
                 ),
             ),
             examples={
@@ -134,7 +134,7 @@ as_project_manager_delete = {
         openapi.Parameter(
             "manager_key",
             openapi.IN_QUERY,
-            description="Remove project manager by manager_key",
+            description="Manager key of project manager to remove",
             type=openapi.TYPE_STRING,
             format="<uuid4>",
             required=True,
@@ -168,10 +168,11 @@ as_project_manager_post_patch = {
     # /api/v1/image swagger_auto_schema
     "methods": ["POST", "PATCH"],
     "manual_parameters": [
-        header_user_authorization_not_required,
-        header_jwt_authorization_not_required,
+        header_jwt_authorization,
     ],
-    "request_body": openapi.Schema(type=openapi.TYPE_OBJECT, properties=projects),
+    "request_body": openapi.Schema(
+        type=openapi.TYPE_OBJECT, properties=project_manager
+    ),
     "responses": {
         200: ProjectManagerSerializer,
         400: openapi.Response(
