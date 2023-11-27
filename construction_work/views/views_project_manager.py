@@ -125,6 +125,8 @@ def post(request):
         manager_key=manager_key
     ).first()
 
+    # TODO: check if manager key is UUID, should be done by serializer.is_valid?
+
     # Use the instance parameter to update the existing article or create a new one
     project_manager = {"manager_key": manager_key, "email": email}
     serializer = ProjectManagerSerializer(

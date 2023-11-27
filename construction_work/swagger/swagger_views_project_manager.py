@@ -6,6 +6,12 @@ from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
 from construction_work.serializers import ProjectManagerSerializer
+from construction_work.swagger.swagger_abstract_objects import (
+    header_jwt_authorization,
+    header_jwt_authorization_not_required,
+    header_user_authorization,
+    header_user_authorization_not_required,
+)
 
 message = Messages()
 
@@ -79,13 +85,7 @@ as_project_manager_get = {
     "methods": ["GET"],
     "Description": "test",
     "manual_parameters": [
-        openapi.Parameter(
-            "UserAuthorization",
-            openapi.IN_HEADER,
-            description="authorization token",
-            type=openapi.TYPE_STRING,
-            required=True,
-        ),
+        header_user_authorization,
         openapi.Parameter(
             "manager_key",
             openapi.IN_QUERY,
@@ -130,13 +130,7 @@ as_project_manager_delete = {
     # /api/v1/asset swagger_auto_schema
     "methods": ["DELETE"],
     "manual_parameters": [
-        openapi.Parameter(
-            "UserAuthorization",
-            openapi.IN_HEADER,
-            description="authorization token",
-            type=openapi.TYPE_STRING,
-            required=True,
-        ),
+        header_jwt_authorization,
         openapi.Parameter(
             "manager_key",
             openapi.IN_QUERY,
@@ -174,20 +168,8 @@ as_project_manager_post_patch = {
     # /api/v1/image swagger_auto_schema
     "methods": ["POST", "PATCH"],
     "manual_parameters": [
-        openapi.Parameter(
-            "UserAuthorization",
-            openapi.IN_HEADER,
-            description="Authorization token",
-            type=openapi.TYPE_STRING,
-            required=True,
-        ),
-        openapi.Parameter(
-            "AUTHORIZATION",
-            openapi.IN_HEADER,
-            description="JWT token",
-            type=openapi.TYPE_STRING,
-            required=True,
-        ),
+        header_user_authorization_not_required,
+        header_jwt_authorization_not_required,
     ],
     "request_body": openapi.Schema(type=openapi.TYPE_OBJECT, properties=projects),
     "responses": {
