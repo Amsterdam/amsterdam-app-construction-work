@@ -84,7 +84,6 @@ def is_valid_auth_token(encrypted_token):
     try:
         decrypted_token = AESCipher(encrypted_token, AES_SECRET).decrypt()
         # Check if token is valid UUID, if not ValueError will be thrown
-        print(decrypted_token)
         UUID(decrypted_token, version=4)
         return True
     except AESException as e:
