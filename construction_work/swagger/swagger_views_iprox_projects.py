@@ -102,6 +102,7 @@ as_projects = {
             },
         ),
         400: openapi.Response(message.invalid_query),
+        403: forbidden_403,
     },
     "tags": ["Projects"],
 }

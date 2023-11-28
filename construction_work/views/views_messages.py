@@ -39,6 +39,7 @@ messages = Messages()
 
 @swagger_auto_schema(**as_warning_messages_get)
 @api_view(["GET"])
+@IsAuthorized
 def warning_messages_get(request):
     """Warning messages"""
     project_id = request.GET.get("project_id", None)
@@ -68,6 +69,7 @@ def warning_messages_get(request):
 @swagger_auto_schema(**as_warning_message_patch)
 @swagger_auto_schema(**as_warning_message_delete)
 @api_view(["GET", "POST", "PATCH", "DELETE"])
+@IsAuthorized
 def warning_message_crud(request):
     """Warning message CRUD"""
     if request.method == "GET":
@@ -103,7 +105,6 @@ def warning_message_get(request):
     return Response(serializer.data, status.HTTP_200_OK)
 
 
-@IsAuthorized
 def warning_message_post(request):
     """Post a warning message. Only warnings by a valid Project manager for a valid project are allowed."""
     title = request.data.get("title", None)
@@ -155,7 +156,6 @@ def warning_message_post(request):
     return Response(serializer.data, status.HTTP_200_OK)
 
 
-@IsAuthorized
 def warning_message_patch(request):
     """Patch a warning message (most likely by web-redactie)"""
     title = request.data.get("title", None)
@@ -184,7 +184,6 @@ def warning_message_patch(request):
     return Response(serializer.data, status.HTTP_200_OK)
 
 
-@IsAuthorized
 def warning_message_delete(request):
     """Delete warning message"""
     message_id = request.GET.get("id", None)
@@ -197,8 +196,8 @@ def warning_message_delete(request):
 
 
 @swagger_auto_schema(**as_notification_post)
-@IsAuthorized
 @api_view(["POST"])
+@IsAuthorized
 def notification_post(request):
     """Post Notification message"""
     title = request.data.get("title", None)
@@ -242,8 +241,8 @@ def notification_post(request):
 
 
 @swagger_auto_schema(**as_warning_message_image_post)
-@IsAuthorized
 @api_view(["POST"])
+@IsAuthorized
 def warning_messages_image_upload(request):
     """Upload image for warning message"""
     image_data = request.data.get("image", None)

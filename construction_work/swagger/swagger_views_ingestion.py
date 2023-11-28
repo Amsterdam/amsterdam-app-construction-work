@@ -2,6 +2,7 @@
 from drf_yasg import openapi
 
 from construction_work.serializers import ArticleSerializer, ProjectSerializer
+from construction_work.swagger.swagger_abstract_objects import forbidden_403
 
 #
 # Re-usable snippets
@@ -13,7 +14,9 @@ identifiers = openapi.Schema(
     items=openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
 )
 
-datetime = openapi.Schema(type=openapi.TYPE_STRING, description="ETL epoch (%Y-%m-%d %H:%M:%S.%f)")
+datetime = openapi.Schema(
+    type=openapi.TYPE_STRING, description="ETL epoch (%Y-%m-%d %H:%M:%S.%f)"
+)
 
 modification_dates = openapi.Schema(
     type=openapi.TYPE_OBJECT,
@@ -22,7 +25,8 @@ modification_dates = openapi.Schema(
             type=openapi.TYPE_OBJECT,
             properties={
                 "modification_date": openapi.Schema(
-                    type=openapi.TYPE_STRING, description="datetime (%Y-%m-%d %H:%M:%S%z)"
+                    type=openapi.TYPE_STRING,
+                    description="datetime (%Y-%m-%d %H:%M:%S%z)",
                 ),
             },
         )
@@ -34,7 +38,9 @@ serializer_error = openapi.Schema(
     properties={
         "field name": openapi.Schema(
             type=openapi.TYPE_ARRAY,
-            items=openapi.Schema(type=openapi.TYPE_STRING, description="error description"),
+            items=openapi.Schema(
+                type=openapi.TYPE_STRING, description="error description"
+            ),
         )
     },
 )
@@ -54,9 +60,7 @@ ingest_auth_param = openapi.Parameter(
 
 as_garbage_collector = {
     "methods": ["POST"],
-    "manual_parameters": [
-        ingest_auth_param
-    ],
+    "manual_parameters": [ingest_auth_param],
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={"project_ids": identifiers, "article_ids": identifiers},
@@ -75,7 +79,8 @@ as_garbage_collector = {
                     "articles": {"deleted": 12, "count": 563},
                 }
             },
-        )
+        ),
+        403: forbidden_403,
     },
     "tags": ["Ingestion"],
 }
@@ -83,15 +88,18 @@ as_garbage_collector = {
 
 as_etl_get = {
     "methods": ["get"],
-    "manual_parameters": [
-        ingest_auth_param
-    ],
+    "manual_parameters": [ingest_auth_param],
     "responses": {
         200: openapi.Response(
             "application/json",
             modification_dates,
-            examples={"application/json": {"155581": {"modification_date": "2023-10-11 11:36:00+00:00"}}},
-        )
+            examples={
+                "application/json": {
+                    "155581": {"modification_date": "2023-10-11 11:36:00+00:00"}
+                }
+            },
+        ),
+        403: forbidden_403,
     },
     "tags": ["Ingestion"],
 }
@@ -99,9 +107,7 @@ as_etl_get = {
 
 as_etl_project_post = {
     "methods": ["POST"],
-    "manual_parameters": [
-        ingest_auth_param
-    ],
+    "manual_parameters": [ingest_auth_param],
     "request_body": ProjectSerializer,
     "responses": {
         200: openapi.Response(
@@ -214,8 +220,11 @@ as_etl_project_post = {
             },
         ),
         400: openapi.Response(
-            "application/json", serializer_error, examples={"projects": ["This list may not be empty."]}
+            "application/json",
+            serializer_error,
+            examples={"projects": ["This list may not be empty."]},
         ),
+        403: forbidden_403,
     },
     "tags": ["Ingestion"],
 }
@@ -223,9 +232,7 @@ as_etl_project_post = {
 
 as_etl_article_post = {
     "methods": ["POST"],
-    "manual_parameters": [
-        ingest_auth_param
-    ],
+    "manual_parameters": [ingest_auth_param],
     "request_body": ArticleSerializer,
     "responses": {
         200: openapi.Response(
@@ -251,8 +258,11 @@ as_etl_article_post = {
             },
         ),
         400: openapi.Response(
-            "application/json", serializer_error, examples={"projects": ["This list may not be empty."]}
+            "application/json",
+            serializer_error,
+            examples={"projects": ["This list may not be empty."]},
         ),
+        403: forbidden_403,
     },
     "tags": ["Ingestion"],
 }

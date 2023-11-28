@@ -195,7 +195,6 @@ as_warning_message_post = {
             examples={"application/json": message.invalid_query},
         ),
         403: forbidden_403,
-        403: forbidden_403,
         404: not_found_404,
     },
     "tags": ["Projects"],

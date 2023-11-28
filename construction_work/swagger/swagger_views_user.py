@@ -5,6 +5,7 @@
 from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
+from construction_work.swagger.swagger_abstract_objects import forbidden_403
 
 message = Messages()
 
@@ -15,10 +16,18 @@ as_change_password = {
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            "username": openapi.Schema(type=openapi.TYPE_STRING, description="username"),
-            "old_password": openapi.Schema(type=openapi.TYPE_STRING, description="old password"),
-            "password": openapi.Schema(type=openapi.TYPE_STRING, description="new password"),
-            "password_verify": openapi.Schema(type=openapi.TYPE_STRING, description="new password (verify)"),
+            "username": openapi.Schema(
+                type=openapi.TYPE_STRING, description="username"
+            ),
+            "old_password": openapi.Schema(
+                type=openapi.TYPE_STRING, description="old password"
+            ),
+            "password": openapi.Schema(
+                type=openapi.TYPE_STRING, description="new password"
+            ),
+            "password_verify": openapi.Schema(
+                type=openapi.TYPE_STRING, description="new password (verify)"
+            ),
         },
     ),
     "responses": {
@@ -30,6 +39,7 @@ as_change_password = {
             "application/json",
             examples={"application/json": message.invalid_query},
         ),
+        403: forbidden_403,
     },
     "tags": ["Users"],
 }
