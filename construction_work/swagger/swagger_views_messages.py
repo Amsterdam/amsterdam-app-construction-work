@@ -12,7 +12,9 @@ from construction_work.serializers import (
 )
 from construction_work.swagger.swagger_abstract_objects import (
     coordinates,
+    forbidden_403,
     header_user_authorization,
+    not_found_404,
     query_id,
     query_project_id,
     query_sort_by,
@@ -146,10 +148,8 @@ as_warning_message_get = {
             "application/json",
             examples={"application/json": message.invalid_query},
         ),
-        404: openapi.Response(
-            "application/json",
-            examples={"application/json": message.no_record_found},
-        ),
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Projects"],
 }
@@ -194,14 +194,9 @@ as_warning_message_post = {
             "application/json",
             examples={"application/json": message.invalid_query},
         ),
-        403: openapi.Response(
-            "application/json",
-            examples={"application/json": message.access_denied},
-        ),
-        404: openapi.Response(
-            "application/json",
-            examples={"application/json": message.no_record_found},
-        ),
+        403: forbidden_403,
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Projects"],
 }
@@ -239,14 +234,8 @@ as_warning_message_patch = {
             "application/json",
             examples={"application/json": message.invalid_query},
         ),
-        403: openapi.Response(
-            "application/json",
-            examples={"application/json": message.access_denied},
-        ),
-        404: openapi.Response(
-            "application/json",
-            examples={"application/json": message.no_record_found},
-        ),
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Projects"],
 }
@@ -267,10 +256,7 @@ as_warning_message_delete = {
             "application/json",
             examples={"application/json": message.invalid_query},
         ),
-        403: openapi.Response(
-            "application/json",
-            examples={"application/json": message.access_denied},
-        ),
+        403: forbidden_403,
     },
     "tags": ["Projects"],
 }
@@ -327,7 +313,8 @@ as_warning_messages_get = {
             "application/json",
             examples={"application/json": message.invalid_query},
         ),
-        404: openapi.Response(message.no_record_found),
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Projects"],
 }
@@ -359,10 +346,8 @@ as_notification_post = {
             "application/json",
             examples={"application/json": message.invalid_query},
         ),
-        404: openapi.Response(
-            "application/json",
-            examples={"application/json": message.no_record_found},
-        ),
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Notifications"],
 }
@@ -417,14 +402,8 @@ as_warning_message_image_post = {
                 ]
             },
         ),
-        403: openapi.Response(
-            "application/json",
-            examples={"application/json": message.access_denied},
-        ),
-        404: openapi.Response(
-            "application/json",
-            examples={"application/json": message.no_record_found},
-        ),
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Projects"],
 }

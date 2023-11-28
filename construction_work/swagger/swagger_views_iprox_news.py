@@ -5,7 +5,13 @@
 from drf_yasg import openapi
 
 from construction_work.serializers import ArticleSerializer
-from construction_work.swagger.swagger_abstract_objects import header_device_authorization, meta_id, query_id
+from construction_work.swagger.swagger_abstract_objects import (
+    forbidden_403,
+    header_device_authorization,
+    meta_id,
+    not_found_404,
+    query_id,
+)
 from construction_work.views.views_messages import Messages
 
 messages = Messages()
@@ -70,18 +76,12 @@ as_article = {
                 }
             },
         ),
-        403: openapi.Response(
-            "application/json",
-            examples={"application/json": messages.access_denied},
-        ),
         400: openapi.Response(
             "application/json",
             examples={"application/json": messages.invalid_query},
         ),
-        404: openapi.Response(
-            "application/json",
-            examples={"application/json": messages.no_record_found},
-        ),
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Projects"],
 }
@@ -131,9 +131,15 @@ as_articles_get = {
                 items=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        "title": openapi.Schema(type=openapi.TYPE_STRING, description="title"),
-                        "publication_date": openapi.Schema(type=openapi.TYPE_STRING, description="year-month-day"),
-                        "type": openapi.Schema(type=openapi.TYPE_STRING, description="<news|warning>"),
+                        "title": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="title"
+                        ),
+                        "publication_date": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="year-month-day"
+                        ),
+                        "type": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="<news|warning>"
+                        ),
                         "meta_id": meta_id,
                         "images": openapi.Schema(
                             type=openapi.TYPE_ARRAY,
@@ -221,6 +227,7 @@ as_articles_get = {
             "application/json",
             examples={"application/json": messages.invalid_query},
         ),
+        403: forbidden_403,
     },
     "tags": ["Articles", "Projects"],
 }

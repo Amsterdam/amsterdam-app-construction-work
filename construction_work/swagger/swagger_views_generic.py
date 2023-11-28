@@ -5,7 +5,11 @@
 from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
-from construction_work.swagger.swagger_abstract_objects import query_id
+from construction_work.swagger.swagger_abstract_objects import (
+    forbidden_403,
+    not_found_404,
+    query_id,
+)
 
 messages = Messages()
 
@@ -19,10 +23,8 @@ as_image = {
             "application/json",
             examples={"application/json": messages.invalid_query},
         ),
-        404: openapi.Response(
-            "application/json",
-            examples={"application/json": messages.no_record_found},
-        ),
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Generic"],
 }

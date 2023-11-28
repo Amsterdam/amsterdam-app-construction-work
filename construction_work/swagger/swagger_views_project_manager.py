@@ -7,9 +7,11 @@ from drf_yasg import openapi
 from construction_work.api_messages import Messages
 from construction_work.serializers import ProjectManagerSerializer
 from construction_work.swagger.swagger_abstract_objects import (
+    forbidden_403,
     header_jwt_authorization,
     header_jwt_authorization_not_required,
     header_user_authorization_not_required,
+    not_found_404,
 )
 
 message = Messages()
@@ -112,15 +114,8 @@ as_project_manager_get = {
                 }
             },
         ),
-        404: openapi.Response(
-            description="Error response",
-            schema=openapi.Schema(
-                type=openapi.TYPE_STRING,
-                format="text",
-                description=message.no_record_found,
-            ),
-            examples={"application/json": message.no_record_found},
-        ),
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Project Manager"],
 }
@@ -159,6 +154,7 @@ as_project_manager_delete = {
             ),
             examples={"application/json": message.invalid_query},
         ),
+        403: forbidden_403,
     },
     "tags": ["Project Manager"],
 }
@@ -184,15 +180,8 @@ as_project_manager_post_patch = {
             ),
             examples={"application/json": message.invalid_query},
         ),
-        404: openapi.Response(
-            description="Error response",
-            schema=openapi.Schema(
-                type=openapi.TYPE_STRING,
-                format="text",
-                description=message.no_record_found,
-            ),
-            examples={"application/json": message.no_record_found},
-        ),
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Project Manager"],
 }

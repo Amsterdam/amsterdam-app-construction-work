@@ -6,9 +6,11 @@ from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
 from construction_work.swagger.swagger_abstract_objects import (
+    forbidden_403,
     header_device_authorization,
     header_device_id,
     meta_id,
+    not_found_404,
     project_details_schema,
     projects_schema,
     query_address,
@@ -199,7 +201,8 @@ as_project_details = {
             },
         ),
         400: openapi.Response(message.invalid_query),
-        404: openapi.Response(message.no_record_found),
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Projects"],
 }
@@ -221,7 +224,8 @@ as_projects_search = {
     ],
     "responses": {
         200: openapi.Response("application/json", projects_schema),
-        400: openapi.Response(f"{message.invalid_query}|{message.no_such_field_in_model}"),
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Search"],
 }
@@ -232,7 +236,10 @@ as_project_follow_post = {
     "methods": ["POST"],
     "manual_parameters": [header_device_authorization, header_device_id],
     "request_body": openapi.Schema(
-        type=openapi.TYPE_OBJECT, properties={"id": openapi.Schema(type=openapi.TYPE_INTEGER, description="project id")}
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="project id")
+        },
     ),
     "responses": {
         200: openapi.Response(
@@ -241,12 +248,15 @@ as_project_follow_post = {
         ),
         400: openapi.Response(
             "application/json",
-            examples={"application/json": [message.invalid_parameters, message.invalid_headers]},
+            examples={
+                "application/json": [
+                    message.invalid_parameters,
+                    message.invalid_headers,
+                ]
+            },
         ),
-        404: openapi.Response(
-            "application/json",
-            examples={"application/json": message.no_record_found},
-        ),
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Projects"],
 }
@@ -258,25 +268,28 @@ as_project_follow_delete = {
     "manual_parameters": [header_device_authorization, header_device_id],
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
-        properties={"project_id": openapi.Schema(type=openapi.TYPE_STRING, description="Project identifier")},
+        properties={
+            "project_id": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Project identifier"
+            )
+        },
     ),
     "responses": {
         200: openapi.Response(
             "application/json",
             examples={"application/json": "Subscription removed"},
         ),
-        403: openapi.Response(
-            "application/json",
-            examples={"application/json": message.access_denied},
-        ),
         400: openapi.Response(
             "application/json",
-            examples={"application/json": [message.invalid_parameters, message.invalid_headers]},
+            examples={
+                "application/json": [
+                    message.invalid_parameters,
+                    message.invalid_headers,
+                ]
+            },
         ),
-        404: openapi.Response(
-            "application/json",
-            examples={"application/json": message.no_record_found},
-        ),
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Projects"],
 }
@@ -303,19 +316,25 @@ as_projects_followed_articles = {
             ),
             examples={
                 "application/json": {
-                    "155581": [{"meta_id": {"type": "article", "id": 163}}, {"meta_id": {"type": "warning", "id": 67}}],
+                    "155581": [
+                        {"meta_id": {"type": "article", "id": 163}},
+                        {"meta_id": {"type": "warning", "id": 67}},
+                    ],
                     "155584": [{"meta_id": {"type": "warning", "id": 356}}],
                 }
             },
         ),
         400: openapi.Response(
             "application/json",
-            examples={"application/json": [message.invalid_parameters, message.invalid_headers]},
+            examples={
+                "application/json": [
+                    message.invalid_parameters,
+                    message.invalid_headers,
+                ]
+            },
         ),
-        404: openapi.Response(
-            "application/json",
-            examples={"application/json": message.no_record_found},
-        ),
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Projects"],
 }

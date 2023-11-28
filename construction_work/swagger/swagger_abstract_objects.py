@@ -4,7 +4,10 @@ from copy import copy
 
 from drf_yasg import openapi
 
+from construction_work.api_messages import Messages
 from construction_work.generic_functions.static_data import ARTICLE_MAX_AGE_PARAM
+
+messages = Messages()
 
 #
 # Headers
@@ -440,4 +443,17 @@ projects_schema = openapi.Schema(
         "page": page,
         "_links": _links,
     },
+)
+
+#
+# Responses
+#
+
+forbidden_403 = openapi.Response(
+    description="Error: Forbidden",
+)
+
+not_found_404 = openapi.Response(
+    "application/json",
+    examples={"application/json": messages.no_record_found},
 )
