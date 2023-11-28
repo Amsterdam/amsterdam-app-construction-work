@@ -1,6 +1,4 @@
 """ Views for ingestion routes """
-from datetime import datetime
-
 from django.utils import timezone
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
@@ -83,7 +81,9 @@ def etl_project(request):
 
 def etl_project_get():
     """Get all project_id with their modification date"""
-    projects = list(Project.objects.all().values_list("foreign_id", "modification_date"))
+    projects = list(
+        Project.objects.all().values_list("foreign_id", "modification_date")
+    )
     result = {str(x[0]): {"modification_date": str(x[1])} for x in projects}
     return Response(result, status=status.HTTP_200_OK)
 
@@ -138,7 +138,9 @@ def etl_article(request):
 
 def etl_article_get():
     """Get all article_id with their modification date"""
-    articles = list(Article.objects.all().values_list("foreign_id", "modification_date"))
+    articles = list(
+        Article.objects.all().values_list("foreign_id", "modification_date")
+    )
     result = {str(x[0]): {"modification_date": str(x[1])} for x in articles}
     return Response(result, status=status.HTTP_200_OK)
 
@@ -148,7 +150,9 @@ def etl_article_post(request):
     iprox_data = request.data
 
     article_foreign_id = iprox_data.get("foreign_id")
-    project_foreign_ids = [Project.objects.get(foreign_id=x) for x in iprox_data.get("projectIds")]
+    project_foreign_ids = [
+        Project.objects.get(foreign_id=x) for x in iprox_data.get("projectIds")
+    ]
     project_ids = [x.pk for x in project_foreign_ids]
 
     article_instance = Article.objects.filter(foreign_id=article_foreign_id).first()
