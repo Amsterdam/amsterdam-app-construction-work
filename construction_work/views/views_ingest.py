@@ -93,9 +93,8 @@ def etl_project_post(request):
     etl_iprox_data = request.data
 
     foreign_id = etl_iprox_data.get("foreign_id")
-    title_and_subtitle = etl_iprox_data.get("title", "").split(": ")
-    title = title_and_subtitle[0]
-    subtitle = None if len(title_and_subtitle) == 1 else title_and_subtitle[1]
+    title = etl_iprox_data.get("title", "")
+    subtitle = etl_iprox_data.get("subtitle", "")
 
     project_instance = Project.objects.filter(foreign_id=foreign_id).first()
 
