@@ -6,25 +6,21 @@ import os
 import uuid
 from datetime import datetime
 
+from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.aes_cipher import AESCipher
 from construction_work.generic_functions.date_translation import translate_timezone
-from construction_work.models import (
-    Image,
-    Project,
-    ProjectManager,
-    WarningMessage,
-    project,
-)
-from construction_work.serializers import (
-    WarningMessagePublicSerializer,
-    WarningMessageSerializer,
-)
+from construction_work.models import Project, ProjectManager, WarningMessage
+from construction_work.serializers import WarningMessagePublicSerializer
 from construction_work.unit_tests.mock_data import TestData
 
 messages = Messages()
+
+MOCK_USERNAME = "mock"
+MOCK_PASSWORD = "mock"
+MOCK_EMAIL = "mock@localhost"
 
 
 class TestApiProjectWarning(TestCase):
@@ -41,11 +37,18 @@ class TestApiProjectWarning(TestCase):
         """setup test db"""
         self.maxDiff = None
         self.data = TestData()
+        self.client = Client()
+
         self.url = "/api/v1/project/warning"
         self.url_warnings_get = "/api/v1/project/warnings"
         self.aes_secret = os.getenv("AES_SECRET")
         self.content_type = "application/json"
-        self.client = Client()
+
+        # Create user for token
+        self.user = get_user_model().objects.create_user(
+            username=MOCK_USERNAME, password=MOCK_PASSWORD, email=MOCK_EMAIL
+        )
+        self.user.save()
 
         for project in self.data.projects:
             Project.objects.create(**project)
@@ -67,6 +70,13 @@ class TestApiProjectWarning(TestCase):
         app_token = os.getenv("APP_TOKEN")
         self.token = AESCipher(app_token, self.aes_secret).encrypt()
         headers = {"DeviceAuthorization": self.token}
+        return headers
+
+    def get_jwt_auth_header(self):
+        response = self.client.post(
+            "/api/v1/get-token/", {"username": MOCK_USERNAME, "password": MOCK_PASSWORD}
+        )
+        headers = {"AUTHORIZATION": response.data["access"]}
         return headers
 
     def create_message_from_data(self, data) -> WarningMessage:
@@ -569,7 +579,7 @@ class TestApiProjectWarning(TestCase):
             "id": warning_message.pk,
         }
 
-        headers = self.get_user_auth_header(data["project_manager_key"])
+        headers = self.get_jwt_auth_header()
         result = self.client.patch(
             self.url,
             json.dumps(patch_data),
@@ -605,8 +615,7 @@ class TestApiProjectWarning(TestCase):
             "body": "new body text",
             "id": 666,
         }
-        project_manager_key = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
-        headers = self.get_user_auth_header(project_manager_key)
+        headers = self.get_jwt_auth_header()
         result = self.client.patch(
             self.url,
             json.dumps(patch_data),
@@ -629,7 +638,7 @@ class TestApiProjectWarning(TestCase):
 
         patch_data = {"body": "New body text", "identifier": warning_message.pk}
 
-        headers = self.get_user_auth_header(data["project_manager_key"])
+        headers = self.get_jwt_auth_header()
         result = self.client.patch(
             self.url,
             json.dumps(patch_data),
@@ -655,7 +664,7 @@ class TestApiProjectWarning(TestCase):
 
         patch_data = {"title": "new title", "identifier": warning_message.pk}
 
-        headers = self.get_user_auth_header(data["project_manager_key"])
+        headers = self.get_jwt_auth_header()
         result = self.client.patch(
             self.url,
             json.dumps(patch_data),
@@ -674,8 +683,7 @@ class TestApiProjectWarning(TestCase):
 
         patch_data = {"title": "new title", "body": "", "id": 1}
 
-        project_manager_key = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
-        headers = self.get_user_auth_header(project_manager_key)
+        headers = self.get_jwt_auth_header()
         result = self.client.patch(
             self.url,
             json.dumps(patch_data),
@@ -703,8 +711,7 @@ class TestApiProjectWarning(TestCase):
         }
         warning_message = self.create_message_from_data(data)
 
-        project_manager_key = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
-        headers = self.get_user_auth_header(project_manager_key)
+        headers = self.get_jwt_auth_header()
         result = self.client.delete(
             "{url}?id={id}".format(url=self.url, id=warning_message.pk),
             headers=headers,
@@ -721,8 +728,7 @@ class TestApiProjectWarning(TestCase):
 
     def test_delete_warning_message_missing_identifier(self):
         """test deleting a warning message with missing identifier"""
-        project_manager_key = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
-        headers = self.get_user_auth_header(project_manager_key)
+        headers = self.get_jwt_auth_header()
         result = self.client.delete(
             self.url, headers=headers, content_type=self.content_type
         )
