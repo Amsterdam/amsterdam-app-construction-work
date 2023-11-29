@@ -10,10 +10,11 @@ from construction_work.serializers import (
     WarningImageSerializer,
     WarningMessageSerializer,
 )
-from construction_work.swagger.swagger_abstract_objects import (
+from construction_work.swagger.swagger_generic_objects import (
     coordinates,
     forbidden_403,
     header_device_authorization,
+    header_jwt_authorization,
     header_user_authorization,
     not_found_404,
     query_id,
@@ -204,7 +205,7 @@ as_warning_message_post = {
 as_warning_message_patch = {
     # /api/v1/notification/messages/warning
     "methods": ["PATCH"],
-    "manual_parameters": [header_user_authorization],
+    "manual_parameters": [header_jwt_authorization],
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
@@ -244,7 +245,7 @@ as_warning_message_delete = {
     # /api/v1/asset swagger_auto_schema
     "methods": ["DELETE"],
     "manual_parameters": [
-        header_user_authorization,
+        header_jwt_authorization,
         query_warning_message_id,
     ],
     "responses": {

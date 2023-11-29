@@ -6,7 +6,7 @@ from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
 from construction_work.serializers import ProjectManagerSerializer
-from construction_work.swagger.swagger_abstract_objects import (
+from construction_work.swagger.swagger_generic_objects import (
     forbidden_403,
     header_device_authorization_not_required,
     header_jwt_authorization,

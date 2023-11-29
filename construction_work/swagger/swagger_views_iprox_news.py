@@ -5,7 +5,7 @@
 from drf_yasg import openapi
 
 from construction_work.serializers import ArticleSerializer
-from construction_work.swagger.swagger_abstract_objects import (
+from construction_work.swagger.swagger_generic_objects import (
     forbidden_403,
     header_device_authorization,
     meta_id,

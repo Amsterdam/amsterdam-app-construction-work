@@ -5,7 +5,7 @@
 from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
-from construction_work.swagger.swagger_abstract_objects import forbidden_403
+from construction_work.swagger.swagger_generic_objects import forbidden_403
 
 message = Messages()
 
