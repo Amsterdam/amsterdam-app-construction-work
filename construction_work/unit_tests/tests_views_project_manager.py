@@ -31,15 +31,22 @@ class TestApiProjectManager(TestCase):
         """Setup test data"""
 
         # Create user for token
-        self.user = get_user_model().objects.create_user(username=username, password=password, email=email)
+        self.user = get_user_model().objects.create_user(
+            username=username, password=password, email=email
+        )
         self.user.save()
-        response = self.client.post("/api/v1/get-token/", {"username": username, "password": password})
+        response = self.client.post(
+            "/api/v1/get-token/", {"username": username, "password": password}
+        )
         self.headers_jwt = {"HTTP_AUTHORIZATION": response.data["access"]}
 
         app_token = os.getenv("APP_TOKEN")
         aes_secret = os.getenv("AES_SECRET")
         self.token = AESCipher(app_token, aes_secret).encrypt()
-        self.headers_aes = {"HTTP_USERAUTHORIZATION": self.token, "HTTP_DEVICEID": "0"}
+        self.headers_aes = {
+            "HTTP_DEVICEAUTHORIZATION": self.token,
+            "HTTP_DEVICEID": "0",
+        }
 
         self.project_objs = [Project.objects.create(**x) for x in self.data.projects]
 
@@ -51,8 +58,12 @@ class TestApiProjectManager(TestCase):
             project_manager = serializer.save()
 
             # Update mock data for test
-            self.data.project_managers[i]["projects"] = [x.id for x in self.project_objs]
-            self.data.project_managers[i]["manager_key"] = str(project_manager.manager_key)
+            self.data.project_managers[i]["projects"] = [
+                x.id for x in self.project_objs
+            ]
+            self.data.project_managers[i]["manager_key"] = str(
+                project_manager.manager_key
+            )
 
             # Add related projects to the ProjectManager instance
             project_manager.projects.add(*self.project_objs)
@@ -112,7 +123,9 @@ class TestApiProjectManager(TestCase):
         project.deactivate()
 
         manager_key = self.data.project_managers[0]["manager_key"]
-        response = self.client.get(f"{self.api_url}?manager_key={manager_key}", **self.headers_aes)
+        response = self.client.get(
+            f"{self.api_url}?manager_key={manager_key}", **self.headers_aes
+        )
 
         expected_result = {
             "projects": [
@@ -159,7 +172,9 @@ class TestApiProjectManager(TestCase):
     def test_delete_project_manager(self):
         """Delete a project manager account. It should succeed"""
         manager_key = self.data.project_managers[0]["manager_key"]
-        response = self.client.delete(f"{self.api_url}?manager_key={manager_key}", **self.headers_jwt)
+        response = self.client.delete(
+            f"{self.api_url}?manager_key={manager_key}", **self.headers_jwt
+        )
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data, "Project manager removed")
@@ -191,7 +206,9 @@ class TestApiProjectManager(TestCase):
             "email": "mock@amsterdam.nl",
             "projects": [x.id for x in self.project_objs],
         }
-        response = self.client.post(self.api_url, data=data, content_type="application/json", **self.headers_jwt)
+        response = self.client.post(
+            self.api_url, data=data, content_type="application/json", **self.headers_jwt
+        )
         response_data = response.json()
 
         response_data.pop("id")
@@ -204,16 +221,22 @@ class TestApiProjectManager(TestCase):
     def test_post_non_amsterdam_email(self):
         """Test if it's possible to create a project manager without an amsterdam.nl email address. It should fail!"""
         data = {"email": "mock@dummy.nl"}
-        response = self.client.post(self.api_url, data=data, content_type="application/json", **self.headers_jwt)
+        response = self.client.post(
+            self.api_url, data=data, content_type="application/json", **self.headers_jwt
+        )
         response_data = response.json()
 
         self.assertEqual(response.status_code, 400)
-        self.assertDictEqual(response_data, {"email": ["Email must belong to 'amsterdam.nl'"]})
+        self.assertDictEqual(
+            response_data, {"email": ["Email must belong to 'amsterdam.nl'"]}
+        )
 
     def test_post_no_email(self):
         """Test if it's possible to create a project manager without an email address. It should fail!"""
         data = {"projects": [x.id for x in self.project_objs]}
-        response = self.client.post(self.api_url, data=data, content_type="application/json", **self.headers_jwt)
+        response = self.client.post(
+            self.api_url, data=data, content_type="application/json", **self.headers_jwt
+        )
         response_data = response.json()
 
         self.assertEqual(response.status_code, 400)
@@ -222,7 +245,9 @@ class TestApiProjectManager(TestCase):
     def test_post_invalid_project(self):
         """Test if it's possible to create a project manager with not existing projects. It should fail!"""
         data = {"email": "mock@amsterdam.nl", "projects": [0]}
-        response = self.client.post(self.api_url, data=data, content_type="application/json", **self.headers_jwt)
+        response = self.client.post(
+            self.api_url, data=data, content_type="application/json", **self.headers_jwt
+        )
         response_data = response.json()
 
         self.assertEqual(response.status_code, 404)
@@ -231,7 +256,9 @@ class TestApiProjectManager(TestCase):
     def test_post_no_projects(self):
         """Test if it's possible to create a new project manager without any projects"""
         data = {"email": "mock@amsterdam.nl", "projects": []}
-        response = self.client.post(self.api_url, data=data, content_type="application/json", **self.headers_jwt)
+        response = self.client.post(
+            self.api_url, data=data, content_type="application/json", **self.headers_jwt
+        )
         response_data = response.json()
 
         response_data.pop("id")
@@ -256,7 +283,9 @@ class TestApiProjectManager(TestCase):
 
     def test_patch_project_manager(self):
         """Update an existing project manager: remove projects"""
-        project_manager = ProjectManager.objects.filter(email="mock0@amsterdam.nl").first()
+        project_manager = ProjectManager.objects.filter(
+            email="mock0@amsterdam.nl"
+        ).first()
         projects = list(project_manager.projects.all())
         self.assertEqual(len(projects), 2)
 
@@ -265,7 +294,9 @@ class TestApiProjectManager(TestCase):
             "email": "mock0@amsterdam.nl",
             "projects": [],
         }
-        response = self.client.patch(self.api_url, data=data, content_type="application/json", **self.headers_jwt)
+        response = self.client.patch(
+            self.api_url, data=data, content_type="application/json", **self.headers_jwt
+        )
         response_data = response.json()
 
         response_data.pop("id")
@@ -276,7 +307,9 @@ class TestApiProjectManager(TestCase):
     def test_patch_no_manager_key(self):
         """Test if guard clause 'manager_key' works"""
         data = {}
-        response = self.client.patch(self.api_url, data=data, content_type="application/json", **self.headers_jwt)
+        response = self.client.patch(
+            self.api_url, data=data, content_type="application/json", **self.headers_jwt
+        )
         response_data = response.json()
 
         self.assertEqual(response.status_code, 400)
@@ -285,7 +318,9 @@ class TestApiProjectManager(TestCase):
     def test_patch_not_found(self):
         """Test that the to be patch project manager exists"""
         data = {"manager_key": str(uuid.uuid4())}
-        response = self.client.patch(self.api_url, data=data, content_type="application/json", **self.headers_jwt)
+        response = self.client.patch(
+            self.api_url, data=data, content_type="application/json", **self.headers_jwt
+        )
         response_data = response.json()
 
         self.assertEqual(response.status_code, 404)
@@ -293,9 +328,13 @@ class TestApiProjectManager(TestCase):
 
     def test_patch_non_authorized_1(self):
         """Test if authorization is done with JWT token"""
-        project_manager = ProjectManager.objects.filter(email="mock0@amsterdam.nl").first()
+        project_manager = ProjectManager.objects.filter(
+            email="mock0@amsterdam.nl"
+        ).first()
         data = {"manager_key": str(project_manager.manager_key)}
-        response = self.client.patch(self.api_url, data=data, content_type="application/json", **self.headers_aes)
+        response = self.client.patch(
+            self.api_url, data=data, content_type="application/json", **self.headers_aes
+        )
 
         self.assertEqual(response.status_code, 403)
         self.assertEqual(response.reason_phrase, "Forbidden")

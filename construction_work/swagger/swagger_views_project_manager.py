@@ -8,9 +8,9 @@ from construction_work.api_messages import Messages
 from construction_work.serializers import ProjectManagerSerializer
 from construction_work.swagger.swagger_abstract_objects import (
     forbidden_403,
+    header_device_authorization_not_required,
     header_jwt_authorization,
     header_jwt_authorization_not_required,
-    header_user_authorization_not_required,
     not_found_404,
 )
 
@@ -86,7 +86,7 @@ as_project_manager_get = {
     "methods": ["GET"],
     "Description": "test",
     "manual_parameters": [
-        header_user_authorization_not_required,
+        header_device_authorization_not_required,
         header_jwt_authorization_not_required,
         openapi.Parameter(
             "manager_key",

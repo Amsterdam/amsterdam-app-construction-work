@@ -8,7 +8,10 @@ from rest_framework.response import Response
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.image_conversion import ImageConversion
-from construction_work.generic_functions.is_authorized import IsAuthorized
+from construction_work.generic_functions.is_authorized import (
+    IsAuthorized,
+    ManagerAuthorized,
+)
 from construction_work.generic_functions.sort import Sort
 from construction_work.generic_functions.static_data import StaticData
 from construction_work.models import (
@@ -69,7 +72,6 @@ def warning_messages_get(request):
 @swagger_auto_schema(**as_warning_message_patch)
 @swagger_auto_schema(**as_warning_message_delete)
 @api_view(["GET", "POST", "PATCH", "DELETE"])
-@IsAuthorized
 def warning_message_crud(request):
     """Warning message CRUD"""
     if request.method == "GET":
@@ -85,6 +87,7 @@ def warning_message_crud(request):
         return warning_message_delete(request)
 
 
+@IsAuthorized
 def warning_message_get(request):
     """Warning message get"""
     message_id = request.GET.get("id", None)
@@ -105,6 +108,7 @@ def warning_message_get(request):
     return Response(serializer.data, status.HTTP_200_OK)
 
 
+@ManagerAuthorized
 def warning_message_post(request):
     """Post a warning message. Only warnings by a valid Project manager for a valid project are allowed."""
     title = request.data.get("title", None)
@@ -156,6 +160,7 @@ def warning_message_post(request):
     return Response(serializer.data, status.HTTP_200_OK)
 
 
+@ManagerAuthorized
 def warning_message_patch(request):
     """Patch a warning message (most likely by web-redactie)"""
     title = request.data.get("title", None)
@@ -184,6 +189,7 @@ def warning_message_patch(request):
     return Response(serializer.data, status.HTTP_200_OK)
 
 
+@ManagerAuthorized
 def warning_message_delete(request):
     """Delete warning message"""
     message_id = request.GET.get("id", None)
@@ -197,7 +203,7 @@ def warning_message_delete(request):
 
 @swagger_auto_schema(**as_notification_post)
 @api_view(["POST"])
-@IsAuthorized
+@ManagerAuthorized
 def notification_post(request):
     """Post Notification message"""
     title = request.data.get("title", None)
@@ -242,7 +248,7 @@ def notification_post(request):
 
 @swagger_auto_schema(**as_warning_message_image_post)
 @api_view(["POST"])
-@IsAuthorized
+@ManagerAuthorized
 def warning_messages_image_upload(request):
     """Upload image for warning message"""
     image_data = request.data.get("image", None)

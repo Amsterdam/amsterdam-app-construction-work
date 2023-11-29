@@ -29,6 +29,9 @@ header_device_authorization = openapi.Parameter(
     required=True,
 )
 
+header_device_authorization_not_required = copy(header_device_authorization)
+header_device_authorization_not_required.required = False
+
 header_user_authorization = openapi.Parameter(
     "UserAuthorization",
     openapi.IN_HEADER,

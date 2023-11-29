@@ -20,6 +20,7 @@ from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError
 
 from construction_work.generic_functions.aes_cipher import AESCipher, AESException
 from construction_work.generic_functions.generic_logger import Logger
+from construction_work.models.project_manager import ProjectManager
 from main_application.settings import SECRET_KEY
 
 logger = Logger()
@@ -27,13 +28,8 @@ logger = Logger()
 AES_SECRET = os.getenv("AES_SECRET")
 
 
-def get_token_from_request(request: HttpRequest):
+def get_token_from_request(request: HttpRequest, auth_headers=[]):
     """Get the AES encrypted token from the request"""
-    auth_headers = [
-        "UserAuthorization",
-        "IngestAuthorization",
-        "DeviceAuthorization",
-    ]
 
     auth_token = None
     for k, v in request.META.items():
@@ -49,72 +45,73 @@ def get_token_from_request(request: HttpRequest):
     return auth_token
 
 
-def get_jwt_auth_token(request: HttpRequest):
-    """Get the JWT token from the request"""
-
-    jwt_header = "AUTHORIZATION"
-
-    auth_token = None
-    http_token = request.META.get(f"HTTP_{jwt_header}")
-    header_token = request.META.get("headers", {}).get(jwt_header)
-
-    if http_token:
-        auth_token = http_token
-    elif header_token:
-        auth_token = http_token
-
-    if auth_token:
-        auth_token = auth_token.encode("utf-8")
-
-    return auth_token
-
-
-def is_valid_jwt_token(jwt_encrypted_token):
-    """Test if jwt token is valid"""
-    try:
-        token_dict = jwt.decode(jwt_encrypted_token, SECRET_KEY, algorithms=["HS256"])
-        return isinstance(token_dict, dict)
-    except (InvalidSignatureError, ExpiredSignatureError, Exception) as e:
-        logger.error(e)
-        return False
-
-
-def is_valid_auth_token(encrypted_token):
-    """Test is ingest token is valid"""
-    try:
-        decrypted_token = AESCipher(encrypted_token, AES_SECRET).decrypt()
-        # Check if token is valid UUID, if not ValueError will be thrown
-        UUID(decrypted_token, version=4)
-        return True
-    except AESException as e:
-        logger.error(e)
-        return False
-    except ValueError as e:
-        logger.error(e)
-        return False
-
-
 class IsAuthorized:
-    """This class is a decorator for APIs specific for project managers. It will check if a correct HTTP_TOKEN is set.
-    If the token is valid, the calling function will be executed. If the token is invalid, the HTTP request will
-    be aborted with a 403 response
-
-    Usage:
-
-    @isAuthorized
-    def example(request):
-        <method body>
-    """
-
     def __init__(self, func):
         functools.update_wrapper(self, func)
         self.func = func
 
+    @staticmethod
+    def is_valid_auth_token(encrypted_token):
+        """Test is ingest token is valid"""
+        try:
+            decrypted_token = AESCipher(encrypted_token, AES_SECRET).decrypt()
+            # Check if token is valid UUID, if not ValueError will be thrown
+            UUID(decrypted_token, version=4)
+            return True
+        except AESException as e:
+            logger.error(e)
+            return False
+        except ValueError as e:
+            logger.error(e)
+            return False
+
     def __call__(self, *args, **kwargs):
         request = args[0]
-        auth_token = get_token_from_request(request)
 
-        if auth_token is None or is_valid_auth_token(auth_token) is False:
+        auth_headers = [
+            "IngestAuthorization",
+            "DeviceAuthorization",
+        ]
+        auth_token = get_token_from_request(request, auth_headers)
+
+        if auth_token is None or self.is_valid_auth_token(auth_token) is False:
+            return HttpResponseForbidden()
+
+        return self.func(*args, **kwargs)
+
+
+class ManagerAuthorized:
+    def __init__(self, func):
+        functools.update_wrapper(self, func)
+        self.func = func
+
+    @staticmethod
+    def is_valid_manager_key(encrypted_token):
+        """Test is ingest token is valid"""
+        try:
+            decrypted_token = AESCipher(encrypted_token, AES_SECRET).decrypt()
+            # Check if token is valid UUID, if not ValueError will be thrown
+            UUID(decrypted_token, version=4)
+            # Decrypted token is project manager key, check if it exists
+            project_manager = ProjectManager.objects.filter(
+                manager_key=decrypted_token
+            ).first()
+            if project_manager is None:
+                return False
+            return True
+        except AESException as e:
+            logger.error(e)
+            return False
+        except ValueError as e:
+            logger.error(e)
+            return False
+
+    def __call__(self, *args, **kwargs):
+        request = args[0]
+        auth_headers = ["UserAuthorization"]
+        auth_token = get_token_from_request(request, auth_headers)
+
+        if auth_token is None or self.is_valid_manager_key(auth_token) is False:
             return HttpResponseForbidden()
 
         return self.func(*args, **kwargs)
@@ -125,9 +122,29 @@ class JWTAuthorized:
         functools.update_wrapper(self, func)
         self.func = func
 
+    @staticmethod
+    def get_jwt_auth_token(request: HttpRequest):
+        """Get the JWT token from the request"""
+
+        jwt_header = "AUTHORIZATION"
+
+        auth_token = None
+        http_token = request.META.get(f"HTTP_{jwt_header}")
+        header_token = request.META.get("headers", {}).get(jwt_header)
+
+        if http_token:
+            auth_token = http_token
+        elif header_token:
+            auth_token = http_token
+
+        if auth_token:
+            auth_token = auth_token.encode("utf-8")
+
+        return auth_token
+
     def __call__(self, *args, **kwargs):
         request = args[0]
-        jwt_auth_token = get_jwt_auth_token(request)
+        jwt_auth_token = self.get_jwt_auth_token(request)
 
         if jwt_auth_token is None:
             return HttpResponseForbidden()

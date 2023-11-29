@@ -11,8 +11,6 @@ from construction_work.api_messages import Messages
 from construction_work.generic_functions.is_authorized import (
     IsAuthorized,
     JWTAuthorized,
-    get_jwt_auth_token,
-    is_valid_jwt_token,
 )
 from construction_work.models import Project, ProjectManager
 from construction_work.serializers import (
@@ -68,12 +66,6 @@ def get(request):
     @JWTAuthorized
     def get_all_managers(_request):
         # Call is made from VUE, we expect a valid jwt token to continue
-        jwt_token = get_jwt_auth_token(request)
-        if not is_valid_jwt_token(jwt_encrypted_token=jwt_token):
-            return Response(
-                data=messages.access_denied, status=status.HTTP_403_FORBIDDEN
-            )
-
         project_manager_objects = ProjectManager.objects.all()
         serializer = ProjectManagerSerializer(project_manager_objects, many=True)
         return serializer.data
