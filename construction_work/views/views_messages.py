@@ -1,6 +1,7 @@
 """ Views for news, articles and warning messages """
 import base64
 
+from django.http import HttpResponseForbidden
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -141,7 +142,7 @@ def warning_message_post(request):
         project_manager.projects.values_list("id", flat=True)
     )
     if project_id not in project_manager_project_ids:
-        return Response(messages.no_record_found, status.HTTP_403_FORBIDDEN)
+        return HttpResponseForbidden()
 
     serializer = WarningMessageSerializer(
         data={

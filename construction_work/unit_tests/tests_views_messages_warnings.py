@@ -11,8 +11,17 @@ from django.test import Client, TestCase
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.aes_cipher import AESCipher
 from construction_work.generic_functions.date_translation import translate_timezone
-from construction_work.models import Image, Project, ProjectManager, WarningMessage, project
-from construction_work.serializers import WarningMessagePublicSerializer, WarningMessageSerializer
+from construction_work.models import (
+    Image,
+    Project,
+    ProjectManager,
+    WarningMessage,
+    project,
+)
+from construction_work.serializers import (
+    WarningMessagePublicSerializer,
+    WarningMessageSerializer,
+)
 from construction_work.unit_tests.mock_data import TestData
 
 messages = Messages()
@@ -34,10 +43,7 @@ class TestApiProjectWarning(TestCase):
         self.data = TestData()
         self.url = "/api/v1/project/warning"
         self.url_warnings_get = "/api/v1/project/warnings"
-        app_token = os.getenv("APP_TOKEN")
-        aes_secret = os.getenv("AES_SECRET")
-        self.token = AESCipher(app_token, aes_secret).encrypt()
-        self.headers = {"UserAuthorization": self.token}
+        self.aes_secret = os.getenv("AES_SECRET")
         self.content_type = "application/json"
         self.client = Client()
 
@@ -52,11 +58,26 @@ class TestApiProjectWarning(TestCase):
         Project.objects.all().delete()
         ProjectManager.objects.all().delete()
 
+    def get_user_auth_header(self, manager_key):
+        self.token = AESCipher(manager_key, self.aes_secret).encrypt()
+        headers = {"UserAuthorization": self.token}
+        return headers
+
+    def get_device_auth_header(self):
+        app_token = os.getenv("APP_TOKEN")
+        self.token = AESCipher(app_token, self.aes_secret).encrypt()
+        headers = {"DeviceAuthorization": self.token}
+        return headers
+
     def create_message_from_data(self, data) -> WarningMessage:
-        project_obj = Project.objects.filter(foreign_id=data.get("project_foreign_id")).first()
+        project_obj = Project.objects.filter(
+            foreign_id=data.get("project_foreign_id")
+        ).first()
         project_obj.save()
 
-        project_manager = ProjectManager.objects.filter(manager_key=data.get("project_manager_key")).first()
+        project_manager = ProjectManager.objects.filter(
+            manager_key=data.get("project_manager_key")
+        ).first()
         project_manager.projects.add(project_obj)
 
         new_message = WarningMessage(
@@ -79,22 +100,33 @@ class TestApiProjectWarning(TestCase):
             "project_manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
         }
 
-        project_manager = ProjectManager.objects.filter(manager_key=data.get("project_manager_key")).first()
+        project_manager = ProjectManager.objects.filter(
+            manager_key=data.get("project_manager_key")
+        ).first()
         project_manager.projects.add(project_obj)
 
-        result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+        headers = self.get_user_auth_header(data["project_manager_key"])
+        result = self.client.post(
+            self.url, json.dumps(data), headers=headers, content_type=self.content_type
+        )
         self.assertEqual(result.status_code, 200)
 
         target_dt = datetime.fromisoformat(result.data["publication_date"])
 
-        warning_message = WarningMessage.objects.filter(project__id=project_obj.pk).first()
+        warning_message = WarningMessage.objects.filter(
+            project__id=project_obj.pk
+        ).first()
 
         expected_result = {
             "id": warning_message.pk,
             "title": "foobar title",
             "body": "foobar body",
-            "publication_date": translate_timezone(str(warning_message.publication_date), target_dt.tzinfo),
-            "modification_date": translate_timezone(str(warning_message.modification_date), target_dt.tzinfo),
+            "publication_date": translate_timezone(
+                str(warning_message.publication_date), target_dt.tzinfo
+            ),
+            "modification_date": translate_timezone(
+                str(warning_message.modification_date), target_dt.tzinfo
+            ),
             "author_email": "mock0@amsterdam.nl",
             "project": project_obj.pk,
             "project_manager": project_manager.pk,
@@ -111,7 +143,10 @@ class TestApiProjectWarning(TestCase):
             "project_manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
         }
 
-        result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+        headers = self.get_user_auth_header(data["project_manager_key"])
+        result = self.client.post(
+            self.url, json.dumps(data), headers=headers, content_type=self.content_type
+        )
 
         self.assertEqual(result.status_code, 400)
         self.assertEqual(result.data, messages.invalid_query)
@@ -125,7 +160,10 @@ class TestApiProjectWarning(TestCase):
             "project_manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
         }
 
-        result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+        headers = self.get_user_auth_header(data["project_manager_key"])
+        result = self.client.post(
+            self.url, json.dumps(data), headers=headers, content_type=self.content_type
+        )
 
         self.assertEqual(result.status_code, 404)
         self.assertEqual(result.data, messages.no_record_found)
@@ -140,15 +178,19 @@ class TestApiProjectWarning(TestCase):
             "project_manager_key": str(uuid.uuid4()),
         }
 
-        result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+        headers = self.get_user_auth_header(data["project_manager_key"])
+        result = self.client.post(
+            self.url, json.dumps(data), headers=headers, content_type=self.content_type
+        )
 
-        self.assertEqual(result.status_code, 404)
-        self.assertEqual(result.data, messages.no_record_found)
+        self.assertEqual(result.status_code, 403)
 
     def test_post_warning_message_non_authorized_project_manager(self):
         """test posting from a non-existing project manager"""
 
-        project_manager = ProjectManager.objects.filter(manager_key="aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa").first()
+        project_manager = ProjectManager.objects.filter(
+            manager_key="aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+        ).first()
         project_obj = Project.objects.filter(foreign_id=2048).first()
 
         # Remove the project manager from the project's managers
@@ -161,10 +203,12 @@ class TestApiProjectWarning(TestCase):
             "project_manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
         }
 
-        result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+        headers = self.get_user_auth_header(data["project_manager_key"])
+        result = self.client.post(
+            self.url, json.dumps(data), headers=headers, content_type=self.content_type
+        )
 
         self.assertEqual(result.status_code, 403)
-        self.assertEqual(result.data, messages.no_record_found)
 
     def test_post_warning_message_without_title(self):
         """test posting with an empty body"""
@@ -175,7 +219,10 @@ class TestApiProjectWarning(TestCase):
             "project_manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
         }
 
-        result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+        headers = self.get_user_auth_header(data["project_manager_key"])
+        result = self.client.post(
+            self.url, json.dumps(data), headers=headers, content_type=self.content_type
+        )
 
         self.assertEqual(result.status_code, 400)
         self.assertEqual(result.data, messages.invalid_query)
@@ -189,7 +236,10 @@ class TestApiProjectWarning(TestCase):
             "project_manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
         }
 
-        result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+        headers = self.get_user_auth_header(data["project_manager_key"])
+        result = self.client.post(
+            self.url, json.dumps(data), headers=headers, content_type=self.content_type
+        )
 
         self.assertEqual(result.status_code, 400)
         self.assertEqual(result.data, messages.invalid_query)
@@ -203,7 +253,10 @@ class TestApiProjectWarning(TestCase):
             "project_manager_key": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
         }
 
-        result = self.client.post(self.url, json.dumps(data), headers=self.headers, content_type=self.content_type)
+        headers = self.get_user_auth_header(data["project_manager_key"])
+        result = self.client.post(
+            self.url, json.dumps(data), headers=headers, content_type=self.content_type
+        )
 
         self.assertEqual(result.status_code, 400)
         self.assertEqual(result.data, messages.invalid_query)
@@ -212,7 +265,9 @@ class TestApiProjectWarning(TestCase):
         """test unauthorized posting"""
         data = {}
 
-        result = self.client.post(self.url, json.dumps(data), content_type=self.content_type)
+        result = self.client.post(
+            self.url, json.dumps(data), content_type=self.content_type
+        )
 
         self.assertEqual(result.status_code, 403)
         self.assertEqual(result.reason_phrase, "Forbidden")
@@ -227,7 +282,8 @@ class TestApiProjectWarning(TestCase):
         }
         new_message = self.create_message_from_data(data)
 
-        result = self.client.get(f"{self.url}?id={new_message.pk}")
+        headers = self.get_device_auth_header()
+        result = self.client.get(f"{self.url}?id={new_message.pk}", headers=headers)
         self.assertEqual(result.status_code, 200)
 
         target_dt = datetime.fromisoformat(result.data["publication_date"])
@@ -237,8 +293,12 @@ class TestApiProjectWarning(TestCase):
             "images": [],
             "title": "foobar title",
             "body": "foobar body",
-            "publication_date": translate_timezone(str(new_message.publication_date), target_dt.tzinfo),
-            "modification_date": translate_timezone(str(new_message.modification_date), target_dt.tzinfo),
+            "publication_date": translate_timezone(
+                str(new_message.publication_date), target_dt.tzinfo
+            ),
+            "modification_date": translate_timezone(
+                str(new_message.modification_date), target_dt.tzinfo
+            ),
             "author_email": "mock0@amsterdam.nl",
         }
         self.assertDictEqual(result.data, expected_result)
@@ -258,24 +318,28 @@ class TestApiProjectWarning(TestCase):
         project_obj = Project.objects.filter(foreign_id=2048).first()
         project_obj.deactivate()
 
-        result = self.client.get(f"{self.url}?id={new_message.pk}")
+        headers = self.get_device_auth_header()
+        result = self.client.get(f"{self.url}?id={new_message.pk}", headers=headers)
         self.assertEqual(result.status_code, 404)
         self.assertEqual(result.data, messages.no_record_found)
 
     def test_get_warning_message_no_identifier(self):
         """Test get waring message without identifier"""
-        result = self.client.get(f"{self.url}")
+        headers = self.get_device_auth_header()
+        result = self.client.get(f"{self.url}", headers=headers)
         self.assertEqual(result.status_code, 400)
 
     def test_get_warning_message_invalid_id(self):
         """Test get warning message with invalid identifier"""
-        result = self.client.get(f"{self.url}?id=9999")
+        headers = self.get_device_auth_header()
+        result = self.client.get(f"{self.url}?id=9999", headers=headers)
         self.assertEqual(result.status_code, 404)
         self.assertEqual(result.data, messages.no_record_found)
 
     def test_get_warning_message_project_id_does_not_exist(self):
         """Test get warning message but identifier does not exist"""
-        result = self.client.get(f"{self.url}?id=1111111111")
+        headers = self.get_device_auth_header()
+        result = self.client.get(f"{self.url}?id=1111111111", headers=headers)
 
         self.assertEqual(result.status_code, 404)
         self.assertEqual(result.data, messages.no_record_found)
@@ -291,18 +355,25 @@ class TestApiProjectWarning(TestCase):
         }
         warning_message = self.create_message_from_data(data)
 
-        path = "{cwd}/construction_work/unit_tests/image_data/portrait.jpg".format(cwd=os.getcwd())
+        path = "{cwd}/construction_work/unit_tests/image_data/portrait.jpg".format(
+            cwd=os.getcwd()
+        )
         base64_image_data = base64.b64encode(self.read_file(path)).decode("utf-8")
 
         image_data = {
-            "image": {"main": "true", "data": base64_image_data, "description": "unittest"},
+            "image": {
+                "main": "true",
+                "data": base64_image_data,
+                "description": "unittest",
+            },
             "warning_id": warning_message.pk,
         }
 
+        headers = self.get_user_auth_header(data["project_manager_key"])
         result = self.client.post(
             f"{self.url}/image",
             json.dumps(image_data),
-            headers=self.headers,
+            headers=headers,
             content_type=self.content_type,
         )
 
@@ -346,21 +417,28 @@ class TestApiProjectWarning(TestCase):
         base64_image_data = base64.b64encode(b"0xff").decode("utf-8")
 
         image_data = {
-            "image": {"main": "true", "data": base64_image_data, "description": "unittest"},
+            "image": {
+                "main": "true",
+                "data": base64_image_data,
+                "description": "unittest",
+            },
             "warning_id": warning_message.pk,
         }
 
+        headers = self.get_user_auth_header(data["project_manager_key"])
         result = self.client.post(
             "{url}/image".format(url=self.url),
             json.dumps(image_data),
-            headers=self.headers,
+            headers=headers,
             content_type=self.content_type,
         )
 
         self.assertEqual(result.status_code, 400)
         self.assertEqual(result.data, messages.unsupported_image_format)
 
-        warning_message = WarningMessage.objects.filter(project__foreign_id=2048).first()
+        warning_message = WarningMessage.objects.filter(
+            project__foreign_id=2048
+        ).first()
         self.assertEqual(len(warning_message.warningimage_set.all()), 0)
 
     def test_post_warning_message_image_upload_no_data(self):
@@ -374,12 +452,16 @@ class TestApiProjectWarning(TestCase):
 
         warning_message = self.create_message_from_data(data)
 
-        image_data = {"image": {"main": "true"}, "project_warning_id": warning_message.pk}
+        image_data = {
+            "image": {"main": "true"},
+            "project_warning_id": warning_message.pk,
+        }
 
+        headers = self.get_user_auth_header(data["project_manager_key"])
         result = self.client.post(
             "{url}/image".format(url=self.url),
             json.dumps(image_data),
-            headers=self.headers,
+            headers=headers,
             content_type=self.content_type,
         )
 
@@ -403,10 +485,11 @@ class TestApiProjectWarning(TestCase):
             "project_warning_id": warning_message.pk,
         }
 
+        headers = self.get_user_auth_header(data["project_manager_key"])
         result = self.client.post(
             "{url}/image".format(url=self.url),
             json.dumps(image_data),
-            headers=self.headers,
+            headers=headers,
             content_type=self.content_type,
         )
 
@@ -423,10 +506,12 @@ class TestApiProjectWarning(TestCase):
             "warning_id": 4096,
         }
 
+        project_manager_key = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+        headers = self.get_user_auth_header(project_manager_key)
         result = self.client.post(
             "{url}/image".format(url=self.url),
             json.dumps(image_data),
-            headers=self.headers,
+            headers=headers,
             content_type=self.content_type,
         )
 
@@ -440,10 +525,12 @@ class TestApiProjectWarning(TestCase):
             "project_warning_id": "1",
         }
 
+        project_manager_key = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+        headers = self.get_user_auth_header(project_manager_key)
         result = self.client.post(
             "{url}/image".format(url=self.url),
             json.dumps(image_data),
-            headers=self.headers,
+            headers=headers,
             content_type=self.content_type,
         )
 
@@ -453,10 +540,13 @@ class TestApiProjectWarning(TestCase):
     def test_post_warning_message_image_upload_no_image_and_project_warning_id(self):
         """test posting a warning message without image and project id"""
         image_data = {}
+
+        project_manager_key = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+        headers = self.get_user_auth_header(project_manager_key)
         result = self.client.post(
             "{url}/image".format(url=self.url),
             json.dumps(image_data),
-            headers=self.headers,
+            headers=headers,
             content_type=self.content_type,
         )
 
@@ -479,8 +569,12 @@ class TestApiProjectWarning(TestCase):
             "id": warning_message.pk,
         }
 
+        headers = self.get_user_auth_header(data["project_manager_key"])
         result = self.client.patch(
-            self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type
+            self.url,
+            json.dumps(patch_data),
+            headers=headers,
+            content_type=self.content_type,
         )
         warning_message.refresh_from_db()
 
@@ -490,8 +584,12 @@ class TestApiProjectWarning(TestCase):
             "id": warning_message.pk,
             "title": "new title",
             "body": "new body text",
-            "publication_date": translate_timezone(str(warning_message.publication_date), target_dt.tzinfo),
-            "modification_date": translate_timezone(str(warning_message.modification_date), target_dt.tzinfo),
+            "publication_date": translate_timezone(
+                str(warning_message.publication_date), target_dt.tzinfo
+            ),
+            "modification_date": translate_timezone(
+                str(warning_message.modification_date), target_dt.tzinfo
+            ),
             "author_email": "mock0@amsterdam.nl",
             "project": warning_message.project.pk,
             "project_manager": warning_message.project_manager.pk,
@@ -507,9 +605,13 @@ class TestApiProjectWarning(TestCase):
             "body": "new body text",
             "id": 666,
         }
-
+        project_manager_key = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+        headers = self.get_user_auth_header(project_manager_key)
         result = self.client.patch(
-            self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type
+            self.url,
+            json.dumps(patch_data),
+            headers=headers,
+            content_type=self.content_type,
         )
 
         self.assertEqual(result.status_code, 404)
@@ -527,8 +629,12 @@ class TestApiProjectWarning(TestCase):
 
         patch_data = {"body": "New body text", "identifier": warning_message.pk}
 
+        headers = self.get_user_auth_header(data["project_manager_key"])
         result = self.client.patch(
-            self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type
+            self.url,
+            json.dumps(patch_data),
+            headers=headers,
+            content_type=self.content_type,
         )
         warning_message.refresh_from_db()
 
@@ -549,8 +655,12 @@ class TestApiProjectWarning(TestCase):
 
         patch_data = {"title": "new title", "identifier": warning_message.pk}
 
+        headers = self.get_user_auth_header(data["project_manager_key"])
         result = self.client.patch(
-            self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type
+            self.url,
+            json.dumps(patch_data),
+            headers=headers,
+            content_type=self.content_type,
         )
         warning_message.refresh_from_db()
 
@@ -564,8 +674,13 @@ class TestApiProjectWarning(TestCase):
 
         patch_data = {"title": "new title", "body": "", "id": 1}
 
+        project_manager_key = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+        headers = self.get_user_auth_header(project_manager_key)
         result = self.client.patch(
-            self.url, json.dumps(patch_data), headers=self.headers, content_type=self.content_type
+            self.url,
+            json.dumps(patch_data),
+            headers=headers,
+            content_type=self.content_type,
         )
 
         self.assertEqual(result.status_code, 400)
@@ -588,13 +703,17 @@ class TestApiProjectWarning(TestCase):
         }
         warning_message = self.create_message_from_data(data)
 
+        project_manager_key = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+        headers = self.get_user_auth_header(project_manager_key)
         result = self.client.delete(
             "{url}?id={id}".format(url=self.url, id=warning_message.pk),
-            headers=self.headers,
+            headers=headers,
             content_type=self.content_type,
         )
 
-        patched_warning_message = WarningMessage.objects.filter(pk=warning_message.pk).first()
+        patched_warning_message = WarningMessage.objects.filter(
+            pk=warning_message.pk
+        ).first()
 
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.data, "Message deleted")
@@ -602,7 +721,11 @@ class TestApiProjectWarning(TestCase):
 
     def test_delete_warning_message_missing_identifier(self):
         """test deleting a warning message with missing identifier"""
-        result = self.client.delete(self.url, headers=self.headers, content_type=self.content_type)
+        project_manager_key = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"
+        headers = self.get_user_auth_header(project_manager_key)
+        result = self.client.delete(
+            self.url, headers=headers, content_type=self.content_type
+        )
 
         self.assertEqual(result.status_code, 400)
         self.assertEqual(result.data, messages.invalid_query)
@@ -610,7 +733,8 @@ class TestApiProjectWarning(TestCase):
     def test_delete_warning_message_unauthorized(self):
         """test deleting a warning message without authorization"""
         result = self.client.delete(
-            "{url}?id={id}".format(url=self.url, id=str(uuid.uuid4())), content_type=self.content_type
+            "{url}?id={id}".format(url=self.url, id=str(uuid.uuid4())),
+            content_type=self.content_type,
         )
 
         self.assertEqual(result.status_code, 403)
@@ -633,18 +757,20 @@ class TestApiProjectWarning(TestCase):
         ]
         [self.create_message_from_data(x) for x in data]
 
+        headers = self.get_device_auth_header()
         result = self.client.get(
             "{url}".format(url=self.url_warnings_get),
-            headers=self.headers,
+            headers=headers,
             content_type=self.content_type,
         )
 
         self.assertEqual(len(result.data), 2)
 
     def test_project_warnings_invalid_project_id(self):
+        headers = self.get_device_auth_header()
         result = self.client.get(
             "{url}?project_id=999".format(url=self.url_warnings_get),
-            headers=self.headers,
+            headers=headers,
             content_type=self.content_type,
         )
 
@@ -661,9 +787,10 @@ class TestApiProjectWarning(TestCase):
         }
         warning_message = self.create_message_from_data(data)
 
+        headers = self.get_device_auth_header()
         result = self.client.get(
             f"{self.url_warnings_get}?project_id={project_obj.pk}",
-            headers=self.headers,
+            headers=headers,
             content_type=self.content_type,
         )
 
@@ -675,8 +802,12 @@ class TestApiProjectWarning(TestCase):
             "images": [],
             "title": "title",
             "body": "Body text",
-            "publication_date": translate_timezone(str(warning_message.publication_date), target_dt.tzinfo),
-            "modification_date": translate_timezone(str(warning_message.modification_date), target_dt.tzinfo),
+            "publication_date": translate_timezone(
+                str(warning_message.publication_date), target_dt.tzinfo
+            ),
+            "modification_date": translate_timezone(
+                str(warning_message.modification_date), target_dt.tzinfo
+            ),
             "author_email": "mock0@amsterdam.nl",
         }
 
