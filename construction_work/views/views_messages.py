@@ -11,6 +11,7 @@ from construction_work.api_messages import Messages
 from construction_work.generic_functions.image_conversion import ImageConversion
 from construction_work.generic_functions.is_authorized import (
     IsAuthorized,
+    JWTAuthorized,
     ManagerAuthorized,
 )
 from construction_work.generic_functions.sort import Sort
@@ -161,7 +162,7 @@ def warning_message_post(request):
     return Response(serializer.data, status.HTTP_200_OK)
 
 
-@ManagerAuthorized
+@JWTAuthorized
 def warning_message_patch(request):
     """Patch a warning message (most likely by web-redactie)"""
     title = request.data.get("title", None)
@@ -190,7 +191,7 @@ def warning_message_patch(request):
     return Response(serializer.data, status.HTTP_200_OK)
 
 
-@ManagerAuthorized
+@JWTAuthorized
 def warning_message_delete(request):
     """Delete warning message"""
     message_id = request.GET.get("id", None)
