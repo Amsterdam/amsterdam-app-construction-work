@@ -2,7 +2,10 @@
 from drf_yasg import openapi
 
 from construction_work.serializers import ArticleSerializer, ProjectSerializer
-from construction_work.swagger.swagger_abstract_objects import forbidden_403
+from construction_work.swagger.swagger_abstract_objects import (
+    forbidden_403,
+    header_ingest_authorization,
+)
 
 #
 # Re-usable snippets
@@ -46,21 +49,13 @@ serializer_error = openapi.Schema(
 )
 
 
-ingest_auth_param = openapi.Parameter(
-    "IngestAuthorization",
-    openapi.IN_HEADER,
-    description="IngestAuthorization authorization token",
-    type=openapi.TYPE_STRING,
-    required=True,
-)
-
 #
 # OpenAPI definitions
 #
 
 as_garbage_collector = {
     "methods": ["POST"],
-    "manual_parameters": [ingest_auth_param],
+    "manual_parameters": [header_ingest_authorization],
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={"project_ids": identifiers, "article_ids": identifiers},
@@ -88,7 +83,7 @@ as_garbage_collector = {
 
 as_etl_get = {
     "methods": ["get"],
-    "manual_parameters": [ingest_auth_param],
+    "manual_parameters": [header_ingest_authorization],
     "responses": {
         200: openapi.Response(
             "application/json",
@@ -107,7 +102,7 @@ as_etl_get = {
 
 as_etl_project_post = {
     "methods": ["POST"],
-    "manual_parameters": [ingest_auth_param],
+    "manual_parameters": [header_ingest_authorization],
     "request_body": ProjectSerializer,
     "responses": {
         200: openapi.Response(
@@ -232,7 +227,7 @@ as_etl_project_post = {
 
 as_etl_article_post = {
     "methods": ["POST"],
-    "manual_parameters": [ingest_auth_param],
+    "manual_parameters": [header_ingest_authorization],
     "request_body": ArticleSerializer,
     "responses": {
         200: openapi.Response(

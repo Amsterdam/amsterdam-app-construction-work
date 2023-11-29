@@ -66,11 +66,12 @@
                 // "construction_work.unit_tests.tests_views_iprox_projects.TestApiProjectsSearch",
                 // "construction_work.unit_tests.tests_views_iprox_news.TestNews",
                 // "construction_work.unit_tests.tests_views_messages_notifications",
+                "construction_work.unit_tests.tests_views_messages_warnings.TestApiProjectWarning",
                 // "construction_work.unit_tests.tests_project_utils.TestCreateProjectNewsLookup",
                 // "construction_work.unit_tests.tests_views_mobile_devices.TestApiDeviceRegistration",
                 // "construction_work.unit_tests.tests_isauthorized.TestIsAuthorized",
                 // "construction_work.unit_tests.tests_views_user.SignInTest",
-                "construction_work.unit_tests.tests_views_messages_notifications.TestApiNotification",
+                // "construction_work.unit_tests.tests_views_messages_notifications.TestApiNotification",
                 // "--noinput"
             ],
             "django": true,

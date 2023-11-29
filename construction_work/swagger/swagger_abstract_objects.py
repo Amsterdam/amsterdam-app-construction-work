@@ -43,6 +43,14 @@ header_user_authorization = openapi.Parameter(
 header_user_authorization_not_required = copy(header_user_authorization)
 header_user_authorization_not_required.required = False
 
+header_ingest_authorization = openapi.Parameter(
+    "IngestAuthorization",
+    openapi.IN_HEADER,
+    description="IngestAuthorization authorization token",
+    type=openapi.TYPE_STRING,
+    required=True,
+)
+
 header_jwt_authorization = openapi.Parameter(
     "AUTHORIZATION",
     openapi.IN_HEADER,
@@ -112,6 +120,15 @@ query_project_id = openapi.Parameter(
     required=True,
 )
 
+query_project_ids = openapi.Parameter(
+    "project_ids",
+    openapi.IN_QUERY,
+    description="Limit articles to these comma seperated project ids",
+    type=openapi.TYPE_STRING,
+    required=False,
+)
+
+
 query_foreign_id = openapi.Parameter(
     "foreign_id",
     openapi.IN_QUERY,
@@ -158,7 +175,7 @@ query_fields = openapi.Parameter(
 )
 
 query_sort_by = openapi.Parameter(
-    "sort-by",
+    "sort_by",
     openapi.IN_QUERY,
     "Sort response (default: modification_date)",
     type=openapi.TYPE_STRING,
@@ -167,7 +184,7 @@ query_sort_by = openapi.Parameter(
 )
 
 query_sort_order = openapi.Parameter(
-    "sort-order",
+    "sort_order",
     openapi.IN_QUERY,
     "Sorting order (default: asc)",
     type=openapi.TYPE_STRING,
@@ -192,6 +209,16 @@ query_page = openapi.Parameter(
     format="int",
     required=False,
 )
+
+query_limit = openapi.Parameter(
+    "limit",
+    openapi.IN_QUERY,
+    description="Limit returned items to this number",
+    type=openapi.TYPE_INTEGER,
+    format="<int>",
+    required=False,
+)
+
 
 #
 # Re-usable schema objects

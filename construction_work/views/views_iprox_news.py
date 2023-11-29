@@ -11,14 +11,14 @@ from construction_work.generic_functions.static_data import StaticData
 from construction_work.models import Article, WarningMessage
 from construction_work.serializers import ArticleSerializer, ImagePublicSerializer
 from construction_work.swagger.swagger_views_iprox_news import (
-    as_article,
+    as_article_get,
     as_articles_get,
 )
 
 message = Messages()
 
 
-@swagger_auto_schema(**as_article)
+@swagger_auto_schema(**as_article_get)
 @api_view(["GET"])
 @IsAuthorized
 def article(request):

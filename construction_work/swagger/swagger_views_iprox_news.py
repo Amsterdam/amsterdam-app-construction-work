@@ -11,13 +11,17 @@ from construction_work.swagger.swagger_abstract_objects import (
     meta_id,
     not_found_404,
     query_id,
+    query_limit,
+    query_project_ids,
+    query_sort_by,
+    query_sort_order,
 )
 from construction_work.views.views_messages import Messages
 
 messages = Messages()
 
 
-as_article = {
+as_article_get = {
     # /api/v1/project/news swagger_auto_schema
     "methods": ["GET"],
     "manual_parameters": [header_device_authorization, query_id],
@@ -91,37 +95,11 @@ as_articles_get = {
     # /api/v1/articles
     "methods": ["GET"],
     "manual_parameters": [
-        openapi.Parameter(
-            "project_ids",
-            openapi.IN_QUERY,
-            description="Limit articles to these comma seperated project ids",
-            type=openapi.TYPE_STRING,
-            required=False,
-        ),
-        openapi.Parameter(
-            "limit",
-            openapi.IN_QUERY,
-            description="Limit returned items to this number",
-            type=openapi.TYPE_INTEGER,
-            format="<int>",
-            required=False,
-        ),
-        openapi.Parameter(
-            "sort_by",
-            openapi.IN_QUERY,
-            description="Sort response (default: publication_date)",
-            type=openapi.TYPE_STRING,
-            format="<any key from model>",
-            required=False,
-        ),
-        openapi.Parameter(
-            "sort_order",
-            openapi.IN_QUERY,
-            description="Sorting order (default: desc)",
-            type=openapi.TYPE_STRING,
-            format="<asc, desc>",
-            required=False,
-        ),
+        header_device_authorization,
+        query_project_ids,
+        query_limit,
+        query_sort_by,
+        query_sort_order,
     ],
     "responses": {
         200: openapi.Response(

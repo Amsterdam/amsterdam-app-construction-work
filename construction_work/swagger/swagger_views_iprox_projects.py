@@ -35,6 +35,7 @@ as_projects = {
     # /api/v1/projects swagger_auto_schema
     "methods": ["GET"],
     "manual_parameters": [
+        header_device_authorization,
         header_device_id,
         query_article_max_age,
         query_latitude,
@@ -112,8 +113,8 @@ as_project_details = {
     # /api/v1/project/details swagger_auto_schema
     "methods": ["get"],
     "manual_parameters": [
-        header_device_id,
         header_device_authorization,
+        header_device_id,
         query_id,
         query_article_max_age,
         query_latitude,
@@ -213,6 +214,7 @@ as_projects_search = {
     # /api/v1/XXX/search swagger_auto_schema
     "methods": ["get"],
     "manual_parameters": [
+        header_device_authorization,
         query_text,
         query_fields,
         query_query_fields,
@@ -299,7 +301,11 @@ as_project_follow_delete = {
 as_projects_followed_articles = {
     # /api/v1/project/followed/articles swagger_auto_schema
     "methods": ["get"],
-    "manual_parameters": [header_device_id, query_article_max_age],
+    "manual_parameters": [
+        header_device_authorization,
+        header_device_id,
+        query_article_max_age,
+    ],
     "responses": {
         200: openapi.Response(
             "application/json",

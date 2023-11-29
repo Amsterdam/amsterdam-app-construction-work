@@ -13,6 +13,7 @@ from construction_work.serializers import (
 from construction_work.swagger.swagger_abstract_objects import (
     coordinates,
     forbidden_403,
+    header_device_authorization,
     header_user_authorization,
     not_found_404,
     query_id,
@@ -60,7 +61,7 @@ images = openapi.Schema(type=openapi.TYPE_ARRAY, items=image)
 as_warning_message_get = {
     # /api/v1/notification/messages/warning/get
     "methods": ["GET"],
-    "manual_parameters": [query_id],
+    "manual_parameters": [header_device_authorization, query_id],
     "responses": {
         200: openapi.Response(
             "application/json",
@@ -263,7 +264,12 @@ as_warning_message_delete = {
 as_warning_messages_get = {
     # /api/v1/notification/messages/warning/get
     "methods": ["GET"],
-    "manual_parameters": [query_project_id, query_sort_by, query_sort_order],
+    "manual_parameters": [
+        header_device_authorization,
+        query_project_id,
+        query_sort_by,
+        query_sort_order,
+    ],
     "responses": {
         200: openapi.Response(
             "application/json",

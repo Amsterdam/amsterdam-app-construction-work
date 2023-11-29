@@ -7,6 +7,7 @@ from drf_yasg import openapi
 from construction_work.api_messages import Messages
 from construction_work.swagger.swagger_abstract_objects import (
     forbidden_403,
+    header_device_authorization,
     not_found_404,
     query_id,
 )
@@ -16,7 +17,7 @@ messages = Messages()
 as_image = {
     # /api/v1/image swagger_auto_schema
     "methods": ["get"],
-    "manual_parameters": [query_id],
+    "manual_parameters": [header_device_authorization, query_id],
     "responses": {
         200: openapi.Response("Binary data"),
         400: openapi.Response(
