@@ -300,6 +300,11 @@ class TestNews(TestArticlesBase):
         super().setUp()
         self.api_url = "/api/v1/project/news"
 
+        app_token = os.getenv("APP_TOKEN")
+        aes_secret = os.getenv("AES_SECRET")
+        token = AESCipher(app_token, aes_secret).encrypt()
+        self.headers = {"DeviceAuthorization": token}
+
         projects = []
         for project_data in self.data.projects:
             project = Project.objects.create(**project_data)
@@ -321,7 +326,7 @@ class TestNews(TestArticlesBase):
     def test_get_single_article(self):
         """Test retrieving single article"""
         article = Article.objects.first()
-        result = self.client.get(self.api_url, {"id": article.pk})
+        result = self.client.get(self.api_url, {"id": article.pk}, headers=self.headers)
         self.assertEqual(result.status_code, 200)
 
         target_tzinfo = datetime.fromisoformat(result.data["last_seen"]).tzinfo
@@ -348,10 +353,12 @@ class TestNews(TestArticlesBase):
 
     def test_missing_article_id(self):
         """Test calling API without article id param"""
-        result = self.client.get(self.api_url, {"foobar": "foobar"})
+        result = self.client.get(
+            self.api_url, {"foobar": "foobar"}, headers=self.headers
+        )
         self.assertEqual(result.status_code, 400)
 
     def test_article_not_found(self):
         """Test requesting article id which does not exist"""
-        result = self.client.get(self.api_url, {"id": 9999})
+        result = self.client.get(self.api_url, {"id": 9999}, headers=self.headers)
         self.assertEqual(result.status_code, 404)

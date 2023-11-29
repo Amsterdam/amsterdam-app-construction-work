@@ -1,9 +1,11 @@
 """ unit_tests """
 import base64
+import os
 
 from django.test import Client, TestCase
 
 from construction_work.api_messages import Messages
+from construction_work.generic_functions.aes_cipher import AESCipher
 from construction_work.models import Image
 
 messages = Messages()
@@ -16,6 +18,11 @@ class TestApiImage(TestCase):
         """Setup test db"""
         self.api_url = "/api/v1/image"
         self.client = Client()
+
+        app_token = os.getenv("APP_TOKEN")
+        aes_secret = os.getenv("AES_SECRET")
+        token = AESCipher(app_token, aes_secret).encrypt()
+        self.headers = {"DeviceAuthorization": token}
 
     def tearDown(self) -> None:
         Image.objects.all().delete()
@@ -35,7 +42,7 @@ class TestApiImage(TestCase):
         )
         image.save()
 
-        response = self.client.get(self.api_url, {"id": image.pk})
+        response = self.client.get(self.api_url, {"id": image.pk}, headers=self.headers)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content, binary_data)
 
@@ -44,10 +51,10 @@ class TestApiImage(TestCase):
 
     def test_no_image_id(self):
         """Test without passing image id"""
-        response = self.client.get(self.api_url)
+        response = self.client.get(self.api_url, headers=self.headers)
         self.assertEqual(response.status_code, 400)
 
     def test_image_does_exist(self):
         """Test request image that does not exist"""
-        response = self.client.get(self.api_url, {"id": 9999})
+        response = self.client.get(self.api_url, {"id": 9999}, headers=self.headers)
         self.assertEqual(response.status_code, 404)

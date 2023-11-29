@@ -9,6 +9,7 @@ from construction_work.generic_functions.aes_cipher import AESCipher
 from construction_work.generic_functions.is_authorized import (
     IsAuthorized,
     JWTAuthorized,
+    ManagerAuthorized,
 )
 from construction_work.models import ProjectManager
 from construction_work.unit_tests.mock_data import TestData
@@ -45,13 +46,14 @@ class TestIsAuthorized(TestCase):
     def test_valid_token(self):
         """Test with valid app token"""
 
-        @IsAuthorized
+        project_manager = ProjectManager.objects.first()
+
+        @ManagerAuthorized
         def a_view(request):
             return "success"
 
-        app_token = os.getenv("APP_TOKEN")
         aes_secret = os.getenv("AES_SECRET")
-        token = AESCipher(app_token, aes_secret).encrypt()
+        token = AESCipher(str(project_manager.manager_key), aes_secret).encrypt()
 
         headers = {"Accept": "application/json", "UserAuthorization": token}
         request = self.factory.post("/", headers=headers)
