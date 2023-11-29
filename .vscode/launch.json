@@ -62,7 +62,7 @@
             "program": "${workspaceFolder}/manage.py",
             "args": [
                 "test",
-                "construction_work.unit_tests.tests_views_project_manager.TestApiProjectManager",
+                // "construction_work.unit_tests.tests_views_project_manager.TestApiProjectManager",
                 // "construction_work.unit_tests.tests_views_iprox_projects.TestApiProjectsSearch",
                 // "construction_work.unit_tests.tests_views_iprox_news.TestNews",
                 // "construction_work.unit_tests.tests_views_messages_notifications",
@@ -70,6 +70,7 @@
                 // "construction_work.unit_tests.tests_views_mobile_devices.TestApiDeviceRegistration",
                 // "construction_work.unit_tests.tests_isauthorized.TestIsAuthorized",
                 // "construction_work.unit_tests.tests_views_user.SignInTest",
+                "construction_work.unit_tests.tests_views_messages_notifications.TestApiNotification",
                 // "--noinput"
             ],
             "django": true,

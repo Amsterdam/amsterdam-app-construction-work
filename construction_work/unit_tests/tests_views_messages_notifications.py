@@ -27,10 +27,10 @@ class TestApiNotification(TestCase):
         self.post_url = "/api/v1/notification"
         self.get_url = "/api/v1/notifications"
 
-        app_token = os.getenv("APP_TOKEN")
-        aes_secret = os.getenv("AES_SECRET")
-        self.token = AESCipher(app_token, aes_secret).encrypt()
-        self.headers = {"UserAuthorization": self.token}
+        # app_token = os.getenv("APP_TOKEN")
+        self.aes_secret = os.getenv("AES_SECRET")
+        # self.token = AESCipher(app_token, aes_secret).encrypt()
+        # self.headers = {"DeviceAuthorization": self.token}
         self.content_type = "application/json"
         self.client = Client()
 
@@ -44,6 +44,17 @@ class TestApiNotification(TestCase):
         ProjectManager.objects.all().delete()
         WarningMessage.objects.all().delete()
         Device.objects.all().delete()
+
+    def get_user_auth_header(self, manager_key):
+        self.token = AESCipher(manager_key, self.aes_secret).encrypt()
+        headers = {"UserAuthorization": self.token}
+        return headers
+
+    def get_device_auth_header(self):
+        app_token = os.getenv("APP_TOKEN")
+        self.token = AESCipher(app_token, self.aes_secret).encrypt()
+        headers = {"DeviceAuthorization": self.token}
+        return headers
 
     @patch(
         "firebase_admin.messaging.send_multicast",
@@ -67,10 +78,11 @@ class TestApiNotification(TestCase):
         warning_message = WarningMessage.objects.create(**warning_data)
 
         data = {"title": "foobar", "body": "foobar", "warning_id": warning_message.pk}
+        headers = self.get_user_auth_header(str(project_manager.manager_key))
         result = self.client.post(
             self.post_url,
             json.dumps(data),
-            headers=self.headers,
+            headers=headers,
             content_type=self.content_type,
         )
 
@@ -98,10 +110,11 @@ class TestApiNotification(TestCase):
         warning_message = WarningMessage.objects.create(**warning_data)
 
         data = {"title": "foobar", "body": "foobar", "warning_id": warning_message.pk}
+        headers = self.get_user_auth_header(str(project_manager.manager_key))
         result = self.client.post(
             self.post_url,
             json.dumps(data),
-            headers=self.headers,
+            headers=headers,
             content_type=self.content_type,
         )
 
@@ -113,11 +126,14 @@ class TestApiNotification(TestCase):
 
     def test_post_notification_no_warning_message(self):
         """Test post notification without a warning message"""
+        project_manager = ProjectManager.objects.first()
+        headers = self.get_user_auth_header(str(project_manager.manager_key))
+
         data = {"title": "title", "body": "text", "warning_id": 9999}
         result = self.client.post(
             self.post_url,
             json.dumps(data),
-            headers=self.headers,
+            headers=headers,
             content_type=self.content_type,
         )
 
@@ -129,11 +145,14 @@ class TestApiNotification(TestCase):
 
     def test_post_notification_without_warning_id(self):
         """test post a notification without a warning id"""
+        project_manager = ProjectManager.objects.first()
+        headers = self.get_user_auth_header(str(project_manager.manager_key))
+
         data = {"title": "title", "body": "text"}
         result = self.client.post(
             self.post_url,
             json.dumps(data),
-            headers=self.headers,
+            headers=headers,
             content_type=self.content_type,
         )
 
@@ -153,11 +172,12 @@ class TestApiNotification(TestCase):
         }
         warning_message = WarningMessage.objects.create(**warning_data)
 
+        headers = self.get_user_auth_header(str(project_manager.manager_key))
         data = {"body": "foobar", "warning_id": warning_message.pk}
         result = self.client.post(
             self.post_url,
             json.dumps(data),
-            headers=self.headers,
+            headers=headers,
             content_type=self.content_type,
         )
 
@@ -177,11 +197,12 @@ class TestApiNotification(TestCase):
         }
         warning_message = WarningMessage.objects.create(**warning_data)
 
+        headers = self.get_user_auth_header(str(project_manager.manager_key))
         data = {"title": "foobar", "warning_id": warning_message.pk}
         result = self.client.post(
             self.post_url,
             json.dumps(data),
-            headers=self.headers,
+            headers=headers,
             content_type=self.content_type,
         )
 
