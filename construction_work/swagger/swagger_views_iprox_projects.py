@@ -2,18 +2,21 @@
     name of the methods in views_*_.py prepended with 'as_' (auto_schema)
 """
 
+from copy import copy
+
 from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
 from construction_work.swagger.swagger_generic_objects import (
     forbidden_403,
+    get_paginated_schema,
     header_device_authorization,
     header_device_id,
     meta_id,
     not_found_404,
     project_details_schema,
     project_id,
-    projects_schema,
+    project_schema,
     query_address,
     query_article_max_age,
     query_fields,
@@ -48,7 +51,7 @@ as_projects = {
     "responses": {
         200: openapi.Response(
             "application/json",
-            projects_schema,
+            get_paginated_schema(project_schema),
             examples={
                 "application/json": {
                     "result": [
@@ -80,7 +83,7 @@ as_projects = {
                             },
                             "followed": True,
                             "strides": 3242,
-                            "meters": 4552,
+                            "meter": 4552,
                             "recent_articles": [],
                             "project_id": 343,
                         }
@@ -210,29 +213,20 @@ as_project_details = {
     "tags": ["Projects"],
 }
 
-
-as_projects_search = {
-    # /api/v1/XXX/search swagger_auto_schema
-    "methods": ["get"],
-    "manual_parameters": [
-        header_device_authorization,
-        query_text,
-        query_fields,
-        query_query_fields,
-        query_address,
-        query_article_max_age,
-        query_latitude,
-        query_longitude,
-        query_page,
-        query_page_size,
-    ],
-    "responses": {
-        200: openapi.Response("application/json", projects_schema),
-        403: forbidden_403,
-        404: not_found_404,
-    },
-    "tags": ["Search"],
-}
+as_projects_search = copy(as_projects)
+as_projects_search["manual_parameters"] = [
+    header_device_authorization,
+    query_text,
+    query_fields,
+    query_query_fields,
+    query_address,
+    query_article_max_age,
+    query_latitude,
+    query_longitude,
+    query_page,
+    query_page_size,
+]
+as_projects_search["tags"] = ["Search"]
 
 
 as_project_follow_post = {

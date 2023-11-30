@@ -46,6 +46,7 @@ class StaticData:
             "waiting_times": "https://wachttijdenamsterdam.nl/data",
         }
 
+    # NOTE: not static...
     @staticmethod
     def base_url(request):
         """Get hostname for this server"""

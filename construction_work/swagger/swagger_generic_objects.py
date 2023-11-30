@@ -255,7 +255,7 @@ link_schema = openapi.Schema(
     },
 )
 
-_links = openapi.Schema(
+links = openapi.Schema(
     type=openapi.TYPE_OBJECT,
     properties={
         "self": link_schema,
@@ -459,25 +459,28 @@ project_details_schema = openapi.Schema(
 project_schema = openapi.Schema(
     type=openapi.TYPE_OBJECT,
     properties={
+        "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
         "title": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
         "subtitle": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
         "image": image,
         "followed": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="boolean"),
+        "meter": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
         "strides": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
-        "meters": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
         "recent_articles": recent_articles,
-        "project_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
     },
 )
 
-projects_schema = openapi.Schema(
-    type=openapi.TYPE_OBJECT,
-    properties={
-        "result": openapi.Schema(type=openapi.TYPE_ARRAY, items=project_schema),
-        "page": page,
-        "_links": _links,
-    },
-)
+
+def get_paginated_schema(schema: openapi.Schema):
+    return openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "result": schema,
+            "page": page,
+            "_links": links,
+        },
+    )
+
 
 #
 # Responses
