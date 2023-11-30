@@ -22,9 +22,9 @@ header_device_id = openapi.Parameter(
 )
 
 header_device_authorization = openapi.Parameter(
-    "DEVICEAUTHORIZATION",
+    "DeviceAuthorization",
     openapi.IN_HEADER,
-    description="AES encrypted UUID token",
+    description="AES encrypted UUID4",
     type=openapi.TYPE_STRING,
     required=True,
 )
@@ -32,29 +32,26 @@ header_device_authorization = openapi.Parameter(
 header_device_authorization_not_required = copy(header_device_authorization)
 header_device_authorization_not_required.required = False
 
-header_user_authorization = openapi.Parameter(
-    "UserAuthorization",
+header_ingest_authorization = openapi.Parameter(
+    "IngestAuthorization",
     openapi.IN_HEADER,
-    description="AES encrypted UUID token",
+    description="AES encrypted UUID4",
     type=openapi.TYPE_STRING,
     required=True,
 )
 
-header_user_authorization_not_required = copy(header_user_authorization)
-header_user_authorization_not_required.required = False
-
-header_ingest_authorization = openapi.Parameter(
-    "IngestAuthorization",
+header_user_authorization = openapi.Parameter(
+    "UserAuthorization",
     openapi.IN_HEADER,
-    description="IngestAuthorization authorization token",
+    description="AES encrypted project manager key (UUID)",
     type=openapi.TYPE_STRING,
     required=True,
 )
 
 header_jwt_authorization = openapi.Parameter(
-    "AUTHORIZATION",
+    "Authorization",
     openapi.IN_HEADER,
-    description="JWT token",
+    description="JWT token, retrievable via /get-token",
     type=openapi.TYPE_STRING,
     required=True,
 )
@@ -224,6 +221,13 @@ query_limit = openapi.Parameter(
 # Re-usable schema objects
 #
 
+project_id = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="Project id")
+    },
+)
+
 page = openapi.Schema(
     type=openapi.TYPE_OBJECT,
     properties={
@@ -265,12 +269,12 @@ foreign_id = openapi.Schema(
     items=openapi.Schema(type=openapi.TYPE_STRING, description="foreign id"),
 )
 
+news_type = openapi.Schema(type=openapi.TYPE_STRING, description="<article|warning>")
+
 meta_id = openapi.Schema(
     type=openapi.TYPE_OBJECT,
     properties={
-        "type": openapi.Schema(
-            type=openapi.TYPE_STRING, description="[article|warning]"
-        ),
+        "type": news_type,
         "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="id"),
     },
 )

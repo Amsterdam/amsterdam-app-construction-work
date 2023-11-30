@@ -8,7 +8,9 @@ from construction_work.serializers import ArticleSerializer
 from construction_work.swagger.swagger_generic_objects import (
     forbidden_403,
     header_device_authorization,
+    images,
     meta_id,
+    news_type,
     not_found_404,
     query_id,
     query_limit,
@@ -115,44 +117,9 @@ as_articles_get = {
                         "publication_date": openapi.Schema(
                             type=openapi.TYPE_STRING, description="year-month-day"
                         ),
-                        "type": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="<news|warning>"
-                        ),
+                        "type": news_type,
                         "meta_id": meta_id,
-                        "images": openapi.Schema(
-                            type=openapi.TYPE_ARRAY,
-                            description="related images",
-                            items=openapi.Schema(
-                                type=openapi.TYPE_OBJECT,
-                                properties={
-                                    "id": openapi.Schema(
-                                        type=openapi.TYPE_STRING,
-                                        description="image id",
-                                    ),
-                                    "sources": openapi.Schema(
-                                        type=openapi.TYPE_ARRAY,
-                                        description="same image in different formats",
-                                        items=openapi.Schema(
-                                            type=openapi.TYPE_OBJECT,
-                                            properties={
-                                                "url": openapi.Schema(
-                                                    type=openapi.TYPE_STRING,
-                                                    description="url to image",
-                                                ),
-                                                "width": openapi.Schema(
-                                                    type=openapi.TYPE_INTEGER,
-                                                    description="width of image",
-                                                ),
-                                                "height": openapi.Schema(
-                                                    type=openapi.TYPE_INTEGER,
-                                                    description="height of image",
-                                                ),
-                                            },
-                                        ),
-                                    ),
-                                },
-                            ),
-                        ),
+                        "images": images,
                     },
                 ),
             ),

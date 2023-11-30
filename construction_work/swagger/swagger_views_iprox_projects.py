@@ -12,6 +12,7 @@ from construction_work.swagger.swagger_generic_objects import (
     meta_id,
     not_found_404,
     project_details_schema,
+    project_id,
     projects_schema,
     query_address,
     query_article_max_age,
@@ -238,12 +239,7 @@ as_project_follow_post = {
     # /api/v1/image swagger_auto_schema
     "methods": ["POST"],
     "manual_parameters": [header_device_authorization, header_device_id],
-    "request_body": openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties={
-            "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="project id")
-        },
-    ),
+    "request_body": project_id,
     "responses": {
         200: openapi.Response(
             "application/json",
@@ -269,14 +265,7 @@ as_project_follow_delete = {
     # /api/v1/image swagger_auto_schema
     "methods": ["DELETE"],
     "manual_parameters": [header_device_authorization, header_device_id],
-    "request_body": openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties={
-            "project_id": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Project identifier"
-            )
-        },
-    ),
+    "request_body": project_id,
     "responses": {
         200: openapi.Response(
             "application/json",

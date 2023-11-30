@@ -126,10 +126,10 @@ class JWTAuthorized:
     def get_jwt_auth_token(request: HttpRequest):
         """Get the JWT token from the request"""
 
-        jwt_header = "AUTHORIZATION"
+        jwt_header = "Authorization"
 
         auth_token = None
-        http_token = request.META.get(f"HTTP_{jwt_header}")
+        http_token = request.META.get(f"HTTP_{jwt_header.upper()}")
         header_token = request.META.get("headers", {}).get(jwt_header)
 
         if http_token:
