@@ -62,9 +62,7 @@ SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Uncomment to enable Django Debug Toolbar
 # Makes the API really slow returning data, don't know why
-INTERNAL_IPS = [
-    "127.0.0.1"
-]
+INTERNAL_IPS = ["127.0.0.1"]
 
 # Application definition
 
@@ -95,11 +93,18 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "debug_toolbar.middleware.DebugToolbarMiddleware"
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_HEADERS = ["deviceid"]
+CORS_ALLOW_HEADERS = [
+    "deviceid",
+    "deviceauthorization",
+    "ingestauthorization",
+    "userauthorization",
+    "authorization",
+    "x_forwarded_proto",
+]
 ROOT_URLCONF = "main_application.urls"
 
 TEMPLATES = [
@@ -124,8 +129,8 @@ REST_FRAMEWORK = {
     #'DEFAULT_AUTHENTICATION_CLASSES': [
     #    'rest_framework.authentication.TokenAuthentication'
     # ]
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
-    'PAGE_SIZE': 10,
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
 }
 
 #
