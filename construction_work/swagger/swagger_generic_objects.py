@@ -424,8 +424,12 @@ images = openapi.Schema(type=openapi.TYPE_ARRAY, items=image)
 project_details_schema = openapi.Schema(
     type=openapi.TYPE_OBJECT,
     properties={
-        "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="id"),
+        "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
+        "meter": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
+        "strides": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
         "followed": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="boolean"),
+        "recent_articles": recent_articles,
+        "followers": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
         "foreign_id": openapi.Schema(
             type=openapi.TYPE_INTEGER, description="foreign id"
         ),
@@ -439,7 +443,6 @@ project_details_schema = openapi.Schema(
         "timeline": timeline,
         "image": image,
         "images": images,
-        "recent_articles": recent_articles,
         "url": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
         "creation_date": openapi.Schema(
             type=openapi.TYPE_STRING, description="datetime"
