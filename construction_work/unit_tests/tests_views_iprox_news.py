@@ -131,7 +131,6 @@ class TestArticles(TestArticlesBase):
         article = Article.objects.order_by("-publication_date").first()
 
         expected_data = {
-            "type": "news",
             "title": article.title,
             "publication_date": article.publication_date,
             "meta_id": {
@@ -176,7 +175,7 @@ class TestArticles(TestArticlesBase):
         self.assertEqual(result.status_code, 200)
 
         expected_data = {
-            "type": "news",
+            # "type": "news",
             "title": article.title,
             "publication_date": article.publication_date,
             "meta_id": {
@@ -198,7 +197,7 @@ class TestArticles(TestArticlesBase):
         warning = WarningMessage.objects.first()
 
         expected_data = {
-            "type": "warning",
+            # "type": "warning",
             "title": warning.title,
             "publication_date": warning.publication_date,
             "meta_id": {
@@ -236,7 +235,7 @@ class TestArticles(TestArticlesBase):
         self.assertEqual(result.status_code, 200)
 
         expected_data = {
-            "type": "warning",
+            # "type": "warning",
             "title": warning.title,
             "publication_date": warning.publication_date,
             "meta_id": {
@@ -333,6 +332,10 @@ class TestNews(TestArticlesBase):
 
         expected_data = {
             "id": article.pk,
+            "meta_id": {
+                "id": article.pk,
+                "type": "article",
+            },
             "foreign_id": article.foreign_id,
             "active": article.active,
             "last_seen": tt(str(article.last_seen), target_tzinfo),
@@ -340,7 +343,6 @@ class TestNews(TestArticlesBase):
             "intro": article.intro,
             "body": article.body,
             "image": article.image,
-            "type": article.type,
             "url": article.url,
             "creation_date": tt(str(article.creation_date), target_tzinfo),
             "modification_date": tt(str(article.modification_date), target_tzinfo),

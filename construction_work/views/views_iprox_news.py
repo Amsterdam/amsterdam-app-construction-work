@@ -68,7 +68,6 @@ def articles(request):
         articles_list = Article.objects.values(*article_values_params)
 
     for obj in articles_list:
-        obj["type"] = "news"
         obj["meta_id"] = create_id_dict(Article, obj["id"])
         obj.pop("id")
         obj["images"] = []
@@ -103,7 +102,6 @@ def articles(request):
         warning_dict = {
             "title": warning.title,
             "publication_date": warning.publication_date,
-            "type": "warning",
             "meta_id": warning.get_id_dict(),
             "images": images,
         }

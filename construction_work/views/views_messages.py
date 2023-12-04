@@ -26,8 +26,8 @@ from construction_work.models.image import Image
 from construction_work.push_notifications.send_notification import NotificationService
 from construction_work.serializers import (
     WarningImageSerializer,
+    WarningMessageCreateSerializer,
     WarningMessagePublicSerializer,
-    WarningMessageSerializer,
 )
 from construction_work.swagger.swagger_views_messages import (
     as_notification_post,
@@ -145,7 +145,7 @@ def warning_message_post(request):
     if project_id not in project_manager_project_ids:
         return HttpResponseForbidden()
 
-    serializer = WarningMessageSerializer(
+    serializer = WarningMessageCreateSerializer(
         data={
             "title": title,
             "body": body,
@@ -179,7 +179,7 @@ def warning_message_patch(request):
     if message is None:
         return Response(messages.no_record_found, status.HTTP_404_NOT_FOUND)
 
-    serializer = WarningMessageSerializer(
+    serializer = WarningMessageCreateSerializer(
         instance=message, partial=True, data={"title": title, "body": body}
     )
     if not serializer.is_valid():

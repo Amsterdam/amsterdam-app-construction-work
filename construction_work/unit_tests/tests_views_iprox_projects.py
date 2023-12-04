@@ -1,6 +1,7 @@
 """ unit_tests """
 import json
 import os
+from datetime import datetime
 
 from django.db import DEFAULT_DB_ALIAS, connections
 from django.test import Client, TestCase
@@ -8,6 +9,9 @@ from freezegun import freeze_time
 
 from construction_work.api_messages import Messages
 from construction_work.generic_functions.aes_cipher import AESCipher
+from construction_work.generic_functions.date_translation import (
+    translate_timezone as tt,
+)
 from construction_work.generic_functions.generic_logger import Logger
 from construction_work.generic_functions.text_search import MIN_QUERY_LENGTH
 from construction_work.models import Project
@@ -628,13 +632,40 @@ class TestFollowedProjectArticles(BaseTestApi):
 
         total_returned_articles, response = assert_total_returned_articles(max_age=3)
         self.assertEqual(total_returned_articles, 4)
+
+        target_tzinfo = datetime.fromisoformat(
+            response[str(project_1.pk)][0]["modification_date"]
+        ).tzinfo
+
         expected_result = {
             str(project_1.pk): [
-                {"meta_id": {"type": "article", "id": article_1.pk}},
-                {"meta_id": {"type": "article", "id": article_2.pk}},
-                {"meta_id": {"type": "warning", "id": warning_1.pk}},
+                {
+                    "meta_id": {"type": "article", "id": article_1.pk},
+                    "modification_date": tt(
+                        str(article_1.modification_date), target_tzinfo
+                    ),
+                },
+                {
+                    "meta_id": {"type": "article", "id": article_2.pk},
+                    "modification_date": tt(
+                        str(article_2.modification_date), target_tzinfo
+                    ),
+                },
+                {
+                    "meta_id": {"type": "warning", "id": warning_1.pk},
+                    "modification_date": tt(
+                        str(warning_1.modification_date), target_tzinfo
+                    ),
+                },
             ],
-            str(project_2.pk): [{"meta_id": {"type": "article", "id": article_4.pk}}],
+            str(project_2.pk): [
+                {
+                    "meta_id": {"type": "article", "id": article_4.pk},
+                    "modification_date": tt(
+                        str(article_4.modification_date), target_tzinfo
+                    ),
+                }
+            ],
             str(project_3.pk): [],
         }
         self.assertDictEqual(response, expected_result)
@@ -643,17 +674,52 @@ class TestFollowedProjectArticles(BaseTestApi):
         self.assertEqual(total_returned_articles, 7)
         expected_result = {
             str(project_1.pk): [
-                {"meta_id": {"type": "article", "id": article_1.pk}},
-                {"meta_id": {"type": "article", "id": article_2.pk}},
-                {"meta_id": {"type": "warning", "id": warning_1.pk}},
+                {
+                    "meta_id": {"type": "article", "id": article_1.pk},
+                    "modification_date": tt(
+                        str(article_1.modification_date), target_tzinfo
+                    ),
+                },
+                {
+                    "meta_id": {"type": "article", "id": article_2.pk},
+                    "modification_date": tt(
+                        str(article_2.modification_date), target_tzinfo
+                    ),
+                },
+                {
+                    "meta_id": {"type": "warning", "id": warning_1.pk},
+                    "modification_date": tt(
+                        str(warning_1.modification_date), target_tzinfo
+                    ),
+                },
             ],
             str(project_2.pk): [
-                {"meta_id": {"type": "article", "id": article_3.pk}},
-                {"meta_id": {"type": "article", "id": article_4.pk}},
+                {
+                    "meta_id": {"type": "article", "id": article_3.pk},
+                    "modification_date": tt(
+                        str(article_3.modification_date), target_tzinfo
+                    ),
+                },
+                {
+                    "meta_id": {"type": "article", "id": article_4.pk},
+                    "modification_date": tt(
+                        str(article_4.modification_date), target_tzinfo
+                    ),
+                },
             ],
             str(project_3.pk): [
-                {"meta_id": {"type": "article", "id": article_5.pk}},
-                {"meta_id": {"type": "article", "id": article_6.pk}},
+                {
+                    "meta_id": {"type": "article", "id": article_5.pk},
+                    "modification_date": tt(
+                        str(article_5.modification_date), target_tzinfo
+                    ),
+                },
+                {
+                    "meta_id": {"type": "article", "id": article_6.pk},
+                    "modification_date": tt(
+                        str(article_6.modification_date), target_tzinfo
+                    ),
+                },
             ],
         }
         self.assertDictEqual(response, expected_result)

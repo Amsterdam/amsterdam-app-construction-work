@@ -12,4 +12,4 @@ def create_id_dict(model_type, id):
     if type_name is None:
         return {"id": id}
 
-    return {"type": type_name, "id": id}
+    return {"id": id, "type": type_name}

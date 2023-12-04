@@ -145,7 +145,7 @@ class ProjectDetailsSerializer(ProjectListSerializer):
         )
 
 
-class ArticleSerializer(serializers.ModelSerializer):
+class ArticleCreateSerializer(serializers.ModelSerializer):
     """Article serializer"""
 
     class Meta:
@@ -153,14 +153,23 @@ class ArticleSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ArticleMinimalSerializer(serializers.ModelSerializer):
-    """Article serializer with minimal data"""
+class ArticleSerializer(serializers.ModelSerializer):
+    """Article serializer"""
 
     meta_id = serializers.DictField(source="get_id_dict")
 
     class Meta:
         model = Article
-        fields = ["meta_id"]
+        # fields = "__all__"
+        exclude = ["type"]
+
+
+class ArticleMinimalSerializer(ArticleSerializer):
+    """Article serializer with minimal data"""
+
+    class Meta:
+        model = Article
+        fields = ["meta_id", "modification_date"]
 
 
 class ProjectManagerSerializer(serializers.ModelSerializer):
@@ -200,7 +209,7 @@ class ProjectManagerAugmentedSerializer(serializers.ModelSerializer):
         ]
 
 
-class WarningMessageSerializer(serializers.ModelSerializer):
+class WarningMessageCreateSerializer(serializers.ModelSerializer):
     """warning messages (internal VUE) serializer"""
 
     class Meta:
@@ -208,14 +217,22 @@ class WarningMessageSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class WarningMessageMinimalSerializer(serializers.ModelSerializer):
-    """Warning message serializer with minimal data"""
+class WarningMessageSerializer(serializers.ModelSerializer):
+    """warning messages (internal VUE) serializer"""
 
     meta_id = serializers.DictField(source="get_id_dict")
 
     class Meta:
         model = WarningMessage
-        fields = ["meta_id"]
+        fields = "__all__"
+
+
+class WarningMessageMinimalSerializer(WarningMessageSerializer):
+    """Warning message serializer with minimal data"""
+
+    class Meta:
+        model = WarningMessage
+        fields = ["meta_id", "modification_date"]
 
 
 class WarningMessagePublicSerializer(serializers.ModelSerializer):

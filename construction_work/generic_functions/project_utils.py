@@ -56,6 +56,7 @@ def create_project_news_lookup(projects: list[Project], article_max_age):
 
         # Remap articles to lookup table with project id as key
         for obj in pre_fetched:
+            # Keep in sync with ArticleMinimalSerializer
             news_dict = {
                 "meta_id": create_id_dict(model, obj["id"]),
                 "modification_date": str(obj["modification_date"]),

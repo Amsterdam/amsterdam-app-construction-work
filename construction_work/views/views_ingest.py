@@ -9,7 +9,7 @@ from construction_work.api_messages import Messages
 from construction_work.generic_functions.generic_logger import Logger
 from construction_work.generic_functions.is_authorized import IsAuthorized
 from construction_work.models import Article, Project
-from construction_work.serializers import ArticleSerializer, ProjectSerializer
+from construction_work.serializers import ArticleCreateSerializer, ProjectSerializer
 from construction_work.swagger.swagger_views_ingestion import (
     as_etl_article_post,
     as_etl_get,
@@ -172,7 +172,7 @@ def etl_article_post(request):
     }
 
     # Use the instance parameter to update the existing article or create a new one
-    serializer = ArticleSerializer(instance=article_instance, data=article_data)
+    serializer = ArticleCreateSerializer(instance=article_instance, data=article_data)
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     serializer.save()
