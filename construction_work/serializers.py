@@ -160,7 +160,6 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Article
-        # fields = "__all__"
         exclude = ["type"]
 
 
@@ -242,7 +241,7 @@ class WarningMessagePublicSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = WarningMessage
-        exclude = ["project", "project_manager"]
+        exclude = ["project_manager"]
 
     def get_images(self, obj: WarningMessage):
         base_url = self.context.get("base_url")

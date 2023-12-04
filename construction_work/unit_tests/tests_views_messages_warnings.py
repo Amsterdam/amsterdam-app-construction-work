@@ -303,6 +303,7 @@ class TestApiProjectWarning(TestCase):
             "images": [],
             "title": "foobar title",
             "body": "foobar body",
+            "project": new_message.project.pk,
             "publication_date": translate_timezone(
                 str(new_message.publication_date), target_dt.tzinfo
             ),
@@ -808,6 +809,7 @@ class TestApiProjectWarning(TestCase):
             "images": [],
             "title": "title",
             "body": "Body text",
+            "project": project_obj.pk,
             "publication_date": translate_timezone(
                 str(warning_message.publication_date), target_dt.tzinfo
             ),
