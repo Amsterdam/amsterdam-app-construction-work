@@ -279,7 +279,7 @@ meta_id = openapi.Schema(
     },
 )
 
-recent_articles = openapi.Schema(
+recent_articles_minimal = openapi.Schema(
     type=openapi.TYPE_ARRAY,
     items=openapi.Schema(
         type=openapi.TYPE_OBJECT,
@@ -428,7 +428,7 @@ project_details_schema = openapi.Schema(
         "meter": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
         "strides": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
         "followed": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="boolean"),
-        "recent_articles": recent_articles,
+        "recent_articles": recent_articles_minimal,
         "followers": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
         "foreign_id": openapi.Schema(
             type=openapi.TYPE_INTEGER, description="foreign id"
@@ -469,7 +469,7 @@ project_schema = openapi.Schema(
         "followed": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="boolean"),
         "meter": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
         "strides": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
-        "recent_articles": recent_articles,
+        "recent_articles": recent_articles_minimal,
     },
 )
 
@@ -490,10 +490,10 @@ def get_paginated_schema(schema: openapi.Schema):
 #
 
 forbidden_403 = openapi.Response(
-    description="Error: Forbidden",
+    description="Forbidden",
 )
 
 not_found_404 = openapi.Response(
-    "application/json",
+    description="Object not found",
     examples={"application/json": messages.no_record_found},
 )

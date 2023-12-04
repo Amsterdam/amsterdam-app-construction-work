@@ -29,7 +29,7 @@ as_article_get = {
     "manual_parameters": [header_device_authorization, query_id],
     "responses": {
         200: openapi.Response(
-            "application/json",
+            "Article details",
             ArticleSerializer,
             examples={
                 "application/json": {
@@ -83,7 +83,7 @@ as_article_get = {
             },
         ),
         400: openapi.Response(
-            "application/json",
+            "Invalid query",
             examples={"application/json": messages.invalid_query},
         ),
         403: forbidden_403,

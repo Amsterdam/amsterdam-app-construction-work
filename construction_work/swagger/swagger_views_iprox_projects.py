@@ -25,6 +25,7 @@ from construction_work.swagger.swagger_generic_objects import (
     query_longitude,
     query_page,
     query_page_size,
+    query_project_ids,
     query_query_fields,
     query_text,
 )
@@ -287,6 +288,7 @@ as_projects_followed_articles = {
     "manual_parameters": [
         header_device_authorization,
         header_device_id,
+        query_project_ids,
         query_article_max_age,
     ],
     "responses": {
@@ -295,11 +297,16 @@ as_projects_followed_articles = {
             openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
-                    "<project identifier>": openapi.Schema(
+                    "project_id": openapi.Schema(
                         type=openapi.TYPE_ARRAY,
                         items=openapi.Schema(
                             type=openapi.TYPE_OBJECT,
-                            properties={"meta_id": meta_id},
+                            properties={
+                                "meta_id": meta_id,
+                                "modification_date": openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
+                            },
                         ),
                     )
                 },
@@ -307,10 +314,21 @@ as_projects_followed_articles = {
             examples={
                 "application/json": {
                     "155581": [
-                        {"meta_id": {"type": "article", "id": 163}},
-                        {"meta_id": {"type": "warning", "id": 67}},
+                        {
+                            "meta_id": {"type": "article", "id": 163},
+                            "modification_date": "2023-08-21T11:07:00+02:00",
+                        },
+                        {
+                            "meta_id": {"type": "warning", "id": 67},
+                            "modification_date": "2023-08-23T16:28:00+02:00",
+                        },
                     ],
-                    "155584": [{"meta_id": {"type": "warning", "id": 356}}],
+                    "155584": [
+                        {
+                            "meta_id": {"type": "warning", "id": 356},
+                            "modification_date": "2023-10-24T15:16:00+02:00",
+                        }
+                    ],
                 }
             },
         ),
