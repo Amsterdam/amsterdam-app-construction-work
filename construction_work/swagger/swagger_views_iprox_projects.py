@@ -133,7 +133,56 @@ as_project_details = {
             examples={
                 "application/json": {
                     "followed": False,
-                    "recent_articles": [],
+                    "recent_articles": [
+                        {
+                            "id": 1,
+                            "meta_id": {"id": 1, "type": "article"},
+                            "foreign_id": 165556,
+                            "active": True,
+                            "last_seen": "2023-12-05T11:21:42.508600+01:00",
+                            "title": "Plannen en publicaties NDSM-werf",
+                            "intro": "<div><p>Plannen, besluiten en notities over NDSM.</p></div>",
+                            "body": "<div></div>",
+                            "image": {
+                                "id": 21654735,
+                                "sources": [
+                                    {
+                                        "url": "https://www.amsterdam.nl/publish/pages/856043/230726-ndsm-werf-west-bouwontwikkelingen_si-071.jpg",
+                                        "width": 940,
+                                        "height": 415,
+                                    },
+                                    {
+                                        "url": "https://www.amsterdam.nl/publish/pages/856043/220px/230726-ndsm-werf-west-bouwontwikkelingen_si-071.jpg",
+                                        "width": 220,
+                                        "height": 97,
+                                    },
+                                    {
+                                        "url": "https://www.amsterdam.nl/publish/pages/856043/460px/230726-ndsm-werf-west-bouwontwikkelingen_si-071.jpg",
+                                        "width": 460,
+                                        "height": 203,
+                                    },
+                                    {
+                                        "url": "https://www.amsterdam.nl/publish/pages/856043/700px/230726-ndsm-werf-west-bouwontwikkelingen_si-071.jpg",
+                                        "width": 700,
+                                        "height": 309,
+                                    },
+                                    {
+                                        "url": "https://www.amsterdam.nl/publish/pages/856043/80px/230726-ndsm-werf-west-bouwontwikkelingen_si-071.jpg",
+                                        "width": 80,
+                                        "height": 35,
+                                    },
+                                ],
+                                "aspectRatio": 2.2650602409638556,
+                                "alternativeText": None,
+                            },
+                            "url": "http://www.amsterdam.nl/projecten/ndsm-werf/plannen/",
+                            "creation_date": "2009-01-20T15:32:00+01:00",
+                            "modification_date": "2023-08-21T11:07:00+02:00",
+                            "publication_date": "2023-08-21T11:07:00+02:00",
+                            "expiration_date": None,
+                            "projects": [1],
+                        }
+                    ],
                     "meter": None,
                     "strides": None,
                     "followers": 5,
