@@ -28,13 +28,13 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class ImagePublicSerializer(serializers.ModelSerializer):
-    url = serializers.SerializerMethodField()
+    uri = serializers.SerializerMethodField()
 
     class Meta:
         model = Image
-        fields = ["url", "width", "height"]
+        fields = ["uri", "width", "height"]
 
-    def get_url(self, obj: Image):
+    def get_uri(self, obj: Image):
         base_url = self.context.get("base_url")
         if base_url is None:
             return None

@@ -36,7 +36,7 @@ image = openapi.Schema(
             items=openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
-                    "url": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
+                    "uri": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
                     "width": openapi.Schema(
                         type=openapi.TYPE_INTEGER, description="width"
                     ),
@@ -102,35 +102,35 @@ as_warning_message_get = {
                             "sources": [
                                 [
                                     {
-                                        "url": "http://testserver/api/v1/image?id=1",
+                                        "uri": "http://testserver/api/v1/image?id=1",
                                         "width": 135,
                                         "height": 180,
                                     }
                                 ],
                                 [
                                     {
-                                        "url": "http://testserver/api/v1/image?id=2",
+                                        "uri": "http://testserver/api/v1/image?id=2",
                                         "width": 324,
                                         "height": 432,
                                     }
                                 ],
                                 [
                                     {
-                                        "url": "http://testserver/api/v1/image?id=3",
+                                        "uri": "http://testserver/api/v1/image?id=3",
                                         "width": 540,
                                         "height": 720,
                                     }
                                 ],
                                 [
                                     {
-                                        "url": "http://testserver/api/v1/image?id=4",
+                                        "uri": "http://testserver/api/v1/image?id=4",
                                         "width": 810,
                                         "height": 1080,
                                     }
                                 ],
                                 [
                                     {
-                                        "url": "http://testserver/api/v1/image?id=5",
+                                        "uri": "http://testserver/api/v1/image?id=5",
                                         "width": 3302,
                                         "height": 4032,
                                     }

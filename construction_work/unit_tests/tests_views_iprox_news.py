@@ -247,7 +247,7 @@ class TestArticles(TestArticlesBase):
                     "id": warning_image.pk,
                     "sources": [
                         {
-                            "url": f"http://testserver/api/v1/image?id={image.pk}",
+                            "uri": f"http://testserver/api/v1/image?id={image.pk}",
                             "width": image.width,
                             "height": image.height,
                         }
