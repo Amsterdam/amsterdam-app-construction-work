@@ -279,17 +279,65 @@ meta_id = openapi.Schema(
     },
 )
 
-recent_articles_minimal = openapi.Schema(
+article_minimal = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "meta_id": meta_id,
+        "modification_date": openapi.Schema(
+            type=openapi.TYPE_STRING, description="datetime"
+        ),
+    },
+)
+
+articles_minimal = openapi.Schema(
     type=openapi.TYPE_ARRAY,
-    items=openapi.Schema(
-        type=openapi.TYPE_OBJECT,
-        properties={
-            "meta_id": meta_id,
-            "modification_date": openapi.Schema(
-                type=openapi.TYPE_STRING, description="datetime"
-            ),
-        },
-    ),
+    items=article_minimal,
+)
+
+article_full = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="internal id"),
+        "meta_id": meta_id,
+        "foreign_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="iprox id"),
+        "active": openapi.Schema(
+            type=openapi.TYPE_BOOLEAN, description="active or not"
+        ),
+        "last_seen": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
+        "title": openapi.Schema(type=openapi.TYPE_STRING, description="article title"),
+        "intro": openapi.Schema(
+            type=openapi.TYPE_STRING, description="html format intro"
+        ),
+        "body": openapi.Schema(
+            type=openapi.TYPE_STRING, description="html format body"
+        ),
+        # "image": openapi.Schema(type=openapi.TYPE_INTEGER, description="iprox id"),
+        "url": openapi.Schema(
+            type=openapi.TYPE_STRING, description="absolute url path"
+        ),
+        "creation_date": openapi.Schema(
+            type=openapi.TYPE_STRING, description="datetime"
+        ),
+        "modification_date": openapi.Schema(
+            type=openapi.TYPE_STRING, description="datetime"
+        ),
+        "publication_date": openapi.Schema(
+            type=openapi.TYPE_STRING, description="datetime"
+        ),
+        "expiration_date": openapi.Schema(
+            type=openapi.TYPE_STRING, description="datetime"
+        ),
+        "projects": openapi.Schema(
+            type=openapi.TYPE_ARRAY,
+            description="related to these project ids",
+            items=openapi.Schema(type=openapi.TYPE_INTEGER, description="projects id"),
+        ),
+    },
+)
+
+articles_full = openapi.Schema(
+    type=openapi.TYPE_ARRAY,
+    items=article_full,
 )
 
 body_element = openapi.Schema(
@@ -428,7 +476,7 @@ project_details_schema = openapi.Schema(
         "meter": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
         "strides": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
         "followed": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="boolean"),
-        "recent_articles": recent_articles_minimal,
+        "recent_articles": articles_full,
         "followers": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
         "foreign_id": openapi.Schema(
             type=openapi.TYPE_INTEGER, description="foreign id"
@@ -469,7 +517,7 @@ project_schema = openapi.Schema(
         "followed": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="boolean"),
         "meter": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
         "strides": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
-        "recent_articles": recent_articles_minimal,
+        "recent_articles": articles_minimal,
     },
 )
 
