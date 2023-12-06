@@ -6,22 +6,23 @@
 from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
-from construction_work.serializers import (
-    WarningImageSerializer,
-    WarningMessageSerializer,
-)
+from construction_work.serializers import WarningImageSerializer, WarningMessageSerializer
 from construction_work.swagger.swagger_generic_objects import (
     coordinates,
     forbidden_403,
     header_device_authorization,
     header_jwt_authorization,
     header_user_authorization,
+    meta_id,
     not_found_404,
     query_id,
     query_project_id,
     query_sort_by,
     query_sort_order,
     query_warning_message_id,
+    warning_images,
+    warning_message,
+    warning_messages,
 )
 
 message = Messages()
@@ -37,23 +38,15 @@ image = openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
                     "uri": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-                    "width": openapi.Schema(
-                        type=openapi.TYPE_INTEGER, description="width"
-                    ),
-                    "height": openapi.Schema(
-                        type=openapi.TYPE_INTEGER, description="height"
-                    ),
+                    "width": openapi.Schema(type=openapi.TYPE_INTEGER, description="width"),
+                    "height": openapi.Schema(type=openapi.TYPE_INTEGER, description="height"),
                 },
             ),
         ),
-        "landscape": openapi.Schema(
-            type=openapi.TYPE_BOOLEAN, description="image orientation"
-        ),
+        "landscape": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="image orientation"),
         "coordinates": coordinates,
         "description": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-        "aspect_ratio": openapi.Schema(
-            type=openapi.TYPE_NUMBER, description="aspect ratio"
-        ),
+        "aspect_ratio": openapi.Schema(type=openapi.TYPE_NUMBER, description="aspect ratio"),
     },
 )
 
@@ -66,83 +59,27 @@ as_warning_message_get = {
     "responses": {
         200: openapi.Response(
             "application/json",
-            openapi.Schema(
-                type=openapi.TYPE_OBJECT,
-                properties={
-                    "id": openapi.Schema(type=openapi.TYPE_STRING, description="id"),
-                    "images": images,
-                    "title": openapi.Schema(type=openapi.TYPE_STRING, description="id"),
-                    "body": openapi.Schema(
-                        type=openapi.TYPE_STRING, description="body"
-                    ),
-                    "modification_date": openapi.Schema(
-                        type=openapi.TYPE_STRING, description="datetime"
-                    ),
-                    "publication_date": openapi.Schema(
-                        type=openapi.TYPE_STRING, description="datetime"
-                    ),
-                    "author_email": openapi.Schema(
-                        type=openapi.TYPE_STRING, description="author email"
-                    ),
-                },
-            ),
+            warning_message,
             examples={
                 "application/json": {
-                    "id": 3,
+                    "id": 1,
+                    "meta_id": {"id": 1, "type": "warning"},
                     "images": [
                         {
                             "main": True,
+                            "sources": [{"uri": "https://...", "width": 1, "height": 1}],
                             "landscape": False,
-                            "coordinates": {
-                                "lat": 52.14435833333333,
-                                "lon": 6.182558333333334,
-                            },
-                            "description": "unittest",
-                            "aspect_ratio": 1.33,
-                            "sources": [
-                                [
-                                    {
-                                        "uri": "http://testserver/api/v1/image?id=1",
-                                        "width": 135,
-                                        "height": 180,
-                                    }
-                                ],
-                                [
-                                    {
-                                        "uri": "http://testserver/api/v1/image?id=2",
-                                        "width": 324,
-                                        "height": 432,
-                                    }
-                                ],
-                                [
-                                    {
-                                        "uri": "http://testserver/api/v1/image?id=3",
-                                        "width": 540,
-                                        "height": 720,
-                                    }
-                                ],
-                                [
-                                    {
-                                        "uri": "http://testserver/api/v1/image?id=4",
-                                        "width": 810,
-                                        "height": 1080,
-                                    }
-                                ],
-                                [
-                                    {
-                                        "uri": "http://testserver/api/v1/image?id=5",
-                                        "width": 3302,
-                                        "height": 4032,
-                                    }
-                                ],
-                            ],
+                            "coordinates": {"lat": None, "lon": None},
+                            "description": "image",
+                            "aspect_ratio": 1,
                         }
                     ],
-                    "title": "foobar title",
-                    "body": "foobar body",
-                    "publication_date": "2023-11-20T14:53:45.841084+01:00",
-                    "modification_date": "2023-11-20T14:53:45.841124+01:00",
-                    "author_email": "mock0@amsterdam.nl",
+                    "title": "title",
+                    "body": "body",
+                    "publication_date": "2023-12-06T11:40:54.418000+01:00",
+                    "modification_date": "2023-12-06T11:41:01.525000+01:00",
+                    "author_email": "info@amsterdam.nl",
+                    "project": 1,
                 }
             },
         ),
@@ -167,12 +104,8 @@ as_warning_message_post = {
         properties={
             "title": openapi.Schema(type=openapi.TYPE_STRING, description="title"),
             "body": openapi.Schema(type=openapi.TYPE_STRING, description="full text"),
-            "project_identifier": openapi.Schema(
-                type=openapi.TYPE_STRING, description="identifier"
-            ),
-            "project_manager_id": openapi.Schema(
-                type=openapi.TYPE_STRING, description="identifier"
-            ),
+            "project_identifier": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
+            "project_manager_id": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
         },
     ),
     "responses": {
@@ -274,43 +207,28 @@ as_warning_messages_get = {
     "responses": {
         200: openapi.Response(
             "application/json",
-            openapi.Schema(
-                type=openapi.TYPE_ARRAY,
-                items=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        "id": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="id"
-                        ),
-                        "images": images,
-                        "title": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="id"
-                        ),
-                        "body": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="body"
-                        ),
-                        "modification_date": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="datetime"
-                        ),
-                        "publication_date": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="datetime"
-                        ),
-                        "author_email": openapi.Schema(
-                            type=openapi.TYPE_STRING, description="author email"
-                        ),
-                    },
-                ),
-            ),
+            warning_messages,
             examples={
                 "application/json": [
                     {
-                        "id": 14,
-                        "images": [],
+                        "id": 1,
+                        "meta_id": {"id": 1, "type": "warning"},
+                        "images": [
+                            {
+                                "main": True,
+                                "sources": [{"uri": "https://...", "width": 1, "height": 1}],
+                                "landscape": False,
+                                "coordinates": {"lat": None, "lon": None},
+                                "description": "image",
+                                "aspect_ratio": 1,
+                            }
+                        ],
                         "title": "title",
-                        "body": "Body text",
-                        "publication_date": "2023-11-21T16:37:36.893582+01:00",
-                        "modification_date": "2023-11-21T16:37:36.893597+01:00",
-                        "author_email": "mock0@amsterdam.nl",
+                        "body": "body",
+                        "publication_date": "2023-12-06T11:40:54.418000+01:00",
+                        "modification_date": "2023-12-06T11:41:01.525000+01:00",
+                        "author_email": "info@amsterdam.nl",
+                        "project": 1,
                     }
                 ]
             },
@@ -332,15 +250,9 @@ as_notification_post = {
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            "title": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Title of notification"
-            ),
-            "body": openapi.Schema(
-                type=openapi.TYPE_STRING, description="Body of notification"
-            ),
-            "warning_id": openapi.Schema(
-                type=openapi.TYPE_INTEGER, description="Warning identifier"
-            ),
+            "title": openapi.Schema(type=openapi.TYPE_STRING, description="Title of notification"),
+            "body": openapi.Schema(type=openapi.TYPE_STRING, description="Body of notification"),
+            "warning_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="Warning identifier"),
         },
     ),
     "responses": {
@@ -365,21 +277,13 @@ as_warning_message_image_post = {
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            "warning_id": openapi.Schema(
-                type=openapi.TYPE_STRING, description="warning id"
-            ),
+            "warning_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="warning id"),
             "image": openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
-                    "main": openapi.Schema(
-                        type=openapi.TYPE_BOOLEAN, description="<false|true>"
-                    ),
-                    "description": openapi.Schema(
-                        type=openapi.TYPE_STRING, description="about this image"
-                    ),
-                    "data": openapi.Schema(
-                        type=openapi.TYPE_STRING, description="base64 image data"
-                    ),
+                    "main": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="<false|true>"),
+                    "description": openapi.Schema(type=openapi.TYPE_STRING, description="about this image"),
+                    "data": openapi.Schema(type=openapi.TYPE_STRING, description="base64 image data"),
                 },
                 required=["main", "data"],
             ),
