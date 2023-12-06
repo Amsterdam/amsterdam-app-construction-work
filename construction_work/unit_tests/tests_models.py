@@ -451,6 +451,7 @@ class TestWarningMessagesModel(TestCase):
             "modification_date": serializer.data["modification_date"],
             "author_email": "mock0@amsterdam.nl",
             "images": [],
+            "meta_id": {"id": serializer.data["id"], "type": "warning"},
         }
 
         self.assertDictEqual(serializer.data, expected_result)

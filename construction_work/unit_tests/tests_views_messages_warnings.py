@@ -311,6 +311,7 @@ class TestApiProjectWarning(TestCase):
                 str(new_message.modification_date), target_dt.tzinfo
             ),
             "author_email": "mock0@amsterdam.nl",
+            "meta_id": {"id": new_message.pk, "type": "warning"},
         }
         self.assertDictEqual(result.data, expected_result)
 
@@ -817,6 +818,7 @@ class TestApiProjectWarning(TestCase):
                 str(warning_message.modification_date), target_dt.tzinfo
             ),
             "author_email": "mock0@amsterdam.nl",
+            "meta_id": {"id": warning_message.id, "type": "warning"},
         }
 
         self.assertEqual(result.status_code, 200)
