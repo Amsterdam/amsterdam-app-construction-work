@@ -8,10 +8,8 @@ from construction_work.serializers import ArticleSerializer
 from construction_work.swagger.swagger_generic_objects import (
     forbidden_403,
     header_device_authorization,
-    image,
     images,
     meta_id,
-    news_type,
     not_found_404,
     query_id,
     query_limit,
@@ -31,32 +29,7 @@ as_article_get = {
     "responses": {
         200: openapi.Response(
             "Article details",
-            openapi.Schema(
-                type=openapi.TYPE_ARRAY,
-                items=openapi.Schema(
-                    type=openapi.TYPE_OBJECT,
-                    properties={
-                        "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="article id"),
-                        "meta_id": meta_id,
-                        "foreign_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="iprox id"),
-                        "active": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="is this content active"),
-                        "last_seen": openapi.Schema(type=openapi.TYPE_STRING, description="year-month-day"),
-                        "title": openapi.Schema(type=openapi.TYPE_STRING, description="title"),
-                        "intro": openapi.Schema(type=openapi.TYPE_STRING, description="intro"),
-                        "body": openapi.Schema(type=openapi.TYPE_STRING, description="body"),
-                        "image": image,
-                        "url": openapi.Schema(type=openapi.TYPE_STRING, description="url"),
-                        "creation_date": openapi.Schema(type=openapi.TYPE_STRING, description="year-month-day"),
-                        "modification_date": openapi.Schema(type=openapi.TYPE_STRING, description="year-month-day"),
-                        "publication_date": openapi.Schema(type=openapi.TYPE_STRING, description="year-month-day"),
-                        "expiration_date": openapi.Schema(type=openapi.TYPE_STRING, description="year-month-day"),
-                        "projects": openapi.Schema(
-                            type=openapi.TYPE_ARRAY,
-                            items=openapi.Schema(type=openapi.TYPE_INTEGER, description="project id"),
-                        ),
-                    },
-                ),
-            ),
+            ArticleSerializer,
             examples={
                 "application/json": {
                     "id": 54321,
@@ -118,9 +91,13 @@ as_articles_get = {
                     type=openapi.TYPE_OBJECT,
                     properties={
                         "meta_id": meta_id,
-                        "title": openapi.Schema(type=openapi.TYPE_STRING, description="title"),
+                        "title": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="title"
+                        ),
                         "images": images,
-                        "publication_date": openapi.Schema(type=openapi.TYPE_STRING, description="year-month-day"),
+                        "publication_date": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="year-month-day"
+                        ),
                     },
                 ),
             ),
