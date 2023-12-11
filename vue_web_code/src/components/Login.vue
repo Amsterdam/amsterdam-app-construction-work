@@ -88,7 +88,6 @@ export default {
         username: this.$refs.inputUsername.newValue,
         password: this.$refs.inputPassword.newValue
       }).then(response => {
-        console.log(1, response)
         this.$store.commit('login', {
           refresh: response.data.refresh,
           access: response.data.access,
