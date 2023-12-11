@@ -1,8 +1,7 @@
 <template>
   <div>
     <div
-      class="card login"
-      @submit="login">
+      class="card login">
       <div>
         <div style="text-align: left">
           <a
@@ -15,7 +14,8 @@
         </div>
         <div class="spacer"/>
       </div>
-      <form>
+      <form
+        @submit="login">
         <div
           class="align-left margin-less">
           <span
@@ -27,7 +27,7 @@
         <b-field
           :type="message ? 'is-danger' : 'is-primary'">
           <b-input
-            v-model="username"/>
+            ref="inputUsername"/>
         </b-field>
         <div
           class="align-left margin-less">
@@ -40,9 +40,18 @@
         <b-field
           :type="message ? 'is-danger' : 'is-primary'">
           <b-input
-            v-model="password"
+            ref="inputPassword"
             type="password"/>
         </b-field>
+        <div
+          v-if="!!message"
+          class="align-left margin-less">
+          <span
+            class="align-left"
+            style="font-weight: 600; color: darkgrey">
+            {{ message }}
+          </span>
+        </div>
         <b-button
           native-type="submit"
           type="is-primary">
@@ -57,12 +66,12 @@
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: 'Login',
   data () {
     return {
-      username: '',
-      password: '',
       message: ''
     }
   },
@@ -70,25 +79,25 @@ export default {
     console.log('Vue code mounted in login()')
   },
   methods: {
-    async login () {
+    login () {
       let data = {
-        username: this.username,
-        password: this.password
+        username: this.$refs.inputUsername.newValue,
+        password: this.$refs.inputPassword.newValue
       }
-
-      this.$http.post('get-token/', data).then(response => {
-        console.log(response.data)
-        if (response.data.error) {
-          this.message = JSON.stringify(response.data.error)
-        } else {
-          this.$http.defaults.headers.common['Authorization'] = response.data.access
-          this.$store.commit('login', {
-            refresh: response.data.refresh,
-            access: response.data.access,
-            username: data.username
-          })
-        }
+      axios.post('/get-token/', {
+        username: this.$refs.inputUsername.newValue,
+        password: this.$refs.inputPassword.newValue
+      }).then(response => {
+        console.log(1, response)
+        this.$store.commit('login', {
+          refresh: response.data.refresh,
+          access: response.data.access,
+          username: data.username
+        })
         this.$router.push('/')
+      }).catch((err) => {
+        console.log(err)
+        this.message = `${err.status}: ${err.statusText}`
       })
     }
   }

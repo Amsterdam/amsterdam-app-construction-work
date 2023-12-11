@@ -170,21 +170,27 @@ export default {
         trapFocus: true,
         closeOnConfirm: false,
         onConfirm: (value, {close}) => {
-          if (value.includes('@amsterdam.nl')) {
-            let data = {email: value, projects: []}
-            this.project_managers.push(data)
-            this.$refs.autocomplete.setSelected(value)
-            this.selected_project_manager = data
-            const uuid = useUuid()
-            axios.post('/project/manager', {
-              manager_key: uuid,
-              ...data
-            }).then((res) => {
-              console.log(res)
-            }).catch((err) => console.log(err))
-            close()
+          if (!this.project_managers.find(manager => manager.email === value)) {
+            if (value.includes('@amsterdam.nl')) {
+              let data = {email: value, projects: []}
+              console.log(!this.project_managers.find(manager => manager.email === value))
+              this.project_managers.push(data)
+              this.$refs.autocomplete.setSelected(value)
+              this.selected_project_manager = data
+              const uuid = useUuid()
+              axios.post('/project/manager', {
+                manager_key: uuid,
+                ...data
+              }).then((res) => {
+                console.log(res)
+              }).catch((err) => console.log(err))
+              close()
+            } else {
+              let message = `"${value}" is geen valide @amsterdam.nl adres`
+              this.$buefy.toast.open(message)
+            }
           } else {
-            let message = `"${value}" is geen valide @amsterdam.nl adres`
+            let message = `"${value}" is al in gebruik`
             this.$buefy.toast.open(message)
           }
         }
