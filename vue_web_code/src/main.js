@@ -20,7 +20,7 @@ new Vue({
   router,
   store,
   beforeCreate () {
-    this.$http.defaults.baseURL = '/api/v1'
+    this.$http.defaults.baseURL = 'https://api-dev-backend.app-amsterdam.nl/api/v1'
     this.$store.commit('initialiseStore')
     this.$http.defaults.headers.common['Authorization'] = this.$store.state.access
     if (this.$store.state.isLoggedIn === false) {
