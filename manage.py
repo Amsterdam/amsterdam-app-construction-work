@@ -63,7 +63,7 @@ def main():
 
     no_coverage = os.getenv("NO_COVERAGE", "false").lower() in ("true", "1")
 
-    if is_testing and no_coverage is False:
+    if is_testing is True and no_coverage is False:
         os.environ["AES_SECRET"] = "mock_secret"
         os.environ["APP_TOKEN"] = "111acb9e-9235-41fc-874c-3ef365d84dc7"
 
