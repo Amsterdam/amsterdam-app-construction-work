@@ -53,7 +53,8 @@ urlpatterns = [
     ),
     re_path(r"^redoc/$", schema_view.with_ui("redoc", cache_timeout=0), name="schema-redoc"),
     # Project(s)
-    path("projects", csrf_exempt(views_iprox_projects.projects)),
+    path("projects", csrf_exempt(views_iprox_projects.projects_aes)),
+    path("projects_jwt", csrf_exempt(views_iprox_projects.projects_jwt)),
     path("projects/search", csrf_exempt(views_iprox_projects.projects_search)),
     path("projects/follow", csrf_exempt(views_iprox_projects.project_follow)),
     path(

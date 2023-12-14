@@ -12,6 +12,7 @@ from construction_work.swagger.swagger_generic_objects import (
     get_paginated_schema,
     header_device_authorization,
     header_device_id,
+    header_jwt_authorization,
     meta_id,
     not_found_404,
     project_details_schema,
@@ -36,12 +37,88 @@ message = Messages()
 # Actual Apidocs
 #
 
-as_projects = {
+as_projects_aes = {
     # /api/v1/projects swagger_auto_schema
     "methods": ["GET"],
     "manual_parameters": [
         header_device_authorization,
         header_device_id,
+        query_article_max_age,
+        query_latitude,
+        query_longitude,
+        query_address,
+        query_page_size,
+        query_page,
+    ],
+    "responses": {
+        200: openapi.Response(
+            "application/json",
+            get_paginated_schema(project_schema),
+            examples={
+                "application/json": {
+                    "result": [
+                        {
+                            "id": 34,
+                            "title": "Slotermeer",
+                            "subtitle": "stedelijke vernieuwing",
+                            "image": {
+                                "id": 21360354,
+                                "aspectRatio": 1.7816091954022988,
+                                "alternativeText": None,
+                                "sources": [
+                                    {
+                                        "url": "/publish/pages/960128/slotermeer.jpg",
+                                        "width": 620,
+                                        "height": 348,
+                                    },
+                                    {
+                                        "url": "/publish/pages/960128/220px/slotermeer.jpg",
+                                        "width": 220,
+                                        "height": 123,
+                                    },
+                                    {
+                                        "url": "/publish/pages/960128/80px/slotermeer.jpg",
+                                        "width": 80,
+                                        "height": 45,
+                                    },
+                                ],
+                            },
+                            "followed": True,
+                            "strides": 3242,
+                            "meter": 4552,
+                            "recent_articles": [],
+                            "project_id": 343,
+                        }
+                    ],
+                    "page": {
+                        "number": 2,
+                        "size": 1,
+                        "totalElements": 329,
+                        "totalPages": 329,
+                    },
+                    "_links": {
+                        "self": {"href": "http://localhost:8000/api/v1/projects"},
+                        "next": {
+                            "href": "http://localhost:8000/api/v1/projects?page=3&page_size=1&lat=52.3676379&lon=4.8968271"
+                        },
+                        "previous": {
+                            "href": "http://localhost:8000/api/v1/projects?page=1&page_size=1&lat=52.3676379&lon=4.8968271"
+                        },
+                    },
+                }
+            },
+        ),
+        400: openapi.Response(message.invalid_query),
+        403: forbidden_403,
+    },
+    "tags": ["Projects"],
+}
+
+as_projects_jwt = {
+    # /api/v1/projects swagger_auto_schema
+    "methods": ["GET"],
+    "manual_parameters": [
+        header_jwt_authorization,
         query_article_max_age,
         query_latitude,
         query_longitude,
@@ -263,7 +340,7 @@ as_project_details = {
     "tags": ["Projects"],
 }
 
-as_projects_search = copy(as_projects)
+as_projects_search = copy(as_projects_aes)
 as_projects_search["manual_parameters"] = [
     header_device_authorization,
     query_text,
@@ -352,9 +429,7 @@ as_projects_followed_articles = {
                             type=openapi.TYPE_OBJECT,
                             properties={
                                 "meta_id": meta_id,
-                                "modification_date": openapi.Schema(
-                                    type=openapi.TYPE_STRING
-                                ),
+                                "modification_date": openapi.Schema(type=openapi.TYPE_STRING),
                             },
                         ),
                     )
