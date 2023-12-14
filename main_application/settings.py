@@ -102,8 +102,22 @@ CORS_ALLOW_HEADERS = [
     "deviceauthorization",
     "ingestauthorization",
     "userauthorization",
-    "authorization",
     "x_forwarded_proto",
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "connection",
+    "accept-language",
+    "cache-control",
+    "pragma",
+    "referer",
+    "dnt",
+    "origin",
+    "host",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
 ]
 ROOT_URLCONF = "main_application.urls"
 
