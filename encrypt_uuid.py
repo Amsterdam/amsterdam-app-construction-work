@@ -1,3 +1,5 @@
+"""Encrypt UUID with AES tool"""
+
 #!/usr/bin/env python
 import os
 import sys

@@ -22,6 +22,8 @@ messages = Messages()
 
 
 class TestNotificationService(TestCase):
+    """Test notification service"""
+
     def setUp(self) -> None:
         """Setup data for testing notification service"""
         self.data = TestData()

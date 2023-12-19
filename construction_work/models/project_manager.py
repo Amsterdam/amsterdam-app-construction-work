@@ -14,6 +14,8 @@ from construction_work.models.project import Project
 
 
 class AmsterdamEmailValidator(EmailValidator):
+    """Amsterdam email validator"""
+
     def __call__(self, value):
         """Custom email validator"""
 

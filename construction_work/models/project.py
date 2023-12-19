@@ -41,5 +41,6 @@ class Project(models.Model):
         super(Project, self).save(*args, **kwargs)
 
     def deactivate(self, *args, **kwargs):
+        """Deactivate & save"""
         self.active = False
         super(Project, self).save(*args, **kwargs)

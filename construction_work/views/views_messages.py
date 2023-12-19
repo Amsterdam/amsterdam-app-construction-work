@@ -78,15 +78,13 @@ def warning_message_crud(request):
     """Warning message CRUD"""
     if request.method == "GET":
         return warning_message_get(request)
-
     if request.method == "POST":
         return warning_message_post(request)
-
     if request.method == "PATCH":
         return warning_message_patch(request)
-
     if request.method == "DELETE":
         return warning_message_delete(request)
+    return Response(data=None, status=status.HTTP_400_BAD_REQUEST)
 
 
 @IsAuthorized

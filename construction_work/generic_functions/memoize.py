@@ -113,9 +113,11 @@ class Memoize:
             del self.memoize_cache[key]
 
     def clear_all_cache(self):
+        """Clear all cache"""
         self.memoize_cache = {}
 
     def clear_cache_by_key(self, key):
+        """Clear cache by key"""
         self.memoize_cache.pop(key, None)
 
     def __call__(self, func=None, ttl=None):

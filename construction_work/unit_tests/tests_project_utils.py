@@ -1,4 +1,6 @@
-from datetime import datetime, timedelta
+"""Test project utils"""
+
+from datetime import timedelta
 
 from django.test import TestCase
 from django.utils import timezone
@@ -19,7 +21,10 @@ from construction_work.unit_tests.mock_data import TestData
 
 
 class TestProjectUtilsBase(TestCase):
+    """Test project utils base"""
+
     def setUp(self) -> None:
+        """Setup"""
         self.maxDiff = None
         self.data = TestData()
         self.project = Project.objects.create(**self.data.projects[0])
@@ -30,6 +35,7 @@ class TestProjectUtilsBase(TestCase):
         WarningMessage.objects.all().delete()
 
     def create_article(self, foreign_id, pub_date, project=None):
+        """Create article"""
         if project is None:
             project = self.project
 
@@ -43,6 +49,7 @@ class TestProjectUtilsBase(TestCase):
         return article
 
     def create_warning(self, pub_date, project=None):
+        """Create warning"""
         if project is None:
             project = self.project
 
@@ -56,7 +63,10 @@ class TestProjectUtilsBase(TestCase):
 
 
 class TestGetRecentArticlesOfProject(TestProjectUtilsBase):
+    """Test get recent articles of project"""
+
     def test_article_age_being_applied(self):
+        """Test article age being applied"""
         # Set up articles with varying publication dates
         article1 = self.create_article(10, timezone.now() - timedelta(days=10))
         article2 = self.create_article(20, timezone.now() - timedelta(days=5))
@@ -90,6 +100,7 @@ class TestGetRecentArticlesOfProject(TestProjectUtilsBase):
         self.assertIn(article3_data, recent_articles)
 
     def test_get_mix_of_articles_and_warnings(self):
+        """Test get mix of articles and warnings"""
         article1 = self.create_article(10, timezone.now() - timedelta(days=6))
         article2 = self.create_article(20, timezone.now() - timedelta(days=5))
         warning1 = self.create_warning(timezone.now() - timedelta(days=3))
@@ -113,7 +124,10 @@ class TestGetRecentArticlesOfProject(TestProjectUtilsBase):
 
 
 class TestCreateProjectNewsLookup(TestProjectUtilsBase):
+    """Test create project news lookup"""
+
     def test_article_age_being_applied(self):
+        """Test article age being applied"""
         # Set up articles and warning messages with varying publication dates
         article1 = self.create_article(
             foreign_id=1, pub_date=timezone.now() - timedelta(days=10)
@@ -148,6 +162,7 @@ class TestCreateProjectNewsLookup(TestProjectUtilsBase):
         self.assertIn(warning2.pk, project_warnings)
 
     def test_lookup_map_created_correctly(self):
+        """Test lookup created correctly"""
         project2 = Project.objects.create(**self.data.projects[1])
 
         article1 = self.create_article(

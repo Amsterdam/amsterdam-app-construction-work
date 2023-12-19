@@ -595,6 +595,7 @@ warning_messages = openapi.Schema(type=openapi.TYPE_ARRAY, items=warning_message
 
 
 def get_paginated_schema(schema: openapi.Schema):
+    """Get paginated schema"""
     return openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={

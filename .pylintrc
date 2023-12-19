@@ -437,7 +437,8 @@ disable=raw-checker-failed,
         too-many-locals,
         too-many-branches,
         dangerous-default-value,
-        unnecessary-pass
+        unnecessary-pass,
+        expression-not-assigned
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

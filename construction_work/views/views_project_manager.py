@@ -34,15 +34,13 @@ def crud(request):
     """CRUD project manager(s)"""
     if request.method == "GET":
         return get(request)
-
     if request.method in ["POST"]:
         return post(request)
-
     if request.method in ["PATCH"]:
         return patch(request)
-
     if request.method in ["DELETE"]:
         return delete(request)
+    return Response(data=None, status=status.HTTP_400_BAD_REQUEST)
 
 
 def get(request):
@@ -117,7 +115,7 @@ def post(request):
         manager_key=manager_key
     ).first()
 
-    # TODO: check if manager key is UUID, should be done by serializer.is_valid?
+    # NOTE: check if manager key is UUID, should be done by serializer.is_valid?
 
     # Use the instance parameter to update the existing article or create a new one
     project_manager = {"manager_key": manager_key, "email": email}

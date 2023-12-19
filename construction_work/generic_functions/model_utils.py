@@ -1,7 +1,14 @@
-def create_id_dict(model_type, id):
+"""Model utils"""
+
+
+def create_id_dict(model_type, _id):
     """Create a dict with id and object type"""
-    from construction_work.models.article import Article
-    from construction_work.models.warning_and_notification import WarningMessage
+    from construction_work.models.article import (
+        Article,  # pylint: disable=cyclic-import
+    )
+    from construction_work.models.warning_and_notification import (
+        WarningMessage,  # pylint: disable=cyclic-import
+    )
 
     type_name = None
     if model_type == Article:
@@ -10,6 +17,6 @@ def create_id_dict(model_type, id):
         type_name = "warning"
 
     if type_name is None:
-        return {"id": id}
+        return {"id": _id}
 
-    return {"id": id, "type": type_name}
+    return {"id": _id, "type": type_name}

@@ -39,11 +39,12 @@ def article(request):
 @api_view(["GET"])
 @IsAuthorized
 def articles(request):
+    """Get all articles by project id(s)"""
     project_ids = request.GET.get("project_ids", None)
-    if type(project_ids) is str:
+    if isinstance(project_ids, str):
         project_ids = project_ids.split(",")
-        for id in project_ids:
-            if id.isdigit() is False:
+        for _id in project_ids:
+            if _id.isdigit() is False:
                 return Response(
                     data=message.invalid_query, status=status.HTTP_400_BAD_REQUEST
                 )

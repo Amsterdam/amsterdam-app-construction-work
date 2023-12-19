@@ -33,6 +33,7 @@ class TestApiNotification(TestCase):
         # self.headers = {"DeviceAuthorization": self.token}
         self.content_type = "application/json"
         self.client = Client()
+        self.token = None
 
         for project in self.data.projects:
             project = Project.objects.create(**project)
@@ -46,11 +47,13 @@ class TestApiNotification(TestCase):
         Device.objects.all().delete()
 
     def get_user_auth_header(self, manager_key):
+        """Get user auth header"""
         self.token = AESCipher(manager_key, self.aes_secret).encrypt()
         headers = {"UserAuthorization": self.token}
         return headers
 
     def get_device_auth_header(self):
+        """Get device auth header"""
         app_token = os.getenv("APP_TOKEN")
         self.token = AESCipher(app_token, self.aes_secret).encrypt()
         headers = {"DeviceAuthorization": self.token}

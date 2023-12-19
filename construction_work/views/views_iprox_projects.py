@@ -61,7 +61,7 @@ def _paginate_data(request, data: list) -> dict:
     absolute_uri = request.build_absolute_uri()
     uri = absolute_uri.split("?")[0]
 
-    # TODO: check if pagination does not return double results
+    # NOTE: check if pagination does not return double results
     # might be an index + 1 issue?
     start_index = page * page_size
     stop_index = page * page_size + page_size
@@ -110,16 +110,22 @@ def _paginate_data(request, data: list) -> dict:
 
 
 class CustomPagination(PageNumberPagination):
+    """Custom pagination"""
+
     page_size = 10
     page_size_query_param = "page_size"
     max_page_size = 100
 
 
 class InvalidQueryError(Exception):
+    """Invalid query error"""
+
     pass
 
 
 class NoSuchFieldInModelError(Exception):
+    """No such field in model error"""
+
     pass
 
 

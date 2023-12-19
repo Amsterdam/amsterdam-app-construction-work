@@ -78,7 +78,7 @@ class TestApiProjectManager(TestCase):
         response = self.client.get(self.api_url, **self.headers_jwt)
         response_data = response.json()
         # remove db id's from response
-        [x.pop("id") for x in response_data]
+        [x.pop("id") for x in response_data]  # pylint: disable=expression-not-assigned
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response_data), 2)

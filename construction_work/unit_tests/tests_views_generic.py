@@ -12,7 +12,7 @@ messages = Messages()
 
 
 class TestApiImage(TestCase):
-    """unit_tests"""
+    """Test image"""
 
     def setUp(self):
         """Setup test db"""
@@ -28,7 +28,8 @@ class TestApiImage(TestCase):
         Image.objects.all().delete()
 
     def test_get_image(self):
-        base64_small_green_square = "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAAE0lEQVR4nGNkaGDAA5jwSY5caQCnUgCUBZU3vQAAAABJRU5ErkJggg=="
+        """Test get image"""
+        base64_small_green_square = "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAAE0lEQVR4nGNkaGDAA5jwSY5caQCnUgCUBZU3vQAAAABJRU5ErkJggg=="  # pylint: disable=line-too-long
         binary_data = base64.b64decode(base64_small_green_square)
 
         image = Image(

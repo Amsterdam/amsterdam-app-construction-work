@@ -46,6 +46,8 @@ def get_token_from_request(request: HttpRequest, auth_headers=[]):
 
 
 class IsAuthorized:
+    """Is authorized"""
+
     def __init__(self, func):
         functools.update_wrapper(self, func)
         self.func = func
@@ -81,6 +83,8 @@ class IsAuthorized:
 
 
 class ManagerAuthorized:
+    """Manager authorized"""
+
     def __init__(self, func):
         functools.update_wrapper(self, func)
         self.func = func
@@ -118,6 +122,8 @@ class ManagerAuthorized:
 
 
 class JWTAuthorized:
+    """JWT authorized"""
+
     def __init__(self, func):
         functools.update_wrapper(self, func)
         self.func = func

@@ -7,6 +7,8 @@ from django.test import TestCase
 
 
 class BaseTokenTest(TestCase):
+    """Base token test"""
+
     def setUp(self) -> None:
         """Setup test db"""
         self.username = "mock"

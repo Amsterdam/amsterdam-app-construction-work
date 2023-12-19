@@ -34,6 +34,7 @@ STRIDES_PER_METER = 1 / 0.74
 
 
 def get_distance(coords_1, coords_2):
+    """Get distance"""
     meter = None
     strides = None
 

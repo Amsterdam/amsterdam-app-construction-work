@@ -20,6 +20,8 @@ message = Messages()
 
 
 class TestArticlesBase(TestCase):
+    """Test articles base"""
+
     def setUp(self) -> None:
         self.data = TestData()
         self.maxDiff = None

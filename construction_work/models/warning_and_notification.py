@@ -35,6 +35,7 @@ class WarningMessage(models.Model):
         super().save(*args, **kwargs)
 
     def get_id_dict(self):
+        """Get id dict"""
         return create_id_dict(type(self), self.pk)
 
 

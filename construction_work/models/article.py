@@ -38,4 +38,5 @@ class Article(models.Model):
     expiration_date = models.DateTimeField(default=None, null=True)
 
     def get_id_dict(self):
+        """Get id dict"""
         return create_id_dict(type(self), self.pk)

@@ -121,6 +121,7 @@ class TestProjectModel(TestCase):
         self.assertEqual(projects_objects, None)
 
     def test_detail_serializer(self):
+        """Test detail serializer"""
         project = Project.objects.first()
         lat_lon_adam_central = (52.3791315, 4.8953957)
         project.coordinates = {
@@ -229,7 +230,6 @@ class TestArticleModel(TestCase):
         all_projects = list(Project.objects.all())
         all_articles[0].projects.set(all_projects[:1])
         all_articles[1].projects.set(all_projects)
-        all_articles
 
     def tearDown(self) -> None:
         Project.objects.all().delete()
@@ -331,7 +331,7 @@ class TestProjectManagerModel(TestCase):
             "email": "mock@invalid",
         }
 
-        with self.assertRaises(ValidationError) as context:
+        with self.assertRaises(ValidationError) as _:
             pm = ProjectManager.objects.create(**data)
             pm.full_clean()
 
@@ -342,15 +342,9 @@ class TestProjectManagerModel(TestCase):
             "email": "mock@mail.com",
         }
 
-        with self.assertRaises(ValidationError) as context:
+        with self.assertRaises(ValidationError) as _:
             pm = ProjectManager.objects.create(**data)
             pm.full_clean()
-
-    def test_default_serializer(self):
-        pass
-
-    def test_details_serializer(self):
-        pass
 
 
 class TestWarningMessagesModel(TestCase):
@@ -373,6 +367,7 @@ class TestWarningMessagesModel(TestCase):
         return super().tearDown()
 
     def create_message(self):
+        """Create message"""
         message_data = self.data.warning_message
         message_data["project_id"] = Project.objects.first().pk
         message_data["project_manager_id"] = ProjectManager.objects.first().pk
@@ -440,7 +435,6 @@ class TestWarningMessagesModel(TestCase):
             instance=warning_message, data={}, partial=True
         )
         self.assertTrue(serializer.is_valid())
-        serializer.data
 
         expected_result = {
             "id": serializer.data["id"],
@@ -475,6 +469,7 @@ class TestWarningImageModel(TestCase):
             Image.objects.create(**image)
 
     def create_warning_image(self, is_main=None):
+        """Create warning image"""
         data = {
             "warning": self.warning_message,
         }
@@ -488,16 +483,19 @@ class TestWarningImageModel(TestCase):
         return warning_image
 
     def test_create_warning_image(self):
+        """Test create warning image"""
         self.create_warning_image(is_main=True)
 
         self.assertEqual(len(WarningImage.objects.all()), 1)
 
     def test_without_is_main_should_make_main_false(self):
+        """Test without is main should make main false"""
         warning_image = self.create_warning_image(is_main=None)
 
         self.assertFalse(warning_image.is_main)
 
     def test_remove_message_should_remove_image(self):
+        """Test remove message should remove image"""
         self.create_warning_image()
         self.warning_message.delete()
 

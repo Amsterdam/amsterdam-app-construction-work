@@ -1,3 +1,5 @@
+"""Project utils"""
+
 from datetime import datetime, timedelta
 from typing import Type
 

@@ -8,6 +8,8 @@ ONE_YEAR_AGO = one_year_ago = timezone.now() - timezone.timedelta(days=365)
 
 
 class Command(BaseCommand):
+    """Remove old devices"""
+
     help = "Remove old devices"
 
     def handle(self, *args, **options):

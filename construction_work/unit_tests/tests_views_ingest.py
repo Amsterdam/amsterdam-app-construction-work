@@ -4,11 +4,10 @@ import os
 
 import pytz
 from django.test import Client, TestCase
-from django.utils import timezone
 from rest_framework.exceptions import ErrorDetail
 
 from construction_work.generic_functions.aes_cipher import AESCipher
-from construction_work.models import Article, Project, project
+from construction_work.models import Article, Project
 from construction_work.unit_tests.mock_data import TestData
 
 
@@ -206,6 +205,7 @@ class TestArticleIngestViews(BaseTestIngestViews):
         self.assertNotEqual(updated_article.title, initial_title)
 
     def test_article_invalid(self):
+        """Test article invalid"""
         data = self.test_data.ingest_articles[1]
         # Empty required project id list
         data["projectIds"] = []
@@ -267,6 +267,8 @@ class TestArticleIngestViews(BaseTestIngestViews):
 
 
 class TestGarbageCollectionView(BaseTestIngestViews):
+    """Test garbage collection view"""
+
     def setUp(self):
         """Setup test data"""
         self.test_data = TestData()

@@ -43,6 +43,7 @@ class TestApiProjectWarning(TestCase):
         self.url_warnings_get = "/api/v1/project/warnings"
         self.aes_secret = os.getenv("AES_SECRET")
         self.content_type = "application/json"
+        self.token = None
 
         # Create user for token
         self.user = get_user_model().objects.create_user(
@@ -62,17 +63,20 @@ class TestApiProjectWarning(TestCase):
         ProjectManager.objects.all().delete()
 
     def get_user_auth_header(self, manager_key):
+        """Get user auth header"""
         self.token = AESCipher(manager_key, self.aes_secret).encrypt()
         headers = {"UserAuthorization": self.token}
         return headers
 
     def get_device_auth_header(self):
+        """Get device auth header"""
         app_token = os.getenv("APP_TOKEN")
         self.token = AESCipher(app_token, self.aes_secret).encrypt()
         headers = {"DeviceAuthorization": self.token}
         return headers
 
     def get_jwt_auth_header(self):
+        """Get JWT auth header"""
         response = self.client.post(
             "/api/v1/get-token/", {"username": MOCK_USERNAME, "password": MOCK_PASSWORD}
         )
@@ -80,6 +84,7 @@ class TestApiProjectWarning(TestCase):
         return headers
 
     def create_message_from_data(self, data) -> WarningMessage:
+        """Create message from data"""
         project_obj = Project.objects.filter(
             foreign_id=data.get("project_foreign_id")
         ).first()
@@ -749,6 +754,7 @@ class TestApiProjectWarning(TestCase):
         self.assertEqual(result.reason_phrase, "Forbidden")
 
     def test_project_warnings_valid(self):
+        """Test project warnings valid"""
         data = [
             {
                 "title": "title",
@@ -775,6 +781,7 @@ class TestApiProjectWarning(TestCase):
         self.assertEqual(len(result.data), 2)
 
     def test_project_warnings_invalid_project_id(self):
+        """Test project warnings invalid project id"""
         headers = self.get_device_auth_header()
         result = self.client.get(
             "{url}?project_id=999".format(url=self.url_warnings_get),
@@ -786,6 +793,7 @@ class TestApiProjectWarning(TestCase):
         self.assertEqual(result.data, messages.no_record_found)
 
     def test_project_warnings_with_project_id(self):
+        """Test project warnings with project id"""
         project_obj = Project.objects.filter(foreign_id=2048).first()
         data = {
             "title": "title",

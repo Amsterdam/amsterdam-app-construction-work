@@ -22,7 +22,14 @@ PAGE_SIZE = 10
 MIN_QUERY_LENGTH = 3
 
 
+class TextSearchException(Exception):
+    """Exception used for text search errors"""
+
+    pass
+
+
 def get_non_related_fields(model):
+    """Get non related fields"""
     model_fields = []
     for field in model._meta.get_fields():
         if not (
@@ -59,7 +66,7 @@ def search_text_in_model(model, query, query_fields, return_fields):
 
     for query_field in query_fields_list:
         if query_field not in model_fields:
-            raise Exception(f"Field {query_field} not in model")
+            raise TextSearchException(f"Field {query_field} not in model")
 
     # Build a 'TrigramWordSimilarity' and 'accents agnostic adjacent characters' filter
     score = 0

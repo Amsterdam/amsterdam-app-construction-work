@@ -99,10 +99,10 @@ as_projects_aes = {
                     "_links": {
                         "self": {"href": "http://localhost:8000/api/v1/projects"},
                         "next": {
-                            "href": "http://localhost:8000/api/v1/projects?page=3&page_size=1&lat=52.3676379&lon=4.8968271"
+                            "href": "http://localhost:8000/api/v1/projects?page=3&page_size=1&lat=52.3676379&lon=4.8968271"  # pylint: disable=line-too-long
                         },
                         "previous": {
-                            "href": "http://localhost:8000/api/v1/projects?page=1&page_size=1&lat=52.3676379&lon=4.8968271"
+                            "href": "http://localhost:8000/api/v1/projects?page=1&page_size=1&lat=52.3676379&lon=4.8968271"  # pylint: disable=line-too-long
                         },
                     },
                 }
@@ -175,10 +175,10 @@ as_projects_jwt = {
                     "_links": {
                         "self": {"href": "http://localhost:8000/api/v1/projects"},
                         "next": {
-                            "href": "http://localhost:8000/api/v1/projects?page=3&page_size=1&lat=52.3676379&lon=4.8968271"
+                            "href": "http://localhost:8000/api/v1/projects?page=3&page_size=1&lat=52.3676379&lon=4.8968271"  # pylint: disable=line-too-long
                         },
                         "previous": {
-                            "href": "http://localhost:8000/api/v1/projects?page=1&page_size=1&lat=52.3676379&lon=4.8968271"
+                            "href": "http://localhost:8000/api/v1/projects?page=1&page_size=1&lat=52.3676379&lon=4.8968271"  # pylint: disable=line-too-long
                         },
                     },
                 }
@@ -224,27 +224,27 @@ as_project_details = {
                                 "id": 21654735,
                                 "sources": [
                                     {
-                                        "url": "https://www.amsterdam.nl/publish/pages/856043/230726-ndsm-werf-west-bouwontwikkelingen_si-071.jpg",
+                                        "url": "https://www.amsterdam.nl/publish/pages/856043/230726-ndsm-werf-west-bouwontwikkelingen_si-071.jpg",  # pylint: disable=line-too-long
                                         "width": 940,
                                         "height": 415,
                                     },
                                     {
-                                        "url": "https://www.amsterdam.nl/publish/pages/856043/220px/230726-ndsm-werf-west-bouwontwikkelingen_si-071.jpg",
+                                        "url": "https://www.amsterdam.nl/publish/pages/856043/220px/230726-ndsm-werf-west-bouwontwikkelingen_si-071.jpg",  # pylint: disable=line-too-long
                                         "width": 220,
                                         "height": 97,
                                     },
                                     {
-                                        "url": "https://www.amsterdam.nl/publish/pages/856043/460px/230726-ndsm-werf-west-bouwontwikkelingen_si-071.jpg",
+                                        "url": "https://www.amsterdam.nl/publish/pages/856043/460px/230726-ndsm-werf-west-bouwontwikkelingen_si-071.jpg",  # pylint: disable=line-too-long
                                         "width": 460,
                                         "height": 203,
                                     },
                                     {
-                                        "url": "https://www.amsterdam.nl/publish/pages/856043/700px/230726-ndsm-werf-west-bouwontwikkelingen_si-071.jpg",
+                                        "url": "https://www.amsterdam.nl/publish/pages/856043/700px/230726-ndsm-werf-west-bouwontwikkelingen_si-071.jpg",  # pylint: disable=line-too-long
                                         "width": 700,
                                         "height": 309,
                                     },
                                     {
-                                        "url": "https://www.amsterdam.nl/publish/pages/856043/80px/230726-ndsm-werf-west-bouwontwikkelingen_si-071.jpg",
+                                        "url": "https://www.amsterdam.nl/publish/pages/856043/80px/230726-ndsm-werf-west-bouwontwikkelingen_si-071.jpg",  # pylint: disable=line-too-long
                                         "width": 80,
                                         "height": 35,
                                     },
@@ -272,7 +272,7 @@ as_project_details = {
                     "sections": {
                         "what": [
                             {
-                                "body": "<div><p>We werken samen met bewoners, woningcorporaties, besturen van scholen en andere partijen aan de vernieuwing van Slotermeer. We gaan woningen en gebouwen van scholen vernieuwen. Ook richten we de openbare ruimte waar nodig opnieuw in en knappen speelplekken op.</p></div>",
+                                "body": "<div><p>We werken samen met bewoners, woningcorporaties, besturen van scholen en andere partijen aan de vernieuwing van Slotermeer. We gaan woningen en gebouwen van scholen vernieuwen. Ook richten we de openbare ruimte waar nodig opnieuw in en knappen speelplekken op.</p></div>",  # pylint: disable=line-too-long
                                 "title": "Opknapbeurt",
                             }
                         ],
@@ -294,7 +294,7 @@ as_project_details = {
                         "intro": None,
                         "items": [
                             {
-                                "body": "<div><ul><li>bouw 260 nieuwe woningen</li><li>opknappen 370 woningen</li></ul></div>",
+                                "body": "<div><ul><li>bouw 260 nieuwe woningen</li><li>opknappen 370 woningen</li></ul></div>",  # pylint: disable=line-too-long
                                 "items": [],
                                 "title": "2021 - 2026: Rousseaubuurt",
                                 "collapsed": True,

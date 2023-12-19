@@ -28,6 +28,8 @@ class ImageSerializer(serializers.ModelSerializer):
 
 
 class ImagePublicSerializer(serializers.ModelSerializer):
+    """Image public serializer"""
+
     uri = serializers.SerializerMethodField()
 
     class Meta:
@@ -35,6 +37,7 @@ class ImagePublicSerializer(serializers.ModelSerializer):
         fields = ["uri", "width", "height"]
 
     def get_uri(self, obj: Image):
+        """Get URI"""
         base_url = self.context.get("base_url")
         if base_url is None:
             return None
@@ -112,6 +115,7 @@ class ProjectListSerializer(serializers.ModelSerializer):
         return obj.pk in [x.pk for x in followed_projects]
 
     def get_recent_articles(self, obj: Project) -> dict:
+        """Get recent articles"""
         project_news_mapping = self.context.get("project_news_mapping")
         if project_news_mapping is None:
             return []
@@ -129,6 +133,7 @@ class ProjectDetailsSerializer(ProjectListSerializer):
         fields = "__all__"
 
     def get_field_names(self, *args, **kwargs):
+        """Get field names"""
         field_names = self.context.get("fields", None)
         if field_names:
             return field_names
@@ -139,6 +144,7 @@ class ProjectDetailsSerializer(ProjectListSerializer):
         return obj.device_set.count()
 
     def get_recent_articles(self, obj: Project) -> list:
+        """Get recent articles"""
         article_max_age = self.context.get("article_max_age")
         return get_recent_articles_of_project(
             obj, article_max_age, ArticleSerializer, WarningMessagePublicSerializer
@@ -181,6 +187,7 @@ class ProjectManagerSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_projects(self, obj: ProjectManager) -> list:
+        """Get projects"""
         project_ids = [project.id for project in obj.projects.all()]
         return project_ids
 
@@ -195,6 +202,7 @@ class ProjectManagerAugmentedSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_projects(self, obj: ProjectManager) -> list:
+        """Get projects"""
         project_ids = [project.id for project in obj.projects.all()]
 
         return [
@@ -245,6 +253,7 @@ class WarningMessagePublicSerializer(serializers.ModelSerializer):
         exclude = ["project_manager"]
 
     def get_images(self, obj: WarningMessage):
+        """Get images"""
         base_url = self.context.get("base_url")
         warning_images: List(WarningImage) = obj.warningimage_set.all()
 
@@ -271,6 +280,8 @@ class WarningMessagePublicSerializer(serializers.ModelSerializer):
 
 
 class WarningImageSerializer(serializers.ModelSerializer):
+    """Warning image serializer"""
+
     class Meta:
         model = WarningImage
         fields = "__all__"

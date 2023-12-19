@@ -51,6 +51,7 @@ class BaseTestApi(TestCase):
         memoize.clear_all_cache()
 
     def create_project_and_article(self, project_foreign_id, article_pub_date):
+        """Create project and article"""
         project_data = self.data.projects[0]
         project_data["foreign_id"] = project_foreign_id
         project = Project.objects.create(**project_data)
@@ -64,6 +65,7 @@ class BaseTestApi(TestCase):
         return project, article
 
     def add_article_to_project(self, project: Project, foreign_id, pub_date):
+        """Add article to projects"""
         article_data = self.data.articles[0]
         article_data["foreign_id"] = foreign_id
         article_data["publication_date"] = pub_date
@@ -72,6 +74,7 @@ class BaseTestApi(TestCase):
         return article
 
     def add_warning_to_project(self, project: Project, pub_date):
+        """Add warning to project"""
         warning_data = self.data.warning_message
         warning_data["publication_date"] = pub_date
         warning_data["project_id"] = project.pk
@@ -104,6 +107,7 @@ class TestApiProjects(BaseTestApi):
         self.assertDictEqual(result, {"detail": 'Method "POST" not allowed.'})
 
     def test_new_device_should_be_created(self):
+        """Test new device should be created"""
         new_device_id = "test_new_device_should_be_created"
         self.headers["HTTP_DEVICEID"] = new_device_id
         self.client.get(self.api_url, **self.headers)
@@ -115,6 +119,7 @@ class TestApiProjects(BaseTestApi):
     def assert_projects_sorted_descending_by_recent_article_date(
         self, device_follows_projects: bool
     ):
+        """Assert projects sorted descending by recent article date"""
         # Create projects with articles at different times
         project_1, _ = self.create_project_and_article(10, "2023-01-01T12:00:00+00:00")
         self.add_article_to_project(project_1, 12, "2023-01-01T12:20:00+00:00")
@@ -155,16 +160,19 @@ class TestApiProjects(BaseTestApi):
         self.assertEqual(response_foreign_id_order, expected_foreign_id_order)
 
     def test_followed_projects_sorted_descending_by_recent_article_date(self):
+        """Test followed projects sorted descending by recent article date"""
         self.assert_projects_sorted_descending_by_recent_article_date(
             device_follows_projects=True
         )
 
     def test_other_projects_sorted_descending_by_recent_article_date(self):
+        """Test other projects sorted descending by recent article date"""
         self.assert_projects_sorted_descending_by_recent_article_date(
             device_follows_projects=False
         )
 
     def test_other_projects_sorted_by_distance_with_lat_lon(self):
+        """Test other projects sorted by distance with lat lon"""
         # Setup location
         # - Base location is Amsterdam Central Station
         adam_central_station = (52.379158791458494, 4.899904339167326)
@@ -217,6 +225,7 @@ class TestApiProjects(BaseTestApi):
         self.assertEqual(response_foreign_id_order, expected_foreign_id_order)
 
     def test_pagination(self):
+        """Test pagination"""
         # Create a total of 10 projects
         for i in range(1, 10 + 1):
             project_data = self.data.projects[0]
@@ -570,6 +579,8 @@ class TestApiProjectFollow(BaseTestApi):
 
 
 class TestFollowedProjectArticles(BaseTestApi):
+    """Test followed projects articles"""
+
     def setUp(self):
         super().setUp()
 
@@ -582,12 +593,14 @@ class TestFollowedProjectArticles(BaseTestApi):
         self.assertEqual(response.status_code, 400)
 
     def test_device_does_not_exist(self):
+        """Test device does not exist"""
         self.headers["HTTP_DEVICEID"] = "foobar"
         response = self.client.get(self.api_url, **self.headers)
         self.assertEqual(response.status_code, 404)
 
     @freeze_time("2023-01-10")
     def test_get_recent_articles(self):
+        """Test get recent articles"""
         # Project with TWO recent articles
         project_1, article_1 = self.create_project_and_article(
             10, "2023-01-08T12:00:00+00:00"

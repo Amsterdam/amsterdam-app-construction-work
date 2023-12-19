@@ -77,6 +77,7 @@ def etl_project(request):
         return etl_project_get()
     if request.method == "POST":
         return etl_project_post(request)
+    return Response(data=None, status=status.HTTP_400_BAD_REQUEST)
 
 
 def etl_project_get():
@@ -133,6 +134,7 @@ def etl_article(request):
         return etl_article_get()
     if request.method == "POST":
         return etl_article_post(request)
+    return Response(data=None, status=status.HTTP_400_BAD_REQUEST)
 
 
 def etl_article_get():
