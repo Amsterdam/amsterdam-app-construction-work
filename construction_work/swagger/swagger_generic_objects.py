@@ -223,7 +223,9 @@ query_limit = openapi.Parameter(
 
 project_id = openapi.Schema(
     type=openapi.TYPE_OBJECT,
-    properties={"id": openapi.Schema(type=openapi.TYPE_INTEGER, description="Project id")},
+    properties={
+        "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="Project id")
+    },
 )
 
 page = openapi.Schema(
@@ -281,7 +283,9 @@ article_minimal = openapi.Schema(
     type=openapi.TYPE_OBJECT,
     properties={
         "meta_id": meta_id,
-        "modification_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
+        "modification_date": openapi.Schema(
+            type=openapi.TYPE_STRING, description="datetime"
+        ),
     },
 )
 
@@ -296,17 +300,33 @@ article_full = openapi.Schema(
         "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="internal id"),
         "meta_id": meta_id,
         "foreign_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="iprox id"),
-        "active": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="active or not"),
+        "active": openapi.Schema(
+            type=openapi.TYPE_BOOLEAN, description="active or not"
+        ),
         "last_seen": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
         "title": openapi.Schema(type=openapi.TYPE_STRING, description="article title"),
-        "intro": openapi.Schema(type=openapi.TYPE_STRING, description="html format intro"),
-        "body": openapi.Schema(type=openapi.TYPE_STRING, description="html format body"),
+        "intro": openapi.Schema(
+            type=openapi.TYPE_STRING, description="html format intro"
+        ),
+        "body": openapi.Schema(
+            type=openapi.TYPE_STRING, description="html format body"
+        ),
         # "image": openapi.Schema(type=openapi.TYPE_INTEGER, description="iprox id"),
-        "url": openapi.Schema(type=openapi.TYPE_STRING, description="absolute url path"),
-        "creation_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
-        "modification_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
-        "publication_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
-        "expiration_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
+        "url": openapi.Schema(
+            type=openapi.TYPE_STRING, description="absolute url path"
+        ),
+        "creation_date": openapi.Schema(
+            type=openapi.TYPE_STRING, description="datetime"
+        ),
+        "modification_date": openapi.Schema(
+            type=openapi.TYPE_STRING, description="datetime"
+        ),
+        "publication_date": openapi.Schema(
+            type=openapi.TYPE_STRING, description="datetime"
+        ),
+        "expiration_date": openapi.Schema(
+            type=openapi.TYPE_STRING, description="datetime"
+        ),
         "projects": openapi.Schema(
             type=openapi.TYPE_ARRAY,
             description="related to these project ids",
@@ -386,18 +406,32 @@ timeline = openapi.Schema(
             items=openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
-                    "date": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-                    "title": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-                    "body": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-                    "collapsed": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="bool"),
+                    "date": openapi.Schema(
+                        type=openapi.TYPE_STRING, description="text"
+                    ),
+                    "title": openapi.Schema(
+                        type=openapi.TYPE_STRING, description="text"
+                    ),
+                    "body": openapi.Schema(
+                        type=openapi.TYPE_STRING, description="text"
+                    ),
+                    "collapsed": openapi.Schema(
+                        type=openapi.TYPE_BOOLEAN, description="bool"
+                    ),
                     "items": openapi.Schema(
                         type=openapi.TYPE_ARRAY,
                         items=openapi.Schema(
                             type=openapi.TYPE_OBJECT,
                             properties={
-                                "date": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-                                "title": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-                                "body": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
+                                "date": openapi.Schema(
+                                    type=openapi.TYPE_STRING, description="text"
+                                ),
+                                "title": openapi.Schema(
+                                    type=openapi.TYPE_STRING, description="text"
+                                ),
+                                "body": openapi.Schema(
+                                    type=openapi.TYPE_STRING, description="text"
+                                ),
                             },
                         ),
                     ),
@@ -411,7 +445,9 @@ image = openapi.Schema(
     type=openapi.TYPE_OBJECT,
     properties={
         "id": openapi.Schema(type=openapi.TYPE_INTEGER, description="id"),
-        "aspectRatio": openapi.Schema(type=openapi.TYPE_NUMBER, description="aspect ratio"),
+        "aspectRatio": openapi.Schema(
+            type=openapi.TYPE_NUMBER, description="aspect ratio"
+        ),
         "alternativeText": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
         "sources": openapi.Schema(
             type=openapi.TYPE_ARRAY,
@@ -419,8 +455,12 @@ image = openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
                     "url": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-                    "width": openapi.Schema(type=openapi.TYPE_INTEGER, description="width"),
-                    "height": openapi.Schema(type=openapi.TYPE_INTEGER, description="height"),
+                    "width": openapi.Schema(
+                        type=openapi.TYPE_INTEGER, description="width"
+                    ),
+                    "height": openapi.Schema(
+                        type=openapi.TYPE_INTEGER, description="height"
+                    ),
                 },
             ),
         ),
@@ -434,28 +474,46 @@ warning_images = openapi.Schema(
     items=openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            "main": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="primary image"),
+            "main": openapi.Schema(
+                type=openapi.TYPE_BOOLEAN, description="primary image"
+            ),
             "sources": openapi.Schema(
                 type=openapi.TYPE_ARRAY,
                 items=openapi.Schema(
                     type=openapi.TYPE_OBJECT,
                     properties={
-                        "uri": openapi.Schema(type=openapi.TYPE_STRING, description="image uri"),
-                        "width": openapi.Schema(type=openapi.TYPE_INTEGER, description="image width"),
-                        "height": openapi.Schema(type=openapi.TYPE_INTEGER, description="image height"),
+                        "uri": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="image uri"
+                        ),
+                        "width": openapi.Schema(
+                            type=openapi.TYPE_INTEGER, description="image width"
+                        ),
+                        "height": openapi.Schema(
+                            type=openapi.TYPE_INTEGER, description="image height"
+                        ),
                     },
                 ),
             ),
-            "landscape": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="landscape"),
+            "landscape": openapi.Schema(
+                type=openapi.TYPE_BOOLEAN, description="landscape"
+            ),
             "coordinates": openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
-                    "lan": openapi.Schema(type=openapi.TYPE_INTEGER, description="latitude"),
-                    "lon": openapi.Schema(type=openapi.TYPE_INTEGER, description="longitude"),
+                    "lan": openapi.Schema(
+                        type=openapi.TYPE_INTEGER, description="latitude"
+                    ),
+                    "lon": openapi.Schema(
+                        type=openapi.TYPE_INTEGER, description="longitude"
+                    ),
                 },
             ),
-            "description": openapi.Schema(type=openapi.TYPE_STRING, description="image description"),
-            "aspect_ratio": openapi.Schema(type=openapi.TYPE_INTEGER, description="image aspect ratio"),
+            "description": openapi.Schema(
+                type=openapi.TYPE_STRING, description="image description"
+            ),
+            "aspect_ratio": openapi.Schema(
+                type=openapi.TYPE_INTEGER, description="image aspect ratio"
+            ),
         },
     ),
 )
@@ -469,7 +527,9 @@ project_details_schema = openapi.Schema(
         "followed": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="boolean"),
         "recent_articles": articles_full,
         "followers": openapi.Schema(type=openapi.TYPE_INTEGER, description="int"),
-        "foreign_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="foreign id"),
+        "foreign_id": openapi.Schema(
+            type=openapi.TYPE_INTEGER, description="foreign id"
+        ),
         "active": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="boolean"),
         "last_seen": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
         "title": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
@@ -481,10 +541,18 @@ project_details_schema = openapi.Schema(
         "image": image,
         "images": images,
         "url": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-        "creation_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
-        "modification_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
-        "publication_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
-        "expiration_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
+        "creation_date": openapi.Schema(
+            type=openapi.TYPE_STRING, description="datetime"
+        ),
+        "modification_date": openapi.Schema(
+            type=openapi.TYPE_STRING, description="datetime"
+        ),
+        "publication_date": openapi.Schema(
+            type=openapi.TYPE_STRING, description="datetime"
+        ),
+        "expiration_date": openapi.Schema(
+            type=openapi.TYPE_STRING, description="datetime"
+        ),
     },
 )
 
@@ -510,9 +578,15 @@ warning_message = openapi.Schema(
         "images": warning_images,
         "title": openapi.Schema(type=openapi.TYPE_STRING, description="id"),
         "body": openapi.Schema(type=openapi.TYPE_STRING, description="body"),
-        "modification_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
-        "publication_date": openapi.Schema(type=openapi.TYPE_STRING, description="datetime"),
-        "author_email": openapi.Schema(type=openapi.TYPE_STRING, description="author email"),
+        "modification_date": openapi.Schema(
+            type=openapi.TYPE_STRING, description="datetime"
+        ),
+        "publication_date": openapi.Schema(
+            type=openapi.TYPE_STRING, description="datetime"
+        ),
+        "author_email": openapi.Schema(
+            type=openapi.TYPE_STRING, description="author email"
+        ),
         "project": openapi.Schema(type=openapi.TYPE_INTEGER, description="project id"),
     },
 )

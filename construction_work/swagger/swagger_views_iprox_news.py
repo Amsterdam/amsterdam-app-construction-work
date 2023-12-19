@@ -91,9 +91,13 @@ as_articles_get = {
                     type=openapi.TYPE_OBJECT,
                     properties={
                         "meta_id": meta_id,
-                        "title": openapi.Schema(type=openapi.TYPE_STRING, description="title"),
+                        "title": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="title"
+                        ),
                         "images": images,
-                        "publication_date": openapi.Schema(type=openapi.TYPE_STRING, description="year-month-day"),
+                        "publication_date": openapi.Schema(
+                            type=openapi.TYPE_STRING, description="year-month-day"
+                        ),
                     },
                 ),
             ),

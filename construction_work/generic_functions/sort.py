@@ -16,10 +16,14 @@ class Sort:
                 reverse = sort_order == "desc"
 
                 if reverse is True:
-                    result = sorted(items, key=lambda x: (x[key] is not None, x[key]), reverse=True)
+                    result = sorted(
+                        items, key=lambda x: (x[key] is not None, x[key]), reverse=True
+                    )
                 else:
                     result = sorted(items, key=lambda x: (x[key] is None, x[key]))
                 return result
         except Exception as error:
-            self.logger.error("Caught error in Sort.list_of_dicts: {error}".format(error=error))
+            self.logger.error(
+                "Caught error in Sort.list_of_dicts: {error}".format(error=error)
+            )
         return items

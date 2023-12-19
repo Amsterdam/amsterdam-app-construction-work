@@ -39,23 +39,31 @@ class TestApiDeviceRegistration(TestCase):
         first_result = c.post(self.api_url, data, **headers)
 
         self.assertEqual(first_result.status_code, 200)
-        self.assertEqual(first_result.data.get("firebase_token"), data.get("firebase_token"))
+        self.assertEqual(
+            first_result.data.get("firebase_token"), data.get("firebase_token")
+        )
         self.assertEqual(first_result.data.get("os"), data.get("os"))
 
         # Silent discard second call
         second_result = c.post(self.api_url, data, **headers)
 
         self.assertEqual(second_result.status_code, 200)
-        self.assertEqual(second_result.data.get("firebase_token"), data.get("firebase_token"))
+        self.assertEqual(
+            second_result.data.get("firebase_token"), data.get("firebase_token")
+        )
         self.assertEqual(second_result.data.get("os"), data.get("os"))
 
         # Assert only one record in db
-        devices_with_token = list(Device.objects.filter(firebase_token__isnull=False).all())
+        devices_with_token = list(
+            Device.objects.filter(firebase_token__isnull=False).all()
+        )
         self.assertEqual(len(devices_with_token), 1)
 
     def test_delete_registration(self):
         """Test removing a device registration"""
-        new_device = Device(device_id="foobar_device", firebase_token="foobar_token", os="os")
+        new_device = Device(
+            device_id="foobar_device", firebase_token="foobar_token", os="os"
+        )
         new_device.save()
 
         # Delete registration
@@ -70,7 +78,9 @@ class TestApiDeviceRegistration(TestCase):
         self.assertEqual(first_result.data, "Registration removed")
 
         # Expect no records in db
-        devices_with_token = list(Device.objects.filter(firebase_token__isnull=False).all())
+        devices_with_token = list(
+            Device.objects.filter(firebase_token__isnull=False).all()
+        )
         self.assertEqual(len(devices_with_token), 0)
 
         # Silently discard not existing registration delete

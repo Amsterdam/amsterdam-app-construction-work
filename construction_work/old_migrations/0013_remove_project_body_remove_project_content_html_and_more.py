@@ -112,11 +112,15 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="project",
             name="subtitle",
-            field=models.CharField(blank=True, db_index=True, max_length=1000, null=True),
+            field=models.CharField(
+                blank=True, db_index=True, max_length=1000, null=True
+            ),
         ),
         migrations.AlterField(
             model_name="project",
             name="title",
-            field=models.CharField(blank=True, db_index=True, default="", max_length=1000, null=True),
+            field=models.CharField(
+                blank=True, db_index=True, default="", max_length=1000, null=True
+            ),
         ),
     ]

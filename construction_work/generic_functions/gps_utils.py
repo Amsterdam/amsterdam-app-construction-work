@@ -38,8 +38,7 @@ def get_distance(coords_1, coords_2):
     strides = None
 
     if not any(
-        elem is None
-        for elem in [coords_1[0], coords_1[1], coords_2[0], coords_2[1]]
+        elem is None for elem in [coords_1[0], coords_1[1], coords_2[0], coords_2[1]]
     ):
         try:
             meter = int(geopy.distance.geodesic(coords_1, coords_2).km * 1000)

@@ -9,6 +9,7 @@ import os
 # is there a way to keep current behavior
 # where logs can get redirected to stdout via debug flag?
 
+
 class Logger:
     """Logger class"""
 

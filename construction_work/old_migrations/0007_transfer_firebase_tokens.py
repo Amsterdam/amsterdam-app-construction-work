@@ -12,6 +12,7 @@ def transfer_firebase_tokens(apps, _):
         t.device.os = t.os
         t.device.save()
 
+
 def do_nothing(apps, _):
     """After model is removed data is removed, so no turning back"""
     pass

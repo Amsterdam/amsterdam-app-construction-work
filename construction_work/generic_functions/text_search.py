@@ -25,7 +25,13 @@ MIN_QUERY_LENGTH = 3
 def get_non_related_fields(model):
     model_fields = []
     for field in model._meta.get_fields():
-        if not (field.is_relation and (field.one_to_many, field.many_to_one or field.one_to_one or field.many_to_many)):
+        if not (
+            field.is_relation
+            and (
+                field.one_to_many,
+                field.many_to_one or field.one_to_one or field.many_to_many,
+            )
+        ):
             model_fields.append(field.name)
     return model_fields
 
@@ -69,7 +75,12 @@ def search_text_in_model(model, query, query_fields, return_fields):
         q = Q(**{field_name: query})
 
         # Query and filter
-        objects = model.objects.annotate(score=score).filter(score__gte=threshold).filter(q).order_by("-score")
+        objects = (
+            model.objects.annotate(score=score)
+            .filter(score__gte=threshold)
+            .filter(q)
+            .order_by("-score")
+        )
         objects_with_scores.extend(objects)
 
     # Sort objects by score
@@ -77,6 +88,8 @@ def search_text_in_model(model, query, query_fields, return_fields):
 
     # Create a unique set of objects (sorted)
     seen = set()
-    sorted_objects_unique = [seen.add(x.pk) or x for x in sorted_objects if x.pk not in seen]
+    sorted_objects_unique = [
+        seen.add(x.pk) or x for x in sorted_objects if x.pk not in seen
+    ]
 
     return sorted_objects_unique

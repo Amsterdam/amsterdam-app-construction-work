@@ -6,7 +6,10 @@
 from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
-from construction_work.serializers import WarningImageSerializer, WarningMessageSerializer
+from construction_work.serializers import (
+    WarningImageSerializer,
+    WarningMessageSerializer,
+)
 from construction_work.swagger.swagger_generic_objects import (
     coordinates,
     forbidden_403,
@@ -38,15 +41,23 @@ image = openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
                     "uri": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-                    "width": openapi.Schema(type=openapi.TYPE_INTEGER, description="width"),
-                    "height": openapi.Schema(type=openapi.TYPE_INTEGER, description="height"),
+                    "width": openapi.Schema(
+                        type=openapi.TYPE_INTEGER, description="width"
+                    ),
+                    "height": openapi.Schema(
+                        type=openapi.TYPE_INTEGER, description="height"
+                    ),
                 },
             ),
         ),
-        "landscape": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="image orientation"),
+        "landscape": openapi.Schema(
+            type=openapi.TYPE_BOOLEAN, description="image orientation"
+        ),
         "coordinates": coordinates,
         "description": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
-        "aspect_ratio": openapi.Schema(type=openapi.TYPE_NUMBER, description="aspect ratio"),
+        "aspect_ratio": openapi.Schema(
+            type=openapi.TYPE_NUMBER, description="aspect ratio"
+        ),
     },
 )
 
@@ -67,7 +78,9 @@ as_warning_message_get = {
                     "images": [
                         {
                             "main": True,
-                            "sources": [{"uri": "https://...", "width": 1, "height": 1}],
+                            "sources": [
+                                {"uri": "https://...", "width": 1, "height": 1}
+                            ],
                             "landscape": False,
                             "coordinates": {"lat": None, "lon": None},
                             "description": "image",
@@ -104,8 +117,12 @@ as_warning_message_post = {
         properties={
             "title": openapi.Schema(type=openapi.TYPE_STRING, description="title"),
             "body": openapi.Schema(type=openapi.TYPE_STRING, description="full text"),
-            "project_identifier": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
-            "project_manager_id": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
+            "project_identifier": openapi.Schema(
+                type=openapi.TYPE_STRING, description="identifier"
+            ),
+            "project_manager_id": openapi.Schema(
+                type=openapi.TYPE_STRING, description="identifier"
+            ),
         },
     ),
     "responses": {
@@ -216,7 +233,9 @@ as_warning_messages_get = {
                         "images": [
                             {
                                 "main": True,
-                                "sources": [{"uri": "https://...", "width": 1, "height": 1}],
+                                "sources": [
+                                    {"uri": "https://...", "width": 1, "height": 1}
+                                ],
                                 "landscape": False,
                                 "coordinates": {"lat": None, "lon": None},
                                 "description": "image",
@@ -250,9 +269,15 @@ as_notification_post = {
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            "title": openapi.Schema(type=openapi.TYPE_STRING, description="Title of notification"),
-            "body": openapi.Schema(type=openapi.TYPE_STRING, description="Body of notification"),
-            "warning_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="Warning identifier"),
+            "title": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Title of notification"
+            ),
+            "body": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Body of notification"
+            ),
+            "warning_id": openapi.Schema(
+                type=openapi.TYPE_INTEGER, description="Warning identifier"
+            ),
         },
     ),
     "responses": {
@@ -277,13 +302,21 @@ as_warning_message_image_post = {
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            "warning_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="warning id"),
+            "warning_id": openapi.Schema(
+                type=openapi.TYPE_INTEGER, description="warning id"
+            ),
             "image": openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
-                    "main": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="<false|true>"),
-                    "description": openapi.Schema(type=openapi.TYPE_STRING, description="about this image"),
-                    "data": openapi.Schema(type=openapi.TYPE_STRING, description="base64 image data"),
+                    "main": openapi.Schema(
+                        type=openapi.TYPE_BOOLEAN, description="<false|true>"
+                    ),
+                    "description": openapi.Schema(
+                        type=openapi.TYPE_STRING, description="about this image"
+                    ),
+                    "data": openapi.Schema(
+                        type=openapi.TYPE_STRING, description="base64 image data"
+                    ),
                 },
                 required=["main", "data"],
             ),

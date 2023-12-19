@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("construction_work", "0007_transfer_firebase_tokens"),
     ]

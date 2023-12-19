@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("construction_work", "0004_followed_projects_to_device_model"),
     ]

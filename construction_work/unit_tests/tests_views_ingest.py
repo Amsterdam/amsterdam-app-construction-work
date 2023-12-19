@@ -17,7 +17,9 @@ class BaseTestIngestViews(TestCase):
 
     def setUp(self):
         """Setup for all ingest view tests"""
-        token = AESCipher("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", os.getenv("AES_SECRET")).encrypt()
+        token = AESCipher(
+            "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", os.getenv("AES_SECRET")
+        ).encrypt()
         self.header = {"INGESTAUTHORIZATION": token}
         self.content_type = "application/json"
         self.client = Client()
@@ -126,10 +128,14 @@ class TestProjectIngestViews(BaseTestIngestViews):
 
         expected_result = {
             str(first_project["foreign_id"]): {
-                "modification_date": str(first_project["modification_date"]).replace("T", " ")
+                "modification_date": str(first_project["modification_date"]).replace(
+                    "T", " "
+                )
             },
             str(second_project["foreign_id"]): {
-                "modification_date": str(second_project["modification_date"]).replace("T", " ")
+                "modification_date": str(second_project["modification_date"]).replace(
+                    "T", " "
+                )
             },
         }
         self.assertDictEqual(result.data, expected_result)
@@ -215,7 +221,11 @@ class TestArticleIngestViews(BaseTestIngestViews):
         self.assertEqual(result.status_code, 400)
         self.assertDictEqual(
             result.data,
-            {"projects": [ErrorDetail(string="This list may not be empty.", code="empty")]},
+            {
+                "projects": [
+                    ErrorDetail(string="This list may not be empty.", code="empty")
+                ]
+            },
         )
 
     def test_get_articles(self):
@@ -242,10 +252,14 @@ class TestArticleIngestViews(BaseTestIngestViews):
 
         expected_result = {
             str(first_article["foreign_id"]): {
-                "modification_date": str(first_article["modification_date"]).replace("T", " ")
+                "modification_date": str(first_article["modification_date"]).replace(
+                    "T", " "
+                )
             },
             str(second_article["foreign_id"]): {
-                "modification_date": str(second_article["modification_date"]).replace("T", " ")
+                "modification_date": str(second_article["modification_date"]).replace(
+                    "T", " "
+                )
             },
         }
 

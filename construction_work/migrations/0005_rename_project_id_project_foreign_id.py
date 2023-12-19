@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("construction_work", "0004_rename_article_id_article_foreign_id"),
     ]

@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("construction_work", "0003_alter_warningmessage_project_manager"),
     ]

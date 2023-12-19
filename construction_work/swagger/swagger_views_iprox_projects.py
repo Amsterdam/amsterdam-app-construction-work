@@ -429,7 +429,9 @@ as_projects_followed_articles = {
                             type=openapi.TYPE_OBJECT,
                             properties={
                                 "meta_id": meta_id,
-                                "modification_date": openapi.Schema(type=openapi.TYPE_STRING),
+                                "modification_date": openapi.Schema(
+                                    type=openapi.TYPE_STRING
+                                ),
                             },
                         ),
                     )

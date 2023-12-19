@@ -19,7 +19,9 @@ class AmsterdamEmailValidator(EmailValidator):
 
         super().__call__(value)
         if not value.endswith("@amsterdam.nl"):
-            raise ValidationError("Email must belong to 'amsterdam.nl'", code="invalid_email")
+            raise ValidationError(
+                "Email must belong to 'amsterdam.nl'", code="invalid_email"
+            )
 
 
 class ProjectManager(models.Model):

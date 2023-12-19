@@ -54,7 +54,9 @@ class Migration(migrations.Migration):
             name="email",
             field=models.EmailField(
                 max_length=254,
-                validators=[construction_work.models.project_manager.AmsterdamEmailValidator()],
+                validators=[
+                    construction_work.models.project_manager.AmsterdamEmailValidator()
+                ],
             ),
         ),
         migrations.RemoveField(

@@ -27,7 +27,9 @@ class TestTextSearch(TestCase):
 
     def test_search(self):
         """Test text search"""
-        results = search_text_in_model(Project, "titl", "title,subtitle", return_fields="title,subtitle")
+        results = search_text_in_model(
+            Project, "titl", "title,subtitle", return_fields="title,subtitle"
+        )
 
         expected_result = [2048, 4096]
         for i, result in enumerate(results):
@@ -35,7 +37,9 @@ class TestTextSearch(TestCase):
 
     def test_search_2_letters(self):
         """test text search 2 char"""
-        result = search_text_in_model(Project, "ti", "title,subtitle", return_fields="title,subtitle")
+        result = search_text_in_model(
+            Project, "ti", "title,subtitle", return_fields="title,subtitle"
+        )
         expected_result = []
 
         self.assertListEqual(result, expected_result)
