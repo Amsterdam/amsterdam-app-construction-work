@@ -20,7 +20,6 @@ new Vue({
   router,
   store,
   beforeCreate () {
-    axios.defaults.baseURL = '/api/v1'
     this.$store.commit('initialiseStore')
     axios.defaults.headers.common['Authorization'] = this.$store.state.access
     if (this.$store.state.isLoggedIn === false) {

@@ -1,4 +1,4 @@
-const domain = 'https://api-test-backend.app-amsterdam.nl'
+const domain = ''
 
 const prependDomain = relativeUrl => `${domain}/api/v1/${relativeUrl}`
 
