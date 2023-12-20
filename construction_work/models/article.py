@@ -1,3 +1,4 @@
+# pylint: disable=cyclic-import
 """ Models for Article for Projects
 
     An article is either a 'nieuws' item or a 'wegwerkzaamheden' item. Both follow the same scheme but are distinguished
@@ -7,9 +8,7 @@
 from django.db import models
 from django.utils import timezone
 
-from construction_work.generic_functions.model_utils import (
-    create_id_dict,  # pylint: disable=cyclic-import
-)
+from construction_work.generic_functions.model_utils import create_id_dict
 from construction_work.models.project import Project
 
 

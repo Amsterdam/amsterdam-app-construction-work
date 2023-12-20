@@ -1,14 +1,11 @@
+# pylint: disable=cyclic-import
 """Model utils"""
 
 
 def create_id_dict(model_type, _id):
     """Create a dict with id and object type"""
-    from construction_work.models.article import (
-        Article,  # pylint: disable=cyclic-import
-    )
-    from construction_work.models.warning_and_notification import (
-        WarningMessage,  # pylint: disable=cyclic-import
-    )
+    from construction_work.models.article import Article
+    from construction_work.models.warning_and_notification import WarningMessage
 
     type_name = None
     if model_type == Article:

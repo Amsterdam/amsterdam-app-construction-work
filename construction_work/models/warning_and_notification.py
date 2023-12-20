@@ -1,12 +1,11 @@
+# pylint: disable=cyclic-import
 """ Model for Warning message """
 
 from django.db import models
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
 
-from construction_work.generic_functions.model_utils import (
-    create_id_dict,  # pylint: disable=cyclic-import
-)
+from construction_work.generic_functions.model_utils import create_id_dict
 from construction_work.generic_functions.static_data import (
     DEFAULT_WARNING_MESSAGE_EMAIL,
 )
