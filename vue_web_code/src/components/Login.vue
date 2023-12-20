@@ -66,8 +66,8 @@
 </template>
 
 <script>
+import {getTokenUrl} from '@/api'
 import axios from 'axios'
-
 export default {
   name: 'Login',
   data () {
@@ -79,20 +79,26 @@ export default {
     console.log('Vue code mounted in login()')
   },
   methods: {
-    login () {
+    async login (e) {
+      e.preventDefault()
       let data = {
         username: this.$refs.inputUsername.newValue,
         password: this.$refs.inputPassword.newValue
       }
-      axios.post('/get-token/', {
-        username: this.$refs.inputUsername.newValue,
-        password: this.$refs.inputPassword.newValue
-      }).then(response => {
-        this.$store.commit('login', {
-          refresh: response.data.refresh,
-          access: response.data.access,
-          username: data.username
-        })
+
+      axios.post(getTokenUrl, data).then(response => {
+        console.log(response.data)
+        if (response.data.error) {
+          this.message = JSON.stringify(response.data.error)
+        } else {
+          axios.defaults.headers.common['Authorization'] = response.data.access
+          console.log(axios.defaults.headers)
+          this.$store.commit('login', {
+            refresh: response.data.refresh,
+            access: response.data.access,
+            username: data.username
+          })
+        }
         this.$router.push('/')
       }).catch((err) => {
         console.log(err)
@@ -121,7 +127,7 @@ export default {
 }
 
 body {
-  background-image: url('~@/assets/background.jpg');
+  background-image: url('/src/assets/background.jpg');
   background-size: cover;
   min-width: 100%;
   background-repeat: no-repeat;

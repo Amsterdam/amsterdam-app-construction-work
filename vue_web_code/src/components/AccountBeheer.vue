@@ -34,7 +34,7 @@
       <b-table
         :data="projects"
         :columns="project_columns"
-        :checked-rows.sync="selected_projects"
+        v-model:checked-rows="selected_projects"
         :checkbox-position="checkboxPosition"
         :sticky-header="true"
         icon-pack="fas"
@@ -68,6 +68,7 @@
 <script>
 import axios from 'axios'
 import jsPDF from 'jspdf'
+import {projectsUrl, projectManagerUrl} from '@/api'
 
 // TODO: manager_key generate in the backend not in the frontend. Remove uuid when backend work is done.
 import { v4 as useUuid } from 'uuid'
@@ -137,10 +138,8 @@ export default {
   methods: {
     init: function () {
       // Get current project_managers
-      axios({
-        methods: 'GET', 'url': '/project/manager'
-      }).then(response => {
-        this.project_managers = response.data
+      axios({methods: 'GET', 'url': projectManagerUrl}).then(response => {
+        this.project_managers = response.data.result
       }, error => {
         console.log(error)
       })
@@ -148,9 +147,8 @@ export default {
       // get current projects
       axios({
         methods: 'GET',
-        url: '/projects_jwt',
-        headers: {deviceid: '00000000-0000-0000-0000-000000000000', page_size: 10000}
-      }).then(response => {
+        url: `${projectsUrl}?page_size=10000`,
+        headers: {deviceid: '00000000-0000-0000-0000-000000000000'}}).then(response => {
         this.projects = response.data.result
       }, error => {
         console.log(error)
@@ -244,7 +242,7 @@ export default {
         type: 'is-primary',
         hasIcon: true,
         onConfirm: () => {
-          axios.patch('/project/manager', projectManager).then(response => {
+          axios.patch(projectManagerUrl, projectManager).then(response => {
             if (response.data.hasOwnProperty('identifier')) {
               this.createPdf(response.data.identifier)
               this.$buefy.toast.open('Account toegevoegd!')
@@ -274,7 +272,7 @@ export default {
         type: 'is-danger',
         hasIcon: true,
         onConfirm: () => {
-          axios.delete('/project/manager', {params: {'manager_key': this.selected_project_manager.manager_key}}).then(response => {
+          axios.delete(projectManagerUrl, {params: {'id': this.selected_project_manager.identifier}}).then(response => {
             // reload accounts and projects
             this.init()
             this.email = ''

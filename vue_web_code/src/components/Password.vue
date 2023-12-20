@@ -72,6 +72,7 @@
 </template>
 
 <script>
+import {userPasswordUrl} from '@/api'
 export default {
   name: 'Password',
   data () {
@@ -113,7 +114,7 @@ export default {
         password_verify: this.newPasswordVerify
       }
 
-      this.$http.post('user/password', data)
+      this.$http.post(userPasswordUrl, data)
         .then(response => {
           if (response.data.status === true) {
             this.$store.commit('logout')

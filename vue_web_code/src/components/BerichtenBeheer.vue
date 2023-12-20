@@ -10,7 +10,7 @@
           :data="warnings"
           :show-detail-icon="showDetailIcon"
           :sticky-header="true"
-          :selected.sync="selected"
+          v-model:selected="selected"
           sort-icon="chevron-up"
           sort-icon-size="is-medium"
           detail-transition="fade"
@@ -164,6 +164,7 @@
 
 <script>
 import axios from 'axios'
+import {projectsUrl, projectWarningUrl} from '@/api'
 
 export default {
   data () {
@@ -209,7 +210,7 @@ export default {
         let warningResponse = response.data.result
         axios({
           methods: 'GET',
-          url: '/projects_jwt',
+          url: projectsUrl,
           params: {
             fields: 'identifier,title',
             page_size: 10000,
@@ -271,7 +272,7 @@ export default {
         type: 'is-danger',
         hasIcon: false,
         onConfirm: () => {
-          axios.delete('/project/warning', {params: {'id': this.selected.identifier}}).then(response => {
+          axios.delete(projectWarningUrl, {params: {'id': this.selected.identifier}}).then(response => {
             // reload warning messages
             const index = this.warnings.findIndex(warning => warning.identifier === this.selected.identifier)
             if (~index) { this.warnings.splice(index, 1) }
@@ -289,7 +290,7 @@ export default {
         title: this.title,
         body: this.body
       }
-      axios.patch('/project/warning', payload).then(response => {
+      axios.patch(projectWarningUrl, payload).then(response => {
         this.$buefy.toast.open('Wijzigingen zijn opgeslagen')
         this.init()
         this.selected = []
