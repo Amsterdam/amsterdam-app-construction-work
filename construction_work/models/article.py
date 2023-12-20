@@ -7,7 +7,9 @@
 from django.db import models
 from django.utils import timezone
 
-from construction_work.generic_functions.model_utils import create_id_dict
+from construction_work.generic_functions.model_utils import (
+    create_id_dict,  # pylint: disable=cyclic-import
+)
 from construction_work.models.project import Project
 
 
