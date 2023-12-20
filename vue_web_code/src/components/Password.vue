@@ -4,66 +4,35 @@
       <h1 class="align-left">Wijzig uw wachtwoord</h1>
 
       <form @submit="changePassword">
-        <div
-          class="align-left">
-          <span
-            style="font-weight: 600; color: darkgray">
-            Oude wachtwoord
-          </span>
+        <div class="align-left">
+          <span style="font-weight: 600; color: darkgray"> Oude wachtwoord </span>
         </div>
-        <b-field
-          :type="type"
-          class="align-left">
-          <b-input
-            v-model="oldPassword"
-            password-reveal
-            required
-            icon-pack="fas"
-            type="password"/>
+        <b-field :type="type" class="align-left">
+          <b-input v-model="oldPassword" password-reveal required icon-pack="fas" type="password" />
         </b-field>
 
-        <div
-          class="align-left">
-          <span
-            style="font-weight: 600; color: darkgray">
-            Nieuw wachtwoord
-          </span>
+        <div class="align-left">
+          <span style="font-weight: 600; color: darkgray"> Nieuw wachtwoord </span>
         </div>
-        <b-field
-          :type="type"
-          class="align-left">
-          <b-input
-            v-model="newPassword"
-            password-reveal
-            required
-            icon-pack="fas"
-            type="password"/>
+        <b-field :type="type" class="align-left">
+          <b-input v-model="newPassword" password-reveal required icon-pack="fas" type="password" />
         </b-field>
 
-        <div
-          class="align-left">
-          <span
-            style="font-weight: 600; color: darkgray">
-            Nieuwe wachtwoord (verificatie)
-          </span>
+        <div class="align-left">
+          <span style="font-weight: 600; color: darkgray"> Nieuwe wachtwoord (verificatie) </span>
         </div>
-        <b-field
-          :message="message"
-          :type="type"
-          class="align-left">
+        <b-field :message="message" :type="type" class="align-left">
           <b-input
             v-model="newPasswordVerify"
             password-reveal
             required
             icon-pack="fas"
-            type="password"/>
+            type="password"
+          />
         </b-field>
-        <b-field
-          class="align-left">
-          <b-button
-            native-type="submit"
-            type="is-primary">
-            <span style="font-weight: 600;">Opslaan</span>
+        <b-field class="align-left">
+          <b-button native-type="submit" type="is-primary">
+            <span style="font-weight: 600">Opslaan</span>
           </b-button>
         </b-field>
       </form>
@@ -72,16 +41,16 @@
 </template>
 
 <script>
-import {userPasswordUrl} from '@/api'
+import { userPasswordUrl } from '@/api'
 export default {
-  name: 'Password',
-  data () {
+  name: 'password-component',
+  data() {
     return {
       oldPassword: '',
       newPassword: '',
       newPasswordVerify: '',
       message: '',
-      success: false
+      success: false,
     }
   },
   computed: {
@@ -93,7 +62,7 @@ export default {
       } else {
         return 'is-primary'
       }
-    }
+    },
   },
   methods: {
     changePassword: function () {
@@ -111,11 +80,12 @@ export default {
         username: this.$store.state.username,
         old_password: this.oldPassword,
         password: this.newPassword,
-        password_verify: this.newPasswordVerify
+        password_verify: this.newPasswordVerify,
       }
 
-      this.$http.post(userPasswordUrl, data)
-        .then(response => {
+      this.$http
+        .post(userPasswordUrl, data)
+        .then((response) => {
           if (response.data.status === true) {
             this.$store.commit('logout')
             this.$router.push('/login')
@@ -123,12 +93,12 @@ export default {
             this.message = response.data.result
           }
         })
-        .catch(error => {
+        .catch((error) => {
           this.message = error.data.result || JSON.stringify(error)
           this.success = false
         })
-    }
-  }
+    },
+  },
 }
 </script>
 
@@ -136,6 +106,6 @@ export default {
 .card {
   max-width: 500px;
   padding: 20px;
-  background: rgba(255,255,255,0.7);
+  background: rgba(255, 255, 255, 0.7);
 }
 </style>

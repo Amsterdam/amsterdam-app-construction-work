@@ -16,7 +16,7 @@
     "@dattn/dnd-grid": "0.0.14",
     "@mdi/font": "^7.3.67",
     "axios": "^1.6.2",
-    "buefy": "^0.9.25",
+    "buefy": "0.9.3",
     "core-js": "^3.34.0",
     "jspdf": "^2.5.1",
     "vite-plugin-vue2": "^2.0.3",

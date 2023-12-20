@@ -53,8 +53,6 @@
     border-color: #000000;
 }
 
-/*! Buefy v0.9.10 | MIT License | github.com/buefy/buefy */
-@charset "UTF-8";
 .is-noscroll {
   position: fixed;
   overflow-y: hidden;

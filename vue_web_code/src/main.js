@@ -7,9 +7,9 @@ import Buefy from 'buefy'
 import 'buefy/dist/buefy.css'
 import router from './router'
 import store from './store'
-import {refreshTokenUrl} from '@/api'
+import { refreshTokenUrl } from '@/api'
 
-import ('./assets/css/main.css')
+import('./assets/css/main.css')
 
 Vue.config.productionTip = false
 
@@ -20,7 +20,7 @@ Vue.use(jsPDF)
 new Vue({
   router,
   store,
-  beforeCreate () {
+  beforeCreate() {
     this.$store.commit('initialiseStore')
     axios.defaults.headers.common['Authorization'] = this.$store.state.access
     axios.defaults.headers.common['deviceid'] = '00000000-0000-0000-0000-000000000000'
@@ -36,26 +36,27 @@ new Vue({
       }
     }
   },
-  created () {
+  created() {
     axios.interceptors.response.use(
-      response => response,
+      (response) => response,
       (error) => {
         if (error.response.status == 401 || error.response.status == 403) {
           this.$store.commit('logout')
           this.$router.push('/login')
         }
         return Promise.reject(error.response)
-      })
+      }
+    )
     this.$router.beforeEach(async (to, from, next) => {
       // Refresh access token
-      this.$http.post(refreshTokenUrl, {refresh: this.$store.state.refresh}).then(response => {
+      this.$http.post(refreshTokenUrl, { refresh: this.$store.state.refresh }).then((response) => {
         if (response.data.error) {
           this.$store.commit('logout')
           next({ name: 'login' })
         } else {
           this.$http.defaults.headers.common['Authorization'] = response.data.access
           this.$store.commit('refresh', {
-            access: response.data.access
+            access: response.data.access,
           })
         }
 
@@ -64,7 +65,7 @@ new Vue({
           next({ name: 'login' })
         } else {
           if (to.name === 'login' && this.$store.state.isLoggedIn) {
-            next({name: '/'})
+            next({ name: '/' })
           } else {
             if (to.name !== this.$router.currentRoute.path) {
               next()
@@ -74,5 +75,5 @@ new Vue({
       })
     })
   },
-  render: h => h(App)
+  render: (h) => h(App),
 }).$mount('#app')

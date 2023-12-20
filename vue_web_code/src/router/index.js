@@ -6,8 +6,8 @@ import AccountBeheer from '@/components/AccountBeheer'
 import BerichtenBeheer from '@/components/BerichtenBeheer'
 
 const originalPush = VueRouter.prototype.push
-VueRouter.prototype.push = function push (location) {
-  return originalPush.call(this, location).catch(err => err)
+VueRouter.prototype.push = function push(location) {
+  return originalPush.call(this, location).catch((err) => err)
 }
 
 Vue.use(VueRouter)
@@ -16,11 +16,11 @@ const routes = [
   { path: '/login', component: Login, name: 'login' },
   { path: '/password', component: Password },
   { path: '/', component: AccountBeheer },
-  { path: '/berichtenbeheer', component: BerichtenBeheer }
+  { path: '/berichtenbeheer', component: BerichtenBeheer },
 ]
 
 const router = new VueRouter({
-  routes
+  routes,
 })
 
 export default router
