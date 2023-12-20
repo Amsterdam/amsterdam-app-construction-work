@@ -1,3 +1,4 @@
+<!-- do not remove this or the linter will rewrite the line `:checked-rows.sync="selected_projects"` and the application will die -->
 <!-- eslint-disable vue/no-deprecated-v-bind-sync -->
 <template>
   <section class="section">
@@ -186,6 +187,7 @@ export default {
             this.project_managers.push(data)
             this.$refs.autocomplete.setSelected(value)
             this.selected_project_manager = data
+            this.selected_project_manager_is_new = true
             close()
           } else {
             let message = `"${value}" is al in gebruik`
@@ -238,6 +240,8 @@ export default {
       message += '</ul></div>'
       let projectManager = this.selected_project_manager
 
+      const isNew = !this.selected_project_manager.manager_key
+
       this.$buefy.dialog.confirm({
         title: 'Account bijwerken / opslaan',
         message: message,
@@ -246,7 +250,8 @@ export default {
         type: 'is-primary',
         hasIcon: true,
         onConfirm: () => {
-          axios.patch(projectManagerUrl, projectManager).then(
+          const method = isNew ? 'post' : 'patch'
+          axios[method](projectManagerUrl, projectManager).then(
             (response) => {
               if (Object.prototype.hasOwnProperty.call(response.data, 'id')) {
                 this.create_pdf(response.data.manager_key)
