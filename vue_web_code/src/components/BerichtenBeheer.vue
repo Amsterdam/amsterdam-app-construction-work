@@ -216,7 +216,7 @@ export default {
             page_size: 10000,
             page: 1
           },
-          headers: {deviceid: '00000000-0000-0000-0000-000000000000'}}).then(response => {
+        }).then(response => {
           let titles = {}
           for (let i = 0; i < response.data.result.length; i++) {
             titles[response.data.result[i].identifier] = response.data.result[i].title
