@@ -115,12 +115,8 @@ as_warning_message_post = {
         properties={
             "title": openapi.Schema(type=openapi.TYPE_STRING, description="title"),
             "body": openapi.Schema(type=openapi.TYPE_STRING, description="full text"),
-            "project_identifier": openapi.Schema(
-                type=openapi.TYPE_STRING, description="identifier"
-            ),
-            "project_manager_id": openapi.Schema(
-                type=openapi.TYPE_STRING, description="identifier"
-            ),
+            "project_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="project id"),
+            "project_manager_key": openapi.Schema(type=openapi.TYPE_STRING, description="project manager key (UUID)"),
         },
     ),
     "responses": {
