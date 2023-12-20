@@ -148,7 +148,7 @@ export default {
       // get current projects
       axios({
         methods: 'GET',
-        url: '/projects',
+        url: '/projects_jwt',
         headers: {deviceid: '00000000-0000-0000-0000-000000000000', page_size: 10000}
       }).then(response => {
         this.projects = response.data.result

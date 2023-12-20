@@ -209,7 +209,7 @@ export default {
         let warningResponse = response.data.result
         axios({
           methods: 'GET',
-          url: '/projects',
+          url: '/projects_jwt',
           params: {
             fields: 'identifier,title',
             page_size: 10000,
