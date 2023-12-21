@@ -63,9 +63,6 @@ import axios from 'axios'
 import jsPDF from 'jspdf'
 import { projectsUrl, projectManagerUrl } from '@/api'
 
-// TODO: manager_key generate in the backend not in the frontend. Remove uuid when backend work is done.
-import { v4 as useUuid } from 'uuid'
-
 export default {
   data() {
     return {
