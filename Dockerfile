@@ -10,7 +10,8 @@ RUN apt-get update \
 # Add source
 COPY vue_web_code /code/vue_web_code
 
-# Build vue webside
+# Build vue website
+FROM node:20-alpine
 RUN cd /code/vue_web_code \
  && npm install \
  && npm run build \
