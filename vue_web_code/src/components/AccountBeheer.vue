@@ -282,7 +282,9 @@ export default {
         hasIcon: true,
         onConfirm: () => {
           axios
-            .delete(projectManagerUrl, { params: { id: this.selected_project_manager.id } })
+            .delete(projectManagerUrl, {
+              params: { manager_key: this.selected_project_manager.manager_key },
+            })
             .then(
               () => {
                 // reload accounts and projects
