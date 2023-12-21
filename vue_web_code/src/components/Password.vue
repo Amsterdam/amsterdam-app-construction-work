@@ -54,7 +54,7 @@ export default {
     }
   },
   computed: {
-    type: function () {
+    type() {
       if (this.success) {
         return 'is-success'
       } else if (this.message) {
@@ -65,7 +65,7 @@ export default {
     },
   },
   methods: {
-    changePassword: function () {
+    changePassword() {
       if (this.newPassword.length < 7) {
         this.message = 'Uw wachtwoord moet tenminste acht karakters lang zijn.'
         return

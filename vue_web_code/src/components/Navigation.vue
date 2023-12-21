@@ -58,7 +58,7 @@ export default {
     },
   },
   methods: {
-    logout: function () {
+    logout() {
       this.$http.defaults.headers.common['Authorization'] = ''
       this.$store.commit('logout')
       this.$router.push('/login')

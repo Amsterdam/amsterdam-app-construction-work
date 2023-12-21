@@ -187,7 +187,7 @@ export default {
     this.init()
   },
   methods: {
-    init: function () {
+    init() {
       // Get current project_managers
       axios({ methods: 'GET', url: '/project/warnings' }).then(
         (response) => {
@@ -211,7 +211,7 @@ export default {
               warningResponse[i]['date'] = warningResponse[i]['modification_date'].split('T')[0]
             }
 
-            this.warnings = warningResponse.sort(function (a, b) {
+            this.warnings = warningResponse.sort((a, b) => {
               return new Date(b.modification_date) - new Date(a.modification_date)
             })
           })
@@ -230,7 +230,7 @@ export default {
         return firstArgument - secondArgument
       }
     },
-    editor: function () {
+    editor() {
       this.title = this.selected.title
       this.body = this.selected.body
       this.identifier = this.selectedIdentifier

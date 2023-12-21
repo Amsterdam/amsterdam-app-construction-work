@@ -112,11 +112,6 @@ export default {
     },
   },
   watch: {
-    selected_projects: {
-      handler() {
-        console.log(this.selected_projects)
-      },
-    },
     selected_project_manager: {
       handler() {
         this.selected_projects = []
@@ -138,7 +133,7 @@ export default {
     this.init()
   },
   methods: {
-    init: function () {
+    init() {
       // Get current project_managers
       axios({ methods: 'GET', url: projectManagerUrl }).then(
         (response) => {
@@ -187,7 +182,6 @@ export default {
             this.project_managers.push(data)
             this.$refs.autocomplete.setSelected(value)
             this.selected_project_manager = data
-            this.selected_project_manager_is_new = true
             close()
           } else {
             let message = `"${value}" is al in gebruik`
