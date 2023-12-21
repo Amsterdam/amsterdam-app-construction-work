@@ -1,3 +1,5 @@
+<!-- do not remove this or the linter will rewrite the line `:checked-rows.sync="selected_projects"` and the application will die -->
+<!-- eslint-disable vue/no-deprecated-v-bind-sync -->
 <template>
   <div v-if="edit === false" class="outer-section">
     <section>
@@ -8,7 +10,7 @@
           :data="warnings"
           :show-detail-icon="showDetailIcon"
           :sticky-header="true"
-          v-model:selected="selected"
+          :checked-rows.sync="selected_projects"
           sort-icon="chevron-up"
           sort-icon-size="is-medium"
           detail-transition="fade"

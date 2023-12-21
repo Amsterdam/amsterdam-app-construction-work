@@ -42,8 +42,8 @@ export default {
   name: 'login-component',
   data() {
     return {
-      username: 'communicare@amsterdam.nl',
-      password: 'Kl31nDu1mpj3',
+      username: '',
+      password: '',
       message: '',
     }
   },
