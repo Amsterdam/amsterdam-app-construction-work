@@ -45,7 +45,7 @@ RUN apk add --no-cache --virtual .build-deps build-base linux-headers \
     && cd /code \
     && python3 -m pip --no-cache-dir install -r /code/requirements.txt \
     && rm -rf /tmp/* \
-    && find / -name "*.c" -delete \
-    && find / -name "*.pyc" -delete \
+    # && find / -name "*.c" -delete \
+    # && find / -name "*.pyc" -delete \
     && apk del .build-deps \
     && chmod +x /code/init.sh

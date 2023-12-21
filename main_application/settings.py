@@ -60,6 +60,10 @@ if DEBUG:
 USE_X_FORWARDED_HOST = True
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
+# Uncomment to enable Django Debug Toolbar
+# Makes the API really slow returning data, don't know why
+INTERNAL_IPS = ["127.0.0.1"]
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -77,6 +81,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
     "construction_work.apps.ConstructionWorkApiConfig",
+    "debug_toolbar",
 ]
 
 MIDDLEWARE = [
@@ -88,10 +93,32 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_HEADERS = ["deviceid"]
+CORS_ALLOW_HEADERS = [
+    "deviceid",
+    "deviceauthorization",
+    "ingestauthorization",
+    "userauthorization",
+    "x_forwarded_proto",
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "connection",
+    "accept-language",
+    "cache-control",
+    "pragma",
+    "referer",
+    "dnt",
+    "origin",
+    "host",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+]
 ROOT_URLCONF = "main_application.urls"
 
 TEMPLATES = [
@@ -116,6 +143,8 @@ REST_FRAMEWORK = {
     #'DEFAULT_AUTHENTICATION_CLASSES': [
     #    'rest_framework.authentication.TokenAuthentication'
     # ]
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
+    "PAGE_SIZE": 10,
 }
 
 #
@@ -139,6 +168,7 @@ SWAGGER_SETTINGS = {
     "SHOW_REQUEST_HEADERS": True,
     "VALIDATOR_URL": None,
     "api_key": "",
+    "DEFAULT_MODEL_RENDERING": "example",
 }
 
 # CronJobs
@@ -165,9 +195,15 @@ DATABASES = {
     }
 }
 
-# The lifetime of a database connection, as an integer of seconds. Use 0 to close database connections at the end of
-# each request — Django’s historical behavior — and None for unlimited persistent connections.
-CONN_MAX_AGE = 0
+# To enable persistent connections, set CONN_MAX_AGE to a positive integer of seconds.
+# For unlimited persistent connections, set it to None.
+CONN_MAX_AGE = None
+# If set to True, existing persistent database connections will be health checked,
+# before they are reused in each request performing database access.
+# If the health check fails, the connection will be reestablished without failing the request,
+# when the connection is no longer usable but the database server is ready to accept
+# and serve new connections (e.g. after database server restart closing existing connections).
+CONN_HEALTH_CHECKS = True
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -198,7 +234,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = False
+USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)

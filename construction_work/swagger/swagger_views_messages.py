@@ -6,55 +6,142 @@
 from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
-from construction_work.serializers import NotificationSerializer, WarningMessagesExternalSerializer
+from construction_work.serializers import (
+    WarningImageSerializer,
+    WarningMessageSerializer,
+)
+from construction_work.swagger.swagger_generic_objects import (
+    coordinates,
+    forbidden_403,
+    header_device_authorization,
+    header_jwt_authorization,
+    header_user_authorization,
+    not_found_404,
+    query_id,
+    query_project_id,
+    query_sort_by,
+    query_sort_order,
+    query_warning_message_id,
+    warning_message,
+    warning_messages,
+)
 
 message = Messages()
 
+
+image = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        "main": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="main image"),
+        "sources": openapi.Schema(
+            type=openapi.TYPE_ARRAY,
+            items=openapi.Schema(
+                type=openapi.TYPE_OBJECT,
+                properties={
+                    "uri": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
+                    "width": openapi.Schema(
+                        type=openapi.TYPE_INTEGER, description="width"
+                    ),
+                    "height": openapi.Schema(
+                        type=openapi.TYPE_INTEGER, description="height"
+                    ),
+                },
+            ),
+        ),
+        "landscape": openapi.Schema(
+            type=openapi.TYPE_BOOLEAN, description="image orientation"
+        ),
+        "coordinates": coordinates,
+        "description": openapi.Schema(type=openapi.TYPE_STRING, description="text"),
+        "aspect_ratio": openapi.Schema(
+            type=openapi.TYPE_NUMBER, description="aspect ratio"
+        ),
+    },
+)
+
+images = openapi.Schema(type=openapi.TYPE_ARRAY, items=image)
+
+as_warning_message_get = {
+    # /api/v1/notification/messages/warning/get
+    "methods": ["GET"],
+    "manual_parameters": [header_device_authorization, query_id],
+    "responses": {
+        200: openapi.Response(
+            "application/json",
+            warning_message,
+            examples={
+                "application/json": {
+                    "id": 1,
+                    "meta_id": {"id": 1, "type": "warning"},
+                    "images": [
+                        {
+                            "main": True,
+                            "sources": [
+                                {"uri": "https://...", "width": 1, "height": 1}
+                            ],
+                            "landscape": False,
+                            "coordinates": {"lat": None, "lon": None},
+                            "description": "image",
+                            "aspect_ratio": 1,
+                        }
+                    ],
+                    "title": "title",
+                    "body": "body",
+                    "publication_date": "2023-12-06T11:40:54.418000+01:00",
+                    "modification_date": "2023-12-06T11:41:01.525000+01:00",
+                    "author_email": "info@amsterdam.nl",
+                    "project": 1,
+                }
+            },
+        ),
+        400: openapi.Response(
+            "application/json",
+            examples={"application/json": message.invalid_query},
+        ),
+        403: forbidden_403,
+        404: not_found_404,
+    },
+    "tags": ["Projects"],
+}
 
 as_warning_message_post = {
     # /api/v1/notification/messages/warning
     "methods": ["POST"],
     "manual_parameters": [
-        openapi.Parameter(
-            "UserAuthorization",
-            openapi.IN_HEADER,
-            description="authorization token",
-            type=openapi.TYPE_STRING,
-            required=True,
-        )
+        header_user_authorization,
     ],
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
             "title": openapi.Schema(type=openapi.TYPE_STRING, description="title"),
             "body": openapi.Schema(type=openapi.TYPE_STRING, description="full text"),
-            "project_identifier": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
-            "project_manager_id": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
-            "author_email": openapi.Schema(type=openapi.TYPE_STRING, description="author@amsterdam.nl"),
+            "project_id": openapi.Schema(type=openapi.TYPE_INTEGER, description="project id"),
+            "project_manager_key": openapi.Schema(type=openapi.TYPE_STRING, description="project manager key (UUID)"),
         },
     ),
     "responses": {
         200: openapi.Response(
             "application/json",
+            WarningMessageSerializer,
             examples={
                 "application/json": {
-                    "status": True,
-                    "result": {"warning_identifier": "identifier"},
+                    "id": 11,
+                    "title": "foobar title",
+                    "body": "foobar body",
+                    "publication_date": "2023-11-20T15:57:16.166948+01:00",
+                    "modification_date": "2023-11-20T15:57:16.166978+01:00",
+                    "author_email": "mock0@amsterdam.nl",
+                    "project": 55,
+                    "project_manager": 55,
                 }
             },
         ),
-        403: openapi.Response(
+        400: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": False, "result": message.access_denied}},
+            examples={"application/json": message.invalid_query},
         ),
-        404: openapi.Response(
-            "application/json",
-            examples={"application/json": {"status": False, "result": message.no_record_found}},
-        ),
-        422: openapi.Response(
-            "application/json",
-            examples={"application/json": {"status": False, "result": message.invalid_query}},
-        ),
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Projects"],
 }
@@ -62,40 +149,38 @@ as_warning_message_post = {
 as_warning_message_patch = {
     # /api/v1/notification/messages/warning
     "methods": ["PATCH"],
-    "manual_parameters": [
-        openapi.Parameter(
-            "UserAuthorization",
-            openapi.IN_HEADER,
-            description="authorization token",
-            type=openapi.TYPE_STRING,
-            required=True,
-        )
-    ],
+    "manual_parameters": [header_jwt_authorization],
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
             "title": openapi.Schema(type=openapi.TYPE_STRING, description="title"),
-            "body": openapi.Schema(type=openapi.TYPE_STRING, description="full text"),
-            "project_identifier": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
+            "body": openapi.Schema(type=openapi.TYPE_STRING, description="body text"),
+            "id": openapi.Schema(type=openapi.TYPE_STRING, description="message id"),
         },
     ),
     "responses": {
         200: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": True, "result": "Message patched"}},
+            WarningMessageSerializer,
+            examples={
+                "application/json": {
+                    "id": 6,
+                    "title": "new title",
+                    "body": "new body text",
+                    "publication_date": "2023-11-20T15:51:37.080818+01:00",
+                    "modification_date": "2023-11-20T15:51:37.097048+01:00",
+                    "author_email": "mock0@amsterdam.nl",
+                    "project": 27,
+                    "project_manager": 27,
+                }
+            },
         ),
-        403: openapi.Response(
+        400: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": False, "result": message.access_denied}},
+            examples={"application/json": message.invalid_query},
         ),
-        404: openapi.Response(
-            "application/json",
-            examples={"application/json": {"status": False, "result": message.no_record_found}},
-        ),
-        422: openapi.Response(
-            "application/json",
-            examples={"application/json": {"status": False, "result": message.invalid_query}},
-        ),
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Projects"],
 }
@@ -104,32 +189,19 @@ as_warning_message_delete = {
     # /api/v1/asset swagger_auto_schema
     "methods": ["DELETE"],
     "manual_parameters": [
-        openapi.Parameter(
-            "UserAuthorization",
-            openapi.IN_HEADER,
-            description="authorization token",
-            type=openapi.TYPE_STRING,
-            required=True,
-        ),
-        openapi.Parameter(
-            "id",
-            openapi.IN_QUERY,
-            "Warning message identifier",
-            type=openapi.TYPE_STRING,
-            format="<identifier>",
-            required=True,
-        ),
+        header_jwt_authorization,
+        query_warning_message_id,
     ],
     "responses": {
         200: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": True, "result": "Message deleted"}},
+            examples={"application/json": "Message deleted"},
         ),
-        403: openapi.Response("Error: Forbidden"),
-        422: openapi.Response(
+        400: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": False, "result": message.invalid_query}},
+            examples={"application/json": message.invalid_query},
         ),
+        403: forbidden_403,
     },
     "tags": ["Projects"],
 }
@@ -138,139 +210,81 @@ as_warning_messages_get = {
     # /api/v1/notification/messages/warning/get
     "methods": ["GET"],
     "manual_parameters": [
-        openapi.Parameter(
-            "id",
-            openapi.IN_QUERY,
-            "Query by project-identifier",
-            type=openapi.TYPE_STRING,
-            format="<identifier>",
-            required=False,
-        ),
-        openapi.Parameter(
-            "sort-by",
-            openapi.IN_QUERY,
-            "Sort response (default: modification_date)",
-            type=openapi.TYPE_STRING,
-            format="<any key from model>",
-            required=False,
-        ),
-        openapi.Parameter(
-            "sort-order",
-            openapi.IN_QUERY,
-            "Sorting order (default: asc)",
-            type=openapi.TYPE_STRING,
-            format="<asc, desc>",
-            required=False,
-        ),
+        header_device_authorization,
+        query_project_id,
+        query_sort_by,
+        query_sort_order,
     ],
     "responses": {
         200: openapi.Response(
             "application/json",
-            WarningMessagesExternalSerializer,
-            examples={"application/json": {"status": True, "result": []}},
+            warning_messages,
+            examples={
+                "application/json": [
+                    {
+                        "id": 1,
+                        "meta_id": {"id": 1, "type": "warning"},
+                        "images": [
+                            {
+                                "main": True,
+                                "sources": [
+                                    {"uri": "https://...", "width": 1, "height": 1}
+                                ],
+                                "landscape": False,
+                                "coordinates": {"lat": None, "lon": None},
+                                "description": "image",
+                                "aspect_ratio": 1,
+                            }
+                        ],
+                        "title": "title",
+                        "body": "body",
+                        "publication_date": "2023-12-06T11:40:54.418000+01:00",
+                        "modification_date": "2023-12-06T11:41:01.525000+01:00",
+                        "author_email": "info@amsterdam.nl",
+                        "project": 1,
+                    }
+                ]
+            },
         ),
-        404: openapi.Response("Error: Not Found"),
-        422: openapi.Response("Error: Unprocessable Entity"),
-    },
-    "tags": ["Projects"],
-}
-
-as_warning_message_get = {
-    # /api/v1/notification/messages/warning/get
-    "methods": ["GET"],
-    "manual_parameters": [
-        openapi.Parameter(
-            "id",
-            openapi.IN_QUERY,
-            "Query by identifier",
-            type=openapi.TYPE_STRING,
-            format="<identifier>",
-            required=False,
-        )
-    ],
-    "responses": {
-        200: openapi.Response(
+        400: openapi.Response(
             "application/json",
-            WarningMessagesExternalSerializer,
-            examples={"application/json": {"status": True, "result": {}}},
+            examples={"application/json": message.invalid_query},
         ),
-        404: openapi.Response("Error: Not Found"),
-        422: openapi.Response("Error: Unprocessable Entity"),
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Projects"],
 }
 
 as_notification_post = {
-    # /api/v1/notification/messages/push/send
+    # /api/v1/notification
     "methods": ["POST"],
-    "manual_parameters": [
-        openapi.Parameter(
-            "UserAuthorization",
-            openapi.IN_HEADER,
-            description="authorization token",
-            type=openapi.TYPE_STRING,
-            required=True,
-        )
-    ],
-    "request_body": NotificationSerializer,
+    "manual_parameters": [header_user_authorization],
+    "request_body": openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            "title": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Title of notification"
+            ),
+            "body": openapi.Schema(
+                type=openapi.TYPE_STRING, description="Body of notification"
+            ),
+            "warning_id": openapi.Schema(
+                type=openapi.TYPE_INTEGER, description="Warning identifier"
+            ),
+        },
+    ),
     "responses": {
         200: openapi.Response(
             "application/json",
-            examples={
-                "application/json": {
-                    "status": True,
-                    "result": "push-notification accepted",
-                }
-            },
+            examples={"application/json": "Push notifications sent"},
         ),
-        403: openapi.Response(
+        400: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": False, "result": message.access_denied}},
+            examples={"application/json": message.invalid_query},
         ),
-        422: openapi.Response(
-            "application/json",
-            examples={"application/json": {"status": False, "result": message.invalid_query}},
-        ),
-    },
-    "tags": ["Notifications"],
-}
-
-as_notification_get = {
-    # /api/v1/notification/messages/push/get
-    "methods": ["GET"],
-    "manual_parameters": [
-        openapi.Parameter(
-            "project-ids",
-            openapi.IN_QUERY,
-            "Query push-notifications by project-identifier(s)",
-            type=openapi.TYPE_ARRAY,
-            items=openapi.Items(type=openapi.TYPE_STRING),
-            required=True,
-        ),
-        openapi.Parameter(
-            "sort-by",
-            openapi.IN_QUERY,
-            "Sort response (default: publication_date)",
-            type=openapi.TYPE_STRING,
-            format="<any key from model>",
-            required=False,
-        ),
-        openapi.Parameter(
-            "sort-order",
-            openapi.IN_QUERY,
-            "Sorting order (default: desc)",
-            type=openapi.TYPE_STRING,
-            format="<asc, desc>",
-            required=False,
-        ),
-    ],
-    "responses": {
-        200: openapi.Response(
-            "application/json",
-            NotificationSerializer,
-            examples={"application/json": {"status": True, "result": []}},
-        ),
-        422: openapi.Response("Error: Unprocessable Entity"),
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Notifications"],
 }
@@ -278,59 +292,55 @@ as_notification_get = {
 as_warning_message_image_post = {
     # /api/v1/notification/messages/image/post
     "methods": ["POST"],
-    "manual_parameters": [
-        openapi.Parameter(
-            "UserAuthorization",
-            openapi.IN_HEADER,
-            description="authorization token",
-            type=openapi.TYPE_STRING,
-            required=True,
-        )
-    ],
+    "manual_parameters": [header_user_authorization],
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            "project_warning_id": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
+            "warning_id": openapi.Schema(
+                type=openapi.TYPE_INTEGER, description="warning id"
+            ),
             "image": openapi.Schema(
                 type=openapi.TYPE_OBJECT,
                 properties={
-                    "main": openapi.Schema(type=openapi.TYPE_BOOLEAN, description="<false|true>"),
-                    "description": openapi.Schema(type=openapi.TYPE_STRING, description="about this image"),
-                    "data": openapi.Schema(type=openapi.TYPE_STRING, description="base64 image data"),
+                    "main": openapi.Schema(
+                        type=openapi.TYPE_BOOLEAN, description="<false|true>"
+                    ),
+                    "description": openapi.Schema(
+                        type=openapi.TYPE_STRING, description="about this image"
+                    ),
+                    "data": openapi.Schema(
+                        type=openapi.TYPE_STRING, description="base64 image data"
+                    ),
                 },
+                required=["main", "data"],
             ),
         },
+        required=["warning_id"],
     ),
     "responses": {
         200: openapi.Response(
             "application/json",
+            WarningImageSerializer,
             examples={
                 "application/json": {
-                    "status": True,
-                    "result": "Images stored in database",
+                    "id": 234,
+                    "is_main": False,
+                    "warning": 3245,
+                    "images": [34, 35, 36],
                 }
             },
         ),
-        403: openapi.Response(
-            "application/json",
-            examples={"application/json": {"status": False, "result": message.access_denied}},
-        ),
-        404: openapi.Response(
-            "application/json",
-            examples={"application/json": {"status": False, "result": message.no_record_found}},
-        ),
-        422: openapi.Response(
+        400: openapi.Response(
             "application/json",
             examples={
-                "application/json": {
-                    "status": False,
-                    "result": "{invalid}|{unsupported}".format(
-                        invalid=message.invalid_query,
-                        unsupported=message.unsupported_image_format,
-                    ),
-                }
+                "application/json": [
+                    message.invalid_query,
+                    message.unsupported_image_format,
+                ]
             },
         ),
+        403: forbidden_403,
+        404: not_found_404,
     },
     "tags": ["Projects"],
 }

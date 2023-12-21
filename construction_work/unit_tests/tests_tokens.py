@@ -5,18 +5,24 @@ import json
 from django.contrib.auth import authenticate, get_user_model
 from django.test import TestCase
 
-username = "mock"
-password = "unsave"
-email = "mock@localhost"
 
+class BaseTokenTest(TestCase):
+    """Base token test"""
 
-class SignInTest(TestCase):
-    """Test django signin"""
-
-    def setUp(self):
+    def setUp(self) -> None:
         """Setup test db"""
-        self.user = get_user_model().objects.create_user(username=username, password=password, email=email)
+        self.username = "mock"
+        self.password = "unsave"
+        self.email = "mock@localhost"
+
+        self.user = get_user_model().objects.create_user(
+            username=self.username, password=self.password, email=self.email
+        )
         self.user.save()
+
+
+class SignInTest(BaseTokenTest):
+    """Test django signin"""
 
     def tearDown(self):
         """tear down test db"""
@@ -24,28 +30,23 @@ class SignInTest(TestCase):
 
     def test_correct(self):
         """test successful signin"""
-        user = authenticate(username=username, password=password)
-        self.assertEqual(user.email, email)
+        user = authenticate(username=self.username, password=self.password)
+        self.assertEqual(user.email, self.email)
         self.assertTrue(user.is_authenticated)
 
     def test_wrong_username(self):
         """test wrong username"""
-        user = authenticate(username="wrong", password=password)
+        user = authenticate(username="wrong", password=self.password)
         self.assertEqual(user, None)
 
     def test_wrong_password(self):
         """test wrong password"""
-        user = authenticate(username=username, password="wrong")
+        user = authenticate(username=self.username, password="wrong")
         self.assertEqual(user, None)
 
 
-class SignInViewTest(TestCase):
+class SignInViewTest(BaseTokenTest):
     """Test signin view"""
-
-    def setUp(self):
-        """setup test db"""
-        self.user = get_user_model().objects.create_user(username=username, password=password, email=email)
-        self.user.save()
 
     def tearDown(self):
         """tear down test db"""
@@ -53,32 +54,37 @@ class SignInViewTest(TestCase):
 
     def test_correct(self):
         """test correct signin"""
-        response = self.client.post("/api/v1/get-token/", {"username": username, "password": password})
+        response = self.client.post(
+            "/api/v1/get-token/", {"username": self.username, "password": self.password}
+        )
         self.assertTrue(len(str(response.data["access"]).split(".")) == 3)
         self.assertTrue(len(str(response.data["refresh"]).split(".")) == 3)
 
     def test_wrong_username(self):
         """test wrong username"""
-        response = self.client.post("/api/v1/get-token/", {"username": "wrong", "password": password})
+        response = self.client.post(
+            "/api/v1/get-token/", {"username": "wrong", "password": self.password}
+        )
         result = json.loads(response.content.decode("utf-8"))
-        expected_result = {"detail": "No active account found with the given credentials"}
+        expected_result = {
+            "detail": "No active account found with the given credentials"
+        }
         self.assertDictEqual(result, expected_result)
 
     def test_wrong_password(self):
         """test wrong password"""
-        response = self.client.post("/api/v1/get-token/", {"username": username, "password": "wrong"})
+        response = self.client.post(
+            "/api/v1/get-token/", {"username": self.username, "password": "wrong"}
+        )
         result = json.loads(response.content.decode("utf-8"))
-        expected_result = {"detail": "No active account found with the given credentials"}
+        expected_result = {
+            "detail": "No active account found with the given credentials"
+        }
         self.assertDictEqual(result, expected_result)
 
 
-class RefreshTokenViewTest(TestCase):
+class RefreshTokenViewTest(BaseTokenTest):
     """Test refresh token view"""
-
-    def setUp(self):
-        """setup test db"""
-        self.user = get_user_model().objects.create_user(username=username, password=password, email=email)
-        self.user.save()
 
     def tearDown(self):
         """tear down test db"""
@@ -86,11 +92,15 @@ class RefreshTokenViewTest(TestCase):
 
     def test_correct(self):
         """test correct refresh token"""
-        credentials = self.client.post("/api/v1/get-token/", {"username": username, "password": password})
+        credentials = self.client.post(
+            "/api/v1/get-token/", {"username": self.username, "password": self.password}
+        )
         self.assertTrue(len(str(credentials.data["access"]).split(".")) == 3)
         self.assertTrue(len(str(credentials.data["refresh"]).split(".")) == 3)
 
-        response = self.client.post("/api/v1/refresh-token/", {"refresh": credentials.data["refresh"]})
+        response = self.client.post(
+            "/api/v1/refresh-token/", {"refresh": credentials.data["refresh"]}
+        )
         self.assertNotEqual(response.data["access"], credentials.data["access"])
         self.assertTrue(len(str(response.data["access"]).split(".")) == 3)
 
@@ -98,5 +108,8 @@ class RefreshTokenViewTest(TestCase):
         """test failed refresh token"""
         response = self.client.post("/api/v1/refresh-token/", {"refresh": "invalid"})
         result = json.loads(response.content.decode("utf-8"))
-        expected_result = {"detail": "Token is invalid or expired", "code": "token_not_valid"}
+        expected_result = {
+            "detail": "Token is invalid or expired",
+            "code": "token_not_valid",
+        }
         self.assertDictEqual(result, expected_result)

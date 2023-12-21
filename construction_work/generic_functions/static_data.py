@@ -1,6 +1,14 @@
 """ Class file for 'magic' -numbers, -data, -urls etc... """
 
+# Maximum age for articles to be retrieved with project
+DEFAULT_ARTICLE_MAX_AGE = 60
+ARTICLE_MAX_AGE_PARAM = "article_max_age"
 
+DEFAULT_WARNING_MESSAGE_EMAIL = "redactieprojecten@amsterdam.nl"
+DEFAULT_NOTIFICATION_BATCH_SIZE = 500
+
+
+# NOTE: clean up. not SOLID.
 class StaticData:
     """Magic static data class methods"""
 
@@ -38,6 +46,7 @@ class StaticData:
             "waiting_times": "https://wachttijdenamsterdam.nl/data",
         }
 
+    # NOTE: not static...
     @staticmethod
     def base_url(request):
         """Get hostname for this server"""

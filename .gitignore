@@ -11,9 +11,6 @@ __pycache__
 # Python venv
 venv
 
-# Django migrations
-**/migrations
-
 # VueJS build files
 **/dist
 **/vue_web_code/node_modules
@@ -31,9 +28,6 @@ fcm_credentials.json
 # Persistent data directory for POSTGRES docker environment
 data
 data/db
-
-# VSCode
-.vscode
 
 # Coverage report
 .coverage

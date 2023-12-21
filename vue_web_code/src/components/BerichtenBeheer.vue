@@ -207,10 +207,9 @@ export default {
       // Get current project_managers
       axios({methods: 'GET', 'url': '/project/warnings'}).then(response => {
         let warningResponse = response.data.result
-
         axios({
           methods: 'GET',
-          url: '/projects',
+          url: '/projects_jwt',
           params: {
             fields: 'identifier,title',
             page_size: 10000,

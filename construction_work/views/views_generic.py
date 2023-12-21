@@ -1,48 +1,31 @@
 """ Generic views (images, assets) """
 from django.http import HttpResponse
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
 from construction_work.api_messages import Messages
-from construction_work.generic_functions.static_data import StaticData
-from construction_work.models import Asset, Image
-from construction_work.swagger.swagger_views_generic import as_asset, as_districts, as_image
+from construction_work.generic_functions.is_authorized import IsAuthorized
+from construction_work.models import Image
+from construction_work.swagger.swagger_views_generic import as_image
 
 message = Messages()
 
 
 @swagger_auto_schema(**as_image)
 @api_view(["GET"])
+@IsAuthorized
 def image(request):
     """Request image from API by identifier"""
-    identifier = request.GET.get("id", None)
-    if identifier is None:
-        return Response({"status": False, "result": message.invalid_query}, status=422)
+    image_id = request.GET.get("id", None)
+    if image_id is None:
+        return Response(message.invalid_query, status=status.HTTP_400_BAD_REQUEST)
 
-    image_object = Image.objects.filter(pk=identifier).first()
-    if image_object is not None:
-        return HttpResponse(image_object.data, content_type=image_object.mime_type, status=200)
-    return Response("Error: file not found", status=404)
+    image_obj = Image.objects.filter(pk=image_id).first()
+    if image_obj is None:
+        return Response(message.no_record_found, status=status.HTTP_404_NOT_FOUND)
 
-
-@swagger_auto_schema(**as_asset)
-@api_view(["GET"])
-def asset(request):
-    """Request asset from API by identifier (e.g. pdf document)"""
-    identifier = request.GET.get("id", None)
-    if identifier is None:
-        return Response({"status": False, "result": message.invalid_query}, status=422)
-
-    asset_object = Asset.objects.filter(pk=identifier).first()
-    if asset_object is not None:
-        return HttpResponse(asset_object.data, content_type=asset_object.mime_type, status=200)
-    return Response("Error: file not found", status=404)
-
-
-@swagger_auto_schema(**as_districts)
-@api_view(["GET"])
-def districts(request):
-    """Get district data"""
-    districts_data = StaticData.districts()
-    return Response({"status": True, "result": districts_data}, status=200)
+    return HttpResponse(
+        image_obj.data, content_type=image_obj.mime_type, status=status.HTTP_200_OK
+    )

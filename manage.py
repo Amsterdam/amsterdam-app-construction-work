@@ -34,7 +34,6 @@ def set_fcm_credentials_location():
 def main():
     """Run administrative tasks."""
     is_testing = "test" in sys.argv
-    is_runserver = "runserver" in sys.argv
 
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "main_application.settings")
 
@@ -42,9 +41,13 @@ def main():
     # When running manage.py runserver or test, this development mode is enabled
     os.environ["DJANGO_DEVELOPMENT"] = "true"
 
-    # When running from manage.py use locally available env vars
-    if is_testing or is_runserver:
-        source_environment()
+    # Locally run commands should read local env var file
+    # should_source = ["test", "runserver", "makemigrations", "migrate"]
+    # if any(arg in sys.argv for arg in should_source):
+    #     source_environment()
+
+    # Always read environment variables via manage.py
+    source_environment()
 
     try:
         from django.core.management import execute_from_command_line
@@ -58,9 +61,11 @@ def main():
     # Give developer easy access to API docs
     print("API documentation: http://0.0.0.0:8000/api/v1/apidocs")
 
-    if is_testing:
-        os.environ["AES_SECRET"] = "aes_mock_secret"
-        os.environ["APP_TOKEN"] = "app_mock_token"
+    no_coverage = os.getenv("NO_COVERAGE", "false").lower() in ("true", "1")
+
+    if is_testing is True and no_coverage is False:
+        os.environ["AES_SECRET"] = "mock_secret"
+        os.environ["APP_TOKEN"] = "111acb9e-9235-41fc-874c-3ef365d84dc7"
 
         import coverage
 

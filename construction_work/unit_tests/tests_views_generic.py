@@ -1,117 +1,61 @@
 """ unit_tests """
-import json
+import base64
+import os
 
 from django.test import Client, TestCase
 
 from construction_work.api_messages import Messages
-from construction_work.generic_functions.static_data import StaticData
-from construction_work.models import Asset, Image
-from construction_work.unit_tests.mock_data import TestData
+from construction_work.generic_functions.aes_cipher import AESCipher
+from construction_work.models import Image
 
 messages = Messages()
 
 
-class SetUp:
-    """Setup test db"""
-
-    def __init__(self):
-        self.data = TestData()
-        for asset in self.data.assets:
-            Asset.objects.create(**asset)
-
-        for image in self.data.images:
-            Image.objects.create(**image)
-
-
 class TestApiImage(TestCase):
-    """unit_tests"""
+    """Test image"""
 
     def setUp(self):
         """Setup test db"""
-        SetUp()
+        self.api_url = "/api/v1/image"
+        self.client = Client()
 
-    def test_invalid_query(self):
-        """Invalid query parameters"""
-        c = Client()
-        response = c.get("/api/v1/image")
+        app_token = os.getenv("APP_TOKEN")
+        aes_secret = os.getenv("AES_SECRET")
+        token = AESCipher(app_token, aes_secret).encrypt()
+        self.headers = {"DeviceAuthorization": token}
 
-        self.assertEqual(response.status_code, 422)
-        self.assertEqual(response.data, {"status": False, "result": messages.invalid_query})
+    def tearDown(self) -> None:
+        Image.objects.all().delete()
+
+    def test_get_image(self):
+        """Test get image"""
+        base64_small_green_square = "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAAE0lEQVR4nGNkaGDAA5jwSY5caQCnUgCUBZU3vQAAAABJRU5ErkJggg=="  # pylint: disable=line-too-long
+        binary_data = base64.b64decode(base64_small_green_square)
+
+        image = Image(
+            data=binary_data,
+            description="foobar",
+            width=10,
+            height=10,
+            aspect_ratio=1,
+            coordinates=None,
+            mime_type="image/png",
+        )
+        image.save()
+
+        response = self.client.get(self.api_url, {"id": image.pk}, headers=self.headers)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content, binary_data)
+
+        base64_data = base64.b64encode(binary_data).decode("utf-8")
+        self.assertEqual(base64_data, base64_small_green_square)
+
+    def test_no_image_id(self):
+        """Test without passing image id"""
+        response = self.client.get(self.api_url, headers=self.headers)
+        self.assertEqual(response.status_code, 400)
 
     def test_image_does_exist(self):
-        """Request a valid image"""
-        c = Client()
-        response = c.get("/api/v1/image", {"id": "0000000000"})
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, b"")
-
-    def test_image_does_not_exist(self):
-        """Image is not existing"""
-        c = Client()
-        response = c.get("/api/v1/image", {"id": "does not exist"})
-
+        """Test request image that does not exist"""
+        response = self.client.get(self.api_url, {"id": 9999}, headers=self.headers)
         self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data, "Error: file not found")
-
-    def test_method_not_allowed(self):
-        """Invalid http method"""
-        c = Client()
-        response = c.post("/api/v1/image")
-        result = json.loads(response.content)
-
-        self.assertEqual(response.status_code, 405)
-        self.assertDictEqual(result, {"detail": 'Method "POST" not allowed.'})
-
-
-class TestApiAsset(TestCase):
-    """UNITTEST"""
-
-    def setUp(self):
-        """Setup test db"""
-        SetUp()
-
-    def test_invalid_query(self):
-        """Invalid query parameters"""
-        c = Client()
-        response = c.get("/api/v1/asset")
-
-        self.assertEqual(response.status_code, 422)
-        self.assertEqual(response.data, {"status": False, "result": messages.invalid_query})
-
-    def test_asset_does_exist(self):
-        """A valid request"""
-        c = Client()
-        response = c.get("/api/v1/asset", {"id": "0000000000"})
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.content, b"")
-
-    def test_asset_does_not_exist(self):
-        """The asset doesn't exist"""
-        c = Client()
-        response = c.get("/api/v1/asset", {"id": "does not exist"})
-
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data, "Error: file not found")
-
-    def test_method_not_allowed(self):
-        """Invalid http method"""
-        c = Client()
-        response = c.post("/api/v1/asset")
-        result = json.loads(response.content)
-
-        self.assertEqual(response.status_code, 405)
-        self.assertDictEqual(result, {"detail": 'Method "POST" not allowed.'})
-
-
-class TestApiDistricts(TestCase):
-    """UNITTEST"""
-
-    def test_invalid_query(self):
-        """Invalid districts query"""
-        c = Client()
-        response = c.get("/api/v1/districts")
-
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.data, {"status": True, "result": StaticData.districts()})

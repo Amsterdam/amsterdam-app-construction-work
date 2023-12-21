@@ -13,7 +13,7 @@
       class="align-left">
       <b-autocomplete
         ref="autocomplete"
-        v-model="name"
+        v-model="email"
         :keep-first="true"
         :open-on-focus="true"
         :data="filteredDataObj"
@@ -21,11 +21,11 @@
         field="email"
         @select="option => (selected_project_manager = option)">
         <template #header>
-          <a @click="showAddPM">
+          <a @click="createUser">
             <span> Voeg toe... </span>
           </a>
         </template>
-        <template #empty>Geen resultaat voor {{ name }}</template>
+        <template #empty>Geen resultaat voor {{ email }}</template>
       </b-autocomplete>
     </b-field>
 
@@ -52,13 +52,13 @@
       class="align-left">
       <b-button
         class="is-primary"
-        @click="save()">
+        @click="updateUser()">
         <span style="font-weight: 600;">Bijwerken / Opslaan</span>
       </b-button>
 
       <b-button
         class="is-danger has-padding"
-        @click="remove()">
+        @click="deleteUser()">
         <span style="font-weight: 600;">Verwijderen</span>
       </b-button>
     </b-field>
@@ -69,10 +69,13 @@
 import axios from 'axios'
 import jsPDF from 'jspdf'
 
+// TODO: manager_key generate in the backend not in the frontend. Remove uuid when backend work is done.
+import { v4 as useUuid } from 'uuid'
+
 export default {
   data () {
     return {
-      name: '',
+      email: '',
       selected: null,
       selected_project_manager: null,
       project_managers: [],
@@ -108,7 +111,7 @@ export default {
           option.email
             .toString()
             .toLowerCase()
-            .indexOf(this.name.toLowerCase()) >= 0
+            .indexOf(this.email.toLowerCase()) >= 0
         )
       })
     }
@@ -134,8 +137,10 @@ export default {
   methods: {
     init: function () {
       // Get current project_managers
-      axios({methods: 'GET', 'url': '/project/manager'}).then(response => {
-        this.project_managers = response.data.result
+      axios({
+        methods: 'GET', 'url': '/project/manager'
+      }).then(response => {
+        this.project_managers = response.data
       }, error => {
         console.log(error)
       })
@@ -143,41 +148,55 @@ export default {
       // get current projects
       axios({
         methods: 'GET',
-        url: '/projects?page_size=10000',
-        headers: {deviceid: '00000000-0000-0000-0000-000000000000'}}).then(response => {
+        url: '/projects_jwt',
+        headers: {deviceid: '00000000-0000-0000-0000-000000000000', page_size: 10000}
+      }).then(response => {
         this.projects = response.data.result
       }, error => {
         console.log(error)
       })
     },
-    showAddPM () {
+    createUser () {
       this.$buefy.dialog.prompt({
         title: 'Account toevoegen',
         message: 'Voer een geldig "@amsterdam.nl" email adres in.',
         inputAttrs: {
           type: 'text',
           maxlength: 50,
-          value: this.name
+          value: this.email
         },
         confirmText: 'Toevoegen',
         cancelText: 'Afbreken',
         trapFocus: true,
         closeOnConfirm: false,
         onConfirm: (value, {close}) => {
-          if (value.includes('@amsterdam.nl')) {
-            let data = {email: value, projects: []}
-            this.project_managers.push(data)
-            this.$refs.autocomplete.setSelected(value)
-            this.selected_project_manager = data
-            close()
+          if (!this.project_managers.find(manager => manager.email === value)) {
+            if (value.includes('@amsterdam.nl')) {
+              let data = {email: value, projects: []}
+              console.log(!this.project_managers.find(manager => manager.email === value))
+              this.project_managers.push(data)
+              this.$refs.autocomplete.setSelected(value)
+              this.selected_project_manager = data
+              const uuid = useUuid()
+              axios.post('/project/manager', {
+                manager_key: uuid,
+                ...data
+              }).then((res) => {
+                console.log(res)
+              }).catch((err) => console.log(err))
+              close()
+            } else {
+              let message = `"${value}" is geen valide @amsterdam.nl adres`
+              this.$buefy.toast.open(message)
+            }
           } else {
-            let message = '"' + value + '" is geen valide @amsterdam.nl adres'
+            let message = `"${value}" is al in gebruik`
             this.$buefy.toast.open(message)
           }
         }
       })
     },
-    create_pdf (identifier) {
+    createPdf (identifier) {
       // Generate PDF document for end user
       let name = this.selected_project_manager.email.split('@')[0]
       // eslint-disable-next-line new-cap
@@ -203,7 +222,7 @@ export default {
       doc.text('https://api-backend.app-amsterdam.nl/omgevingsmanager/' + identifier, 10, textY)
       doc.save(name + '.pdf')
     },
-    save () {
+    updateUser () {
       let message = '<h1 style="padding-top:10px;padding-bottom:10px;">U staat op het punt om het account voor <b>' + this.selected_project_manager.email + '</b> toe te voegen / bij te werken.</h1>'
       message += '<div style="margin-bottom: 15px;"><p>U heeft de onderstaande projecten geselecteerd:</p></div>'
 
@@ -227,7 +246,7 @@ export default {
         onConfirm: () => {
           axios.patch('/project/manager', projectManager).then(response => {
             if (response.data.hasOwnProperty('identifier')) {
-              this.create_pdf(response.data.identifier)
+              this.createPdf(response.data.identifier)
               this.$buefy.toast.open('Account toegevoegd!')
             } else {
               this.$buefy.toast.open('Account bijgewerkt!')
@@ -235,7 +254,7 @@ export default {
 
             // reload accounts and projects
             this.init()
-            this.name = ''
+            this.email = ''
             this.selected_projects = []
             this.selected_project_manager = null
           }, error => {
@@ -244,7 +263,7 @@ export default {
         }
       })
     },
-    remove () {
+    deleteUser () {
       let message = '<h1 style="padding-top:10px;padding-bottom:10px;">U staat op het punt om het account voor <b>' + this.selected_project_manager.email + '</b> te verwijderen. Deze actie kan niet ongedaan gemaakt worden.</h1>'
       message += '<p>Weet u zeker dat u dit account wilt <b>verwijderen?</b></p>'
       this.$buefy.dialog.confirm({
@@ -255,10 +274,10 @@ export default {
         type: 'is-danger',
         hasIcon: true,
         onConfirm: () => {
-          axios.delete('/project/manager', {params: {'id': this.selected_project_manager.identifier}}).then(response => {
+          axios.delete('/project/manager', {params: {'manager_key': this.selected_project_manager.manager_key}}).then(response => {
             // reload accounts and projects
             this.init()
-            this.name = ''
+            this.email = ''
             this.selected_project_manager = null
             this.$buefy.toast.open('Account verwijderd!')
           }, error => {

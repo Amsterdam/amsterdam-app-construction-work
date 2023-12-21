@@ -5,6 +5,7 @@
 from drf_yasg import openapi
 
 from construction_work.api_messages import Messages
+from construction_work.swagger.swagger_generic_objects import forbidden_403
 
 message = Messages()
 
@@ -15,25 +16,30 @@ as_change_password = {
     "request_body": openapi.Schema(
         type=openapi.TYPE_OBJECT,
         properties={
-            "username": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
-            "old_password": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
-            "password": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
-            "password_verify": openapi.Schema(type=openapi.TYPE_STRING, description="identifier"),
+            "username": openapi.Schema(
+                type=openapi.TYPE_STRING, description="username"
+            ),
+            "old_password": openapi.Schema(
+                type=openapi.TYPE_STRING, description="old password"
+            ),
+            "password": openapi.Schema(
+                type=openapi.TYPE_STRING, description="new password"
+            ),
+            "password_verify": openapi.Schema(
+                type=openapi.TYPE_STRING, description="new password (verify)"
+            ),
         },
     ),
     "responses": {
         200: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": True, "result": "password update"}},
+            examples={"application/json": "password update"},
         ),
-        401: openapi.Response(
+        400: openapi.Response(
             "application/json",
-            examples={"application/json": {"status": False, "result": message.do_not_match}},
+            examples={"application/json": message.invalid_query},
         ),
-        422: openapi.Response(
-            "application/json",
-            examples={"application/json": {"status": False, "result": message.invalid_query}},
-        ),
+        403: forbidden_403,
     },
     "tags": ["Users"],
 }

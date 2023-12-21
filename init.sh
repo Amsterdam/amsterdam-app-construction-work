@@ -38,7 +38,7 @@ function set_header {
 
 function make_migrations {
     printf "\nRunning DB migrations scripts ... "
-    cd /code && python manage.py makemigrations amsterdam_app_api
+    cd /code && python manage.py makemigrations construction_work
     cd /code && python manage.py migrate
     printf "Done.\n"
 }

@@ -1,0 +1,91 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Django: migrate",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "args": [
+                "migrate",
+                // "construction_work",
+                // "0004_followed_projects_to_device_model",
+            ],
+            "django": true,
+            "justMyCode": true
+        },
+        {
+            "name": "Django: runserver",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "args": [
+                "runserver"
+            ],
+            "django": true,
+            "justMyCode": true,
+            "env": {
+                "DEBUG": "true",
+            },
+        },
+        {
+            "name": "Django: test current file",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "args": [
+                "test",
+                "${relativeFile}",
+                "--noinput"
+            ],
+            "django": true,
+            "console": "integratedTerminal",
+            "autoReload": {
+                "enable": true
+            },
+            "envFile": "${workspaceFolder}/env",
+            "env": {
+                // "DEBUG": "true",
+                "PYTHONPATH": "${workspaceFolder}",
+                "DJANGO_SETTINGS_MODULE": "main_application.settings",
+                // "DJANGO_ALLOW_ASYNC_UNSAFE": "true",
+                "NO_COVERAGE": "true",
+            },
+        },
+        {
+            "name": "Django: test specific class",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/manage.py",
+            "args": [
+                "test",
+                // "construction_work.unit_tests.tests_views_project_manager.TestApiProjectManager",
+                // "construction_work.unit_tests.tests_views_iprox_projects.TestFollowedProjectArticles",
+                // "construction_work.unit_tests.tests_views_iprox_news.TestNews",
+                // "construction_work.unit_tests.tests_views_messages_notifications",
+                "construction_work.unit_tests.tests_views_messages_warnings.TestApiProjectWarning",
+                // "construction_work.unit_tests.tests_project_utils.TestCreateProjectNewsLookup",
+                // "construction_work.unit_tests.tests_views_mobile_devices.TestApiDeviceRegistration",
+                // "construction_work.unit_tests.tests_isauthorized.TestIsAuthorized",
+                // "construction_work.unit_tests.tests_views_user.SignInTest",
+                // "construction_work.unit_tests.tests_views_messages_notifications.TestApiNotification",
+                // "--noinput"
+            ],
+            "django": true,
+            "console": "integratedTerminal",
+            "autoReload": {
+                "enable": true
+            },
+            "envFile": "${workspaceFolder}/env",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "DJANGO_SETTINGS_MODULE": "main_application.settings",
+                "NO_COVERAGE": "true",
+            },
+        }
+
+    ]
+}

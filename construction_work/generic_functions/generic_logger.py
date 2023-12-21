@@ -5,6 +5,10 @@
 import logging
 import os
 
+# NOTE: how to improve logging, Django logging?
+# is there a way to keep current behavior
+# where logs can get redirected to stdout via debug flag?
+
 
 class Logger:
     """Logger class"""

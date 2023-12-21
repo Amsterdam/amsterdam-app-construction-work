@@ -38,7 +38,9 @@ class TestLogger(TestCase):
         os.environ["DEBUG"] = "false"
 
         logger = Logger()
-        mock_logging = logging.getLogger("construction_work.generic_functions.generic_logger")
+        mock_logging = logging.getLogger(
+            "construction_work.generic_functions.generic_logger"
+        )
         with patch.object(mock_logging, "info") as mocked_log:
             logger.info("info")
             assert mocked_log.call_args_list == [call("info")]
