@@ -1,19 +1,9 @@
-# VUE
+# Run
 
-## Project setup
+Recommend using Volta: https://volta.sh/ to install the node version set in package.json
 
-```
-run: npm install
-     npm run build
-     npm run build_dev (*)
-```
-\* used for during development
+At `/vue_web_code`
+- `npm i`
+- `npm run dev` to dev or `npm run build` to build once
 
-
-### Lints and fixes files
-```
-npm run lint
-```
-
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+See package.json for the other available commands

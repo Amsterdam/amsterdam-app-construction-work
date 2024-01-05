@@ -1,64 +1,34 @@
 <template>
   <div>
-    <div
-      class="card login">
+    <div class="card login" @submit="login">
       <div>
         <div style="text-align: left">
-          <a
-            class="mainlogo"
-            href="https://www.amsterdam.nl">
-            <img
-              src="@/assets/logo.svg"
-              alt="Gemeente Amsterdam">
+          <a class="mainlogo" href="https://www.amsterdam.nl">
+            <img src="@/assets/logo.svg" alt="Gemeente Amsterdam" />
           </a>
         </div>
-        <div class="spacer"/>
+        <div class="spacer" />
       </div>
-      <form
-        @submit="login">
-        <div
-          class="align-left margin-less">
-          <span
-            class="align-left"
-            style="font-weight: 600; color: darkgray">
+      <form>
+        <div class="align-left margin-less">
+          <span class="align-left" style="font-weight: 600; color: darkgray">
             Voer uw gebruikersnaam in
           </span>
         </div>
-        <b-field
-          :type="message ? 'is-danger' : 'is-primary'">
-          <b-input
-            ref="inputUsername"/>
+        <b-field :type="message ? 'is-danger' : 'is-primary'">
+          <b-input v-model="username" />
         </b-field>
-        <div
-          class="align-left margin-less">
-          <span
-            class="align-left"
-            style="font-weight: 600; color: darkgrey">
+        <div class="align-left margin-less">
+          <span class="align-left" style="font-weight: 600; color: darkgrey">
             Voer uw wachtwoord in
           </span>
         </div>
-        <b-field
-          :type="message ? 'is-danger' : 'is-primary'">
-          <b-input
-            ref="inputPassword"
-            type="password"/>
+        <b-field :type="message ? 'is-danger' : 'is-primary'">
+          <b-input v-model="password" type="password" />
         </b-field>
-        <div
-          v-if="!!message"
-          class="align-left margin-less">
-          <span
-            class="align-left"
-            style="font-weight: 600; color: darkgrey">
-            {{ message }}
-          </span>
-        </div>
-        <b-button
-          native-type="submit"
-          type="is-primary">
-          <b-icon
-            icon="sign-in-alt"
-            pack="fas"/>
-          <span style="font-weight: 600;">Aanmelden</span>
+        <b-button native-type="submit" type="is-primary">
+          <b-icon icon="sign-in-alt" pack="fas" />
+          <span style="font-weight: 600">Aanmelden</span>
         </b-button>
       </form>
     </div>
@@ -66,40 +36,46 @@
 </template>
 
 <script>
+import { getTokenUrl } from '@/api'
 import axios from 'axios'
-
 export default {
-  name: 'Login',
-  data () {
+  name: 'login-component',
+  data() {
     return {
-      message: ''
+      username: '',
+      password: '',
+      message: '',
     }
-  },
-  mounted () {
-    console.log('Vue code mounted in login()')
   },
   methods: {
-    login () {
+    async login(e) {
+      e.preventDefault()
       let data = {
-        username: this.$refs.inputUsername.newValue,
-        password: this.$refs.inputPassword.newValue
+        username: this.username,
+        password: this.password,
       }
-      axios.post('/get-token/', {
-        username: this.$refs.inputUsername.newValue,
-        password: this.$refs.inputPassword.newValue
-      }).then(response => {
-        this.$store.commit('login', {
-          refresh: response.data.refresh,
-          access: response.data.access,
-          username: data.username
+
+      axios
+        .post(getTokenUrl, data)
+        .then((response) => {
+          if (response.data.error) {
+            this.message = JSON.stringify(response.data.error)
+          } else {
+            axios.defaults.headers.common['Authorization'] = response.data.access
+            this.$store.commit('login', {
+              refresh: response.data.refresh,
+              access: response.data.access,
+              username: data.username,
+            })
+          }
+          this.$router.push('/')
         })
-        this.$router.push('/')
-      }).catch((err) => {
-        console.log(err)
-        this.message = `${err.status}: ${err.statusText}`
-      })
-    }
-  }
+        .catch((err) => {
+          console.log(err)
+          this.message = `${err.status}: ${err.statusText}`
+        })
+    },
+  },
 }
 </script>
 
@@ -114,14 +90,14 @@ export default {
 }
 
 .login {
-    flex-grow: 1;
-    margin: 0 auto;
-    position: relative;
-    width: 600px;
+  flex-grow: 1;
+  margin: 0 auto;
+  position: relative;
+  width: 600px;
 }
 
 body {
-  background-image: url('~@/assets/background.jpg');
+  background-image: url('/src/assets/background.jpg');
   background-size: cover;
   min-width: 100%;
   background-repeat: no-repeat;

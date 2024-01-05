@@ -9,10 +9,10 @@ const store = new Vuex.Store({
     refresh: null,
     access: null,
     username: null,
-    isAdmin: false
+    isAdmin: false,
   },
   mutations: {
-    initialiseStore (state) {
+    initialiseStore(state) {
       if (localStorage.getItem('access')) {
         state.isLoggedIn = true
         state.access = localStorage.getItem('access')
@@ -21,7 +21,7 @@ const store = new Vuex.Store({
         state.isAdmin = localStorage.getItem('is_admin')
       }
     },
-    login (state, payload) {
+    login(state, payload) {
       state.isLoggedIn = true
       state.access = payload.access
       state.refresh = payload.refresh
@@ -31,19 +31,18 @@ const store = new Vuex.Store({
       localStorage.setItem('refresh', state.refresh)
       localStorage.setItem('username', state.username)
       localStorage.setItem('is_admin', state.isAdmin)
-      console.log('payload:', payload)
     },
-    refresh (state, payload) {
+    refresh(state, payload) {
       state.access = payload.access
     },
-    logout (state) {
+    logout(state) {
       state.isLoggedIn = false
       localStorage.removeItem('access')
       localStorage.removeItem('refresh')
       localStorage.removeItem('username')
       localStorage.removeItem('is_admin')
-    }
-  }
+    },
+  },
 })
 
 export default store

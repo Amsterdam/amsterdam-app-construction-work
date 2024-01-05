@@ -1,16 +1,9 @@
-FROM ubuntu:20.04 as build-phase1
-
-# Set TZ-data environment
-ENV TZ=Europa/Amsterdam
-
-# Install base utils
-RUN apt-get update \
- && DEBIAN_FRONTEND="noninteractive" TZ=$TZ apt-get -y install --no-install-recommends npm
+# Build vue website
+FROM node:20-alpine as build-phase1
 
 # Add source
 COPY vue_web_code /code/vue_web_code
 
-# Build vue webside
 RUN cd /code/vue_web_code \
  && npm install \
  && npm run build \
