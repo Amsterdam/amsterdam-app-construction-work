@@ -2,7 +2,8 @@
 """ Views for iprox project pages """
 from math import ceil
 
-from django.db.models import Max
+from django.db.models import DateTimeField, Max, Value
+from django.db.models.functions import Coalesce
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework.decorators import api_view
@@ -198,10 +199,17 @@ def _projects(request):
                 )
             device = device_serializer.save()
 
-        # Sort followed projects by project with most recent article
+        # Sort followed projects by project with most recent article,
+        # adding old date for projects without articles
         projects_followed_by_device_qs = (
             device.followed_projects.all()
-            .annotate(latest_publication_date=Max("article__publication_date"))
+            .annotate(
+                latest_publication_date=Coalesce(
+                    Max("article__publication_date"),
+                    Value("1970-01-01"),
+                    output_field=DateTimeField(),
+                )
+            )
             .order_by("-latest_publication_date")
         )
         projects_followed_by_device = list(projects_followed_by_device_qs)
@@ -226,16 +234,23 @@ def _projects(request):
             pk__in=projects_followed_by_device_qs
         )
 
+        # If lat and lon are known:
+        # Sort remaining projects by distance from given coordinates
         if _lat is not None and _lon is not None:
-            # Sort remaining projects by distance from given coordinates
             all_other_projects = sorted(
                 all_other_projects_qs,
                 key=lambda project: calculate_distance(project, _lat, _lon),
             )
+        # If lat and lon are not known:
+        # Sort projects by most recent article,
+        # adding old date for projects without articles
         else:
-            # Sort projects by project with most recent article
             all_other_projects_qs = all_other_projects_qs.annotate(
-                latest_publication_date=Max("article__publication_date")
+                latest_publication_date=Coalesce(
+                    Max("article__publication_date"),
+                    Value("1970-01-01"),
+                    output_field=DateTimeField(),
+                )
             ).order_by("-latest_publication_date")
             all_other_projects = list(all_other_projects_qs)
 
