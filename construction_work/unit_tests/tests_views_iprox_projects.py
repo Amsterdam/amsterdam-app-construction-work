@@ -165,9 +165,64 @@ class TestApiProjects(BaseTestApi):
             device_follows_projects=True
         )
 
-    def test_other_projects_sorted_descending_by_recent_article_date(self):
+    def test_not_followed_projects_sorted_descending_by_recent_article_date(self):
         """Test other projects sorted descending by recent article date"""
         self.assert_projects_sorted_descending_by_recent_article_date(
+            device_follows_projects=False
+        )
+
+    @freeze_time("2023-01-02")
+    def assert_project_without_articles_sorted_below_project_with_articles(
+        self, device_follows_projects: bool
+    ):
+        """Assert project without articles sorted below project with articles"""
+        # Create project with articles
+        project_1, _ = self.create_project_and_article(10, "2023-01-01T12:00:00+00:00")
+        self.add_article_to_project(project_1, 12, "2023-01-01T12:20:00+00:00")
+
+        # Create project without articles
+        project_data = self.data.projects[0]
+        project_data["foreign_id"] = 20
+        project_2 = Project.objects.create(**project_data)
+
+        # Create device and follow all projects (if requested)
+        device = Device.objects.create(**self.data.devices[0])
+        if device_follows_projects:
+            device.followed_projects.set([project_1, project_2])
+
+        # Perform request
+        self.headers["HTTP_DEVICEID"] = device.device_id
+        response = self.client.get(self.api_url, {"page_size": 4}, **self.headers)
+
+        # Expected project without articles on the bottom
+        expected_foreign_id_order = [
+            project_1.pk,
+            project_2.pk,
+        ]
+        response_foreign_id_order = [x["id"] for x in response.data["result"]]
+        self.assertEqual(response_foreign_id_order, expected_foreign_id_order)
+
+    def test_sort_followed_project_without_articles_below_project_with_articles(self):
+        """
+        Given a list of followed projects:
+        When articles are sorted by recent article date,
+        and there is a project without articles,
+        it should appear on the bottom of the list
+        """
+        self.assert_project_without_articles_sorted_below_project_with_articles(
+            device_follows_projects=True
+        )
+
+    def test_sort_not_followed_project_without_articles_below_project_with_articles(
+        self,
+    ):
+        """
+        Given a list of not followed projects:
+        When articles are sorted by recent article date,
+        and there is a project without articles,
+        it should appear on the bottom of the list
+        """
+        self.assert_project_without_articles_sorted_below_project_with_articles(
             device_follows_projects=False
         )
 
