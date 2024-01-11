@@ -1,4 +1,4 @@
--- Extention required for performing 'digest('foobar', 'sha256')'
+-- Extention required for performing "digest('foobar', 'sha256')"
 
 CREATE EXTENSION pgcrypto;
 
