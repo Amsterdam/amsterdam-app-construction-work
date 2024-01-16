@@ -1,12 +1,12 @@
 """ Send pushnotification """
 import firebase_admin
+from django.conf import settings
 from firebase_admin import credentials, messaging
 
 from construction_work.generic_functions.generic_logger import Logger
 from construction_work.generic_functions.static_data import (
     DEFAULT_NOTIFICATION_BATCH_SIZE,
 )
-from main_application.settings import BASE_DIR
 
 logger = Logger()
 
@@ -19,7 +19,7 @@ class NotificationService:
         self.batch_size = batch_size
         if not firebase_admin._apps:
             cred = credentials.Certificate(
-                "{base_dir}/fcm_credentials.json".format(base_dir=BASE_DIR)
+                "{base_dir}/fcm_credentials.json".format(base_dir=settings.BASE_DIR)
             )
             self.default_app = firebase_admin.initialize_app(cred)
         else:
