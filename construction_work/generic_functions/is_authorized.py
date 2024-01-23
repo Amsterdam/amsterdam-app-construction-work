@@ -14,6 +14,7 @@ import os
 from uuid import UUID
 
 import jwt
+from django.conf import settings
 from django.http import HttpRequest
 from django.http.response import HttpResponseForbidden
 from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError
@@ -21,7 +22,6 @@ from jwt.exceptions import ExpiredSignatureError, InvalidSignatureError
 from construction_work.generic_functions.aes_cipher import AESCipher, AESException
 from construction_work.generic_functions.generic_logger import Logger
 from construction_work.models.project_manager import ProjectManager
-from main_application.settings import SECRET_KEY
 
 logger = Logger()
 
@@ -156,7 +156,7 @@ class JWTAuthorized:
             return HttpResponseForbidden()
 
         try:
-            jwt.decode(jwt_auth_token, SECRET_KEY, algorithms=["HS256"])
+            jwt.decode(jwt_auth_token, settings.SECRET_KEY, algorithms=["HS256"])
         except (InvalidSignatureError, ExpiredSignatureError, Exception) as e:
             logger.error(e)
             return HttpResponseForbidden()
